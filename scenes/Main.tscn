@@ -1,10 +1,9 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/Game.cs" id="1_game"]
 [ext_resource type="Script" path="res://scripts/Map/WorldMapView.cs" id="2_map"]
 [ext_resource type="Script" path="res://scripts/Map/MapCamera.cs" id="3_cam"]
 [ext_resource type="Script" path="res://scripts/Dev/DevScreenshot.cs" id="4_shot"]
-[ext_resource type="Script" path="res://scripts/Map/ZoneLayer.cs" id="5_zone"]
 
 [node name="Game" type="Node2D"]
 script = ExtResource("1_game")
@@ -13,9 +12,6 @@ script = ExtResource("1_game")
 texture_filter = 1
 centered = false
 script = ExtResource("2_map")
-
-[node name="ZoneLayer" type="MultiMeshInstance2D" parent="."]
-script = ExtResource("5_zone")
 
 [node name="MapCamera" type="Camera2D" parent="."]
 script = ExtResource("3_cam")

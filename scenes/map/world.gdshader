@@ -7,6 +7,7 @@ render_mode unshaded;
 // изолинии уровня 0.5. См. docs/01-map.md.
 
 uniform sampler2D owner_tex : filter_nearest, repeat_disable;
+uniform sampler2D region_tex : filter_nearest, repeat_disable;
 uniform sampler2D palette_tex : filter_nearest, repeat_disable;
 uniform vec2 map_size = vec2(2048.0, 800.0);
 
@@ -27,6 +28,13 @@ uniform float coast_px = 2.6;
 uniform float shelf_px = 26.0;
 uniform float shadow_px = 5.0;
 uniform float shadow_alpha = 0.22;
+
+// Издалека тонкая линия рвётся и рябит: границы утолщаются по мере отдаления.
+uniform float far_border_scale = 2.2;
+uniform float far_coast_scale = 2.8;
+
+uniform float region_px = 1.1;
+uniform vec4 region_line_color : source_color = vec4(0.0, 0.0, 0.0, 0.22);
 
 uniform int hover_id = 0;
 
@@ -68,6 +76,12 @@ int owner_at(vec2 uv) {
 	return int(texture(owner_tex, clamp(uv, vec2(0.0), vec2(1.0))).r * 255.0 + 0.5);
 }
 
+// Номер региона разложен по двум каналам: 16 бит в один байт не влезают.
+int region_at(vec2 uv) {
+	vec2 t = texture(region_tex, clamp(uv, vec2(0.0), vec2(1.0))).rg;
+	return int(t.r * 255.0 + 0.5) + int(t.g * 255.0 + 0.5) * 256;
+}
+
 vec3 country_color(int id) {
 	return texture(palette_tex, vec2((float(id) + 0.5) / 256.0, 0.5)).rgb;
 }
@@ -101,8 +115,13 @@ void fragment() {
 	vec2 texel = 1.0 / map_size;
 	vec2 px = fwidth(UV);
 
+	// Сколько ячеек карты приходится на экранный пиксель: мера отдаления.
+	float cells_per_px = px.x * map_size.x;
+	float far = smoothstep(0.45, 1.5, cells_per_px);
+
+	// Вдали шум работает мельче пикселя и только рябит — там он не нужен.
 	vec2 w = vec2(fbm(UV * warp_scale), fbm(UV * warp_scale + 19.7)) - 0.5;
-	vec2 uv = UV + w * warp_amp * texel;
+	vec2 uv = UV + w * warp_amp * (1.0 - far * 0.8) * texel;
 
 	vec2 p = uv * map_size - 0.5;
 	vec2 cell = floor(p);
@@ -174,10 +193,29 @@ void fragment() {
 	float on_land = edge_fill(land);
 	vec3 col = mix(water, ground, on_land);
 
-	// Толстая тёмная обводка по берегу и белые границы внутри суши.
-	col = mix(col, coast_color.rgb, contour(land, coast_px));
+	// Условное деление суши на регионы: проступает только вблизи.
+	float regions = 1.0 - smoothstep(0.3, 0.85, cells_per_px);
+	if (regions > 0.003 && land > 0.5) {
+		int r00 = region_at(uv00);
+		int r10 = region_at(uv00 + vec2(texel.x, 0.0));
+		int r01 = region_at(uv00 + vec2(0.0, texel.y));
+		int r11 = region_at(uv00 + texel);
 
-	float width = hovered ? border_px * 1.7 : border_px;
+		float q00 = w00 + (r10 == r00 ? w10 : 0.0) + (r01 == r00 ? w01 : 0.0) + (r11 == r00 ? w11 : 0.0);
+		float q10 = w10 + (r00 == r10 ? w00 : 0.0) + (r01 == r10 ? w01 : 0.0) + (r11 == r10 ? w11 : 0.0);
+		float q01 = w01 + (r00 == r01 ? w00 : 0.0) + (r10 == r01 ? w10 : 0.0) + (r11 == r01 ? w11 : 0.0);
+		float q11 = w11 + (r00 == r11 ? w00 : 0.0) + (r10 == r11 ? w10 : 0.0) + (r01 == r11 ? w01 : 0.0);
+
+		float region_own = max(max(q00, q10), max(q01, q11));
+
+		col = mix(col, region_line_color.rgb,
+			contour(region_own, region_px) * regions * region_line_color.a * on_land);
+	}
+
+	// Толстая тёмная обводка по берегу и белые границы внутри суши.
+	col = mix(col, coast_color.rgb, contour(land, coast_px * mix(1.0, far_coast_scale, far)));
+
+	float width = border_px * mix(1.0, far_border_scale, far) * (hovered ? 1.7 : 1.0);
 	float political = contour(own, width) * on_land * step(0.5, land);
 	col = mix(col, hovered ? select_color.rgb : border_color.rgb, political);
 

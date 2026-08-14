@@ -6,6 +6,8 @@ using Godot;
 /// </summary>
 public partial class WorldMapView : Sprite2D
 {
+    private const int WorldSeed = 20260814;
+
     private const string MapPath = "res://data/map/world.bin";
     private const string CountriesPath = "res://data/map/countries.json";
     private const string PalettePath = "res://data/map/palette.json";
@@ -16,6 +18,7 @@ public partial class WorldMapView : Sprite2D
 
     public WorldMap Map { get; private set; } = null!;
     public CountryTable Countries { get; private set; } = null!;
+    public RegionMap Regions { get; private set; } = null!;
     public MapPalette Palette { get; private set; } = null!;
 
     public Vector2 MapSize => new(Map.Width, Map.Height);
@@ -33,10 +36,18 @@ public partial class WorldMapView : Sprite2D
         _ownerTex = ImageTexture.CreateFromImage(image);
         Texture = _ownerTex;
 
+        var started = Time.GetTicksMsec();
+        Regions = RegionMap.Build(Map, WorldSeed);
+
+        var regionImage = Image.CreateFromData(
+            Map.Width, Map.Height, false, Image.Format.Rg8, Regions.ToRg8()
+        );
+
         _material = new ShaderMaterial { Shader = GD.Load<Shader>("res://scenes/map/world.gdshader") };
         Material = _material;
 
         _material.SetShaderParameter("owner_tex", _ownerTex);
+        _material.SetShaderParameter("region_tex", ImageTexture.CreateFromImage(regionImage));
         _material.SetShaderParameter("palette_tex", BuildPaletteTexture());
         _material.SetShaderParameter("map_size", MapSize);
         _material.SetShaderParameter("ocean_color", Palette.Ocean);
@@ -46,7 +57,8 @@ public partial class WorldMapView : Sprite2D
         _material.SetShaderParameter("border_color", Palette.Border);
         _material.SetShaderParameter("select_color", Palette.Selected);
 
-        GD.Print($"map {Map.Width}x{Map.Height}, стран: {Countries.All.Count}");
+        GD.Print($"map {Map.Width}x{Map.Height}, стран: {Countries.All.Count}, "
+            + $"регионов: {Regions.Regions.Count} за {Time.GetTicksMsec() - started} мс");
     }
 
     /// <summary>Цвет каждой страны по её id: строка 256x1, индекс = id владельца.</summary>
