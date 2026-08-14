@@ -1,0 +1,17 @@
+<Project Sdk="Godot.NET.Sdk/4.7.0">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework Condition=" '$(GodotTargetPlatform)' == 'android' ">net9.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Godot-проект живёт в корне репо: ядро приходит только через ProjectReference,
+         иначе его исходники попадут в глоб дважды -->
+    <Compile Remove="src\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="src\CapitaModern.Core\CapitaModern.Core.csproj" />
+  </ItemGroup>
+</Project>
