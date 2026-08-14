@@ -7,7 +7,8 @@ using Godot;
 public partial class MapCamera : Camera2D
 {
     private const float ZoomStep = 1.18f;
-    private const float MaxZoom = 24f;
+    // Приближаться нужно вплоть до внутренностей промзоны, поэтому предел высокий.
+    private const float MaxZoom = 260f;
     private const float KeyPanSpeed = 900f;
     private const float Smoothing = 18f;
 

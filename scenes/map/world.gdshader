@@ -10,22 +10,23 @@ uniform sampler2D owner_tex : filter_nearest, repeat_disable;
 uniform sampler2D palette_tex : filter_nearest, repeat_disable;
 uniform vec2 map_size = vec2(2048.0, 800.0);
 
-uniform vec4 ocean_color : source_color = vec4(0.051, 0.094, 0.149, 1.0);
-uniform vec4 ocean_deep_color : source_color = vec4(0.027, 0.051, 0.082, 1.0);
-uniform vec4 ocean_shelf_color : source_color = vec4(0.110, 0.200, 0.282, 1.0);
-uniform vec4 coast_color : source_color = vec4(0.173, 0.267, 0.349, 1.0);
-uniform vec4 border_color : source_color = vec4(0.949, 0.925, 0.878, 1.0);
-uniform vec4 select_color : source_color = vec4(1.0, 0.851, 0.541, 1.0);
+uniform vec4 ocean_color : source_color = vec4(0.455, 0.761, 0.910, 1.0);
+uniform vec4 ocean_deep_color : source_color = vec4(0.310, 0.624, 0.820, 1.0);
+uniform vec4 ocean_shelf_color : source_color = vec4(0.663, 0.875, 0.961, 1.0);
+uniform vec4 coast_color : source_color = vec4(0.184, 0.392, 0.533, 1.0);
+uniform vec4 border_color : source_color = vec4(1.0, 1.0, 1.0, 1.0);
+uniform vec4 select_color : source_color = vec4(1.0, 0.945, 0.659, 1.0);
 
 // Крупная форма берётся из сетки, мелкие изгибы — отсюда. Шум привязан к карте,
 // поэтому граница ползёт по нему, а не он вместе с ней.
-uniform float warp_amp = 0.9;
+uniform float warp_amp = 0.75;
 uniform float warp_scale = 420.0;
 
-uniform float border_px = 1.6;
-uniform float coast_px = 1.4;
+uniform float border_px = 2.2;
+uniform float coast_px = 2.6;
 uniform float shelf_px = 26.0;
-uniform float border_alpha = 0.6;
+uniform float shadow_px = 5.0;
+uniform float shadow_alpha = 0.22;
 
 uniform int hover_id = 0;
 
@@ -71,6 +72,21 @@ vec3 country_color(int id) {
 	return texture(palette_tex, vec2((float(id) + 0.5) / 256.0, 0.5)).rgb;
 }
 
+// Непрерывная доля суши: билинейные веса четырёх ближайших ячеек.
+float land_mask(vec2 uv, vec2 texel) {
+	vec2 p = uv * map_size - 0.5;
+	vec2 cell = floor(p);
+	vec2 f = p - cell;
+	vec2 uv00 = (cell + 0.5) * texel;
+
+	float m = 0.0;
+	if (owner_at(uv00) != 0) m += (1.0 - f.x) * (1.0 - f.y);
+	if (owner_at(uv00 + vec2(texel.x, 0.0)) != 0) m += f.x * (1.0 - f.y);
+	if (owner_at(uv00 + vec2(0.0, texel.y)) != 0) m += (1.0 - f.x) * f.y;
+	if (owner_at(uv00 + texel) != 0) m += f.x * f.y;
+	return m;
+}
+
 // Изолиния 0.5 маски, антиалиасенная и постоянной экранной толщины.
 float contour(float mask, float width) {
 	float d = (mask - 0.5) / max(fwidth(mask), 1e-6);
@@ -83,12 +99,11 @@ float edge_fill(float mask) {
 
 void fragment() {
 	vec2 texel = 1.0 / map_size;
+	vec2 px = fwidth(UV);
 
 	vec2 w = vec2(fbm(UV * warp_scale), fbm(UV * warp_scale + 19.7)) - 0.5;
 	vec2 uv = UV + w * warp_amp * texel;
 
-	// Четыре ближайшие ячейки и их билинейные веса: из них собираются непрерывные
-	// маски, дающие границам субклеточную точность.
 	vec2 p = uv * map_size - 0.5;
 	vec2 cell = floor(p);
 	vec2 f = p - cell;
@@ -107,7 +122,7 @@ void fragment() {
 	float land = (i00 != 0 ? w00 : 0.0) + (i10 != 0 ? w10 : 0.0)
 		+ (i01 != 0 ? w01 : 0.0) + (i11 != 0 ? w11 : 0.0);
 
-	// Вес каждого кандидата — сумма весов всех ячеек с тем же владельцем.
+	// Вес кандидата — сумма весов всех ячеек с тем же владельцем.
 	float s00 = w00 + (i10 == i00 ? w10 : 0.0) + (i01 == i00 ? w01 : 0.0) + (i11 == i00 ? w11 : 0.0);
 	float s10 = w10 + (i00 == i10 ? w00 : 0.0) + (i01 == i10 ? w01 : 0.0) + (i11 == i10 ? w11 : 0.0);
 	float s01 = w01 + (i00 == i01 ? w00 : 0.0) + (i10 == i01 ? w10 : 0.0) + (i11 == i01 ? w11 : 0.0);
@@ -131,7 +146,7 @@ void fragment() {
 
 	float shelf = 0.0;
 	for (int i = 0; i < 8; i++) {
-		vec2 r = max(fwidth(UV), texel) * shelf_px;
+		vec2 r = max(px, texel) * shelf_px;
 		if (owner_at(uv + DIRS[i] * r * 0.45) != 0) {
 			shelf += 0.075;
 		}
@@ -141,25 +156,30 @@ void fragment() {
 	}
 
 	vec3 water = mix(ocean_color.rgb, ocean_shelf_color.rgb, smoothstep(0.0, 0.85, clamp(shelf, 0.0, 1.0)));
-	vec3 ground = country_color(land_id);
 
-	if (land_id != 0 && hover_id != 0) {
-		ground = mix(ground * 0.78, ground, land_id == hover_id ? 1.0 : 0.5);
-		if (land_id == hover_id) {
-			ground = mix(ground, select_color.rgb, 0.2);
-		}
+	// Суша отбрасывает тень на воду: карта читается как наклейка, а не как заливка.
+	float shadow = edge_fill(land_mask(uv - px * shadow_px * vec2(0.6, 0.8), texel));
+	water = mix(water, ocean_deep_color.rgb, shadow * shadow_alpha);
+
+	vec3 ground = country_color(land_id);
+	bool hovered = hover_id != 0 && land_id == hover_id;
+
+	// Подсветка только выбранной страны: затемнять остальные — значит мигать всей
+	// картой. Цвет не подмешивается, а высветляется: смесь с жёлтым даёт грязь.
+	if (hovered) {
+		ground = clamp(ground * 1.06 + 0.09, 0.0, 1.0);
 	}
 
 	// Берег — изолиния маски суши: гладкий на любом зуме, без лесенки из ячеек.
 	float on_land = edge_fill(land);
 	vec3 col = mix(water, ground, on_land);
 
-	col = mix(col, coast_color.rgb, contour(land, coast_px) * 0.55);
-	col = mix(col, ground * 0.6, contour(land, coast_px * 1.6) * 0.35 * on_land);
+	// Толстая тёмная обводка по берегу и белые границы внутри суши.
+	col = mix(col, coast_color.rgb, contour(land, coast_px));
 
-	// Политическая граница живёт только на суше и только между разными владельцами.
-	float political = contour(own, border_px) * on_land * step(0.5, land);
-	col = mix(col, border_color.rgb, political * border_alpha);
+	float width = hovered ? border_px * 1.7 : border_px;
+	float political = contour(own, width) * on_land * step(0.5, land);
+	col = mix(col, hovered ? select_color.rgb : border_color.rgb, political);
 
 	COLOR = vec4(col, 1.0);
 }

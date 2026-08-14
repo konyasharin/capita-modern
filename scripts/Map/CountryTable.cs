@@ -1,8 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace CapitaModern.Core.Map;
-
 public sealed record Country(
     int Id,
     string Name,

@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/Game.cs" id="1_game"]
 [ext_resource type="Script" path="res://scripts/Map/WorldMapView.cs" id="2_map"]
 [ext_resource type="Script" path="res://scripts/Map/MapCamera.cs" id="3_cam"]
 [ext_resource type="Script" path="res://scripts/Dev/DevScreenshot.cs" id="4_shot"]
+[ext_resource type="Script" path="res://scripts/Map/ZoneLayer.cs" id="5_zone"]
 
 [node name="Game" type="Node2D"]
 script = ExtResource("1_game")
@@ -12,6 +13,9 @@ script = ExtResource("1_game")
 texture_filter = 1
 centered = false
 script = ExtResource("2_map")
+
+[node name="ZoneLayer" type="MultiMeshInstance2D" parent="."]
+script = ExtResource("5_zone")
 
 [node name="MapCamera" type="Camera2D" parent="."]
 script = ExtResource("3_cam")
@@ -23,7 +27,9 @@ offset_left = 26.0
 offset_top = 20.0
 offset_right = 700.0
 offset_bottom = 54.0
-theme_override_colors/font_color = Color(0.949, 0.925, 0.878, 1)
+theme_override_colors/font_color = Color(0.114, 0.239, 0.325, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 0.75)
+theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 24
 
 [node name="Hint" type="Label" parent="Ui"]
@@ -35,7 +41,9 @@ offset_top = -46.0
 offset_right = 900.0
 offset_bottom = -20.0
 grow_vertical = 0
-theme_override_colors/font_color = Color(0.949, 0.925, 0.878, 0.45)
+theme_override_colors/font_color = Color(0.114, 0.239, 0.325, 0.7)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 0.6)
+theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 15
 text = "перетаскивание — мышь · зум — колесо · WASD"
 
