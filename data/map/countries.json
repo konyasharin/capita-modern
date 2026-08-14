@@ -1,0 +1,1607 @@
+{
+	"width": 2048,
+	"height": 800,
+	"source": "Natural Earth 1:50m admin-0 countries (public domain)",
+	"countries": [
+		{
+			"id": 1,
+			"name": "Afghanistan",
+			"iso": "AFG",
+			"continent": "Asia",
+			"color": 7,
+			"cells": 2028
+		},
+		{
+			"id": 2,
+			"name": "Albania",
+			"iso": "ALB",
+			"continent": "Europe",
+			"color": 1,
+			"cells": 99
+		},
+		{
+			"id": 3,
+			"name": "Algeria",
+			"iso": "DZA",
+			"continent": "Africa",
+			"color": 2,
+			"cells": 6912
+		},
+		{
+			"id": 4,
+			"name": "Andorra",
+			"iso": "AND",
+			"continent": "Europe",
+			"color": 2,
+			"cells": 2
+		},
+		{
+			"id": 5,
+			"name": "Angola",
+			"iso": "AGO",
+			"continent": "Africa",
+			"color": 3,
+			"cells": 3372
+		},
+		{
+			"id": 6,
+			"name": "Antigua and Barbuda",
+			"iso": "ATG",
+			"continent": "North America",
+			"color": 2,
+			"cells": 2
+		},
+		{
+			"id": 7,
+			"name": "Argentina",
+			"iso": "ARG",
+			"continent": "South America",
+			"color": 1,
+			"cells": 9016
+		},
+		{
+			"id": 8,
+			"name": "Armenia",
+			"iso": "ARM",
+			"continent": "Asia",
+			"color": 2,
+			"cells": 103
+		},
+		{
+			"id": 9,
+			"name": "Australia",
+			"iso": "AU1",
+			"continent": "Oceania",
+			"color": 3,
+			"cells": 22531
+		},
+		{
+			"id": 10,
+			"name": "Austria",
+			"iso": "AUT",
+			"continent": "Europe",
+			"color": 6,
+			"cells": 328
+		},
+		{
+			"id": 11,
+			"name": "Azerbaijan",
+			"iso": "AZE",
+			"continent": "Asia",
+			"color": 4,
+			"cells": 296
+		},
+		{
+			"id": 12,
+			"name": "Bahrain",
+			"iso": "BHR",
+			"continent": "Asia",
+			"color": 4,
+			"cells": 2
+		},
+		{
+			"id": 13,
+			"name": "Bangladesh",
+			"iso": "BGD",
+			"continent": "Asia",
+			"color": 4,
+			"cells": 382
+		},
+		{
+			"id": 14,
+			"name": "Barbados",
+			"iso": "BRB",
+			"continent": "North America",
+			"color": 5,
+			"cells": 1
+		},
+		{
+			"id": 15,
+			"name": "Belarus",
+			"iso": "BLR",
+			"continent": "Europe",
+			"color": 3,
+			"cells": 906
+		},
+		{
+			"id": 16,
+			"name": "Belgium",
+			"iso": "BEL",
+			"continent": "Europe",
+			"color": 6,
+			"cells": 130
+		},
+		{
+			"id": 17,
+			"name": "Belize",
+			"iso": "BLZ",
+			"continent": "North America",
+			"color": 6,
+			"cells": 61
+		},
+		{
+			"id": 18,
+			"name": "Benin",
+			"iso": "BEN",
+			"continent": "Africa",
+			"color": 5,
+			"cells": 311
+		},
+		{
+			"id": 19,
+			"name": "Bhutan",
+			"iso": "BTN",
+			"continent": "Asia",
+			"color": 7,
+			"cells": 115
+		},
+		{
+			"id": 20,
+			"name": "Bolivia",
+			"iso": "BOL",
+			"continent": "South America",
+			"color": 4,
+			"cells": 2982
+		},
+		{
+			"id": 21,
+			"name": "Bosnia and Herzegovina",
+			"iso": "BIH",
+			"continent": "Europe",
+			"color": 4,
+			"cells": 188
+		},
+		{
+			"id": 22,
+			"name": "Botswana",
+			"iso": "BWA",
+			"continent": "Africa",
+			"color": 7,
+			"cells": 1647
+		},
+		{
+			"id": 23,
+			"name": "Brazil",
+			"iso": "BRA",
+			"continent": "South America",
+			"color": 2,
+			"cells": 22878
+		},
+		{
+			"id": 24,
+			"name": "Brunei",
+			"iso": "BRN",
+			"continent": "Asia",
+			"color": 6,
+			"cells": 16
+		},
+		{
+			"id": 25,
+			"name": "Bulgaria",
+			"iso": "BGR",
+			"continent": "Europe",
+			"color": 6,
+			"cells": 405
+		},
+		{
+			"id": 26,
+			"name": "Burkina Faso",
+			"iso": "BFA",
+			"continent": "Africa",
+			"color": 2,
+			"cells": 732
+		},
+		{
+			"id": 27,
+			"name": "Burundi",
+			"iso": "BDI",
+			"continent": "Africa",
+			"color": 5,
+			"cells": 72
+		},
+		{
+			"id": 28,
+			"name": "Cabo Verde",
+			"iso": "CPV",
+			"continent": "Africa",
+			"color": 6,
+			"cells": 12
+		},
+		{
+			"id": 29,
+			"name": "Cambodia",
+			"iso": "KHM",
+			"continent": "Asia",
+			"color": 0,
+			"cells": 486
+		},
+		{
+			"id": 30,
+			"name": "Cameroon",
+			"iso": "CMR",
+			"continent": "Africa",
+			"color": 0,
+			"cells": 1232
+		},
+		{
+			"id": 31,
+			"name": "Canada",
+			"iso": "CAN",
+			"continent": "North America",
+			"color": 7,
+			"cells": 54561
+		},
+		{
+			"id": 32,
+			"name": "Central African Republic",
+			"iso": "CAF",
+			"continent": "Africa",
+			"color": 1,
+			"cells": 1642
+		},
+		{
+			"id": 33,
+			"name": "Chad",
+			"iso": "TCD",
+			"continent": "Africa",
+			"color": 3,
+			"cells": 3443
+		},
+		{
+			"id": 34,
+			"name": "Chile",
+			"iso": "CHL",
+			"continent": "South America",
+			"color": 6,
+			"cells": 2488
+		},
+		{
+			"id": 35,
+			"name": "China",
+			"iso": "CH1",
+			"continent": "Asia",
+			"color": 0,
+			"cells": 30777
+		},
+		{
+			"id": 36,
+			"name": "Colombia",
+			"iso": "COL",
+			"continent": "South America",
+			"color": 5,
+			"cells": 2987
+		},
+		{
+			"id": 37,
+			"name": "Comoros",
+			"iso": "COM",
+			"continent": "Africa",
+			"color": 7,
+			"cells": 3
+		},
+		{
+			"id": 38,
+			"name": "Costa Rica",
+			"iso": "CRI",
+			"continent": "North America",
+			"color": 5,
+			"cells": 140
+		},
+		{
+			"id": 39,
+			"name": "Croatia",
+			"iso": "HRV",
+			"continent": "Europe",
+			"color": 0,
+			"cells": 207
+		},
+		{
+			"id": 40,
+			"name": "Cuba",
+			"iso": "CU1",
+			"continent": "North America",
+			"color": 0,
+			"cells": 313
+		},
+		{
+			"id": 41,
+			"name": "Cyprus",
+			"iso": "CYP",
+			"continent": "Asia",
+			"color": 0,
+			"cells": 18
+		},
+		{
+			"id": 42,
+			"name": "Czechia",
+			"iso": "CZE",
+			"continent": "Europe",
+			"color": 0,
+			"cells": 312
+		},
+		{
+			"id": 43,
+			"name": "Democratic Republic of the Congo",
+			"iso": "COD",
+			"continent": "Africa",
+			"color": 4,
+			"cells": 6132
+		},
+		{
+			"id": 44,
+			"name": "Denmark",
+			"iso": "DN1",
+			"continent": "North America",
+			"color": 1,
+			"cells": 21716
+		},
+		{
+			"id": 45,
+			"name": "Djibouti",
+			"iso": "DJI",
+			"continent": "Africa",
+			"color": 7,
+			"cells": 56
+		},
+		{
+			"id": 46,
+			"name": "Dominica",
+			"iso": "DMA",
+			"continent": "North America",
+			"color": 1,
+			"cells": 2
+		},
+		{
+			"id": 47,
+			"name": "Dominican Republic",
+			"iso": "DOM",
+			"continent": "North America",
+			"color": 2,
+			"cells": 132
+		},
+		{
+			"id": 48,
+			"name": "East Timor",
+			"iso": "TLS",
+			"continent": "Asia",
+			"color": 3,
+			"cells": 41
+		},
+		{
+			"id": 49,
+			"name": "Ecuador",
+			"iso": "ECU",
+			"continent": "South America",
+			"color": 0,
+			"cells": 671
+		},
+		{
+			"id": 50,
+			"name": "Egypt",
+			"iso": "EGY",
+			"continent": "Africa",
+			"color": 0,
+			"cells": 2961
+		},
+		{
+			"id": 51,
+			"name": "El Salvador",
+			"iso": "SLV",
+			"continent": "North America",
+			"color": 2,
+			"cells": 58
+		},
+		{
+			"id": 52,
+			"name": "Equatorial Guinea",
+			"iso": "GNQ",
+			"continent": "Africa",
+			"color": 1,
+			"cells": 63
+		},
+		{
+			"id": 53,
+			"name": "Eritrea",
+			"iso": "ERI",
+			"continent": "Africa",
+			"color": 1,
+			"cells": 336
+		},
+		{
+			"id": 54,
+			"name": "Estonia",
+			"iso": "EST",
+			"continent": "Europe",
+			"color": 3,
+			"cells": 224
+		},
+		{
+			"id": 55,
+			"name": "eSwatini",
+			"iso": "SWZ",
+			"continent": "Africa",
+			"color": 4,
+			"cells": 50
+		},
+		{
+			"id": 56,
+			"name": "Ethiopia",
+			"iso": "ETH",
+			"continent": "Africa",
+			"color": 3,
+			"cells": 3006
+		},
+		{
+			"id": 57,
+			"name": "Federated States of Micronesia",
+			"iso": "FSM",
+			"continent": "Oceania",
+			"color": 2,
+			"cells": 1
+		},
+		{
+			"id": 58,
+			"name": "Fiji",
+			"iso": "FJI",
+			"continent": "Oceania",
+			"color": 3,
+			"cells": 49
+		},
+		{
+			"id": 59,
+			"name": "Finland",
+			"iso": "FI1",
+			"continent": "Europe",
+			"color": 2,
+			"cells": 2017
+		},
+		{
+			"id": 60,
+			"name": "France",
+			"iso": "FR1",
+			"continent": "Europe",
+			"color": 3,
+			"cells": 2410
+		},
+		{
+			"id": 61,
+			"name": "Gabon",
+			"iso": "GAB",
+			"continent": "Africa",
+			"color": 3,
+			"cells": 688
+		},
+		{
+			"id": 62,
+			"name": "Gambia",
+			"iso": "GMB",
+			"continent": "Africa",
+			"color": 4,
+			"cells": 23
+		},
+		{
+			"id": 63,
+			"name": "Georgia",
+			"iso": "GEO",
+			"continent": "Asia",
+			"color": 3,
+			"cells": 247
+		},
+		{
+			"id": 64,
+			"name": "Germany",
+			"iso": "DEU",
+			"continent": "Europe",
+			"color": 5,
+			"cells": 1489
+		},
+		{
+			"id": 65,
+			"name": "Ghana",
+			"iso": "GHA",
+			"continent": "Africa",
+			"color": 4,
+			"cells": 636
+		},
+		{
+			"id": 66,
+			"name": "Greece",
+			"iso": "GRC",
+			"continent": "Europe",
+			"color": 2,
+			"cells": 435
+		},
+		{
+			"id": 67,
+			"name": "Grenada",
+			"iso": "GRD",
+			"continent": "North America",
+			"color": 4,
+			"cells": 1
+		},
+		{
+			"id": 68,
+			"name": "Guatemala",
+			"iso": "GTM",
+			"continent": "North America",
+			"color": 1,
+			"cells": 296
+		},
+		{
+			"id": 69,
+			"name": "Guinea",
+			"iso": "GIN",
+			"continent": "Africa",
+			"color": 4,
+			"cells": 657
+		},
+		{
+			"id": 70,
+			"name": "Guinea-Bissau",
+			"iso": "GNB",
+			"continent": "Africa",
+			"color": 5,
+			"cells": 89
+		},
+		{
+			"id": 71,
+			"name": "Guyana",
+			"iso": "GUY",
+			"continent": "South America",
+			"color": 5,
+			"cells": 549
+		},
+		{
+			"id": 72,
+			"name": "Haiti",
+			"iso": "HTI",
+			"continent": "North America",
+			"color": 5,
+			"cells": 70
+		},
+		{
+			"id": 73,
+			"name": "Honduras",
+			"iso": "HND",
+			"continent": "North America",
+			"color": 6,
+			"cells": 307
+		},
+		{
+			"id": 74,
+			"name": "Hungary",
+			"iso": "HUN",
+			"continent": "Europe",
+			"color": 4,
+			"cells": 354
+		},
+		{
+			"id": 75,
+			"name": "Iceland",
+			"iso": "ISL",
+			"continent": "Europe",
+			"color": 5,
+			"cells": 630
+		},
+		{
+			"id": 76,
+			"name": "India",
+			"iso": "IND",
+			"continent": "Asia",
+			"color": 5,
+			"cells": 9007
+		},
+		{
+			"id": 77,
+			"name": "Indonesia",
+			"iso": "IDN",
+			"continent": "Asia",
+			"color": 7,
+			"cells": 4920
+		},
+		{
+			"id": 78,
+			"name": "Iran",
+			"iso": "IRN",
+			"continent": "Asia",
+			"color": 6,
+			"cells": 5048
+		},
+		{
+			"id": 79,
+			"name": "Iraq",
+			"iso": "IRQ",
+			"continent": "Asia",
+			"color": 7,
+			"cells": 1369
+		},
+		{
+			"id": 80,
+			"name": "Ireland",
+			"iso": "IRL",
+			"continent": "Europe",
+			"color": 6,
+			"cells": 301
+		},
+		{
+			"id": 81,
+			"name": "Israel",
+			"iso": "IS1",
+			"continent": "Asia",
+			"color": 4,
+			"cells": 86
+		},
+		{
+			"id": 82,
+			"name": "Italy",
+			"iso": "ITA",
+			"continent": "Europe",
+			"color": 7,
+			"cells": 1075
+		},
+		{
+			"id": 83,
+			"name": "Ivory Coast",
+			"iso": "CIV",
+			"continent": "Africa",
+			"color": 7,
+			"cells": 846
+		},
+		{
+			"id": 84,
+			"name": "Jamaica",
+			"iso": "JAM",
+			"continent": "North America",
+			"color": 6,
+			"cells": 28
+		},
+		{
+			"id": 85,
+			"name": "Japan",
+			"iso": "JPN",
+			"continent": "Asia",
+			"color": 7,
+			"cells": 1218
+		},
+		{
+			"id": 86,
+			"name": "Jordan",
+			"iso": "JOR",
+			"continent": "Asia",
+			"color": 5,
+			"cells": 273
+		},
+		{
+			"id": 87,
+			"name": "Kashmir",
+			"iso": "KAS",
+			"continent": "Asia",
+			"color": 2,
+			"cells": 7
+		},
+		{
+			"id": 88,
+			"name": "Kazakhstan",
+			"iso": "KA1",
+			"continent": "Asia",
+			"color": 2,
+			"cells": 10650
+		},
+		{
+			"id": 89,
+			"name": "Kenya",
+			"iso": "KEN",
+			"continent": "Africa",
+			"color": 1,
+			"cells": 1550
+		},
+		{
+			"id": 90,
+			"name": "Kiribati",
+			"iso": "KIR",
+			"continent": "Oceania",
+			"color": 0,
+			"cells": 4
+		},
+		{
+			"id": 91,
+			"name": "Kosovo",
+			"iso": "KOS",
+			"continent": "Europe",
+			"color": 6,
+			"cells": 40
+		},
+		{
+			"id": 92,
+			"name": "Kuwait",
+			"iso": "KWT",
+			"continent": "Asia",
+			"color": 6,
+			"cells": 54
+		},
+		{
+			"id": 93,
+			"name": "Kyrgyzstan",
+			"iso": "KGZ",
+			"continent": "Asia",
+			"color": 7,
+			"cells": 691
+		},
+		{
+			"id": 94,
+			"name": "Laos",
+			"iso": "LAO",
+			"continent": "Asia",
+			"color": 3,
+			"cells": 637
+		},
+		{
+			"id": 95,
+			"name": "Latvia",
+			"iso": "LVA",
+			"continent": "Europe",
+			"color": 0,
+			"cells": 305
+		},
+		{
+			"id": 96,
+			"name": "Lebanon",
+			"iso": "LBN",
+			"continent": "Asia",
+			"color": 7,
+			"cells": 33
+		},
+		{
+			"id": 97,
+			"name": "Lesotho",
+			"iso": "LSO",
+			"continent": "Africa",
+			"color": 7,
+			"cells": 90
+		},
+		{
+			"id": 98,
+			"name": "Liberia",
+			"iso": "LBR",
+			"continent": "Africa",
+			"color": 0,
+			"cells": 254
+		},
+		{
+			"id": 99,
+			"name": "Libya",
+			"iso": "LBY",
+			"continent": "Africa",
+			"color": 5,
+			"cells": 4783
+		},
+		{
+			"id": 100,
+			"name": "Liechtenstein",
+			"iso": "LIE",
+			"continent": "Europe",
+			"color": 0,
+			"cells": 1
+		},
+		{
+			"id": 101,
+			"name": "Lithuania",
+			"iso": "LTU",
+			"continent": "Europe",
+			"color": 4,
+			"cells": 296
+		},
+		{
+			"id": 102,
+			"name": "Luxembourg",
+			"iso": "LUX",
+			"continent": "Europe",
+			"color": 1,
+			"cells": 10
+		},
+		{
+			"id": 103,
+			"name": "Madagascar",
+			"iso": "MDG",
+			"continent": "Africa",
+			"color": 1,
+			"cells": 1655
+		},
+		{
+			"id": 104,
+			"name": "Malawi",
+			"iso": "MWI",
+			"continent": "Africa",
+			"color": 3,
+			"cells": 324
+		},
+		{
+			"id": 105,
+			"name": "Malaysia",
+			"iso": "MYS",
+			"continent": "Asia",
+			"color": 4,
+			"cells": 858
+		},
+		{
+			"id": 106,
+			"name": "Maldives",
+			"iso": "MDV",
+			"continent": "Seven seas (open ocean)",
+			"color": 2,
+			"cells": 1
+		},
+		{
+			"id": 107,
+			"name": "Mali",
+			"iso": "MLI",
+			"continent": "Africa",
+			"color": 0,
+			"cells": 3443
+		},
+		{
+			"id": 108,
+			"name": "Malta",
+			"iso": "MLT",
+			"continent": "Europe",
+			"color": 3,
+			"cells": 1
+		},
+		{
+			"id": 109,
+			"name": "Marshall Islands",
+			"iso": "MHL",
+			"continent": "Oceania",
+			"color": 4,
+			"cells": 1
+		},
+		{
+			"id": 110,
+			"name": "Mauritania",
+			"iso": "MRT",
+			"continent": "Africa",
+			"color": 4,
+			"cells": 2889
+		},
+		{
+			"id": 111,
+			"name": "Mauritius",
+			"iso": "MUS",
+			"continent": "Seven seas (open ocean)",
+			"color": 5,
+			"cells": 7
+		},
+		{
+			"id": 112,
+			"name": "Mexico",
+			"iso": "MEX",
+			"continent": "North America",
+			"color": 5,
+			"cells": 5645
+		},
+		{
+			"id": 113,
+			"name": "Moldova",
+			"iso": "MDA",
+			"continent": "Europe",
+			"color": 1,
+			"cells": 128
+		},
+		{
+			"id": 114,
+			"name": "Monaco",
+			"iso": "MCO",
+			"continent": "Europe",
+			"color": 0,
+			"cells": 1
+		},
+		{
+			"id": 115,
+			"name": "Mongolia",
+			"iso": "MNG",
+			"continent": "Asia",
+			"color": 2,
+			"cells": 5978
+		},
+		{
+			"id": 116,
+			"name": "Montenegro",
+			"iso": "MNE",
+			"continent": "Europe",
+			"color": 2,
+			"cells": 49
+		},
+		{
+			"id": 117,
+			"name": "Morocco",
+			"iso": "MAR",
+			"continent": "Africa",
+			"color": 6,
+			"cells": 1764
+		},
+		{
+			"id": 118,
+			"name": "Mozambique",
+			"iso": "MOZ",
+			"continent": "Africa",
+			"color": 6,
+			"cells": 2166
+		},
+		{
+			"id": 119,
+			"name": "Myanmar",
+			"iso": "MMR",
+			"continent": "Asia",
+			"color": 6,
+			"cells": 1874
+		},
+		{
+			"id": 120,
+			"name": "Namibia",
+			"iso": "NAM",
+			"continent": "Africa",
+			"color": 5,
+			"cells": 2331
+		},
+		{
+			"id": 121,
+			"name": "Nauru",
+			"iso": "NRU",
+			"continent": "Oceania",
+			"color": 6,
+			"cells": 1
+		},
+		{
+			"id": 122,
+			"name": "Nepal",
+			"iso": "NPL",
+			"continent": "Asia",
+			"color": 3,
+			"cells": 441
+		},
+		{
+			"id": 123,
+			"name": "Netherlands",
+			"iso": "NL1",
+			"continent": "Europe",
+			"color": 4,
+			"cells": 155
+		},
+		{
+			"id": 124,
+			"name": "New Zealand",
+			"iso": "NZ1",
+			"continent": "Oceania",
+			"color": 7,
+			"cells": 938
+		},
+		{
+			"id": 125,
+			"name": "Nicaragua",
+			"iso": "NIC",
+			"continent": "North America",
+			"color": 7,
+			"cells": 346
+		},
+		{
+			"id": 126,
+			"name": "Niger",
+			"iso": "NER",
+			"continent": "Africa",
+			"color": 1,
+			"cells": 3254
+		},
+		{
+			"id": 127,
+			"name": "Nigeria",
+			"iso": "NGA",
+			"continent": "Africa",
+			"color": 6,
+			"cells": 2415
+		},
+		{
+			"id": 128,
+			"name": "North Korea",
+			"iso": "PRK",
+			"continent": "Asia",
+			"color": 7,
+			"cells": 419
+		},
+		{
+			"id": 129,
+			"name": "North Macedonia",
+			"iso": "MKD",
+			"continent": "Europe",
+			"color": 5,
+			"cells": 87
+		},
+		{
+			"id": 130,
+			"name": "Northern Cyprus",
+			"iso": "CYN",
+			"continent": "Asia",
+			"color": 1,
+			"cells": 11
+		},
+		{
+			"id": 131,
+			"name": "Norway",
+			"iso": "NOR",
+			"continent": "Europe",
+			"color": 0,
+			"cells": 2767
+		},
+		{
+			"id": 132,
+			"name": "Oman",
+			"iso": "OMN",
+			"continent": "Asia",
+			"color": 1,
+			"cells": 871
+		},
+		{
+			"id": 133,
+			"name": "Pakistan",
+			"iso": "PAK",
+			"continent": "Asia",
+			"color": 1,
+			"cells": 2644
+		},
+		{
+			"id": 134,
+			"name": "Palau",
+			"iso": "PLW",
+			"continent": "Oceania",
+			"color": 0,
+			"cells": 1
+		},
+		{
+			"id": 135,
+			"name": "Panama",
+			"iso": "PAN",
+			"continent": "North America",
+			"color": 6,
+			"cells": 193
+		},
+		{
+			"id": 136,
+			"name": "Papua New Guinea",
+			"iso": "PNG",
+			"continent": "Oceania",
+			"color": 2,
+			"cells": 1218
+		},
+		{
+			"id": 137,
+			"name": "Paraguay",
+			"iso": "PRY",
+			"continent": "South America",
+			"color": 3,
+			"cells": 1136
+		},
+		{
+			"id": 138,
+			"name": "Peru",
+			"iso": "PER",
+			"continent": "South America",
+			"color": 7,
+			"cells": 3449
+		},
+		{
+			"id": 139,
+			"name": "Philippines",
+			"iso": "PHL",
+			"continent": "Asia",
+			"color": 1,
+			"cells": 773
+		},
+		{
+			"id": 140,
+			"name": "Poland",
+			"iso": "POL",
+			"continent": "Europe",
+			"color": 2,
+			"cells": 1338
+		},
+		{
+			"id": 141,
+			"name": "Portugal",
+			"iso": "PRT",
+			"continent": "Europe",
+			"color": 3,
+			"cells": 306
+		},
+		{
+			"id": 142,
+			"name": "Qatar",
+			"iso": "QAT",
+			"continent": "Asia",
+			"color": 4,
+			"cells": 32
+		},
+		{
+			"id": 143,
+			"name": "Republic of Serbia",
+			"iso": "SRB",
+			"continent": "Europe",
+			"color": 7,
+			"cells": 283
+		},
+		{
+			"id": 144,
+			"name": "Republic of the Congo",
+			"iso": "COG",
+			"continent": "Africa",
+			"color": 2,
+			"cells": 901
+		},
+		{
+			"id": 145,
+			"name": "Romania",
+			"iso": "ROU",
+			"continent": "Europe",
+			"color": 0,
+			"cells": 887
+		},
+		{
+			"id": 146,
+			"name": "Russia",
+			"iso": "RUS",
+			"continent": "Europe",
+			"color": 1,
+			"cells": 94743
+		},
+		{
+			"id": 147,
+			"name": "Rwanda",
+			"iso": "RWA",
+			"continent": "Africa",
+			"color": 1,
+			"cells": 66
+		},
+		{
+			"id": 148,
+			"name": "Saint Kitts and Nevis",
+			"iso": "KNA",
+			"continent": "North America",
+			"color": 2,
+			"cells": 1
+		},
+		{
+			"id": 149,
+			"name": "Saint Lucia",
+			"iso": "LCA",
+			"continent": "North America",
+			"color": 3,
+			"cells": 1
+		},
+		{
+			"id": 150,
+			"name": "Saint Vincent and the Grenadines",
+			"iso": "VCT",
+			"continent": "North America",
+			"color": 4,
+			"cells": 1
+		},
+		{
+			"id": 151,
+			"name": "Samoa",
+			"iso": "WSM",
+			"continent": "Oceania",
+			"color": 5,
+			"cells": 7
+		},
+		{
+			"id": 152,
+			"name": "San Marino",
+			"iso": "SMR",
+			"continent": "Europe",
+			"color": 5,
+			"cells": 1
+		},
+		{
+			"id": 153,
+			"name": "São Tomé and Principe",
+			"iso": "STP",
+			"continent": "Africa",
+			"color": 6,
+			"cells": 1
+		},
+		{
+			"id": 154,
+			"name": "Saudi Arabia",
+			"iso": "SAU",
+			"continent": "Asia",
+			"color": 3,
+			"cells": 5535
+		},
+		{
+			"id": 155,
+			"name": "Senegal",
+			"iso": "SEN",
+			"continent": "Africa",
+			"color": 3,
+			"cells": 540
+		},
+		{
+			"id": 156,
+			"name": "Seychelles",
+			"iso": "SYC",
+			"continent": "Seven seas (open ocean)",
+			"color": 7,
+			"cells": 1
+		},
+		{
+			"id": 157,
+			"name": "Sierra Leone",
+			"iso": "SLE",
+			"continent": "Africa",
+			"color": 5,
+			"cells": 190
+		},
+		{
+			"id": 158,
+			"name": "Singapore",
+			"iso": "SGP",
+			"continent": "Asia",
+			"color": 0,
+			"cells": 1
+		},
+		{
+			"id": 159,
+			"name": "Slovakia",
+			"iso": "SVK",
+			"continent": "Europe",
+			"color": 5,
+			"cells": 196
+		},
+		{
+			"id": 160,
+			"name": "Slovenia",
+			"iso": "SVN",
+			"continent": "Europe",
+			"color": 3,
+			"cells": 73
+		},
+		{
+			"id": 161,
+			"name": "Solomon Islands",
+			"iso": "SLB",
+			"continent": "Oceania",
+			"color": 1,
+			"cells": 70
+		},
+		{
+			"id": 162,
+			"name": "Somalia",
+			"iso": "SOM",
+			"continent": "Africa",
+			"color": 2,
+			"cells": 1244
+		},
+		{
+			"id": 163,
+			"name": "Somaliland",
+			"iso": "SOL",
+			"continent": "Africa",
+			"color": 4,
+			"cells": 439
+		},
+		{
+			"id": 164,
+			"name": "South Africa",
+			"iso": "ZAF",
+			"continent": "Africa",
+			"color": 0,
+			"cells": 3651
+		},
+		{
+			"id": 165,
+			"name": "South Korea",
+			"iso": "KOR",
+			"continent": "Asia",
+			"color": 6,
+			"cells": 315
+		},
+		{
+			"id": 166,
+			"name": "South Sudan",
+			"iso": "SDS",
+			"continent": "Africa",
+			"color": 2,
+			"cells": 1655
+		},
+		{
+			"id": 167,
+			"name": "Spain",
+			"iso": "ESP",
+			"continent": "Europe",
+			"color": 5,
+			"cells": 1732
+		},
+		{
+			"id": 168,
+			"name": "Sri Lanka",
+			"iso": "LKA",
+			"continent": "Asia",
+			"color": 2,
+			"cells": 175
+		},
+		{
+			"id": 169,
+			"name": "Sudan",
+			"iso": "SDN",
+			"continent": "Africa",
+			"color": 4,
+			"cells": 5083
+		},
+		{
+			"id": 170,
+			"name": "Suriname",
+			"iso": "SUR",
+			"continent": "South America",
+			"color": 6,
+			"cells": 384
+		},
+		{
+			"id": 171,
+			"name": "Sweden",
+			"iso": "SWE",
+			"continent": "Europe",
+			"color": 1,
+			"cells": 2541
+		},
+		{
+			"id": 172,
+			"name": "Switzerland",
+			"iso": "CHE",
+			"continent": "Europe",
+			"color": 4,
+			"cells": 155
+		},
+		{
+			"id": 173,
+			"name": "Syria",
+			"iso": "SYR",
+			"continent": "Asia",
+			"color": 6,
+			"cells": 595
+		},
+		{
+			"id": 174,
+			"name": "Taiwan",
+			"iso": "TWN",
+			"continent": "Asia",
+			"color": 7,
+			"cells": 106
+		},
+		{
+			"id": 175,
+			"name": "Tajikistan",
+			"iso": "TJK",
+			"continent": "Asia",
+			"color": 1,
+			"cells": 476
+		},
+		{
+			"id": 176,
+			"name": "Thailand",
+			"iso": "THA",
+			"continent": "Asia",
+			"color": 7,
+			"cells": 1396
+		},
+		{
+			"id": 177,
+			"name": "The Bahamas",
+			"iso": "BHS",
+			"continent": "North America",
+			"color": 3,
+			"cells": 37
+		},
+		{
+			"id": 178,
+			"name": "Togo",
+			"iso": "TGO",
+			"continent": "Africa",
+			"color": 7,
+			"cells": 150
+		},
+		{
+			"id": 179,
+			"name": "Tonga",
+			"iso": "TON",
+			"continent": "Oceania",
+			"color": 4,
+			"cells": 1
+		},
+		{
+			"id": 180,
+			"name": "Trinidad and Tobago",
+			"iso": "TTO",
+			"continent": "North America",
+			"color": 5,
+			"cells": 16
+		},
+		{
+			"id": 181,
+			"name": "Tunisia",
+			"iso": "TUN",
+			"continent": "Africa",
+			"color": 0,
+			"cells": 493
+		},
+		{
+			"id": 182,
+			"name": "Turkey",
+			"iso": "TUR",
+			"continent": "Asia",
+			"color": 5,
+			"cells": 2630
+		},
+		{
+			"id": 183,
+			"name": "Turkmenistan",
+			"iso": "TKM",
+			"continent": "Asia",
+			"color": 3,
+			"cells": 1588
+		},
+		{
+			"id": 184,
+			"name": "Tuvalu",
+			"iso": "TUV",
+			"continent": "Oceania",
+			"color": 6,
+			"cells": 1
+		},
+		{
+			"id": 185,
+			"name": "Uganda",
+			"iso": "UGA",
+			"continent": "Africa",
+			"color": 7,
+			"cells": 644
+		},
+		{
+			"id": 186,
+			"name": "Ukraine",
+			"iso": "UKR",
+			"continent": "Europe",
+			"color": 6,
+			"cells": 2290
+		},
+		{
+			"id": 187,
+			"name": "United Arab Emirates",
+			"iso": "ARE",
+			"continent": "Asia",
+			"color": 2,
+			"cells": 208
+		},
+		{
+			"id": 188,
+			"name": "United Kingdom",
+			"iso": "GB1",
+			"continent": "Seven seas (open ocean)",
+			"color": 0,
+			"cells": 1125
+		},
+		{
+			"id": 189,
+			"name": "United Republic of Tanzania",
+			"iso": "TZA",
+			"continent": "Africa",
+			"color": 0,
+			"cells": 2488
+		},
+		{
+			"id": 190,
+			"name": "United States of America",
+			"iso": "US1",
+			"continent": "Oceania",
+			"color": 3,
+			"cells": 36146
+		},
+		{
+			"id": 191,
+			"name": "Uruguay",
+			"iso": "URY",
+			"continent": "South America",
+			"color": 4,
+			"cells": 550
+		},
+		{
+			"id": 192,
+			"name": "Uzbekistan",
+			"iso": "UZB",
+			"continent": "Asia",
+			"color": 0,
+			"cells": 1571
+		},
+		{
+			"id": 193,
+			"name": "Vanuatu",
+			"iso": "VUT",
+			"continent": "Oceania",
+			"color": 7,
+			"cells": 31
+		},
+		{
+			"id": 194,
+			"name": "Vatican",
+			"iso": "VAT",
+			"continent": "Europe",
+			"color": 1,
+			"cells": 1
+		},
+		{
+			"id": 195,
+			"name": "Venezuela",
+			"iso": "VEN",
+			"continent": "South America",
+			"color": 0,
+			"cells": 2428
+		},
+		{
+			"id": 196,
+			"name": "Vietnam",
+			"iso": "VNM",
+			"continent": "Asia",
+			"color": 1,
+			"cells": 902
+		},
+		{
+			"id": 197,
+			"name": "Western Sahara",
+			"iso": "SAH",
+			"continent": "Africa",
+			"color": 3,
+			"cells": 277
+		},
+		{
+			"id": 198,
+			"name": "Yemen",
+			"iso": "YEM",
+			"continent": "Asia",
+			"color": 5,
+			"cells": 1240
+		},
+		{
+			"id": 199,
+			"name": "Zambia",
+			"iso": "ZMB",
+			"continent": "Africa",
+			"color": 1,
+			"cells": 2026
+		},
+		{
+			"id": 200,
+			"name": "Zimbabwe",
+			"iso": "ZWE",
+			"continent": "Africa",
+			"color": 2,
+			"cells": 1084
+		}
+	]
+}

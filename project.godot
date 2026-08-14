@@ -34,6 +34,7 @@ project/assembly_name="CapitaModern"
 
 [rendering]
 
+environment/defaults/default_clear_color=Color(0.031, 0.055, 0.086, 1)
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"

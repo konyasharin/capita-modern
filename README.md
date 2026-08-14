@@ -13,6 +13,7 @@
 - [`04-fx.md`](./docs/04-fx.md) — события на карте и визуальные эффекты
 - [`05-architecture.md`](./docs/05-architecture.md) — проекты, тик, данные, сейвы
 - [`06-roadmap.md`](./docs/06-roadmap.md) — фазы и нерешённые вопросы
+- [`07-economy.md`](./docs/07-economy.md) — категории товаров, кто строит предприятия
 
 ## Стек
 
@@ -20,8 +21,20 @@ Godot 4.7 (.NET) + C#, рендерер GL Compatibility, .NET 8.
 
 ```
 CapitaModern.csproj        Godot-проект (вид)
+scenes/, scripts/          сцены, шейдеры, ноды
 src/CapitaModern.Core/     ядро симуляции, чистый C# без Godot
 src/CapitaModern.Headless/ консольный прогон симуляции
+data/map/                  поле владения, справочник стран, палитра
+tools/gen-world.mjs        генератор карты из Natural Earth
+```
+
+## Карта
+
+`data/map/world.bin` уже сгенерирован и лежит в репозитории. Пересобрать (нужен
+[ne_50m_admin_0_countries.geojson](https://github.com/nvkelso/natural-earth-vector)):
+
+```bash
+node tools/gen-world.mjs <путь-к-geojson> --preview preview.png
 ```
 
 ## Запуск
