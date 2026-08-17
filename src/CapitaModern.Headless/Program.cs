@@ -1,2 +1,7 @@
-// Консольный прогон симуляции. Ядро (CapitaModern.Core) пока пустое.
-Console.WriteLine("CapitaModern.Headless: ядро пустое, симулировать нечего");
+using CapitaModern.Core.Buildings;
+using CapitaModern.Core.Loading;
+
+string json = File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "economy", "buildings.json"));
+
+var catalog = BuildingCatalog.FromJson(json);
+Console.WriteLine(catalog[BuildingType.OilMiner].OptimalWorkers);

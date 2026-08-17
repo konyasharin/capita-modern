@@ -1,0 +1,14 @@
+[
+	{
+		"type": "OilMiner",
+		"inputs": {},
+		"outputs": { "Oil": 10 },
+		"optimalWorkers": 120
+	},
+	{
+		"type": "WoodCutter",
+		"inputs": {},
+		"outputs": { "Wood": 14 },
+		"optimalWorkers": 60
+	}
+]
