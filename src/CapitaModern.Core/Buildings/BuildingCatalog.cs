@@ -2,32 +2,11 @@
 
 namespace CapitaModern.Core.Buildings;
 
-public sealed class BuildingCatalog
+public sealed class BuildingCatalog(IEnumerable<BuildingInfo> infos)
+    : Catalog<BuildingInfo>(infos, info => (int)info.Type, Enum.GetValues<BuildingType>().Length)
 {
-    private readonly BuildingInfo[] _byType;
-
-    public BuildingCatalog(IEnumerable<BuildingInfo> infos)
-    {
-        _byType = new BuildingInfo[Enum.GetValues<BuildingType>().Length];
-
-        foreach (var info in infos)
-        {
-            int index = (int)info.Type;
-
-            if (_byType[index] is not null)
-                throw new InvalidDataException($"{info.Type} был указан дважды");
-
-            _byType[index] = info;
-        }
-
-        foreach (var type in Enum.GetValues<BuildingType>())
-        {
-            if (_byType[(int)type] is null)
-                throw new InvalidDataException($"{type} не был указан");
-        }
-    }
-
+    // Статические методы не наследуются, поэтому FromJson пишется в каждом каталоге.
     public static BuildingCatalog FromJson(string json) => new(JsonReader.Read<BuildingInfo>(json));
 
-    public BuildingInfo this[BuildingType type] => _byType[(int)type];
+    public BuildingInfo this[BuildingType type] => Get((int)type);
 }
