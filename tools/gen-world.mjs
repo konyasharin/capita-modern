@@ -51,10 +51,16 @@ for (const f of geo.features) {
 			continent: p.CONTINENT,
 			labelX: p.LABEL_X,
 			labelY: p.LABEL_Y,
+			// Суммируем по всем фичам суверенитета: заморские территории тоже населены.
+			population: 0,
+			gdp: 0,
 			polygons: [],
 		}
 		countries.set(name, c)
 	}
+
+	c.population += p.POP_EST || 0
+	c.gdp += p.GDP_MD || 0
 
 	// Метрополия задаёт нормальный трёхбуквенный код для всей страны.
 	if (p.HOMEPART === 1 && p.ADM0_A3 && !/\d/.test(p.ADM0_A3)) c.iso = p.ADM0_A3
@@ -213,6 +219,8 @@ const meta = {
 			continent: c.continent,
 			color: color.get(c.id),
 			cells: area[c.id],
+			population: c.population,
+			gdp: c.gdp,
 		})),
 }
 fs.writeFileSync(path.join(outDir, 'countries.json'), JSON.stringify(meta, null, '\t'))

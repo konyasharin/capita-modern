@@ -251,7 +251,7 @@
 			"amount": 550
 		},
 		{
-			"good": "Iron",
+			"good": "IronOre",
 			"name": "Карaжас",
 			"country": "BRA",
 			"lon": -50.16,
@@ -259,7 +259,7 @@
 			"amount": 900
 		},
 		{
-			"good": "Iron",
+			"good": "IronOre",
 			"name": "Железный четырёхугольник",
 			"country": "BRA",
 			"lon": -43.8,
@@ -267,7 +267,7 @@
 			"amount": 700
 		},
 		{
-			"good": "Iron",
+			"good": "IronOre",
 			"name": "Хамерсли",
 			"country": "AUS",
 			"lon": 118.6,
@@ -275,7 +275,7 @@
 			"amount": 1000
 		},
 		{
-			"good": "Iron",
+			"good": "IronOre",
 			"name": "Курская магнитная аномалия",
 			"country": "RUS",
 			"lon": 37.6,
@@ -283,7 +283,7 @@
 			"amount": 700
 		},
 		{
-			"good": "Iron",
+			"good": "IronOre",
 			"name": "Кируна",
 			"country": "SWE",
 			"lon": 20.22,
@@ -291,7 +291,7 @@
 			"amount": 400
 		},
 		{
-			"good": "Iron",
+			"good": "IronOre",
 			"name": "Месаби",
 			"country": "USA",
 			"lon": -92.8,
@@ -299,7 +299,7 @@
 			"amount": 450
 		},
 		{
-			"good": "Iron",
+			"good": "IronOre",
 			"name": "Зуэрат",
 			"country": "MRT",
 			"lon": -12.47,
@@ -307,7 +307,7 @@
 			"amount": 350
 		},
 		{
-			"good": "Iron",
+			"good": "IronOre",
 			"name": "Аньшань",
 			"country": "CHN",
 			"lon": 123,
@@ -315,7 +315,7 @@
 			"amount": 600
 		},
 		{
-			"good": "Iron",
+			"good": "IronOre",
 			"name": "Симанду",
 			"country": "GIN",
 			"lon": -8.87,
@@ -323,7 +323,7 @@
 			"amount": 500
 		},
 		{
-			"good": "Iron",
+			"good": "IronOre",
 			"name": "Лабрадорский пояс",
 			"country": "CAN",
 			"lon": -66.8,
@@ -331,7 +331,7 @@
 			"amount": 450
 		},
 		{
-			"good": "Copper",
+			"good": "CopperOre",
 			"name": "Эскондида",
 			"country": "CHL",
 			"lon": -69.07,
@@ -339,7 +339,7 @@
 			"amount": 1000
 		},
 		{
-			"good": "Copper",
+			"good": "CopperOre",
 			"name": "Чукикамата",
 			"country": "CHL",
 			"lon": -68.9,
@@ -347,7 +347,7 @@
 			"amount": 700
 		},
 		{
-			"good": "Copper",
+			"good": "CopperOre",
 			"name": "Грасберг",
 			"country": "IDN",
 			"lon": 137.11,
@@ -355,7 +355,7 @@
 			"amount": 700
 		},
 		{
-			"good": "Copper",
+			"good": "CopperOre",
 			"name": "Бингем-Каньон",
 			"country": "USA",
 			"lon": -112.15,
@@ -363,7 +363,7 @@
 			"amount": 400
 		},
 		{
-			"good": "Copper",
+			"good": "CopperOre",
 			"name": "Катанга",
 			"country": "COD",
 			"lon": 25.5,
@@ -371,7 +371,7 @@
 			"amount": 800
 		},
 		{
-			"good": "Copper",
+			"good": "CopperOre",
 			"name": "Медный пояс",
 			"country": "ZMB",
 			"lon": 28.2,
@@ -379,7 +379,7 @@
 			"amount": 600
 		},
 		{
-			"good": "Copper",
+			"good": "CopperOre",
 			"name": "Оюу-Толгой",
 			"country": "MNG",
 			"lon": 106.86,
@@ -387,7 +387,7 @@
 			"amount": 500
 		},
 		{
-			"good": "Copper",
+			"good": "CopperOre",
 			"name": "Антамина",
 			"country": "PER",
 			"lon": -77.06,

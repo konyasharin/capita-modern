@@ -24,8 +24,31 @@ CapitaModern.csproj        Godot-проект (вид)
 scenes/, scripts/          сцены, шейдеры, ноды
 src/CapitaModern.Core/     ядро симуляции, чистый C# без Godot
 src/CapitaModern.Headless/ консольный прогон симуляции
-data/map/                  поле владения, справочник стран, палитра
-tools/gen-world.mjs        генератор карты из Natural Earth
+data/map/                  поле владения, страны, города, месторождения, палитра
+data/economy/              товары и постройки
+assets/icons/              иконки товаров и построек (game-icons.net, CC BY 3.0)
+tools/                     генераторы данных и проверки
+```
+
+## Данные
+
+| Файл | Что | Размер |
+|---|---|---|
+| `data/map/world.bin` | владелец каждой ячейки, 2048×800 | 1.6 МБ |
+| `data/map/countries.json` | 200 стран: имя, код, население, ВВП, площадь | 30 КБ |
+| `data/map/cities.json` | 7288 городов для расселения населения | 850 КБ |
+| `data/map/deposits.json` | 61 месторождение с координатами | 12 КБ |
+| `data/economy/goods.json` | 20 товаров | 3 КБ |
+| `data/economy/buildings.json` | 24 постройки: рецепты, рабочие, стоимость | 10 КБ |
+
+Генерация и проверка:
+
+```bash
+node tools/gen-world.mjs <ne_50m_admin_0_countries.geojson>
+node tools/gen-cities.mjs <ne_10m_populated_places_simple.geojson>
+node tools/fetch-icons.mjs
+node tools/check-data.mjs        # ссылки между файлами и наличие иконок
+node tools/check-deposits.mjs    # месторождения на суше и в своей стране
 ```
 
 ## Карта

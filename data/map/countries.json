@@ -9,7 +9,9 @@
 			"iso": "AFG",
 			"continent": "Asia",
 			"color": 7,
-			"cells": 2028
+			"cells": 2028,
+			"population": 38041754,
+			"gdp": 19291
 		},
 		{
 			"id": 2,
@@ -17,7 +19,9 @@
 			"iso": "ALB",
 			"continent": "Europe",
 			"color": 1,
-			"cells": 99
+			"cells": 99,
+			"population": 2854191,
+			"gdp": 15279
 		},
 		{
 			"id": 3,
@@ -25,7 +29,9 @@
 			"iso": "DZA",
 			"continent": "Africa",
 			"color": 2,
-			"cells": 6912
+			"cells": 6912,
+			"population": 43053054,
+			"gdp": 171091
 		},
 		{
 			"id": 4,
@@ -33,7 +39,9 @@
 			"iso": "AND",
 			"continent": "Europe",
 			"color": 2,
-			"cells": 2
+			"cells": 2,
+			"population": 77142,
+			"gdp": 3154
 		},
 		{
 			"id": 5,
@@ -41,7 +49,9 @@
 			"iso": "AGO",
 			"continent": "Africa",
 			"color": 3,
-			"cells": 3372
+			"cells": 3372,
+			"population": 31825295,
+			"gdp": 88815
 		},
 		{
 			"id": 6,
@@ -49,7 +59,9 @@
 			"iso": "ATG",
 			"continent": "North America",
 			"color": 2,
-			"cells": 2
+			"cells": 2,
+			"population": 97118,
+			"gdp": 1661
 		},
 		{
 			"id": 7,
@@ -57,7 +69,9 @@
 			"iso": "ARG",
 			"continent": "South America",
 			"color": 1,
-			"cells": 9016
+			"cells": 9016,
+			"population": 44938712,
+			"gdp": 445445
 		},
 		{
 			"id": 8,
@@ -65,7 +79,9 @@
 			"iso": "ARM",
 			"continent": "Asia",
 			"color": 2,
-			"cells": 103
+			"cells": 103,
+			"population": 2957731,
+			"gdp": 13672
 		},
 		{
 			"id": 9,
@@ -73,7 +89,9 @@
 			"iso": "AUS",
 			"continent": "Oceania",
 			"color": 3,
-			"cells": 22531
+			"cells": 22531,
+			"population": 25368863,
+			"gdp": 1396634
 		},
 		{
 			"id": 10,
@@ -81,7 +99,9 @@
 			"iso": "AUT",
 			"continent": "Europe",
 			"color": 6,
-			"cells": 328
+			"cells": 328,
+			"population": 8877067,
+			"gdp": 445075
 		},
 		{
 			"id": 11,
@@ -89,7 +109,9 @@
 			"iso": "AZE",
 			"continent": "Asia",
 			"color": 4,
-			"cells": 296
+			"cells": 296,
+			"population": 10023318,
+			"gdp": 48047
 		},
 		{
 			"id": 12,
@@ -97,7 +119,9 @@
 			"iso": "BHR",
 			"continent": "Asia",
 			"color": 4,
-			"cells": 2
+			"cells": 2,
+			"population": 1641172,
+			"gdp": 38574
 		},
 		{
 			"id": 13,
@@ -105,7 +129,9 @@
 			"iso": "BGD",
 			"continent": "Asia",
 			"color": 4,
-			"cells": 382
+			"cells": 382,
+			"population": 163046161,
+			"gdp": 302571
 		},
 		{
 			"id": 14,
@@ -113,7 +139,9 @@
 			"iso": "BRB",
 			"continent": "North America",
 			"color": 5,
-			"cells": 1
+			"cells": 1,
+			"population": 287025,
+			"gdp": 5209
 		},
 		{
 			"id": 15,
@@ -121,7 +149,9 @@
 			"iso": "BLR",
 			"continent": "Europe",
 			"color": 3,
-			"cells": 906
+			"cells": 906,
+			"population": 9466856,
+			"gdp": 63080
 		},
 		{
 			"id": 16,
@@ -129,7 +159,9 @@
 			"iso": "BEL",
 			"continent": "Europe",
 			"color": 6,
-			"cells": 130
+			"cells": 130,
+			"population": 11484055,
+			"gdp": 533097
 		},
 		{
 			"id": 17,
@@ -137,7 +169,9 @@
 			"iso": "BLZ",
 			"continent": "North America",
 			"color": 6,
-			"cells": 61
+			"cells": 61,
+			"population": 390353,
+			"gdp": 1879
 		},
 		{
 			"id": 18,
@@ -145,7 +179,9 @@
 			"iso": "BEN",
 			"continent": "Africa",
 			"color": 5,
-			"cells": 311
+			"cells": 311,
+			"population": 11801151,
+			"gdp": 14390
 		},
 		{
 			"id": 19,
@@ -153,7 +189,9 @@
 			"iso": "BTN",
 			"continent": "Asia",
 			"color": 7,
-			"cells": 115
+			"cells": 115,
+			"population": 763092,
+			"gdp": 2530
 		},
 		{
 			"id": 20,
@@ -161,7 +199,9 @@
 			"iso": "BOL",
 			"continent": "South America",
 			"color": 4,
-			"cells": 2982
+			"cells": 2982,
+			"population": 11513100,
+			"gdp": 40895
 		},
 		{
 			"id": 21,
@@ -169,7 +209,9 @@
 			"iso": "BIH",
 			"continent": "Europe",
 			"color": 4,
-			"cells": 188
+			"cells": 188,
+			"population": 3301000,
+			"gdp": 20164
 		},
 		{
 			"id": 22,
@@ -177,7 +219,9 @@
 			"iso": "BWA",
 			"continent": "Africa",
 			"color": 7,
-			"cells": 1647
+			"cells": 1647,
+			"population": 2303697,
+			"gdp": 18340
 		},
 		{
 			"id": 23,
@@ -185,7 +229,9 @@
 			"iso": "BRA",
 			"continent": "South America",
 			"color": 2,
-			"cells": 22878
+			"cells": 22878,
+			"population": 211049527,
+			"gdp": 1839758
 		},
 		{
 			"id": 24,
@@ -193,7 +239,9 @@
 			"iso": "BRN",
 			"continent": "Asia",
 			"color": 6,
-			"cells": 16
+			"cells": 16,
+			"population": 433285,
+			"gdp": 13469
 		},
 		{
 			"id": 25,
@@ -201,7 +249,9 @@
 			"iso": "BGR",
 			"continent": "Europe",
 			"color": 6,
-			"cells": 405
+			"cells": 405,
+			"population": 6975761,
+			"gdp": 68558
 		},
 		{
 			"id": 26,
@@ -209,7 +259,9 @@
 			"iso": "BFA",
 			"continent": "Africa",
 			"color": 2,
-			"cells": 732
+			"cells": 732,
+			"population": 20321378,
+			"gdp": 15990
 		},
 		{
 			"id": 27,
@@ -217,7 +269,9 @@
 			"iso": "BDI",
 			"continent": "Africa",
 			"color": 5,
-			"cells": 72
+			"cells": 72,
+			"population": 11530580,
+			"gdp": 3012
 		},
 		{
 			"id": 28,
@@ -225,7 +279,9 @@
 			"iso": "CPV",
 			"continent": "Africa",
 			"color": 6,
-			"cells": 12
+			"cells": 12,
+			"population": 549935,
+			"gdp": 1981
 		},
 		{
 			"id": 29,
@@ -233,7 +289,9 @@
 			"iso": "KHM",
 			"continent": "Asia",
 			"color": 0,
-			"cells": 486
+			"cells": 486,
+			"population": 16486542,
+			"gdp": 27089
 		},
 		{
 			"id": 30,
@@ -241,7 +299,9 @@
 			"iso": "CMR",
 			"continent": "Africa",
 			"color": 0,
-			"cells": 1232
+			"cells": 1232,
+			"population": 25876380,
+			"gdp": 39007
 		},
 		{
 			"id": 31,
@@ -249,7 +309,9 @@
 			"iso": "CAN",
 			"continent": "North America",
 			"color": 7,
-			"cells": 54561
+			"cells": 54561,
+			"population": 37589262,
+			"gdp": 1736425
 		},
 		{
 			"id": 32,
@@ -257,7 +319,9 @@
 			"iso": "CAF",
 			"continent": "Africa",
 			"color": 1,
-			"cells": 1642
+			"cells": 1642,
+			"population": 4745185,
+			"gdp": 2220
 		},
 		{
 			"id": 33,
@@ -265,7 +329,9 @@
 			"iso": "TCD",
 			"continent": "Africa",
 			"color": 3,
-			"cells": 3443
+			"cells": 3443,
+			"population": 15946876,
+			"gdp": 11314
 		},
 		{
 			"id": 34,
@@ -273,7 +339,9 @@
 			"iso": "CHL",
 			"continent": "South America",
 			"color": 6,
-			"cells": 2488
+			"cells": 2488,
+			"population": 18952038,
+			"gdp": 282318
 		},
 		{
 			"id": 35,
@@ -281,7 +349,9 @@
 			"iso": "CHN",
 			"continent": "Asia",
 			"color": 0,
-			"cells": 30777
+			"cells": 30777,
+			"population": 1405862845,
+			"gdp": 14762473
 		},
 		{
 			"id": 36,
@@ -289,7 +359,9 @@
 			"iso": "COL",
 			"continent": "South America",
 			"color": 5,
-			"cells": 2987
+			"cells": 2987,
+			"population": 50339443,
+			"gdp": 323615
 		},
 		{
 			"id": 37,
@@ -297,7 +369,9 @@
 			"iso": "COM",
 			"continent": "Africa",
 			"color": 7,
-			"cells": 3
+			"cells": 3,
+			"population": 850886,
+			"gdp": 1165
 		},
 		{
 			"id": 38,
@@ -305,7 +379,9 @@
 			"iso": "CRI",
 			"continent": "North America",
 			"color": 5,
-			"cells": 140
+			"cells": 140,
+			"population": 5047561,
+			"gdp": 61801
 		},
 		{
 			"id": 39,
@@ -313,7 +389,9 @@
 			"iso": "HRV",
 			"continent": "Europe",
 			"color": 0,
-			"cells": 207
+			"cells": 207,
+			"population": 4067500,
+			"gdp": 60752
 		},
 		{
 			"id": 40,
@@ -321,7 +399,9 @@
 			"iso": "CUB",
 			"continent": "North America",
 			"color": 0,
-			"cells": 313
+			"cells": 313,
+			"population": 11333483,
+			"gdp": 100023
 		},
 		{
 			"id": 41,
@@ -329,7 +409,9 @@
 			"iso": "CYP",
 			"continent": "Asia",
 			"color": 0,
-			"cells": 18
+			"cells": 18,
+			"population": 1198575,
+			"gdp": 24948
 		},
 		{
 			"id": 42,
@@ -337,7 +419,9 @@
 			"iso": "CZE",
 			"continent": "Europe",
 			"color": 0,
-			"cells": 312
+			"cells": 312,
+			"population": 10669709,
+			"gdp": 250680
 		},
 		{
 			"id": 43,
@@ -345,7 +429,9 @@
 			"iso": "COD",
 			"continent": "Africa",
 			"color": 4,
-			"cells": 6132
+			"cells": 6132,
+			"population": 86790567,
+			"gdp": 50400
 		},
 		{
 			"id": 44,
@@ -353,7 +439,9 @@
 			"iso": "DNK",
 			"continent": "North America",
 			"color": 1,
-			"cells": 21716
+			"cells": 21716,
+			"population": 5923456,
+			"gdp": 356271
 		},
 		{
 			"id": 45,
@@ -361,7 +449,9 @@
 			"iso": "DJI",
 			"continent": "Africa",
 			"color": 7,
-			"cells": 56
+			"cells": 56,
+			"population": 973560,
+			"gdp": 3324
 		},
 		{
 			"id": 46,
@@ -369,7 +459,9 @@
 			"iso": "DMA",
 			"continent": "North America",
 			"color": 1,
-			"cells": 2
+			"cells": 2,
+			"population": 71808,
+			"gdp": 582
 		},
 		{
 			"id": 47,
@@ -377,7 +469,9 @@
 			"iso": "DOM",
 			"continent": "North America",
 			"color": 2,
-			"cells": 132
+			"cells": 132,
+			"population": 10738958,
+			"gdp": 88941
 		},
 		{
 			"id": 48,
@@ -385,7 +479,9 @@
 			"iso": "TLS",
 			"continent": "Asia",
 			"color": 3,
-			"cells": 41
+			"cells": 41,
+			"population": 1293119,
+			"gdp": 2017
 		},
 		{
 			"id": 49,
@@ -393,7 +489,9 @@
 			"iso": "ECU",
 			"continent": "South America",
 			"color": 0,
-			"cells": 671
+			"cells": 671,
+			"population": 17373662,
+			"gdp": 107435
 		},
 		{
 			"id": 50,
@@ -401,7 +499,9 @@
 			"iso": "EGY",
 			"continent": "Africa",
 			"color": 0,
-			"cells": 2961
+			"cells": 2961,
+			"population": 100388073,
+			"gdp": 303092
 		},
 		{
 			"id": 51,
@@ -409,7 +509,9 @@
 			"iso": "SLV",
 			"continent": "North America",
 			"color": 2,
-			"cells": 58
+			"cells": 58,
+			"population": 6453553,
+			"gdp": 27022
 		},
 		{
 			"id": 52,
@@ -417,7 +519,9 @@
 			"iso": "GNQ",
 			"continent": "Africa",
 			"color": 1,
-			"cells": 63
+			"cells": 63,
+			"population": 1355986,
+			"gdp": 11026
 		},
 		{
 			"id": 53,
@@ -425,7 +529,9 @@
 			"iso": "ERI",
 			"continent": "Africa",
 			"color": 1,
-			"cells": 336
+			"cells": 336,
+			"population": 6081196,
+			"gdp": 2065
 		},
 		{
 			"id": 54,
@@ -433,7 +539,9 @@
 			"iso": "EST",
 			"continent": "Europe",
 			"color": 3,
-			"cells": 224
+			"cells": 224,
+			"population": 1326590,
+			"gdp": 31471
 		},
 		{
 			"id": 55,
@@ -441,7 +549,9 @@
 			"iso": "SWZ",
 			"continent": "Africa",
 			"color": 4,
-			"cells": 50
+			"cells": 50,
+			"population": 1148130,
+			"gdp": 4471
 		},
 		{
 			"id": 56,
@@ -449,7 +559,9 @@
 			"iso": "ETH",
 			"continent": "Africa",
 			"color": 3,
-			"cells": 3006
+			"cells": 3006,
+			"population": 112078730,
+			"gdp": 95912
 		},
 		{
 			"id": 57,
@@ -457,7 +569,9 @@
 			"iso": "FSM",
 			"continent": "Oceania",
 			"color": 2,
-			"cells": 1
+			"cells": 1,
+			"population": 113815,
+			"gdp": 401
 		},
 		{
 			"id": 58,
@@ -465,7 +579,9 @@
 			"iso": "FJI",
 			"continent": "Oceania",
 			"color": 3,
-			"cells": 49
+			"cells": 49,
+			"population": 889953,
+			"gdp": 5496
 		},
 		{
 			"id": 59,
@@ -473,7 +589,9 @@
 			"iso": "FIN",
 			"continent": "Europe",
 			"color": 2,
-			"cells": 2017
+			"cells": 2017,
+			"population": 5550198,
+			"gdp": 270859
 		},
 		{
 			"id": 60,
@@ -481,7 +599,9 @@
 			"iso": "FRA",
 			"continent": "Europe",
 			"color": 3,
-			"cells": 2410
+			"cells": 2410,
+			"population": 67692632,
+			"gdp": 2732886
 		},
 		{
 			"id": 61,
@@ -489,7 +609,9 @@
 			"iso": "GAB",
 			"continent": "Africa",
 			"color": 3,
-			"cells": 688
+			"cells": 688,
+			"population": 2172579,
+			"gdp": 16874
 		},
 		{
 			"id": 62,
@@ -497,7 +619,9 @@
 			"iso": "GMB",
 			"continent": "Africa",
 			"color": 4,
-			"cells": 23
+			"cells": 23,
+			"population": 2347706,
+			"gdp": 1826
 		},
 		{
 			"id": 63,
@@ -505,7 +629,9 @@
 			"iso": "GEO",
 			"continent": "Asia",
 			"color": 3,
-			"cells": 247
+			"cells": 247,
+			"population": 3720382,
+			"gdp": 17477
 		},
 		{
 			"id": 64,
@@ -513,7 +639,9 @@
 			"iso": "DEU",
 			"continent": "Europe",
 			"color": 5,
-			"cells": 1489
+			"cells": 1489,
+			"population": 83132799,
+			"gdp": 3861123
 		},
 		{
 			"id": 65,
@@ -521,7 +649,9 @@
 			"iso": "GHA",
 			"continent": "Africa",
 			"color": 4,
-			"cells": 636
+			"cells": 636,
+			"population": 30417856,
+			"gdp": 66983
 		},
 		{
 			"id": 66,
@@ -529,7 +659,9 @@
 			"iso": "GRC",
 			"continent": "Europe",
 			"color": 2,
-			"cells": 435
+			"cells": 435,
+			"population": 10716322,
+			"gdp": 209852
 		},
 		{
 			"id": 67,
@@ -537,7 +669,9 @@
 			"iso": "GRD",
 			"continent": "North America",
 			"color": 4,
-			"cells": 1
+			"cells": 1,
+			"population": 112003,
+			"gdp": 1210
 		},
 		{
 			"id": 68,
@@ -545,7 +679,9 @@
 			"iso": "GTM",
 			"continent": "North America",
 			"color": 1,
-			"cells": 296
+			"cells": 296,
+			"population": 16604026,
+			"gdp": 76710
 		},
 		{
 			"id": 69,
@@ -553,7 +689,9 @@
 			"iso": "GIN",
 			"continent": "Africa",
 			"color": 4,
-			"cells": 657
+			"cells": 657,
+			"population": 12771246,
+			"gdp": 12296
 		},
 		{
 			"id": 70,
@@ -561,7 +699,9 @@
 			"iso": "GNB",
 			"continent": "Africa",
 			"color": 5,
-			"cells": 89
+			"cells": 89,
+			"population": 1920922,
+			"gdp": 1339
 		},
 		{
 			"id": 71,
@@ -569,7 +709,9 @@
 			"iso": "GUY",
 			"continent": "South America",
 			"color": 5,
-			"cells": 549
+			"cells": 549,
+			"population": 782766,
+			"gdp": 5173
 		},
 		{
 			"id": 72,
@@ -577,7 +719,9 @@
 			"iso": "HTI",
 			"continent": "North America",
 			"color": 5,
-			"cells": 70
+			"cells": 70,
+			"population": 11263077,
+			"gdp": 14332
 		},
 		{
 			"id": 73,
@@ -585,7 +729,9 @@
 			"iso": "HND",
 			"continent": "North America",
 			"color": 6,
-			"cells": 307
+			"cells": 307,
+			"population": 9746117,
+			"gdp": 25095
 		},
 		{
 			"id": 74,
@@ -593,7 +739,9 @@
 			"iso": "HUN",
 			"continent": "Europe",
 			"color": 4,
-			"cells": 354
+			"cells": 354,
+			"population": 9769949,
+			"gdp": 163469
 		},
 		{
 			"id": 75,
@@ -601,7 +749,9 @@
 			"iso": "ISL",
 			"continent": "Europe",
 			"color": 5,
-			"cells": 630
+			"cells": 630,
+			"population": 361313,
+			"gdp": 24188
 		},
 		{
 			"id": 76,
@@ -609,7 +759,9 @@
 			"iso": "IND",
 			"continent": "Asia",
 			"color": 5,
-			"cells": 9007
+			"cells": 9007,
+			"population": 1366417754,
+			"gdp": 2868929
 		},
 		{
 			"id": 77,
@@ -617,7 +769,9 @@
 			"iso": "IDN",
 			"continent": "Asia",
 			"color": 7,
-			"cells": 4920
+			"cells": 4920,
+			"population": 270625568,
+			"gdp": 1119190
 		},
 		{
 			"id": 78,
@@ -625,7 +779,9 @@
 			"iso": "IRN",
 			"continent": "Asia",
 			"color": 6,
-			"cells": 5048
+			"cells": 5048,
+			"population": 82913906,
+			"gdp": 453996
 		},
 		{
 			"id": 79,
@@ -633,7 +789,9 @@
 			"iso": "IRQ",
 			"continent": "Asia",
 			"color": 7,
-			"cells": 1369
+			"cells": 1369,
+			"population": 39309783,
+			"gdp": 234094
 		},
 		{
 			"id": 80,
@@ -641,7 +799,9 @@
 			"iso": "IRL",
 			"continent": "Europe",
 			"color": 6,
-			"cells": 301
+			"cells": 301,
+			"population": 4941444,
+			"gdp": 388698
 		},
 		{
 			"id": 81,
@@ -649,7 +809,9 @@
 			"iso": "ISR",
 			"continent": "Asia",
 			"color": 4,
-			"cells": 86
+			"cells": 86,
+			"population": 13738606,
+			"gdp": 410928
 		},
 		{
 			"id": 82,
@@ -657,7 +819,9 @@
 			"iso": "ITA",
 			"continent": "Europe",
 			"color": 7,
-			"cells": 1075
+			"cells": 1075,
+			"population": 60297396,
+			"gdp": 2003576
 		},
 		{
 			"id": 83,
@@ -665,7 +829,9 @@
 			"iso": "CIV",
 			"continent": "Africa",
 			"color": 7,
-			"cells": 846
+			"cells": 846,
+			"population": 25716544,
+			"gdp": 58539
 		},
 		{
 			"id": 84,
@@ -673,7 +839,9 @@
 			"iso": "JAM",
 			"continent": "North America",
 			"color": 6,
-			"cells": 28
+			"cells": 28,
+			"population": 2948279,
+			"gdp": 16458
 		},
 		{
 			"id": 85,
@@ -681,7 +849,9 @@
 			"iso": "JPN",
 			"continent": "Asia",
 			"color": 7,
-			"cells": 1218
+			"cells": 1218,
+			"population": 126264931,
+			"gdp": 5081769
 		},
 		{
 			"id": 86,
@@ -689,7 +859,9 @@
 			"iso": "JOR",
 			"continent": "Asia",
 			"color": 5,
-			"cells": 273
+			"cells": 273,
+			"population": 10101694,
+			"gdp": 44502
 		},
 		{
 			"id": 87,
@@ -697,7 +869,9 @@
 			"iso": "KAS",
 			"continent": "Asia",
 			"color": 2,
-			"cells": 7
+			"cells": 7,
+			"population": 6000,
+			"gdp": 15
 		},
 		{
 			"id": 88,
@@ -705,7 +879,9 @@
 			"iso": "KAZ",
 			"continent": "Asia",
 			"color": 2,
-			"cells": 10650
+			"cells": 10650,
+			"population": 18513930,
+			"gdp": 181665
 		},
 		{
 			"id": 89,
@@ -713,7 +889,9 @@
 			"iso": "KEN",
 			"continent": "Africa",
 			"color": 1,
-			"cells": 1550
+			"cells": 1550,
+			"population": 52573973,
+			"gdp": 95503
 		},
 		{
 			"id": 90,
@@ -721,7 +899,9 @@
 			"iso": "KIR",
 			"continent": "Oceania",
 			"color": 0,
-			"cells": 4
+			"cells": 4,
+			"population": 117606,
+			"gdp": 194
 		},
 		{
 			"id": 91,
@@ -729,7 +909,9 @@
 			"iso": "KOS",
 			"continent": "Europe",
 			"color": 6,
-			"cells": 40
+			"cells": 40,
+			"population": 1794248,
+			"gdp": 7926
 		},
 		{
 			"id": 92,
@@ -737,7 +919,9 @@
 			"iso": "KWT",
 			"continent": "Asia",
 			"color": 6,
-			"cells": 54
+			"cells": 54,
+			"population": 4207083,
+			"gdp": 134628
 		},
 		{
 			"id": 93,
@@ -745,7 +929,9 @@
 			"iso": "KGZ",
 			"continent": "Asia",
 			"color": 7,
-			"cells": 691
+			"cells": 691,
+			"population": 6456900,
+			"gdp": 8454
 		},
 		{
 			"id": 94,
@@ -753,7 +939,9 @@
 			"iso": "LAO",
 			"continent": "Asia",
 			"color": 3,
-			"cells": 637
+			"cells": 637,
+			"population": 7169455,
+			"gdp": 18173
 		},
 		{
 			"id": 95,
@@ -761,7 +949,9 @@
 			"iso": "LVA",
 			"continent": "Europe",
 			"color": 0,
-			"cells": 305
+			"cells": 305,
+			"population": 1912789,
+			"gdp": 34102
 		},
 		{
 			"id": 96,
@@ -769,7 +959,9 @@
 			"iso": "LBN",
 			"continent": "Asia",
 			"color": 7,
-			"cells": 33
+			"cells": 33,
+			"population": 6855713,
+			"gdp": 51991
 		},
 		{
 			"id": 97,
@@ -777,7 +969,9 @@
 			"iso": "LSO",
 			"continent": "Africa",
 			"color": 7,
-			"cells": 90
+			"cells": 90,
+			"population": 2125268,
+			"gdp": 2376
 		},
 		{
 			"id": 98,
@@ -785,7 +979,9 @@
 			"iso": "LBR",
 			"continent": "Africa",
 			"color": 0,
-			"cells": 254
+			"cells": 254,
+			"population": 4937374,
+			"gdp": 3070
 		},
 		{
 			"id": 99,
@@ -793,7 +989,9 @@
 			"iso": "LBY",
 			"continent": "Africa",
 			"color": 5,
-			"cells": 4783
+			"cells": 4783,
+			"population": 6777452,
+			"gdp": 52091
 		},
 		{
 			"id": 100,
@@ -801,7 +999,9 @@
 			"iso": "LIE",
 			"continent": "Europe",
 			"color": 0,
-			"cells": 1
+			"cells": 1,
+			"population": 38019,
+			"gdp": 6876
 		},
 		{
 			"id": 101,
@@ -809,7 +1009,9 @@
 			"iso": "LTU",
 			"continent": "Europe",
 			"color": 4,
-			"cells": 296
+			"cells": 296,
+			"population": 2786844,
+			"gdp": 54627
 		},
 		{
 			"id": 102,
@@ -817,7 +1019,9 @@
 			"iso": "LUX",
 			"continent": "Europe",
 			"color": 1,
-			"cells": 10
+			"cells": 10,
+			"population": 619896,
+			"gdp": 71104
 		},
 		{
 			"id": 103,
@@ -825,7 +1029,9 @@
 			"iso": "MDG",
 			"continent": "Africa",
 			"color": 1,
-			"cells": 1655
+			"cells": 1655,
+			"population": 26969307,
+			"gdp": 14114
 		},
 		{
 			"id": 104,
@@ -833,7 +1039,9 @@
 			"iso": "MWI",
 			"continent": "Africa",
 			"color": 3,
-			"cells": 324
+			"cells": 324,
+			"population": 18628747,
+			"gdp": 7666
 		},
 		{
 			"id": 105,
@@ -841,7 +1049,9 @@
 			"iso": "MYS",
 			"continent": "Asia",
 			"color": 4,
-			"cells": 858
+			"cells": 858,
+			"population": 31949777,
+			"gdp": 364681
 		},
 		{
 			"id": 106,
@@ -849,7 +1059,9 @@
 			"iso": "MDV",
 			"continent": "Seven seas (open ocean)",
 			"color": 2,
-			"cells": 1
+			"cells": 1,
+			"population": 530953,
+			"gdp": 5642
 		},
 		{
 			"id": 107,
@@ -857,7 +1069,9 @@
 			"iso": "MLI",
 			"continent": "Africa",
 			"color": 0,
-			"cells": 3443
+			"cells": 3443,
+			"population": 19658031,
+			"gdp": 17279
 		},
 		{
 			"id": 108,
@@ -865,7 +1079,9 @@
 			"iso": "MLT",
 			"continent": "Europe",
 			"color": 3,
-			"cells": 1
+			"cells": 1,
+			"population": 502653,
+			"gdp": 14989
 		},
 		{
 			"id": 109,
@@ -873,7 +1089,9 @@
 			"iso": "MHL",
 			"continent": "Oceania",
 			"color": 4,
-			"cells": 1
+			"cells": 1,
+			"population": 58791,
+			"gdp": 221
 		},
 		{
 			"id": 110,
@@ -881,7 +1099,9 @@
 			"iso": "MRT",
 			"continent": "Africa",
 			"color": 4,
-			"cells": 2889
+			"cells": 2889,
+			"population": 4525696,
+			"gdp": 7600
 		},
 		{
 			"id": 111,
@@ -889,7 +1109,9 @@
 			"iso": "MUS",
 			"continent": "Seven seas (open ocean)",
 			"color": 5,
-			"cells": 7
+			"cells": 7,
+			"population": 1265711,
+			"gdp": 14048
 		},
 		{
 			"id": 112,
@@ -897,7 +1119,9 @@
 			"iso": "MEX",
 			"continent": "North America",
 			"color": 5,
-			"cells": 5645
+			"cells": 5645,
+			"population": 127575529,
+			"gdp": 1268870
 		},
 		{
 			"id": 113,
@@ -905,7 +1129,9 @@
 			"iso": "MDA",
 			"continent": "Europe",
 			"color": 1,
-			"cells": 128
+			"cells": 128,
+			"population": 2657637,
+			"gdp": 11968
 		},
 		{
 			"id": 114,
@@ -913,7 +1139,9 @@
 			"iso": "MCO",
 			"continent": "Europe",
 			"color": 0,
-			"cells": 1
+			"cells": 1,
+			"population": 38964,
+			"gdp": 7188
 		},
 		{
 			"id": 115,
@@ -921,7 +1149,9 @@
 			"iso": "MNG",
 			"continent": "Asia",
 			"color": 2,
-			"cells": 5978
+			"cells": 5978,
+			"population": 3225167,
+			"gdp": 13996
 		},
 		{
 			"id": 116,
@@ -929,7 +1159,9 @@
 			"iso": "MNE",
 			"continent": "Europe",
 			"color": 2,
-			"cells": 49
+			"cells": 49,
+			"population": 622137,
+			"gdp": 5542
 		},
 		{
 			"id": 117,
@@ -937,7 +1169,9 @@
 			"iso": "MAR",
 			"continent": "Africa",
 			"color": 6,
-			"cells": 1764
+			"cells": 1764,
+			"population": 36471769,
+			"gdp": 119700
 		},
 		{
 			"id": 118,
@@ -945,7 +1179,9 @@
 			"iso": "MOZ",
 			"continent": "Africa",
 			"color": 6,
-			"cells": 2166
+			"cells": 2166,
+			"population": 30366036,
+			"gdp": 15291
 		},
 		{
 			"id": 119,
@@ -953,7 +1189,9 @@
 			"iso": "MMR",
 			"continent": "Asia",
 			"color": 6,
-			"cells": 1874
+			"cells": 1874,
+			"population": 54045420,
+			"gdp": 76085
 		},
 		{
 			"id": 120,
@@ -961,7 +1199,9 @@
 			"iso": "NAM",
 			"continent": "Africa",
 			"color": 5,
-			"cells": 2331
+			"cells": 2331,
+			"population": 2494530,
+			"gdp": 12366
 		},
 		{
 			"id": 121,
@@ -969,7 +1209,9 @@
 			"iso": "NRU",
 			"continent": "Oceania",
 			"color": 6,
-			"cells": 1
+			"cells": 1,
+			"population": 12581,
+			"gdp": 118
 		},
 		{
 			"id": 122,
@@ -977,7 +1219,9 @@
 			"iso": "NPL",
 			"continent": "Asia",
 			"color": 3,
-			"cells": 441
+			"cells": 441,
+			"population": 28608710,
+			"gdp": 30641
 		},
 		{
 			"id": 123,
@@ -985,7 +1229,9 @@
 			"iso": "NLD",
 			"continent": "Europe",
 			"color": 4,
-			"cells": 155
+			"cells": 155,
+			"population": 17637435,
+			"gdp": 914392
 		},
 		{
 			"id": 124,
@@ -993,7 +1239,9 @@
 			"iso": "NZL",
 			"continent": "Oceania",
 			"color": 7,
-			"cells": 938
+			"cells": 938,
+			"population": 4936079,
+			"gdp": 207182
 		},
 		{
 			"id": 125,
@@ -1001,7 +1249,9 @@
 			"iso": "NIC",
 			"continent": "North America",
 			"color": 7,
-			"cells": 346
+			"cells": 346,
+			"population": 6545502,
+			"gdp": 12520
 		},
 		{
 			"id": 126,
@@ -1009,7 +1259,9 @@
 			"iso": "NER",
 			"continent": "Africa",
 			"color": 1,
-			"cells": 3254
+			"cells": 3254,
+			"population": 23310715,
+			"gdp": 12911
 		},
 		{
 			"id": 127,
@@ -1017,7 +1269,9 @@
 			"iso": "NGA",
 			"continent": "Africa",
 			"color": 6,
-			"cells": 2415
+			"cells": 2415,
+			"population": 200963599,
+			"gdp": 448120
 		},
 		{
 			"id": 128,
@@ -1025,7 +1279,9 @@
 			"iso": "PRK",
 			"continent": "Asia",
 			"color": 7,
-			"cells": 419
+			"cells": 419,
+			"population": 25666161,
+			"gdp": 40000
 		},
 		{
 			"id": 129,
@@ -1033,7 +1289,9 @@
 			"iso": "MKD",
 			"continent": "Europe",
 			"color": 5,
-			"cells": 87
+			"cells": 87,
+			"population": 2083459,
+			"gdp": 12547
 		},
 		{
 			"id": 130,
@@ -1041,7 +1299,9 @@
 			"iso": "CYN",
 			"continent": "Asia",
 			"color": 1,
-			"cells": 11
+			"cells": 11,
+			"population": 326000,
+			"gdp": 3600
 		},
 		{
 			"id": 131,
@@ -1049,7 +1309,9 @@
 			"iso": "NOR",
 			"continent": "Europe",
 			"color": 0,
-			"cells": 2767
+			"cells": 2767,
+			"population": 5347896,
+			"gdp": 403336
 		},
 		{
 			"id": 132,
@@ -1057,7 +1319,9 @@
 			"iso": "OMN",
 			"continent": "Asia",
 			"color": 1,
-			"cells": 871
+			"cells": 871,
+			"population": 4974986,
+			"gdp": 76331
 		},
 		{
 			"id": 133,
@@ -1065,7 +1329,9 @@
 			"iso": "PAK",
 			"continent": "Asia",
 			"color": 1,
-			"cells": 2644
+			"cells": 2644,
+			"population": 216565318,
+			"gdp": 278221
 		},
 		{
 			"id": 134,
@@ -1073,7 +1339,9 @@
 			"iso": "PLW",
 			"continent": "Oceania",
 			"color": 0,
-			"cells": 1
+			"cells": 1,
+			"population": 18008,
+			"gdp": 268
 		},
 		{
 			"id": 135,
@@ -1081,7 +1349,9 @@
 			"iso": "PAN",
 			"continent": "North America",
 			"color": 6,
-			"cells": 193
+			"cells": 193,
+			"population": 4246439,
+			"gdp": 66800
 		},
 		{
 			"id": 136,
@@ -1089,7 +1359,9 @@
 			"iso": "PNG",
 			"continent": "Oceania",
 			"color": 2,
-			"cells": 1218
+			"cells": 1218,
+			"population": 8776109,
+			"gdp": 24829
 		},
 		{
 			"id": 137,
@@ -1097,7 +1369,9 @@
 			"iso": "PRY",
 			"continent": "South America",
 			"color": 3,
-			"cells": 1136
+			"cells": 1136,
+			"population": 7044636,
+			"gdp": 38145
 		},
 		{
 			"id": 138,
@@ -1105,7 +1379,9 @@
 			"iso": "PER",
 			"continent": "South America",
 			"color": 7,
-			"cells": 3449
+			"cells": 3449,
+			"population": 32510453,
+			"gdp": 226848
 		},
 		{
 			"id": 139,
@@ -1113,7 +1389,9 @@
 			"iso": "PHL",
 			"continent": "Asia",
 			"color": 1,
-			"cells": 773
+			"cells": 773,
+			"population": 108116615,
+			"gdp": 376795
 		},
 		{
 			"id": 140,
@@ -1121,7 +1399,9 @@
 			"iso": "POL",
 			"continent": "Europe",
 			"color": 2,
-			"cells": 1338
+			"cells": 1338,
+			"population": 37970874,
+			"gdp": 595858
 		},
 		{
 			"id": 141,
@@ -1129,7 +1409,9 @@
 			"iso": "PRT",
 			"continent": "Europe",
 			"color": 3,
-			"cells": 306
+			"cells": 306,
+			"population": 10269417,
+			"gdp": 238785
 		},
 		{
 			"id": 142,
@@ -1137,7 +1419,9 @@
 			"iso": "QAT",
 			"continent": "Asia",
 			"color": 4,
-			"cells": 32
+			"cells": 32,
+			"population": 2832067,
+			"gdp": 175837
 		},
 		{
 			"id": 143,
@@ -1145,7 +1429,9 @@
 			"iso": "SRB",
 			"continent": "Europe",
 			"color": 7,
-			"cells": 283
+			"cells": 283,
+			"population": 6944975,
+			"gdp": 51475
 		},
 		{
 			"id": 144,
@@ -1153,7 +1439,9 @@
 			"iso": "COG",
 			"continent": "Africa",
 			"color": 2,
-			"cells": 901
+			"cells": 901,
+			"population": 5380508,
+			"gdp": 12267
 		},
 		{
 			"id": 145,
@@ -1161,7 +1449,9 @@
 			"iso": "ROU",
 			"continent": "Europe",
 			"color": 0,
-			"cells": 887
+			"cells": 887,
+			"population": 19356544,
+			"gdp": 250077
 		},
 		{
 			"id": 146,
@@ -1169,7 +1459,9 @@
 			"iso": "RUS",
 			"continent": "Europe",
 			"color": 1,
-			"cells": 94743
+			"cells": 94743,
+			"population": 144373535,
+			"gdp": 1699876
 		},
 		{
 			"id": 147,
@@ -1177,7 +1469,9 @@
 			"iso": "RWA",
 			"continent": "Africa",
 			"color": 1,
-			"cells": 66
+			"cells": 66,
+			"population": 12626950,
+			"gdp": 10354
 		},
 		{
 			"id": 148,
@@ -1185,7 +1479,9 @@
 			"iso": "KNA",
 			"continent": "North America",
 			"color": 2,
-			"cells": 1
+			"cells": 1,
+			"population": 52834,
+			"gdp": 1053
 		},
 		{
 			"id": 149,
@@ -1193,7 +1489,9 @@
 			"iso": "LCA",
 			"continent": "North America",
 			"color": 3,
-			"cells": 1
+			"cells": 1,
+			"population": 182790,
+			"gdp": 2122
 		},
 		{
 			"id": 150,
@@ -1201,7 +1499,9 @@
 			"iso": "VCT",
 			"continent": "North America",
 			"color": 4,
-			"cells": 1
+			"cells": 1,
+			"population": 110589,
+			"gdp": 824
 		},
 		{
 			"id": 151,
@@ -1209,7 +1509,9 @@
 			"iso": "WSM",
 			"continent": "Oceania",
 			"color": 5,
-			"cells": 7
+			"cells": 7,
+			"population": 197097,
+			"gdp": 852
 		},
 		{
 			"id": 152,
@@ -1217,7 +1519,9 @@
 			"iso": "SMR",
 			"continent": "Europe",
 			"color": 5,
-			"cells": 1
+			"cells": 1,
+			"population": 33860,
+			"gdp": 1655
 		},
 		{
 			"id": 153,
@@ -1225,7 +1529,9 @@
 			"iso": "STP",
 			"continent": "Africa",
 			"color": 6,
-			"cells": 1
+			"cells": 1,
+			"population": 215056,
+			"gdp": 418
 		},
 		{
 			"id": 154,
@@ -1233,7 +1539,9 @@
 			"iso": "SAU",
 			"continent": "Asia",
 			"color": 3,
-			"cells": 5535
+			"cells": 5535,
+			"population": 34268528,
+			"gdp": 792966
 		},
 		{
 			"id": 155,
@@ -1241,7 +1549,9 @@
 			"iso": "SEN",
 			"continent": "Africa",
 			"color": 3,
-			"cells": 540
+			"cells": 540,
+			"population": 16296364,
+			"gdp": 23578
 		},
 		{
 			"id": 156,
@@ -1249,7 +1559,9 @@
 			"iso": "SYC",
 			"continent": "Seven seas (open ocean)",
 			"color": 7,
-			"cells": 1
+			"cells": 1,
+			"population": 97625,
+			"gdp": 1703
 		},
 		{
 			"id": 157,
@@ -1257,7 +1569,9 @@
 			"iso": "SLE",
 			"continent": "Africa",
 			"color": 5,
-			"cells": 190
+			"cells": 190,
+			"population": 7813215,
+			"gdp": 4121
 		},
 		{
 			"id": 158,
@@ -1265,7 +1579,9 @@
 			"iso": "SGP",
 			"continent": "Asia",
 			"color": 0,
-			"cells": 1
+			"cells": 1,
+			"population": 5703569,
+			"gdp": 372062
 		},
 		{
 			"id": 159,
@@ -1273,7 +1589,9 @@
 			"iso": "SVK",
 			"continent": "Europe",
 			"color": 5,
-			"cells": 196
+			"cells": 196,
+			"population": 5454073,
+			"gdp": 105079
 		},
 		{
 			"id": 160,
@@ -1281,7 +1599,9 @@
 			"iso": "SVN",
 			"continent": "Europe",
 			"color": 3,
-			"cells": 73
+			"cells": 73,
+			"population": 2087946,
+			"gdp": 54174
 		},
 		{
 			"id": 161,
@@ -1289,7 +1609,9 @@
 			"iso": "SLB",
 			"continent": "Oceania",
 			"color": 1,
-			"cells": 70
+			"cells": 70,
+			"population": 669823,
+			"gdp": 1589
 		},
 		{
 			"id": 162,
@@ -1297,7 +1619,9 @@
 			"iso": "SOM",
 			"continent": "Africa",
 			"color": 2,
-			"cells": 1244
+			"cells": 1244,
+			"population": 10192317.3,
+			"gdp": 4719
 		},
 		{
 			"id": 163,
@@ -1305,7 +1629,9 @@
 			"iso": "SOL",
 			"continent": "Africa",
 			"color": 4,
-			"cells": 439
+			"cells": 439,
+			"population": 5096159,
+			"gdp": 17836
 		},
 		{
 			"id": 164,
@@ -1313,7 +1639,9 @@
 			"iso": "ZAF",
 			"continent": "Africa",
 			"color": 0,
-			"cells": 3651
+			"cells": 3651,
+			"population": 58558270,
+			"gdp": 351431
 		},
 		{
 			"id": 165,
@@ -1321,7 +1649,9 @@
 			"iso": "KOR",
 			"continent": "Asia",
 			"color": 6,
-			"cells": 315
+			"cells": 315,
+			"population": 51709098,
+			"gdp": 1646739
 		},
 		{
 			"id": 166,
@@ -1329,7 +1659,9 @@
 			"iso": "SDS",
 			"continent": "Africa",
 			"color": 2,
-			"cells": 1655
+			"cells": 1655,
+			"population": 11062113,
+			"gdp": 11998
 		},
 		{
 			"id": 167,
@@ -1337,7 +1669,9 @@
 			"iso": "ESP",
 			"continent": "Europe",
 			"color": 5,
-			"cells": 1732
+			"cells": 1732,
+			"population": 47076781,
+			"gdp": 1393490
 		},
 		{
 			"id": 168,
@@ -1345,7 +1679,9 @@
 			"iso": "LKA",
 			"continent": "Asia",
 			"color": 2,
-			"cells": 175
+			"cells": 175,
+			"population": 21803000,
+			"gdp": 84008
 		},
 		{
 			"id": 169,
@@ -1353,7 +1689,9 @@
 			"iso": "SDN",
 			"continent": "Africa",
 			"color": 4,
-			"cells": 5083
+			"cells": 5083,
+			"population": 42813238,
+			"gdp": 30513
 		},
 		{
 			"id": 170,
@@ -1361,7 +1699,9 @@
 			"iso": "SUR",
 			"continent": "South America",
 			"color": 6,
-			"cells": 384
+			"cells": 384,
+			"population": 581363,
+			"gdp": 3697
 		},
 		{
 			"id": 171,
@@ -1369,7 +1709,9 @@
 			"iso": "SWE",
 			"continent": "Europe",
 			"color": 1,
-			"cells": 2541
+			"cells": 2541,
+			"population": 10285453,
+			"gdp": 530883
 		},
 		{
 			"id": 172,
@@ -1377,7 +1719,9 @@
 			"iso": "CHE",
 			"continent": "Europe",
 			"color": 4,
-			"cells": 155
+			"cells": 155,
+			"population": 8574832,
+			"gdp": 703082
 		},
 		{
 			"id": 173,
@@ -1385,7 +1729,9 @@
 			"iso": "SYR",
 			"continent": "Asia",
 			"color": 6,
-			"cells": 595
+			"cells": 595,
+			"population": 17070135,
+			"gdp": 98830
 		},
 		{
 			"id": 174,
@@ -1393,7 +1739,9 @@
 			"iso": "TWN",
 			"continent": "Asia",
 			"color": 7,
-			"cells": 106
+			"cells": 106,
+			"population": 23568378,
+			"gdp": 1127000
 		},
 		{
 			"id": 175,
@@ -1401,7 +1749,9 @@
 			"iso": "TJK",
 			"continent": "Asia",
 			"color": 1,
-			"cells": 476
+			"cells": 476,
+			"population": 9321018,
+			"gdp": 8116
 		},
 		{
 			"id": 176,
@@ -1409,7 +1759,9 @@
 			"iso": "THA",
 			"continent": "Asia",
 			"color": 7,
-			"cells": 1396
+			"cells": 1396,
+			"population": 69625582,
+			"gdp": 543548
 		},
 		{
 			"id": 177,
@@ -1417,7 +1769,9 @@
 			"iso": "BHS",
 			"continent": "North America",
 			"color": 3,
-			"cells": 37
+			"cells": 37,
+			"population": 389482,
+			"gdp": 13578
 		},
 		{
 			"id": 178,
@@ -1425,7 +1779,9 @@
 			"iso": "TGO",
 			"continent": "Africa",
 			"color": 7,
-			"cells": 150
+			"cells": 150,
+			"population": 8082366,
+			"gdp": 5490
 		},
 		{
 			"id": 179,
@@ -1433,7 +1789,9 @@
 			"iso": "TON",
 			"continent": "Oceania",
 			"color": 4,
-			"cells": 1
+			"cells": 1,
+			"population": 104494,
+			"gdp": 512
 		},
 		{
 			"id": 180,
@@ -1441,7 +1799,9 @@
 			"iso": "TTO",
 			"continent": "North America",
 			"color": 5,
-			"cells": 16
+			"cells": 16,
+			"population": 1394973,
+			"gdp": 24269
 		},
 		{
 			"id": 181,
@@ -1449,7 +1809,9 @@
 			"iso": "TUN",
 			"continent": "Africa",
 			"color": 0,
-			"cells": 493
+			"cells": 493,
+			"population": 11694719,
+			"gdp": 38796
 		},
 		{
 			"id": 182,
@@ -1457,7 +1819,9 @@
 			"iso": "TUR",
 			"continent": "Asia",
 			"color": 5,
-			"cells": 2630
+			"cells": 2630,
+			"population": 83429615,
+			"gdp": 761425
 		},
 		{
 			"id": 183,
@@ -1465,7 +1829,9 @@
 			"iso": "TKM",
 			"continent": "Asia",
 			"color": 3,
-			"cells": 1588
+			"cells": 1588,
+			"population": 5942089,
+			"gdp": 40761
 		},
 		{
 			"id": 184,
@@ -1473,7 +1839,9 @@
 			"iso": "TUV",
 			"continent": "Oceania",
 			"color": 6,
-			"cells": 1
+			"cells": 1,
+			"population": 11646,
+			"gdp": 47
 		},
 		{
 			"id": 185,
@@ -1481,7 +1849,9 @@
 			"iso": "UGA",
 			"continent": "Africa",
 			"color": 7,
-			"cells": 644
+			"cells": 644,
+			"population": 44269594,
+			"gdp": 35165
 		},
 		{
 			"id": 186,
@@ -1489,7 +1859,9 @@
 			"iso": "UKR",
 			"continent": "Europe",
 			"color": 6,
-			"cells": 2290
+			"cells": 2290,
+			"population": 44385155,
+			"gdp": 153781
 		},
 		{
 			"id": 187,
@@ -1497,7 +1869,9 @@
 			"iso": "ARE",
 			"continent": "Asia",
 			"color": 2,
-			"cells": 208
+			"cells": 208,
+			"population": 9770529,
+			"gdp": 421142
 		},
 		{
 			"id": 188,
@@ -1505,7 +1879,9 @@
 			"iso": "GBR",
 			"continent": "Seven seas (open ocean)",
 			"color": 0,
-			"cells": 1125
+			"cells": 1125,
+			"population": 67317064,
+			"gdp": 2860494
 		},
 		{
 			"id": 189,
@@ -1513,7 +1889,9 @@
 			"iso": "TZA",
 			"continent": "Africa",
 			"color": 0,
-			"cells": 2488
+			"cells": 2488,
+			"population": 58005463,
+			"gdp": 63177
 		},
 		{
 			"id": 190,
@@ -1521,7 +1899,9 @@
 			"iso": "USA",
 			"continent": "Oceania",
 			"color": 3,
-			"cells": 36146
+			"cells": 36146,
+			"population": 331819670,
+			"gdp": 21549948
 		},
 		{
 			"id": 191,
@@ -1529,7 +1909,9 @@
 			"iso": "URY",
 			"continent": "South America",
 			"color": 4,
-			"cells": 550
+			"cells": 550,
+			"population": 3461734,
+			"gdp": 56045
 		},
 		{
 			"id": 192,
@@ -1537,7 +1919,9 @@
 			"iso": "UZB",
 			"continent": "Asia",
 			"color": 0,
-			"cells": 1571
+			"cells": 1571,
+			"population": 33580650,
+			"gdp": 57921
 		},
 		{
 			"id": 193,
@@ -1545,7 +1929,9 @@
 			"iso": "VUT",
 			"continent": "Oceania",
 			"color": 7,
-			"cells": 31
+			"cells": 31,
+			"population": 299882,
+			"gdp": 934
 		},
 		{
 			"id": 194,
@@ -1553,7 +1939,9 @@
 			"iso": "VAT",
 			"continent": "Europe",
 			"color": 1,
-			"cells": 1
+			"cells": 1,
+			"population": 825,
+			"gdp": -99
 		},
 		{
 			"id": 195,
@@ -1561,7 +1949,9 @@
 			"iso": "VEN",
 			"continent": "South America",
 			"color": 0,
-			"cells": 2428
+			"cells": 2428,
+			"population": 28515829,
+			"gdp": 482359
 		},
 		{
 			"id": 196,
@@ -1569,7 +1959,9 @@
 			"iso": "VNM",
 			"continent": "Asia",
 			"color": 1,
-			"cells": 902
+			"cells": 902,
+			"population": 96462106,
+			"gdp": 261921
 		},
 		{
 			"id": 197,
@@ -1577,7 +1969,9 @@
 			"iso": "SAH",
 			"continent": "Africa",
 			"color": 3,
-			"cells": 277
+			"cells": 277,
+			"population": 603253,
+			"gdp": 907
 		},
 		{
 			"id": 198,
@@ -1585,7 +1979,9 @@
 			"iso": "YEM",
 			"continent": "Asia",
 			"color": 5,
-			"cells": 1240
+			"cells": 1240,
+			"population": 29161922,
+			"gdp": 22581
 		},
 		{
 			"id": 199,
@@ -1593,7 +1989,9 @@
 			"iso": "ZMB",
 			"continent": "Africa",
 			"color": 1,
-			"cells": 2026
+			"cells": 2026,
+			"population": 17861030,
+			"gdp": 23309
 		},
 		{
 			"id": 200,
@@ -1601,7 +1999,9 @@
 			"iso": "ZWE",
 			"continent": "Africa",
 			"color": 2,
-			"cells": 1084
+			"cells": 1084,
+			"population": 14645468,
+			"gdp": 21440
 		}
 	]
 }

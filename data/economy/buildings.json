@@ -1,14 +1,412 @@
 [
 	{
-		"type": "OilMiner",
+		"type": "CoalMine",
+		"name": "Угольный разрез",
+		"icon": "coal-mine",
+		"requiresDeposit": "Coal",
 		"inputs": {},
-		"outputs": { "Oil": 10 },
-		"optimalWorkers": 120
+		"outputs": {
+			"Coal": 20
+		},
+		"optimalWorkers": 3000,
+		"buildCost": {
+			"Materials": 220,
+			"Metals": 120
+		}
 	},
 	{
-		"type": "WoodCutter",
+		"type": "OilRig",
+		"name": "Нефтепромысел",
+		"icon": "oil-rig",
+		"requiresDeposit": "Oil",
 		"inputs": {},
-		"outputs": { "Wood": 14 },
-		"optimalWorkers": 60
+		"outputs": {
+			"Oil": 15
+		},
+		"optimalWorkers": 1500,
+		"buildCost": {
+			"Materials": 180,
+			"Metals": 200
+		}
+	},
+	{
+		"type": "GasField",
+		"name": "Газовый промысел",
+		"icon": "gas-field",
+		"requiresDeposit": "Gas",
+		"inputs": {},
+		"outputs": {
+			"Gas": 18
+		},
+		"optimalWorkers": 1200,
+		"buildCost": {
+			"Materials": 160,
+			"Metals": 180
+		}
+	},
+	{
+		"type": "IronMine",
+		"name": "Железный рудник",
+		"icon": "iron-mine",
+		"requiresDeposit": "IronOre",
+		"inputs": {},
+		"outputs": {
+			"IronOre": 20
+		},
+		"optimalWorkers": 3000,
+		"buildCost": {
+			"Materials": 220,
+			"Metals": 120
+		}
+	},
+	{
+		"type": "CopperMine",
+		"name": "Медный рудник",
+		"icon": "copper-mine",
+		"requiresDeposit": "CopperOre",
+		"inputs": {},
+		"outputs": {
+			"CopperOre": 8
+		},
+		"optimalWorkers": 2500,
+		"buildCost": {
+			"Materials": 200,
+			"Metals": 130
+		}
+	},
+	{
+		"type": "BauxiteMine",
+		"name": "Бокситовый карьер",
+		"icon": "bauxite-mine",
+		"requiresDeposit": "Bauxite",
+		"inputs": {},
+		"outputs": {
+			"Bauxite": 12
+		},
+		"optimalWorkers": 2000,
+		"buildCost": {
+			"Materials": 180,
+			"Metals": 100
+		}
+	},
+	{
+		"type": "UraniumMine",
+		"name": "Урановый рудник",
+		"icon": "uranium-mine",
+		"requiresDeposit": "Uranium",
+		"inputs": {},
+		"outputs": {
+			"Uranium": 2
+		},
+		"optimalWorkers": 1500,
+		"buildCost": {
+			"Materials": 240,
+			"Metals": 160
+		}
+	},
+	{
+		"type": "RareEarthMine",
+		"name": "Рудник редкозёмов",
+		"icon": "rare-earth-mine",
+		"requiresDeposit": "RareEarth",
+		"inputs": {},
+		"outputs": {
+			"RareEarth": 3
+		},
+		"optimalWorkers": 1800,
+		"buildCost": {
+			"Materials": 200,
+			"Metals": 140
+		}
+	},
+	{
+		"type": "LoggingCamp",
+		"name": "Лесозаготовка",
+		"icon": "logging-camp",
+		"requiresDeposit": null,
+		"inputs": {},
+		"outputs": {
+			"Timber": 15
+		},
+		"optimalWorkers": 1000,
+		"buildCost": {
+			"Materials": 90,
+			"Metals": 40
+		}
+	},
+	{
+		"type": "Farm",
+		"name": "Агрохозяйство",
+		"icon": "farm",
+		"requiresDeposit": null,
+		"inputs": {},
+		"outputs": {
+			"Agriculture": 25
+		},
+		"optimalWorkers": 5000,
+		"buildCost": {
+			"Materials": 120,
+			"Metals": 60
+		}
+	},
+	{
+		"type": "CoalPlant",
+		"name": "Угольная ТЭС",
+		"icon": "coal-plant",
+		"requiresDeposit": null,
+		"inputs": {
+			"Coal": 10
+		},
+		"outputs": {
+			"Electricity": 20
+		},
+		"optimalWorkers": 800,
+		"buildCost": {
+			"Materials": 400,
+			"Metals": 260
+		}
+	},
+	{
+		"type": "GasPlant",
+		"name": "Газовая ТЭС",
+		"icon": "gas-plant",
+		"requiresDeposit": null,
+		"inputs": {
+			"Gas": 8
+		},
+		"outputs": {
+			"Electricity": 20
+		},
+		"optimalWorkers": 500,
+		"buildCost": {
+			"Materials": 300,
+			"Metals": 220
+		}
+	},
+	{
+		"type": "NuclearPlant",
+		"name": "АЭС",
+		"icon": "nuclear-plant",
+		"requiresDeposit": null,
+		"inputs": {
+			"Uranium": 1
+		},
+		"outputs": {
+			"Electricity": 40
+		},
+		"optimalWorkers": 1500,
+		"buildCost": {
+			"Materials": 900,
+			"Metals": 600,
+			"Electronics": 120
+		}
+	},
+	{
+		"type": "HydroPlant",
+		"name": "ГЭС",
+		"icon": "hydro-plant",
+		"requiresDeposit": null,
+		"inputs": {},
+		"outputs": {
+			"Electricity": 25
+		},
+		"optimalWorkers": 400,
+		"buildCost": {
+			"Materials": 800,
+			"Metals": 300
+		}
+	},
+	{
+		"type": "Refinery",
+		"name": "НПЗ",
+		"icon": "refinery",
+		"requiresDeposit": null,
+		"inputs": {
+			"Oil": 12,
+			"Electricity": 4
+		},
+		"outputs": {
+			"Fuel": 10
+		},
+		"optimalWorkers": 1200,
+		"buildCost": {
+			"Materials": 350,
+			"Metals": 400
+		}
+	},
+	{
+		"type": "SteelMill",
+		"name": "Металлургический завод",
+		"icon": "steel-mill",
+		"requiresDeposit": null,
+		"inputs": {
+			"IronOre": 16,
+			"Coal": 8,
+			"Electricity": 6
+		},
+		"outputs": {
+			"Metals": 10
+		},
+		"optimalWorkers": 4000,
+		"buildCost": {
+			"Materials": 450,
+			"Metals": 350
+		}
+	},
+	{
+		"type": "Smelter",
+		"name": "Цветная металлургия",
+		"icon": "smelter",
+		"requiresDeposit": null,
+		"inputs": {
+			"Bauxite": 10,
+			"CopperOre": 6,
+			"Electricity": 12
+		},
+		"outputs": {
+			"Metals": 8
+		},
+		"optimalWorkers": 2500,
+		"buildCost": {
+			"Materials": 380,
+			"Metals": 300
+		}
+	},
+	{
+		"type": "ChemicalPlant",
+		"name": "Химкомбинат",
+		"icon": "chemical-plant",
+		"requiresDeposit": null,
+		"inputs": {
+			"Oil": 6,
+			"Gas": 6,
+			"Electricity": 5
+		},
+		"outputs": {
+			"Chemicals": 10
+		},
+		"optimalWorkers": 2000,
+		"buildCost": {
+			"Materials": 400,
+			"Metals": 320
+		}
+	},
+	{
+		"type": "MaterialsPlant",
+		"name": "Завод стройматериалов",
+		"icon": "materials-plant",
+		"requiresDeposit": null,
+		"inputs": {
+			"Timber": 8,
+			"Electricity": 4
+		},
+		"outputs": {
+			"Materials": 12
+		},
+		"optimalWorkers": 1500,
+		"buildCost": {
+			"Materials": 200,
+			"Metals": 180
+		}
+	},
+	{
+		"type": "ElectronicsPlant",
+		"name": "Электронный завод",
+		"icon": "electronics-plant",
+		"requiresDeposit": null,
+		"inputs": {
+			"RareEarth": 2,
+			"CopperOre": 3,
+			"Chemicals": 4,
+			"Electricity": 8
+		},
+		"outputs": {
+			"Electronics": 6
+		},
+		"optimalWorkers": 3000,
+		"buildCost": {
+			"Materials": 350,
+			"Metals": 250,
+			"Electronics": 80
+		}
+	},
+	{
+		"type": "FoodPlant",
+		"name": "Пищевой комбинат",
+		"icon": "food-plant",
+		"requiresDeposit": null,
+		"inputs": {
+			"Agriculture": 20,
+			"Chemicals": 3,
+			"Fuel": 2
+		},
+		"outputs": {
+			"Food": 20
+		},
+		"optimalWorkers": 2500,
+		"buildCost": {
+			"Materials": 260,
+			"Metals": 160
+		}
+	},
+	{
+		"type": "ConsumerGoodsPlant",
+		"name": "Лёгкая промышленность",
+		"icon": "consumer-goods-plant",
+		"requiresDeposit": null,
+		"inputs": {
+			"Chemicals": 6,
+			"Metals": 4,
+			"Electronics": 2
+		},
+		"outputs": {
+			"ConsumerGoods": 8
+		},
+		"optimalWorkers": 4000,
+		"buildCost": {
+			"Materials": 300,
+			"Metals": 200,
+			"Electronics": 40
+		}
+	},
+	{
+		"type": "PharmaPlant",
+		"name": "Фармацевтика",
+		"icon": "pharma-plant",
+		"requiresDeposit": null,
+		"inputs": {
+			"Chemicals": 5,
+			"Electricity": 3
+		},
+		"outputs": {
+			"Medicine": 4
+		},
+		"optimalWorkers": 1500,
+		"buildCost": {
+			"Materials": 280,
+			"Metals": 180,
+			"Electronics": 30
+		}
+	},
+	{
+		"type": "ArmsFactory",
+		"name": "Военный завод",
+		"icon": "arms-factory",
+		"requiresDeposit": null,
+		"inputs": {
+			"Metals": 10,
+			"Electronics": 4,
+			"Chemicals": 3,
+			"Fuel": 2
+		},
+		"outputs": {
+			"Weapons": 3
+		},
+		"optimalWorkers": 5000,
+		"buildCost": {
+			"Materials": 520,
+			"Metals": 450,
+			"Electronics": 100
+		}
 	}
 ]

@@ -1,0 +1,122 @@
+[
+	{
+		"id": "Coal",
+		"name": "Уголь",
+		"category": "resource",
+		"icon": "coal"
+	},
+	{
+		"id": "Oil",
+		"name": "Нефть",
+		"category": "resource",
+		"icon": "oil"
+	},
+	{
+		"id": "Gas",
+		"name": "Газ",
+		"category": "resource",
+		"icon": "gas"
+	},
+	{
+		"id": "IronOre",
+		"name": "Железная руда",
+		"category": "resource",
+		"icon": "iron-ore"
+	},
+	{
+		"id": "CopperOre",
+		"name": "Медная руда",
+		"category": "resource",
+		"icon": "copper-ore"
+	},
+	{
+		"id": "Bauxite",
+		"name": "Бокситы",
+		"category": "resource",
+		"icon": "bauxite"
+	},
+	{
+		"id": "Uranium",
+		"name": "Уран",
+		"category": "resource",
+		"icon": "uranium"
+	},
+	{
+		"id": "RareEarth",
+		"name": "Редкоземельные металлы",
+		"category": "resource",
+		"icon": "rare-earth"
+	},
+	{
+		"id": "Timber",
+		"name": "Древесина",
+		"category": "resource",
+		"icon": "timber"
+	},
+	{
+		"id": "Agriculture",
+		"name": "Агросырьё",
+		"category": "resource",
+		"icon": "agriculture"
+	},
+	{
+		"id": "Electricity",
+		"name": "Электроэнергия",
+		"category": "intermediate",
+		"icon": "electricity"
+	},
+	{
+		"id": "Fuel",
+		"name": "Топливо",
+		"category": "intermediate",
+		"icon": "fuel"
+	},
+	{
+		"id": "Metals",
+		"name": "Металлы",
+		"category": "intermediate",
+		"icon": "metals"
+	},
+	{
+		"id": "Chemicals",
+		"name": "Химия",
+		"category": "intermediate",
+		"icon": "chemicals"
+	},
+	{
+		"id": "Materials",
+		"name": "Стройматериалы",
+		"category": "intermediate",
+		"icon": "materials"
+	},
+	{
+		"id": "Electronics",
+		"name": "Электроника",
+		"category": "intermediate",
+		"icon": "electronics"
+	},
+	{
+		"id": "Food",
+		"name": "Продовольствие",
+		"category": "final",
+		"icon": "food"
+	},
+	{
+		"id": "ConsumerGoods",
+		"name": "Потребительские товары",
+		"category": "final",
+		"icon": "consumer-goods"
+	},
+	{
+		"id": "Medicine",
+		"name": "Медикаменты",
+		"category": "final",
+		"icon": "medicine"
+	},
+	{
+		"id": "Weapons",
+		"name": "Военная техника",
+		"category": "final",
+		"icon": "weapons"
+	}
+]
