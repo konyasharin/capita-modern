@@ -1,4 +1,5 @@
-﻿using CapitaModern.Core.Loading;
+﻿using CapitaModern.Core.Buildings;
+using CapitaModern.Core.Economy;
 
 namespace CapitaModern.Core.World;
 
@@ -9,8 +10,11 @@ namespace CapitaModern.Core.World;
 /// </summary>
 public sealed class Region
 {
-    public Region()
-    {
+    public int Id { get; init; }
+    public int CellsCount { get; init; }
+    public int Population { get; init; }
 
-    }
+    private Dictionary<byte, int> Owned { get; init; } = new();
+    private Dictionary<BuildingType, int> Buildings { get; init; } = new();
+    private Dictionary<GoodType, int> Deposits { get; init; } = new();
 }

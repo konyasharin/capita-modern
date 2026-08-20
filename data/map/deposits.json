@@ -1,0 +1,494 @@
+{
+	"note": "Месторождения привязаны к координатам, а не к номерам регионов: нарезка регионов генерируется и её id меняются при правке шага сетки. При загрузке точка превращается в ячейку, ячейка — в регион.",
+	"unit": "amount — относительное богатство месторождения, 100..1000; масштабируется при балансировке",
+	"deposits": [
+		{
+			"good": "Oil",
+			"name": "Гавар",
+			"country": "SAU",
+			"lon": 49.62,
+			"lat": 25.43,
+			"amount": 1000
+		},
+		{
+			"good": "Oil",
+			"name": "Бурган",
+			"country": "KWT",
+			"lon": 47.95,
+			"lat": 28.95,
+			"amount": 700
+		},
+		{
+			"good": "Oil",
+			"name": "Румайла",
+			"country": "IRQ",
+			"lon": 47.35,
+			"lat": 30.35,
+			"amount": 650
+		},
+		{
+			"good": "Oil",
+			"name": "Самотлор",
+			"country": "RUS",
+			"lon": 76.85,
+			"lat": 61.05,
+			"amount": 700
+		},
+		{
+			"good": "Oil",
+			"name": "Пермский бассейн",
+			"country": "USA",
+			"lon": -102.3,
+			"lat": 31.9,
+			"amount": 800
+		},
+		{
+			"good": "Oil",
+			"name": "Прадхо-Бей",
+			"country": "USA",
+			"lon": -148.5,
+			"lat": 70.2,
+			"amount": 400
+		},
+		{
+			"good": "Oil",
+			"name": "Маракайбо",
+			"country": "VEN",
+			"lon": -71.104,
+			"lat": 9.908,
+			"amount": 600
+		},
+		{
+			"good": "Oil",
+			"name": "Дельта Нигера",
+			"country": "NGA",
+			"lon": 6.3,
+			"lat": 4.9,
+			"amount": 550
+		},
+		{
+			"good": "Oil",
+			"name": "Хасси-Мессауд",
+			"country": "DZA",
+			"lon": 6.07,
+			"lat": 31.7,
+			"amount": 450
+		},
+		{
+			"good": "Oil",
+			"name": "Бассейн Сирт",
+			"country": "LBY",
+			"lon": 19,
+			"lat": 29,
+			"amount": 500
+		},
+		{
+			"good": "Oil",
+			"name": "Дацин",
+			"country": "CHN",
+			"lon": 125,
+			"lat": 46.6,
+			"amount": 500
+		},
+		{
+			"good": "Oil",
+			"name": "Тенгиз",
+			"country": "KAZ",
+			"lon": 53.5,
+			"lat": 46.35,
+			"amount": 550
+		},
+		{
+			"good": "Oil",
+			"name": "Кантарель",
+			"country": "MEX",
+			"lon": -92.021,
+			"lat": 18.697,
+			"amount": 450
+		},
+		{
+			"good": "Oil",
+			"name": "Северное море",
+			"country": "GBR",
+			"lon": -1.143,
+			"lat": 60.357,
+			"amount": 400
+		},
+		{
+			"good": "Gas",
+			"name": "Северное/Южный Парс",
+			"country": "QAT",
+			"lon": 51.416,
+			"lat": 25.904,
+			"amount": 1000
+		},
+		{
+			"good": "Gas",
+			"name": "Уренгой",
+			"country": "RUS",
+			"lon": 76.6,
+			"lat": 66.1,
+			"amount": 900
+		},
+		{
+			"good": "Gas",
+			"name": "Ямбург",
+			"country": "RUS",
+			"lon": 75,
+			"lat": 67.9,
+			"amount": 600
+		},
+		{
+			"good": "Gas",
+			"name": "Гронинген",
+			"country": "NLD",
+			"lon": 6.85,
+			"lat": 53.3,
+			"amount": 350
+		},
+		{
+			"good": "Gas",
+			"name": "Хьюготон",
+			"country": "USA",
+			"lon": -101,
+			"lat": 37.2,
+			"amount": 400
+		},
+		{
+			"good": "Gas",
+			"name": "Галкыныш",
+			"country": "TKM",
+			"lon": 62.3,
+			"lat": 37.2,
+			"amount": 600
+		},
+		{
+			"good": "Gas",
+			"name": "Северо-Западный шельф",
+			"country": "AUS",
+			"lon": 116.807,
+			"lat": -20.678,
+			"amount": 450
+		},
+		{
+			"good": "Coal",
+			"name": "Паудер-Ривер",
+			"country": "USA",
+			"lon": -105.4,
+			"lat": 43.8,
+			"amount": 900
+		},
+		{
+			"good": "Coal",
+			"name": "Кузбасс",
+			"country": "RUS",
+			"lon": 86.7,
+			"lat": 54.5,
+			"amount": 800
+		},
+		{
+			"good": "Coal",
+			"name": "Шаньси",
+			"country": "CHN",
+			"lon": 113.2,
+			"lat": 39.6,
+			"amount": 1000
+		},
+		{
+			"good": "Coal",
+			"name": "Боуэн",
+			"country": "AUS",
+			"lon": 148.2,
+			"lat": -22.5,
+			"amount": 700
+		},
+		{
+			"good": "Coal",
+			"name": "Джхария",
+			"country": "IND",
+			"lon": 86.42,
+			"lat": 23.75,
+			"amount": 650
+		},
+		{
+			"good": "Coal",
+			"name": "Рур",
+			"country": "DEU",
+			"lon": 7.2,
+			"lat": 51.5,
+			"amount": 350
+		},
+		{
+			"good": "Coal",
+			"name": "Верхняя Силезия",
+			"country": "POL",
+			"lon": 19,
+			"lat": 50.3,
+			"amount": 450
+		},
+		{
+			"good": "Coal",
+			"name": "Донбасс",
+			"country": "UKR",
+			"lon": 38.5,
+			"lat": 48.3,
+			"amount": 400
+		},
+		{
+			"good": "Coal",
+			"name": "Витбанк",
+			"country": "ZAF",
+			"lon": 29.23,
+			"lat": -25.87,
+			"amount": 500
+		},
+		{
+			"good": "Coal",
+			"name": "Восточный Калимантан",
+			"country": "IDN",
+			"lon": 116.2,
+			"lat": -0.9,
+			"amount": 550
+		},
+		{
+			"good": "Iron",
+			"name": "Карaжас",
+			"country": "BRA",
+			"lon": -50.16,
+			"lat": -6.06,
+			"amount": 900
+		},
+		{
+			"good": "Iron",
+			"name": "Железный четырёхугольник",
+			"country": "BRA",
+			"lon": -43.8,
+			"lat": -20.1,
+			"amount": 700
+		},
+		{
+			"good": "Iron",
+			"name": "Хамерсли",
+			"country": "AUS",
+			"lon": 118.6,
+			"lat": -22.9,
+			"amount": 1000
+		},
+		{
+			"good": "Iron",
+			"name": "Курская магнитная аномалия",
+			"country": "RUS",
+			"lon": 37.6,
+			"lat": 51.25,
+			"amount": 700
+		},
+		{
+			"good": "Iron",
+			"name": "Кируна",
+			"country": "SWE",
+			"lon": 20.22,
+			"lat": 67.85,
+			"amount": 400
+		},
+		{
+			"good": "Iron",
+			"name": "Месаби",
+			"country": "USA",
+			"lon": -92.8,
+			"lat": 47.5,
+			"amount": 450
+		},
+		{
+			"good": "Iron",
+			"name": "Зуэрат",
+			"country": "MRT",
+			"lon": -12.47,
+			"lat": 22.68,
+			"amount": 350
+		},
+		{
+			"good": "Iron",
+			"name": "Аньшань",
+			"country": "CHN",
+			"lon": 123,
+			"lat": 41.1,
+			"amount": 600
+		},
+		{
+			"good": "Iron",
+			"name": "Симанду",
+			"country": "GIN",
+			"lon": -8.87,
+			"lat": 8.53,
+			"amount": 500
+		},
+		{
+			"good": "Iron",
+			"name": "Лабрадорский пояс",
+			"country": "CAN",
+			"lon": -66.8,
+			"lat": 54.8,
+			"amount": 450
+		},
+		{
+			"good": "Copper",
+			"name": "Эскондида",
+			"country": "CHL",
+			"lon": -69.07,
+			"lat": -24.27,
+			"amount": 1000
+		},
+		{
+			"good": "Copper",
+			"name": "Чукикамата",
+			"country": "CHL",
+			"lon": -68.9,
+			"lat": -22.3,
+			"amount": 700
+		},
+		{
+			"good": "Copper",
+			"name": "Грасберг",
+			"country": "IDN",
+			"lon": 137.11,
+			"lat": -4.06,
+			"amount": 700
+		},
+		{
+			"good": "Copper",
+			"name": "Бингем-Каньон",
+			"country": "USA",
+			"lon": -112.15,
+			"lat": 40.52,
+			"amount": 400
+		},
+		{
+			"good": "Copper",
+			"name": "Катанга",
+			"country": "COD",
+			"lon": 25.5,
+			"lat": -10.7,
+			"amount": 800
+		},
+		{
+			"good": "Copper",
+			"name": "Медный пояс",
+			"country": "ZMB",
+			"lon": 28.2,
+			"lat": -12.8,
+			"amount": 600
+		},
+		{
+			"good": "Copper",
+			"name": "Оюу-Толгой",
+			"country": "MNG",
+			"lon": 106.86,
+			"lat": 43,
+			"amount": 500
+		},
+		{
+			"good": "Copper",
+			"name": "Антамина",
+			"country": "PER",
+			"lon": -77.06,
+			"lat": -9.53,
+			"amount": 550
+		},
+		{
+			"good": "Bauxite",
+			"name": "Вейпа",
+			"country": "AUS",
+			"lon": 141.87,
+			"lat": -12.63,
+			"amount": 800
+		},
+		{
+			"good": "Bauxite",
+			"name": "Боке",
+			"country": "GIN",
+			"lon": -14.3,
+			"lat": 10.94,
+			"amount": 900
+		},
+		{
+			"good": "Bauxite",
+			"name": "Порту-Тромбетас",
+			"country": "BRA",
+			"lon": -56.38,
+			"lat": -1.46,
+			"amount": 600
+		},
+		{
+			"good": "Bauxite",
+			"name": "Одиша",
+			"country": "IND",
+			"lon": 83,
+			"lat": 20.8,
+			"amount": 500
+		},
+		{
+			"good": "Uranium",
+			"name": "Мак-Артур-Ривер",
+			"country": "CAN",
+			"lon": -105.04,
+			"lat": 57.77,
+			"amount": 900
+		},
+		{
+			"good": "Uranium",
+			"name": "Олимпик-Дам",
+			"country": "AUS",
+			"lon": 136.89,
+			"lat": -30.44,
+			"amount": 800
+		},
+		{
+			"good": "Uranium",
+			"name": "Инкай",
+			"country": "KAZ",
+			"lon": 67,
+			"lat": 44.5,
+			"amount": 700
+		},
+		{
+			"good": "Uranium",
+			"name": "Арлит",
+			"country": "NER",
+			"lon": 7.39,
+			"lat": 18.74,
+			"amount": 400
+		},
+		{
+			"good": "Uranium",
+			"name": "Рёссинг",
+			"country": "NAM",
+			"lon": 15.04,
+			"lat": -22.48,
+			"amount": 350
+		},
+		{
+			"good": "RareEarth",
+			"name": "Баян-Обо",
+			"country": "CHN",
+			"lon": 109.97,
+			"lat": 41.77,
+			"amount": 1000
+		},
+		{
+			"good": "RareEarth",
+			"name": "Маунтин-Пасс",
+			"country": "USA",
+			"lon": -115.53,
+			"lat": 35.47,
+			"amount": 500
+		},
+		{
+			"good": "RareEarth",
+			"name": "Маунт-Уэлд",
+			"country": "AUS",
+			"lon": 122.54,
+			"lat": -28.86,
+			"amount": 450
+		}
+	]
+}

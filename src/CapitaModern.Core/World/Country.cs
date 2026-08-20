@@ -1,9 +1,11 @@
-﻿using CapitaModern.Core.Buildings;
+﻿using CapitaModern.Core.Economy;
 
 namespace CapitaModern.Core.World;
 
 public sealed class Country
 {
+    public byte Id { get; init; }
     public string Name { get; init; } = "";
-    public Dictionary<BuildingType, int> Buildings { get; init; } = new();
+    public long Balance { get; set; }
+    private Dictionary<GoodType, long> Stock { get; init; } = new();
 }

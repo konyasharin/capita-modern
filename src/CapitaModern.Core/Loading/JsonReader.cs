@@ -13,9 +13,9 @@ public static class JsonReader
         ReadCommentHandling = JsonCommentHandling.Skip,
     };
 
-    public static List<T> Read<T>(string json)
+    public static T Read<T>(string json)
     {
-        return JsonSerializer.Deserialize<List<T>>(json, Options) ??
-               throw new NullReferenceException("Ожидался массив, получен null");
+        return JsonSerializer.Deserialize<T>(json, Options) ??
+               throw new NullReferenceException($"Ожидался {typeof(T).FullName}, получен null");
     }
 }

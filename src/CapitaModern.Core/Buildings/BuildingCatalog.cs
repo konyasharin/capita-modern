@@ -31,7 +31,7 @@ public sealed class BuildingCatalog
         }
     }
 
-    public static BuildingCatalog FromJson(string json) => new(JsonReader.Read<BuildingInfo>(json));
+    public static BuildingCatalog FromJson(string json) => new(JsonReader.Read<BuildingInfo[]>(json));
 
     public BuildingInfo this[BuildingType type] => _byType[(int)type];
 }

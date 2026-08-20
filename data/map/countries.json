@@ -70,7 +70,7 @@
 		{
 			"id": 9,
 			"name": "Australia",
-			"iso": "AU1",
+			"iso": "AUS",
 			"continent": "Oceania",
 			"color": 3,
 			"cells": 22531
@@ -278,7 +278,7 @@
 		{
 			"id": 35,
 			"name": "China",
-			"iso": "CH1",
+			"iso": "CHN",
 			"continent": "Asia",
 			"color": 0,
 			"cells": 30777
@@ -318,7 +318,7 @@
 		{
 			"id": 40,
 			"name": "Cuba",
-			"iso": "CU1",
+			"iso": "CUB",
 			"continent": "North America",
 			"color": 0,
 			"cells": 313
@@ -350,7 +350,7 @@
 		{
 			"id": 44,
 			"name": "Denmark",
-			"iso": "DN1",
+			"iso": "DNK",
 			"continent": "North America",
 			"color": 1,
 			"cells": 21716
@@ -470,7 +470,7 @@
 		{
 			"id": 59,
 			"name": "Finland",
-			"iso": "FI1",
+			"iso": "FIN",
 			"continent": "Europe",
 			"color": 2,
 			"cells": 2017
@@ -478,7 +478,7 @@
 		{
 			"id": 60,
 			"name": "France",
-			"iso": "FR1",
+			"iso": "FRA",
 			"continent": "Europe",
 			"color": 3,
 			"cells": 2410
@@ -646,7 +646,7 @@
 		{
 			"id": 81,
 			"name": "Israel",
-			"iso": "IS1",
+			"iso": "ISR",
 			"continent": "Asia",
 			"color": 4,
 			"cells": 86
@@ -702,7 +702,7 @@
 		{
 			"id": 88,
 			"name": "Kazakhstan",
-			"iso": "KA1",
+			"iso": "KAZ",
 			"continent": "Asia",
 			"color": 2,
 			"cells": 10650
@@ -982,7 +982,7 @@
 		{
 			"id": 123,
 			"name": "Netherlands",
-			"iso": "NL1",
+			"iso": "NLD",
 			"continent": "Europe",
 			"color": 4,
 			"cells": 155
@@ -990,7 +990,7 @@
 		{
 			"id": 124,
 			"name": "New Zealand",
-			"iso": "NZ1",
+			"iso": "NZL",
 			"continent": "Oceania",
 			"color": 7,
 			"cells": 938
@@ -1502,7 +1502,7 @@
 		{
 			"id": 188,
 			"name": "United Kingdom",
-			"iso": "GB1",
+			"iso": "GBR",
 			"continent": "Seven seas (open ocean)",
 			"color": 0,
 			"cells": 1125
@@ -1518,7 +1518,7 @@
 		{
 			"id": 190,
 			"name": "United States of America",
-			"iso": "US1",
+			"iso": "USA",
 			"continent": "Oceania",
 			"color": 3,
 			"cells": 36146

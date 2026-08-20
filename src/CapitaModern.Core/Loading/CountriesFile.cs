@@ -1,0 +1,13 @@
+﻿using System.Text.Json.Serialization;
+
+namespace CapitaModern.Core.Loading;
+
+public record CountryDto(
+    byte Id
+);
+
+public record CountriesFile(
+    int Width,
+    int Height,
+    [property: JsonPropertyName("countries")] CountryDto[] Countries
+);

@@ -45,6 +45,8 @@ for (const f of geo.features) {
 	if (!c) {
 		c = {
 			name,
+			// SOV_A3 у суверенитетов с зависимостями выглядит как US1/CH1/AU1 —
+			// настоящий код берём у метрополии (HOMEPART), см. ниже.
 			iso: p.SOV_A3,
 			continent: p.CONTINENT,
 			labelX: p.LABEL_X,
@@ -53,6 +55,9 @@ for (const f of geo.features) {
 		}
 		countries.set(name, c)
 	}
+
+	// Метрополия задаёт нормальный трёхбуквенный код для всей страны.
+	if (p.HOMEPART === 1 && p.ADM0_A3 && !/\d/.test(p.ADM0_A3)) c.iso = p.ADM0_A3
 
 	const g = f.geometry
 	if (!g) continue
