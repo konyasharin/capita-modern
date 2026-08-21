@@ -38,6 +38,7 @@ tools/                     генераторы данных и проверки
 | `data/map/countries.json` | 200 стран: имя, код, население, ВВП, площадь | 30 КБ |
 | `data/map/cities.json` | 7288 городов для расселения населения | 850 КБ |
 | `data/map/deposits.json` | 61 месторождение с координатами | 12 КБ |
+| `data/map/regions.json` | 2985 регионов: ячейки, население, месторождения | 480 КБ |
 | `data/economy/goods.json` | 20 товаров | 3 КБ |
 | `data/economy/buildings.json` | 24 постройки: рецепты, рабочие, стоимость | 10 КБ |
 
@@ -46,6 +47,7 @@ tools/                     генераторы данных и проверки
 ```bash
 node tools/gen-world.mjs <ne_50m_admin_0_countries.geojson>
 node tools/gen-cities.mjs <ne_10m_populated_places_simple.geojson>
+node tools/gen-regions.mjs [--step 13] [--seed 20260814]
 node tools/fetch-icons.mjs
 node tools/check-data.mjs        # ссылки между файлами и наличие иконок
 node tools/check-deposits.mjs    # месторождения на суше и в своей стране

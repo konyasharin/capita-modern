@@ -108,11 +108,37 @@ for (const c of cities) {
 if (offMap) warnings.push(`городов вне карты (Антарктида, полюса): ${offMap}`)
 if (drowned) warnings.push(`городов в морской ячейке: ${drowned} из ${cities.length}`)
 
+// Регионы: нарезка обязана покрывать все страны, а суммы населения — сходиться
+// до человека, иначе округление при раздаче по регионам потеряло людей.
+const regionsFile = read('data', 'map', 'regions.json')
+const regions = regionsFile.regions
+
+if (regionsFile.width !== undefined && regionsFile.width !== W) {
+	errors.push(`regions.json собран для карты ${regionsFile.width}x${regionsFile.height}`)
+}
+
+const popByCountry = new Map()
+for (const r of regions) {
+	popByCountry.set(r.country, (popByCountry.get(r.country) ?? 0) + r.population)
+	if (!Number.isInteger(r.population) || r.population < 0) {
+		errors.push(`регион ${r.id}: население ${r.population}`)
+	}
+	for (const g of Object.keys(r.deposits ?? {})) {
+		if (!goodIds.has(g)) errors.push(`регион ${r.id}: неизвестное месторождение ${g}`)
+	}
+}
+
+for (const c of countries) {
+	const got = popByCountry.get(c.id)
+	if (got === undefined) errors.push(`${c.name}: нет ни одного региона`)
+	else if (got !== c.population) errors.push(`${c.name}: население ${got} вместо ${c.population}`)
+}
+
 const noPop = countries.filter((c) => !c.population).length
 if (noPop) warnings.push(`стран без населения: ${noPop}`)
 
 console.log(`товаров ${goods.length}, построек ${buildings.length}, месторождений ${deposits.length}`)
-console.log(`стран ${countries.length}, городов ${cities.length}`)
+console.log(`стран ${countries.length}, городов ${cities.length}, регионов ${regions.length}`)
 console.log(`население: ${(countries.reduce((s, c) => s + c.population, 0) / 1e9).toFixed(2)} млрд`)
 
 for (const w of warnings) console.log(`  ! ${w}`)
