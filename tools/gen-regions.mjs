@@ -26,9 +26,6 @@ const SEED = arg('seed', 20260814)
 // этого регионы без городов оказались бы безлюдными, а село никуда не делось.
 const RURAL_SHARE = 0.6
 
-// Мельче этого страна получает ближайший центр перебором, а не поиском по сетке.
-const SMALL_COUNTRY = 24
-
 const root = path.resolve(import.meta.dirname, '..')
 const mapDir = path.join(root, 'data', 'map')
 const read = (name) => JSON.parse(fs.readFileSync(path.join(mapDir, name), 'utf8'))
@@ -94,16 +91,6 @@ for (let i = 0; i < owner.length; i++) {
 }
 for (const [id, xy] of missing) addSeed(xy[0], xy[1], id)
 
-const bw = Math.ceil(W / STEP)
-const bh = Math.ceil(H / STEP)
-const buckets = new Array(bw * bh)
-
-for (let i = 0; i < seedX.length; i++) {
-	const slot = Math.floor(seedY[i] / STEP) * bw + Math.floor(seedX[i] / STEP)
-	if (!buckets[slot]) buckets[slot] = []
-	buckets[slot].push(i)
-}
-
 function nearestOf(list, x, y) {
 	let best = list[0]
 	let bestD = Infinity
@@ -119,42 +106,6 @@ function nearestOf(list, x, y) {
 	return best
 }
 
-function nearestNear(country, x, y) {
-	const cx = Math.floor(x / STEP)
-	const cy = Math.floor(y / STEP)
-	let best = -1
-	let bestD = Infinity
-
-	for (let r = 0; r < bw + bh; r++) {
-		for (let by = cy - r; by <= cy + r; by++) {
-			if (by < 0 || by >= bh) continue
-			for (let bx = cx - r; bx <= cx + r; bx++) {
-				const onRing =
-					r === 0 || by === cy - r || by === cy + r || bx === cx - r || bx === cx + r
-				if (bx < 0 || bx >= bw || !onRing) continue
-
-				const bucket = buckets[by * bw + bx]
-				if (!bucket) continue
-
-				for (const i of bucket) {
-					if (seedCountry[i] !== country) continue
-					const dx = seedX[i] - x
-					const dy = seedY[i] - y
-					const d = dx * dx + dy * dy
-					if (d < bestD) {
-						bestD = d
-						best = i
-					}
-				}
-			}
-		}
-		// Ещё одно кольцо после находки: центр в соседнем бакете может быть ближе.
-		if (best >= 0 && bestD <= r * r * STEP * STEP) break
-	}
-
-	return best
-}
-
 const cellRegion = new Uint16Array(owner.length)
 const cells = new Int32Array(seedX.length)
 
@@ -164,9 +115,9 @@ for (let y = 0; y < H; y++) {
 		const country = owner[at]
 		if (country === 0) continue
 
-		const list = byCountry.get(country)
-		const found =
-			list.length <= SMALL_COUNTRY ? nearestOf(list, x, y) : nearestNear(country, x, y)
+		// Перебор по индексу, а не поиск по сетке: при равных расстояниях побеждает
+		// меньший индекс, и Godot-слой восстанавливает ту же нарезку из regions.json.
+		const found = nearestOf(byCountry.get(country), x, y)
 
 		cellRegion[at] = found + 1
 		cells[found]++

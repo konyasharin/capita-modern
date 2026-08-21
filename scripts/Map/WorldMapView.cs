@@ -6,9 +6,8 @@ using Godot;
 /// </summary>
 public partial class WorldMapView : Sprite2D
 {
-    private const int WorldSeed = 20260814;
-
     private const string MapPath = "res://data/map/world.bin";
+    private const string RegionsPath = "res://data/map/regions.json";
     private const string CountriesPath = "res://data/map/countries.json";
     private const string PalettePath = "res://data/map/palette.json";
 
@@ -37,7 +36,7 @@ public partial class WorldMapView : Sprite2D
         Texture = _ownerTex;
 
         var started = Time.GetTicksMsec();
-        Regions = RegionMap.Build(Map, WorldSeed);
+        Regions = RegionMap.FromJson(Map, Godot.FileAccess.GetFileAsString(RegionsPath));
 
         var regionImage = Image.CreateFromData(
             Map.Width, Map.Height, false, Image.Format.Rg8, Regions.ToRg8()
