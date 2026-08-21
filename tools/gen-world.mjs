@@ -59,8 +59,10 @@ for (const f of geo.features) {
 		countries.set(name, c)
 	}
 
-	c.population += p.POP_EST || 0
-	c.gdp += p.GDP_MD || 0
+	// POP_EST у Natural Earth местами дробный (население Сомали поделено с
+	// Сомалилендом в пропорции 2/3), а население должно быть целым.
+	c.population += Math.round(p.POP_EST || 0)
+	c.gdp += Math.round(p.GDP_MD || 0)
 
 	// Метрополия задаёт нормальный трёхбуквенный код для всей страны.
 	if (p.HOMEPART === 1 && p.ADM0_A3 && !/\d/.test(p.ADM0_A3)) c.iso = p.ADM0_A3
