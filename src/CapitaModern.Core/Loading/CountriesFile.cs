@@ -3,7 +3,11 @@
 namespace CapitaModern.Core.Loading;
 
 public record CountryDto(
-    byte Id
+    byte Id,
+    string Name,
+    string Iso,
+    int Color,
+    int Population
 );
 
 public record CountriesFile(

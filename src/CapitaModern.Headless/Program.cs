@@ -1,7 +1,7 @@
 ﻿using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Loading;
 
-string json = File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "economy", "buildings.json"));
+string json = File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "map", "countries.json"));
 
-var catalog = BuildingCatalog.FromJson(json);
-Console.WriteLine(catalog[BuildingType.OilRig].OptimalWorkers);
+var file = WorldDataLoader.LoadCountriesFile(json);
+Console.WriteLine(file.Countries[161].Name);
