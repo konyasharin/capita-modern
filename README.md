@@ -37,9 +37,10 @@ tools/                     генераторы данных и проверки
 | `data/map/world.bin` | владелец каждой ячейки, 2048×800 | 1.6 МБ |
 | `data/map/countries.json` | 200 стран: имя, код, население, ВВП, площадь | 30 КБ |
 | `data/map/cities.json` | 7288 городов для расселения населения | 850 КБ |
-| `data/map/deposits.json` | 134 месторождения с координатами | 20 КБ |
+| `data/map/deposits.json` | 136 месторождений с координатами | 21 КБ |
 | `data/map/regions.json` | 2985 регионов: ячейки, население, месторождения | 480 КБ |
-| `data/economy/goods.json` | 20 товаров | 3 КБ |
+| `data/scenario.json` | старт 1 января 2020, годы данных | 1 КБ |
+| `data/economy/goods.json` | 20 товаров: единицы и мировой выпуск | 4 КБ |
 | `data/economy/buildings.json` | 24 постройки: рецепты, рабочие, стоимость | 10 КБ |
 | `data/economy/production.json` | доли мирового производства по странам | 12 КБ |
 | `data/economy/start-industry.json` | 12 000 предприятий по регионам | 130 КБ |
@@ -54,6 +55,7 @@ node tools/gen-industry.mjs
 node tools/fetch-icons.mjs
 node tools/check-data.mjs        # ссылки между файлами и наличие иконок
 node tools/check-deposits.mjs    # месторождения на суше и в своей стране
+node tools/check-balance.mjs     # сходятся ли производственные цепочки
 ```
 
 ## Карта

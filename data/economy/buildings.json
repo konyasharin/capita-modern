@@ -155,7 +155,7 @@
 		"icon": "coal-plant",
 		"requiresDeposit": null,
 		"inputs": {
-			"Coal": 10
+			"Coal": 17
 		},
 		"outputs": {
 			"Electricity": 20
@@ -189,7 +189,7 @@
 		"icon": "nuclear-plant",
 		"requiresDeposit": null,
 		"inputs": {
-			"Uranium": 1
+			"Uranium": 2
 		},
 		"outputs": {
 			"Electricity": 40
@@ -222,8 +222,8 @@
 		"icon": "refinery",
 		"requiresDeposit": null,
 		"inputs": {
-			"Oil": 12,
-			"Electricity": 4
+			"Oil": 10,
+			"Electricity": 2
 		},
 		"outputs": {
 			"Fuel": 10
@@ -240,9 +240,9 @@
 		"icon": "steel-mill",
 		"requiresDeposit": null,
 		"inputs": {
-			"IronOre": 16,
+			"IronOre": 13,
 			"Coal": 8,
-			"Electricity": 6
+			"Electricity": 3
 		},
 		"outputs": {
 			"Metals": 10
@@ -259,9 +259,9 @@
 		"icon": "smelter",
 		"requiresDeposit": null,
 		"inputs": {
-			"Bauxite": 10,
-			"CopperOre": 6,
-			"Electricity": 12
+			"Bauxite": 30,
+			"CopperOre": 8,
+			"Electricity": 50
 		},
 		"outputs": {
 			"Metals": 8
@@ -278,7 +278,7 @@
 		"icon": "chemical-plant",
 		"requiresDeposit": null,
 		"inputs": {
-			"Oil": 6,
+			"Fuel": 4,
 			"Gas": 6,
 			"Electricity": 5
 		},
@@ -297,8 +297,9 @@
 		"icon": "materials-plant",
 		"requiresDeposit": null,
 		"inputs": {
-			"Timber": 8,
-			"Electricity": 4
+			"Timber": 2,
+			"Electricity": 1,
+			"Fuel": 1
 		},
 		"outputs": {
 			"Materials": 12
@@ -315,7 +316,7 @@
 		"icon": "electronics-plant",
 		"requiresDeposit": null,
 		"inputs": {
-			"RareEarth": 2,
+			"RareEarth": 1,
 			"CopperOre": 3,
 			"Chemicals": 4,
 			"Electricity": 8
@@ -355,7 +356,7 @@
 		"icon": "consumer-goods-plant",
 		"requiresDeposit": null,
 		"inputs": {
-			"Chemicals": 6,
+			"Chemicals": 4,
 			"Metals": 4,
 			"Electronics": 2
 		},

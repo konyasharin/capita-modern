@@ -2,7 +2,7 @@
 	"note": "Стартовая промышленность: сколько предприятий каждого типа у какой страны. Доли — приближённые реальные доли мирового производства, точность порядка процентов. world — сколько предприятий этого типа во всём мире, tail — доля, размазываемая по странам вне списка пропорционально населению. У добывающих типов tail = 0: сырьё либо есть в стране, либо нет, размазывать его по населению нельзя.",
 	"types": {
 		"CoalMine": {
-			"world": 600,
+			"world": 1110,
 			"tail": 0,
 			"shares": {
 				"CHN": 52,
@@ -22,7 +22,7 @@
 			}
 		},
 		"OilRig": {
-			"world": 800,
+			"world": 819,
 			"tail": 0,
 			"shares": {
 				"USA": 19,
@@ -55,7 +55,7 @@
 			}
 		},
 		"GasField": {
-			"world": 500,
+			"world": 622,
 			"tail": 0,
 			"shares": {
 				"USA": 25,
@@ -80,7 +80,7 @@
 			}
 		},
 		"IronMine": {
-			"world": 400,
+			"world": 342,
 			"tail": 0,
 			"shares": {
 				"AUS": 35,
@@ -101,7 +101,7 @@
 			}
 		},
 		"CopperMine": {
-			"world": 300,
+			"world": 279,
 			"tail": 0,
 			"shares": {
 				"CHL": 24,
@@ -121,7 +121,7 @@
 			}
 		},
 		"BauxiteMine": {
-			"world": 150,
+			"world": 84,
 			"tail": 0,
 			"shares": {
 				"AUS": 27,
@@ -137,7 +137,7 @@
 			}
 		},
 		"UraniumMine": {
-			"world": 60,
+			"world": 74,
 			"tail": 0,
 			"shares": {
 				"KAZ": 43,
@@ -153,7 +153,7 @@
 			}
 		},
 		"RareEarthMine": {
-			"world": 40,
+			"world": 133,
 			"tail": 0,
 			"shares": {
 				"CHN": 68,
@@ -167,7 +167,7 @@
 			}
 		},
 		"LoggingCamp": {
-			"world": 500,
+			"world": 725,
 			"tail": 20,
 			"shares": {
 				"USA": 12,
@@ -188,7 +188,7 @@
 			}
 		},
 		"Farm": {
-			"world": 2000,
+			"world": 877,
 			"tail": 25,
 			"shares": {
 				"CHN": 19,
@@ -214,7 +214,7 @@
 			}
 		},
 		"CoalPlant": {
-			"world": 700,
+			"world": 684,
 			"tail": 4,
 			"shares": {
 				"CHN": 53,
@@ -235,7 +235,7 @@
 			}
 		},
 		"GasPlant": {
-			"world": 600,
+			"world": 444,
 			"tail": 5,
 			"shares": {
 				"USA": 28,
@@ -260,7 +260,7 @@
 			}
 		},
 		"NuclearPlant": {
-			"world": 200,
+			"world": 92,
 			"tail": 0,
 			"shares": {
 				"USA": 30,
@@ -283,7 +283,7 @@
 			}
 		},
 		"HydroPlant": {
-			"world": 400,
+			"world": 429,
 			"tail": 8,
 			"shares": {
 				"CHN": 29,
@@ -309,7 +309,7 @@
 			}
 		},
 		"Refinery": {
-			"world": 500,
+			"world": 1178,
 			"tail": 6,
 			"shares": {
 				"USA": 18,
@@ -335,7 +335,7 @@
 			}
 		},
 		"SteelMill": {
-			"world": 500,
+			"world": 511,
 			"tail": 3,
 			"shares": {
 				"CHN": 53,
@@ -356,7 +356,7 @@
 			}
 		},
 		"Smelter": {
-			"world": 250,
+			"world": 34,
 			"tail": 4,
 			"shares": {
 				"CHN": 55,
@@ -376,7 +376,7 @@
 			}
 		},
 		"ChemicalPlant": {
-			"world": 500,
+			"world": 658,
 			"tail": 6,
 			"shares": {
 				"CHN": 42,
@@ -398,7 +398,7 @@
 			}
 		},
 		"MaterialsPlant": {
-			"world": 600,
+			"world": 936,
 			"tail": 12,
 			"shares": {
 				"CHN": 48,
@@ -439,7 +439,7 @@
 			}
 		},
 		"FoodPlant": {
-			"world": 900,
+			"world": 411,
 			"tail": 20,
 			"shares": {
 				"CHN": 17,

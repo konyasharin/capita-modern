@@ -23136,7 +23136,9 @@
 			"lon": 100.459,
 			"lat": 16.412,
 			"population": 4379660,
-			"deposits": {}
+			"deposits": {
+				"RareEarth": 60
+			}
 		},
 		{
 			"id": 2089,
@@ -28362,7 +28364,9 @@
 			"lon": 49.482,
 			"lat": -14.174,
 			"population": 3055949,
-			"deposits": {}
+			"deposits": {
+				"RareEarth": 60
+			}
 		},
 		{
 			"id": 2560,

@@ -1073,6 +1073,22 @@
 			"lon": 50.889,
 			"lat": 25.377,
 			"amount": 300
+		},
+		{
+			"good": "RareEarth",
+			"name": "Таиланд",
+			"country": "THA",
+			"lon": 99.8,
+			"lat": 16.9,
+			"amount": 60
+		},
+		{
+			"good": "RareEarth",
+			"name": "Ампасиндава",
+			"country": "MDG",
+			"lon": 48.076,
+			"lat": -13.646,
+			"amount": 60
 		}
 	]
 }

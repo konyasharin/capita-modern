@@ -3,120 +3,160 @@
 		"id": "Coal",
 		"name": "Уголь",
 		"category": "resource",
-		"icon": "coal"
+		"icon": "coal",
+		"unit": "1000 т",
+		"worldOutput2019": 8100000
 	},
 	{
 		"id": "Oil",
 		"name": "Нефть",
 		"category": "resource",
-		"icon": "oil"
+		"icon": "oil",
+		"unit": "1000 т",
+		"worldOutput2019": 4485000
 	},
 	{
 		"id": "Gas",
 		"name": "Газ",
 		"category": "resource",
-		"icon": "gas"
+		"icon": "gas",
+		"unit": "млн м3",
+		"worldOutput2019": 4088000
 	},
 	{
 		"id": "IronOre",
 		"name": "Железная руда",
 		"category": "resource",
-		"icon": "iron-ore"
+		"icon": "iron-ore",
+		"unit": "1000 т",
+		"worldOutput2019": 2500000
 	},
 	{
 		"id": "CopperOre",
 		"name": "Медная руда",
 		"category": "resource",
-		"icon": "copper-ore"
+		"icon": "copper-ore",
+		"unit": "25 т меди",
+		"worldOutput2019": 816000
 	},
 	{
 		"id": "Bauxite",
 		"name": "Бокситы",
 		"category": "resource",
-		"icon": "bauxite"
+		"icon": "bauxite",
+		"unit": "1000 т",
+		"worldOutput2019": 370000
 	},
 	{
 		"id": "Uranium",
 		"name": "Уран",
 		"category": "resource",
-		"icon": "uranium"
+		"icon": "uranium",
+		"unit": "т",
+		"worldOutput2019": 54000
 	},
 	{
 		"id": "RareEarth",
 		"name": "Редкоземельные металлы",
 		"category": "resource",
-		"icon": "rare-earth"
+		"icon": "rare-earth",
+		"unit": "2 т",
+		"worldOutput2019": 146000
 	},
 	{
 		"id": "Timber",
 		"name": "Древесина",
 		"category": "resource",
-		"icon": "timber"
+		"icon": "timber",
+		"unit": "1000 м3",
+		"worldOutput2019": 3970000
 	},
 	{
 		"id": "Agriculture",
 		"name": "Агросырьё",
 		"category": "resource",
-		"icon": "agriculture"
+		"icon": "agriculture",
+		"unit": "1000 т",
+		"worldOutput2019": 8000000
 	},
 	{
 		"id": "Electricity",
 		"name": "Электроэнергия",
 		"category": "intermediate",
-		"icon": "electricity"
+		"icon": "electricity",
+		"unit": "2 ГВт*ч",
+		"worldOutput2019": 13500000
 	},
 	{
 		"id": "Fuel",
 		"name": "Топливо",
 		"category": "intermediate",
-		"icon": "fuel"
+		"icon": "fuel",
+		"unit": "1000 т",
+		"worldOutput2019": 4300000
 	},
 	{
 		"id": "Metals",
 		"name": "Металлы",
 		"category": "intermediate",
-		"icon": "metals"
+		"icon": "metals",
+		"unit": "1000 т",
+		"worldOutput2019": 1963000
 	},
 	{
 		"id": "Chemicals",
 		"name": "Химия",
 		"category": "intermediate",
-		"icon": "chemicals"
+		"icon": "chemicals",
+		"unit": "1000 т",
+		"worldOutput2019": 2400000
 	},
 	{
 		"id": "Materials",
 		"name": "Стройматериалы",
 		"category": "intermediate",
-		"icon": "materials"
+		"icon": "materials",
+		"unit": "1000 т",
+		"worldOutput2019": 4100000
 	},
 	{
 		"id": "Electronics",
 		"name": "Электроника",
 		"category": "intermediate",
-		"icon": "electronics"
+		"icon": "electronics",
+		"unit": "условная",
+		"worldOutput2019": 876000
 	},
 	{
 		"id": "Food",
 		"name": "Продовольствие",
 		"category": "final",
-		"icon": "food"
+		"icon": "food",
+		"unit": "1000 т",
+		"worldOutput2019": 3000000
 	},
 	{
 		"id": "ConsumerGoods",
 		"name": "Потребительские товары",
 		"category": "final",
-		"icon": "consumer-goods"
+		"icon": "consumer-goods",
+		"unit": "условная",
+		"worldOutput2019": 2044000
 	},
 	{
 		"id": "Medicine",
 		"name": "Медикаменты",
 		"category": "final",
-		"icon": "medicine"
+		"icon": "medicine",
+		"unit": "условная",
+		"worldOutput2019": 365000
 	},
 	{
 		"id": "Weapons",
 		"name": "Военная техника",
 		"category": "final",
-		"icon": "weapons"
+		"icon": "weapons",
+		"unit": "условная",
+		"worldOutput2019": 164000
 	}
 ]
