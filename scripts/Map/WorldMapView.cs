@@ -8,6 +8,7 @@ public partial class WorldMapView : Sprite2D
 {
     private const string MapPath = "res://data/map/world.bin";
     private const string RegionsPath = "res://data/map/regions.json";
+    private const string RegionsBinPath = "res://data/map/regions.bin";
     private const string CountriesPath = "res://data/map/countries.json";
     private const string PalettePath = "res://data/map/palette.json";
 
@@ -36,7 +37,11 @@ public partial class WorldMapView : Sprite2D
         Texture = _ownerTex;
 
         var started = Time.GetTicksMsec();
-        Regions = RegionMap.FromJson(Map, Godot.FileAccess.GetFileAsString(RegionsPath));
+        Regions = RegionMap.FromData(
+            Map,
+            Godot.FileAccess.GetFileAsString(RegionsPath),
+            Godot.FileAccess.GetFileAsBytes(RegionsBinPath)
+        );
 
         var regionImage = Image.CreateFromData(
             Map.Width, Map.Height, false, Image.Format.Rg8, Regions.ToRg8()

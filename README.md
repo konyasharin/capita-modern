@@ -38,7 +38,8 @@ tools/                     генераторы данных и проверки
 | `data/map/countries.json` | 200 стран: имя, код, население, ВВП, площадь | 30 КБ |
 | `data/map/cities.json` | 7288 городов для расселения населения | 850 КБ |
 | `data/map/deposits.json` | 136 месторождений с координатами | 21 КБ |
-| `data/map/regions.json` | 2985 регионов: ячейки, население, месторождения | 480 КБ |
+| `data/map/regions.json` | 2625 административных областей с названиями | 420 КБ |
+| `data/map/regions.bin` | какая ячейка в какой области | 3.2 МБ |
 | `data/scenario.json` | старт 1 января 2020, годы данных | 1 КБ |
 | `data/economy/goods.json` | 20 товаров: единицы и мировой выпуск | 4 КБ |
 | `data/economy/buildings.json` | 24 постройки: рецепты, рабочие, стоимость | 10 КБ |
@@ -50,7 +51,7 @@ tools/                     генераторы данных и проверки
 ```bash
 node tools/gen-world.mjs <ne_50m_admin_0_countries.geojson>
 node tools/gen-cities.mjs <ne_10m_populated_places_simple.geojson>
-node tools/gen-regions.mjs [--step 13] [--seed 20260814]
+node tools/gen-regions.mjs <ne_10m_admin_1_states_provinces.geojson>
 node tools/gen-industry.mjs
 node tools/fetch-icons.mjs
 node tools/check-data.mjs        # ссылки между файлами и наличие иконок

@@ -2,13 +2,14 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 /// <summary>
-/// Условное деление суши на регионы — единицы просмотра статистики, а не игровые
-/// сущности. Владение по-прежнему определяется полем под точкой, поэтому граница
-/// войны может разрезать регион пополам.
+/// Реальные административные области (Natural Earth admin-1), укрупнённые под размер
+/// игровой ячейки. Единицы просмотра статистики, а не игровые сущности: владение
+/// по-прежнему определяется полем под точкой, поэтому фронт может разрезать область.
 /// </summary>
 public readonly record struct MapRegion(
     int Id,
     byte Country,
+    string Name,
     float CenterX,
     float CenterY,
     int Cells,
@@ -31,13 +32,13 @@ public sealed class RegionMap
     }
 
     /// <summary>
-    /// Восстанавливает нарезку из data/map/regions.json: в файле лежат только центры,
-    /// а принадлежность ячеек считается тем же правилом, что и в генераторе —
-    /// ближайший центр своей страны, при равных расстояниях побеждает меньший id.
-    /// Генерировать нарезку заново здесь нельзя: получилась бы другая, и регион
-    /// в ядре перестал бы совпадать с регионом на экране.
+    /// Читает нарезку из data/map/regions.bin и описания из regions.json.
     /// </summary>
-    public static RegionMap FromJson(WorldMap map, string json)
+    /// <remarks>
+    /// Геометрия возится готовой, а не восстанавливается на месте: у настоящих
+    /// административных границ произвольная форма, из центра области её не вывести.
+    /// </remarks>
+    public static RegionMap FromData(WorldMap map, string json, byte[] binary)
     {
         var file = JsonSerializer.Deserialize<RegionsFile>(json, Options)
             ?? throw new InvalidDataException("regions.json: пустой файл");
@@ -49,72 +50,28 @@ public sealed class RegionMap
                 + $"а world.bin даёт {map.Width}x{map.Height}");
         }
 
-        var dtos = file.Regions;
-        var byCountry = new Dictionary<byte, List<int>>();
-
-        for (var i = 0; i < dtos.Count; i++)
+        if (binary.Length < 12 || binary[0] != 'C' || binary[1] != 'M' || binary[2] != 'R' || binary[3] != '1')
         {
-            if (!byCountry.TryGetValue(dtos[i].Country, out var list))
-            {
-                list = [];
-                byCountry[dtos[i].Country] = list;
-            }
-
-            list.Add(i);
+            throw new InvalidDataException("regions.bin: не тот формат, ожидался CMR1");
         }
 
-        var cell = new ushort[map.Owner.Length];
-        var counts = new int[dtos.Count];
+        var width = BitConverter.ToInt32(binary.AsSpan(4, 4));
+        var height = BitConverter.ToInt32(binary.AsSpan(8, 4));
+        var cells = width * height;
 
-        for (var y = 0; y < map.Height; y++)
+        if (width != map.Width || height != map.Height || binary.Length != 12 + cells * 2)
         {
-            for (var x = 0; x < map.Width; x++)
-            {
-                var at = y * map.Width + x;
-                var country = map.Owner[at];
-
-                if (country == WorldMap.Ocean || !byCountry.TryGetValue(country, out var seeds))
-                {
-                    continue;
-                }
-
-                var best = seeds[0];
-                var bestDistance = long.MaxValue;
-
-                foreach (var i in seeds)
-                {
-                    long dx = dtos[i].X - x;
-                    long dy = dtos[i].Y - y;
-                    var distance = dx * dx + dy * dy;
-
-                    if (distance < bestDistance)
-                    {
-                        bestDistance = distance;
-                        best = i;
-                    }
-                }
-
-                cell[at] = (ushort)dtos[best].Id;
-                counts[best]++;
-            }
+            throw new InvalidDataException($"regions.bin: размер не сходится ({width}x{height})");
         }
 
-        // Число ячеек в файле — контрольная сумма нарезки. Если оно не совпало,
-        // правило разошлось с генератором, и дальше идти нельзя.
-        for (var i = 0; i < dtos.Count; i++)
-        {
-            if (counts[i] != dtos[i].Cells)
-            {
-                throw new InvalidDataException(
-                    $"регион {dtos[i].Id}: восстановлено {counts[i]} ячеек вместо {dtos[i].Cells}");
-            }
-        }
+        var cell = new ushort[cells];
+        Buffer.BlockCopy(binary, 12, cell, 0, cells * 2);
 
-        var regions = new List<MapRegion>(dtos.Count);
+        var regions = new List<MapRegion>(file.Regions.Count);
 
-        foreach (var d in dtos)
+        foreach (var d in file.Regions)
         {
-            regions.Add(new MapRegion(d.Id, d.Country, d.X + 0.5f, d.Y + 0.5f, d.Cells, d.Population));
+            regions.Add(new MapRegion(d.Id, d.Country, d.Name, d.Lon, d.Lat, d.Cells, d.Population));
         }
 
         return new RegionMap(cell, regions);
@@ -139,7 +96,15 @@ public sealed class RegionMap
         PropertyNameCaseInsensitive = true,
     };
 
-    private sealed record RegionDto(int Id, byte Country, int Cells, int X, int Y, int Population);
+    private sealed record RegionDto(
+        int Id,
+        byte Country,
+        string Name,
+        int Cells,
+        float Lon,
+        float Lat,
+        int Population
+    );
 
     private sealed record RegionsFile(
         int Width,
