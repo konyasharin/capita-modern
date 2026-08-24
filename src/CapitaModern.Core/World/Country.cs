@@ -2,11 +2,24 @@
 
 namespace CapitaModern.Core.World;
 
+/// <summary>
+/// Государство: казна и общий склад. Территории у страны нет — какие ячейки ей
+/// принадлежат, знает поле владения на карте, а не этот класс.
+/// </summary>
 public sealed class Country
 {
+    /// <summary>Тот же байт, что лежит в world.bin для каждой ячейки.</summary>
     public byte Id { get; init; }
+
     public string Name { get; init; } = "";
+
+    /// <summary>
+    /// Казна в целых единицах. Дробей не бывает намеренно: плавающая точка копит
+    /// ошибку за тысячи тиков и ломает совпадение сейва с оригиналом.
+    /// </summary>
     public long Balance { get; private set; }
+
+    /// <summary>Склад: накопленные за всю партию количества, отсюда long.</summary>
     private Dictionary<GoodType, long> Stock { get; init; } = new();
 
     public void Receive(long amount)
@@ -14,6 +27,8 @@ public sealed class Country
         ArgumentOutOfRangeException.ThrowIfNegative(amount);
         Balance += amount;
     }
+
+    /// <summary>Списывает, если хватает. Не хватило — возвращает false, казна не тронута.</summary>
     public bool TrySpend(long amount)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(amount);
@@ -23,11 +38,22 @@ public sealed class Country
     }
 
     public long StockOf(GoodType goodType) => Stock.GetValueOrDefault(goodType);
+
     public void Store(GoodType good, long amount)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(amount);
         Stock[good] = StockOf(good) + amount;
     }
+
+    /// <summary>
+    /// Списывает весь рецепт целиком или не списывает ничего.
+    /// </summary>
+    /// <remarks>
+    /// Проверка идёт до списания намеренно: если у завода есть руда, но нет угля,
+    /// руда должна остаться на складе. Поэтому рецепт передаётся целиком, а не
+    /// списывается по одному товару.
+    /// </remarks>
+    /// <param name="times">Сколько раз применить рецепт — обычно число работающих предприятий.</param>
     public bool TryConsume(IReadOnlyDictionary<GoodType, int> recipe, int times = 1)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(times);

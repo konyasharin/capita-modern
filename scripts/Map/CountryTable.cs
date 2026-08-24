@@ -1,6 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
+/// <param name="Id">Тот же байт, что лежит в world.bin для каждой ячейки.</param>
+/// <param name="Color">Индекс в палитре карты, а не сам цвет: соседи гарантированно
+/// не совпадают, раскраска подобрана генератором.</param>
+/// <param name="Cells">Площадь страны в ячейках карты.</param>
 public sealed record Country(
     int Id,
     string Name,
