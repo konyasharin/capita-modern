@@ -2854,7 +2854,9 @@
 			"lon": 35.42,
 			"lat": 69.146,
 			"population": 69144,
-			"deposits": {}
+			"deposits": {
+				"RareEarth": 200
+			}
 		},
 		{
 			"id": 260,
@@ -2988,7 +2990,9 @@
 			"lon": 87.451,
 			"lat": 69.674,
 			"population": 327610,
-			"deposits": {}
+			"deposits": {
+				"CopperOre": 400
+			}
 		},
 		{
 			"id": 272,
@@ -5454,7 +5458,9 @@
 			"lon": 50.01,
 			"lat": 65.455,
 			"population": 79430,
-			"deposits": {}
+			"deposits": {
+				"Bauxite": 250
+			}
 		},
 		{
 			"id": 496,
@@ -6512,7 +6518,9 @@
 			"lon": 6.943,
 			"lat": 61.764,
 			"population": 613534,
-			"deposits": {}
+			"deposits": {
+				"Gas": 350
+			}
 		},
 		{
 			"id": 592,
@@ -7603,7 +7611,9 @@
 			"lon": 7.998,
 			"lat": 60.885,
 			"population": 671209,
-			"deposits": {}
+			"deposits": {
+				"Oil": 400
+			}
 		},
 		{
 			"id": 691,
@@ -8395,7 +8405,9 @@
 			"lon": -110.83,
 			"lat": 57.193,
 			"population": 59171,
-			"deposits": {}
+			"deposits": {
+				"Oil": 800
+			}
 		},
 		{
 			"id": 763,
@@ -9279,7 +9291,9 @@
 			"lon": -121.025,
 			"lat": 55.787,
 			"population": 53407,
-			"deposits": {}
+			"deposits": {
+				"Gas": 450
+			}
 		},
 		{
 			"id": 843,
@@ -10933,7 +10947,10 @@
 			"lon": 64.248,
 			"lat": 52.799,
 			"population": 735714,
-			"deposits": {}
+			"deposits": {
+				"IronOre": 250,
+				"Bauxite": 200
+			}
 		},
 		{
 			"id": 993,
@@ -11751,7 +11768,9 @@
 			"lon": 15.732,
 			"lat": 51.568,
 			"population": 1463978,
-			"deposits": {}
+			"deposits": {
+				"CopperOre": 250
+			}
 		},
 		{
 			"id": 1067,
@@ -12041,7 +12060,9 @@
 			"lon": 75.498,
 			"lat": 50.689,
 			"population": 336096,
-			"deposits": {}
+			"deposits": {
+				"Coal": 400
+			}
 		},
 		{
 			"id": 1093,
@@ -12250,7 +12271,9 @@
 			"lon": 118.916,
 			"lat": 50.338,
 			"population": 244387,
-			"deposits": {}
+			"deposits": {
+				"Uranium": 300
+			}
 		},
 		{
 			"id": 1112,
@@ -12855,7 +12878,10 @@
 			"lon": 34.541,
 			"lat": 48.756,
 			"population": 7943065,
-			"deposits": {}
+			"deposits": {
+				"IronOre": 400,
+				"Uranium": 150
+			}
 		},
 		{
 			"id": 1167,
@@ -13022,7 +13048,9 @@
 			"lon": 67.588,
 			"lat": 49.459,
 			"population": 264102,
-			"deposits": {}
+			"deposits": {
+				"CopperOre": 300
+			}
 		},
 		{
 			"id": 1182,
@@ -13585,7 +13613,9 @@
 			"lon": -79.893,
 			"lat": 46.295,
 			"population": 215173,
-			"deposits": {}
+			"deposits": {
+				"CopperOre": 300
+			}
 		},
 		{
 			"id": 1233,
@@ -14880,7 +14910,9 @@
 			"lon": 82.002,
 			"lat": 45.064,
 			"population": 5000104,
-			"deposits": {}
+			"deposits": {
+				"Uranium": 200
+			}
 		},
 		{
 			"id": 1350,
@@ -14990,7 +15022,9 @@
 			"lon": 104.326,
 			"lat": 44.186,
 			"population": 68849,
-			"deposits": {}
+			"deposits": {
+				"Coal": 300
+			}
 		},
 		{
 			"id": 1360,
@@ -15553,7 +15587,9 @@
 			"lon": 47.197,
 			"lat": 41.373,
 			"population": 6973150,
-			"deposits": {}
+			"deposits": {
+				"Oil": 350
+			}
 		},
 		{
 			"id": 1411,
@@ -15608,7 +15644,10 @@
 			"lon": 64.248,
 			"lat": 41.9,
 			"population": 3008140,
-			"deposits": {}
+			"deposits": {
+				"Gas": 300,
+				"Uranium": 400
+			}
 		},
 		{
 			"id": 1416,
@@ -15707,7 +15746,9 @@
 			"lon": 84.463,
 			"lat": 41.373,
 			"population": 2826389,
-			"deposits": {}
+			"deposits": {
+				"Oil": 450
+			}
 		},
 		{
 			"id": 1425,
@@ -15895,7 +15936,8 @@
 			"lat": 42.604,
 			"population": 9679605,
 			"deposits": {
-				"IronOre": 600
+				"IronOre": 600,
+				"Oil": 300
 			}
 		},
 		{
@@ -16140,7 +16182,9 @@
 			"lon": -81.826,
 			"lat": 38.385,
 			"population": 1151377,
-			"deposits": {}
+			"deposits": {
+				"Coal": 500
+			}
 		},
 		{
 			"id": 1464,
@@ -16162,7 +16206,9 @@
 			"lon": -78.838,
 			"lat": 40.494,
 			"population": 3587773,
-			"deposits": {}
+			"deposits": {
+				"Gas": 700
+			}
 		},
 		{
 			"id": 1466,
@@ -16228,7 +16274,9 @@
 			"lon": 27.686,
 			"lat": 39.967,
 			"population": 20177649,
-			"deposits": {}
+			"deposits": {
+				"Coal": 200
+			}
 		},
 		{
 			"id": 1472,
@@ -16604,7 +16652,9 @@
 			"lon": 111.182,
 			"lat": 39.967,
 			"population": 14206525,
-			"deposits": {}
+			"deposits": {
+				"Coal": 1000
+			}
 		},
 		{
 			"id": 1506,
@@ -17303,7 +17353,9 @@
 			"lon": 113.467,
 			"lat": 37.154,
 			"population": 26157266,
-			"deposits": {}
+			"deposits": {
+				"Bauxite": 900
+			}
 		},
 		{
 			"id": 1569,
@@ -18328,7 +18380,9 @@
 			"lon": 3.779,
 			"lat": 33.111,
 			"population": 730276,
-			"deposits": {}
+			"deposits": {
+				"Gas": 600
+			}
 		},
 		{
 			"id": 1662,
@@ -18823,7 +18877,9 @@
 			"lon": -110.303,
 			"lat": 29.596,
 			"population": 2119743,
-			"deposits": {}
+			"deposits": {
+				"CopperOre": 350
+			}
 		},
 		{
 			"id": 1707,
@@ -19135,7 +19191,9 @@
 			"lon": 31.377,
 			"lat": 30.65,
 			"population": 54502842,
-			"deposits": {}
+			"deposits": {
+				"Gas": 350
+			}
 		},
 		{
 			"id": 1735,
@@ -19214,7 +19272,9 @@
 			"lon": 48.076,
 			"lat": 30.826,
 			"population": 1973537,
-			"deposits": {}
+			"deposits": {
+				"Oil": 700
+			}
 		},
 		{
 			"id": 1742,
@@ -19489,7 +19549,9 @@
 			"lon": 106.436,
 			"lat": 30.123,
 			"population": 26503504,
-			"deposits": {}
+			"deposits": {
+				"Gas": 400
+			}
 		},
 		{
 			"id": 1767,
@@ -19621,7 +19683,9 @@
 			"lon": -100.459,
 			"lat": 28.189,
 			"population": 1465557,
-			"deposits": {}
+			"deposits": {
+				"Coal": 150
+			}
 		},
 		{
 			"id": 1779,
@@ -19865,7 +19929,9 @@
 			"lon": 33.135,
 			"lat": 28.014,
 			"population": 2616150,
-			"deposits": {}
+			"deposits": {
+				"Oil": 250
+			}
 		},
 		{
 			"id": 1801,
@@ -19898,7 +19964,9 @@
 			"lon": 43.154,
 			"lat": 28.541,
 			"population": 426520,
-			"deposits": {}
+			"deposits": {
+				"Bauxite": 150
+			}
 		},
 		{
 			"id": 1804,
@@ -19931,7 +19999,9 @@
 			"lon": 52.646,
 			"lat": 28.365,
 			"population": 1019636,
-			"deposits": {}
+			"deposits": {
+				"Gas": 800
+			}
 		},
 		{
 			"id": 1807,
@@ -19942,7 +20012,9 @@
 			"lon": 54.053,
 			"lat": 28.893,
 			"population": 1489285,
-			"deposits": {}
+			"deposits": {
+				"IronOre": 300
+			}
 		},
 		{
 			"id": 1808,
@@ -20250,7 +20322,9 @@
 			"lon": 118.74,
 			"lat": 28.189,
 			"population": 8629423,
-			"deposits": {}
+			"deposits": {
+				"CopperOre": 500
+			}
 		},
 		{
 			"id": 1836,
@@ -20614,7 +20688,8 @@
 			"lat": 26.256,
 			"population": 4666756,
 			"deposits": {
-				"Oil": 1000
+				"Oil": 1000,
+				"Gas": 500
 			}
 		},
 		{
@@ -21332,7 +21407,9 @@
 			"lon": 83.76,
 			"lat": 23.971,
 			"population": 17070374,
-			"deposits": {}
+			"deposits": {
+				"Coal": 500
+			}
 		},
 		{
 			"id": 1934,
@@ -21400,7 +21477,9 @@
 			"lon": 97.822,
 			"lat": 23.971,
 			"population": 4263454,
-			"deposits": {}
+			"deposits": {
+				"RareEarth": 500
+			}
 		},
 		{
 			"id": 1940,
@@ -21906,7 +21985,10 @@
 			"lon": 57.393,
 			"lat": 21.334,
 			"population": 3941345,
-			"deposits": {}
+			"deposits": {
+				"Oil": 300,
+				"Gas": 250
+			}
 		},
 		{
 			"id": 1986,
@@ -21985,7 +22067,10 @@
 			"lon": 85.166,
 			"lat": 21.686,
 			"population": 32635340,
-			"deposits": {}
+			"deposits": {
+				"IronOre": 400,
+				"Uranium": 100
+			}
 		},
 		{
 			"id": 1993,
@@ -22062,7 +22147,9 @@
 			"lon": 106.26,
 			"lat": 21.51,
 			"population": 31656122,
-			"deposits": {}
+			"deposits": {
+				"Coal": 250
+			}
 		},
 		{
 			"id": 2000,
@@ -22473,7 +22560,9 @@
 			"lon": 74.443,
 			"lat": 19.752,
 			"population": 131194847,
-			"deposits": {}
+			"deposits": {
+				"Oil": 350
+			}
 		},
 		{
 			"id": 2037,
@@ -22506,7 +22595,9 @@
 			"lon": 80.947,
 			"lat": 18.17,
 			"population": 58796581,
-			"deposits": {}
+			"deposits": {
+				"IronOre": 500
+			}
 		},
 		{
 			"id": 2040,
@@ -23562,7 +23653,9 @@
 			"lon": -74.795,
 			"lat": 10.963,
 			"population": 6408753,
-			"deposits": {}
+			"deposits": {
+				"Coal": 300
+			}
 		},
 		{
 			"id": 2136,
@@ -24316,7 +24409,9 @@
 			"lon": 76.377,
 			"lat": 10.084,
 			"population": 42379159,
-			"deposits": {}
+			"deposits": {
+				"RareEarth": 150
+			}
 		},
 		{
 			"id": 2204,
@@ -24505,7 +24600,9 @@
 			"lon": 8.35,
 			"lat": 7.271,
 			"population": 18005446,
-			"deposits": {}
+			"deposits": {
+				"Gas": 400
+			}
 		},
 		{
 			"id": 2221,
@@ -25132,7 +25229,9 @@
 			"lon": 116.104,
 			"lat": 4.635,
 			"population": 5301670,
-			"deposits": {}
+			"deposits": {
+				"Oil": 250
+			}
 		},
 		{
 			"id": 2278,
@@ -25165,7 +25264,9 @@
 			"lon": -71.807,
 			"lat": 3.756,
 			"population": 944836,
-			"deposits": {}
+			"deposits": {
+				"Oil": 250
+			}
 		},
 		{
 			"id": 2281,
@@ -25473,7 +25574,9 @@
 			"lon": 114.521,
 			"lat": 2.35,
 			"population": 5317215,
-			"deposits": {}
+			"deposits": {
+				"Gas": 350
+			}
 		},
 		{
 			"id": 2309,
@@ -25825,7 +25928,9 @@
 			"lon": 102.041,
 			"lat": -0.287,
 			"population": 13989682,
-			"deposits": {}
+			"deposits": {
+				"Oil": 300
+			}
 		},
 		{
 			"id": 2341,
@@ -25902,7 +26007,9 @@
 			"lon": -77.607,
 			"lat": -1.342,
 			"population": 1901086,
-			"deposits": {}
+			"deposits": {
+				"Oil": 200
+			}
 		},
 		{
 			"id": 2348,
@@ -26223,7 +26330,9 @@
 			"lon": 111.182,
 			"lat": -1.166,
 			"population": 7763564,
-			"deposits": {}
+			"deposits": {
+				"Bauxite": 400
+			}
 		},
 		{
 			"id": 2377,
@@ -26269,7 +26378,9 @@
 			"lon": 132.979,
 			"lat": -1.869,
 			"population": 5793433,
-			"deposits": {}
+			"deposits": {
+				"Gas": 300
+			}
 		},
 		{
 			"id": 2381,
@@ -26921,7 +27032,8 @@
 			"lat": -7.143,
 			"population": 433139,
 			"deposits": {
-				"IronOre": 900
+				"IronOre": 900,
+				"CopperOre": 300
 			}
 		},
 		{
@@ -27010,7 +27122,9 @@
 			"lon": 14.326,
 			"lat": -6.615,
 			"population": 1711144,
-			"deposits": {}
+			"deposits": {
+				"Oil": 450
+			}
 		},
 		{
 			"id": 2448,
@@ -28305,7 +28419,9 @@
 			"lon": -74.268,
 			"lat": -15.756,
 			"population": 333483,
-			"deposits": {}
+			"deposits": {
+				"IronOre": 200
+			}
 		},
 		{
 			"id": 2565,
@@ -28316,7 +28432,9 @@
 			"lon": -71.455,
 			"lat": -16.283,
 			"population": 2401992,
-			"deposits": {}
+			"deposits": {
+				"CopperOre": 350
+			}
 		},
 		{
 			"id": 2566,
@@ -29662,7 +29780,9 @@
 			"lon": -42.451,
 			"lat": -21.205,
 			"population": 18456361,
-			"deposits": {}
+			"deposits": {
+				"Oil": 550
+			}
 		},
 		{
 			"id": 2688,
@@ -30397,7 +30517,9 @@
 			"lon": -69.873,
 			"lat": -27.885,
 			"population": 473527,
-			"deposits": {}
+			"deposits": {
+				"IronOre": 200
+			}
 		},
 		{
 			"id": 2754,
@@ -30927,7 +31049,9 @@
 			"lon": 23.643,
 			"lat": -28.764,
 			"population": 1935655,
-			"deposits": {}
+			"deposits": {
+				"IronOre": 350
+			}
 		},
 		{
 			"id": 2802,
@@ -31215,7 +31339,9 @@
 			"lon": -54.58,
 			"lat": -30.697,
 			"population": 1915711,
-			"deposits": {}
+			"deposits": {
+				"Coal": 200
+			}
 		},
 		{
 			"id": 2828,
@@ -31381,7 +31507,8 @@
 			"lat": -30.873,
 			"population": 76015,
 			"deposits": {
-				"Uranium": 800
+				"Uranium": 800,
+				"CopperOre": 400
 			}
 		},
 		{
@@ -31855,7 +31982,9 @@
 			"lon": -69.17,
 			"lat": -39.135,
 			"population": 675527,
-			"deposits": {}
+			"deposits": {
+				"Gas": 350
+			}
 		},
 		{
 			"id": 2886,
@@ -32529,7 +32658,8 @@
 			"lat": 26.08,
 			"population": 2832067,
 			"deposits": {
-				"Gas": 1000
+				"Gas": 1000,
+				"Oil": 300
 			}
 		},
 		{
@@ -32541,7 +32671,10 @@
 			"lon": 56.162,
 			"lat": 25.904,
 			"population": 9770529,
-			"deposits": {}
+			"deposits": {
+				"Oil": 600,
+				"Gas": 400
+			}
 		},
 		{
 			"id": 2948,
@@ -32574,7 +32707,9 @@
 			"lon": -78.311,
 			"lat": 18.346,
 			"population": 2948279,
-			"deposits": {}
+			"deposits": {
+				"Bauxite": 200
+			}
 		},
 		{
 			"id": 2951,

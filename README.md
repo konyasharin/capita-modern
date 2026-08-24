@@ -41,6 +41,8 @@ tools/                     генераторы данных и проверки
 | `data/map/regions.json` | 2985 регионов: ячейки, население, месторождения | 480 КБ |
 | `data/economy/goods.json` | 20 товаров | 3 КБ |
 | `data/economy/buildings.json` | 24 постройки: рецепты, рабочие, стоимость | 10 КБ |
+| `data/economy/production.json` | доли мирового производства по странам | 12 КБ |
+| `data/economy/start-industry.json` | 12 000 предприятий по регионам | 130 КБ |
 
 Генерация и проверка:
 
@@ -48,6 +50,7 @@ tools/                     генераторы данных и проверки
 node tools/gen-world.mjs <ne_50m_admin_0_countries.geojson>
 node tools/gen-cities.mjs <ne_10m_populated_places_simple.geojson>
 node tools/gen-regions.mjs [--step 13] [--seed 20260814]
+node tools/gen-industry.mjs
 node tools/fetch-icons.mjs
 node tools/check-data.mjs        # ссылки между файлами и наличие иконок
 node tools/check-deposits.mjs    # месторождения на суше и в своей стране

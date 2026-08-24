@@ -489,6 +489,590 @@
 			"lon": 122.54,
 			"lat": -28.86,
 			"amount": 450
+		},
+		{
+			"good": "Oil",
+			"name": "Экофиск",
+			"country": "NOR",
+			"lon": 5.537,
+			"lat": 58.775,
+			"amount": 400
+		},
+		{
+			"good": "Gas",
+			"name": "Тролль",
+			"country": "NOR",
+			"lon": 5.01,
+			"lat": 60.357,
+			"amount": 350
+		},
+		{
+			"good": "Oil",
+			"name": "Кабинда",
+			"country": "AGO",
+			"lon": 12.2,
+			"lat": -5.6,
+			"amount": 450
+		},
+		{
+			"good": "Oil",
+			"name": "Ахваз",
+			"country": "IRN",
+			"lon": 48.7,
+			"lat": 31.3,
+			"amount": 700
+		},
+		{
+			"good": "Oil",
+			"name": "Абу-Даби",
+			"country": "ARE",
+			"lon": 53.7,
+			"lat": 24,
+			"amount": 600
+		},
+		{
+			"good": "Oil",
+			"name": "Атабаска",
+			"country": "CAN",
+			"lon": -111.5,
+			"lat": 57,
+			"amount": 800
+		},
+		{
+			"good": "Oil",
+			"name": "Кампос",
+			"country": "BRA",
+			"lon": -41.045,
+			"lat": -21.908,
+			"amount": 550
+		},
+		{
+			"good": "Oil",
+			"name": "Тарим",
+			"country": "CHN",
+			"lon": 84,
+			"lat": 41,
+			"amount": 450
+		},
+		{
+			"good": "Oil",
+			"name": "Дури",
+			"country": "IDN",
+			"lon": 101.2,
+			"lat": 1.2,
+			"amount": 300
+		},
+		{
+			"good": "Oil",
+			"name": "Мумбаи-Хай",
+			"country": "IND",
+			"lon": 72.686,
+			"lat": 19.928,
+			"amount": 350
+		},
+		{
+			"good": "Oil",
+			"name": "Мири",
+			"country": "MYS",
+			"lon": 114,
+			"lat": 4.4,
+			"amount": 250
+		},
+		{
+			"good": "Oil",
+			"name": "Оман",
+			"country": "OMN",
+			"lon": 56,
+			"lat": 22,
+			"amount": 300
+		},
+		{
+			"good": "Oil",
+			"name": "Суэцкий залив",
+			"country": "EGY",
+			"lon": 33.311,
+			"lat": 28.541,
+			"amount": 250
+		},
+		{
+			"good": "Oil",
+			"name": "Кусиана",
+			"country": "COL",
+			"lon": -72.5,
+			"lat": 4.9,
+			"amount": 250
+		},
+		{
+			"good": "Oil",
+			"name": "Ориенте",
+			"country": "ECU",
+			"lon": -76.8,
+			"lat": -0.5,
+			"amount": 200
+		},
+		{
+			"good": "Oil",
+			"name": "Баку",
+			"country": "AZE",
+			"lon": 50.01,
+			"lat": 40.494,
+			"amount": 350
+		},
+		{
+			"good": "Oil",
+			"name": "Дацин-Ляохэ",
+			"country": "CHN",
+			"lon": 122,
+			"lat": 41.3,
+			"amount": 300
+		},
+		{
+			"good": "Gas",
+			"name": "Хасси-Рмель",
+			"country": "DZA",
+			"lon": 3.3,
+			"lat": 32.9,
+			"amount": 600
+		},
+		{
+			"good": "Gas",
+			"name": "Ассалуйе",
+			"country": "IRN",
+			"lon": 52.6,
+			"lat": 27.5,
+			"amount": 800
+		},
+		{
+			"good": "Gas",
+			"name": "Зохр",
+			"country": "EGY",
+			"lon": 31.904,
+			"lat": 31.529,
+			"amount": 350
+		},
+		{
+			"good": "Gas",
+			"name": "Бонни",
+			"country": "NGA",
+			"lon": 7.119,
+			"lat": 4.635,
+			"amount": 400
+		},
+		{
+			"good": "Gas",
+			"name": "Бинтулу",
+			"country": "MYS",
+			"lon": 113.115,
+			"lat": 3.229,
+			"amount": 350
+		},
+		{
+			"good": "Gas",
+			"name": "Тангу",
+			"country": "IDN",
+			"lon": 132.979,
+			"lat": -2.221,
+			"amount": 300
+		},
+		{
+			"good": "Gas",
+			"name": "Газли",
+			"country": "UZB",
+			"lon": 63.5,
+			"lat": 40.1,
+			"amount": 300
+		},
+		{
+			"good": "Gas",
+			"name": "Монтни",
+			"country": "CAN",
+			"lon": -121,
+			"lat": 55.5,
+			"amount": 450
+		},
+		{
+			"good": "Gas",
+			"name": "Сычуань",
+			"country": "CHN",
+			"lon": 105.5,
+			"lat": 30.5,
+			"amount": 400
+		},
+		{
+			"good": "Gas",
+			"name": "Марселлус",
+			"country": "USA",
+			"lon": -78.5,
+			"lat": 40.8,
+			"amount": 700
+		},
+		{
+			"good": "Coal",
+			"name": "Внутренняя Монголия",
+			"country": "CHN",
+			"lon": 110,
+			"lat": 39.8,
+			"amount": 1000
+		},
+		{
+			"good": "Coal",
+			"name": "Аппалачи",
+			"country": "USA",
+			"lon": -81.5,
+			"lat": 37.8,
+			"amount": 500
+		},
+		{
+			"good": "Coal",
+			"name": "Экибастуз",
+			"country": "KAZ",
+			"lon": 75.3,
+			"lat": 51.7,
+			"amount": 400
+		},
+		{
+			"good": "Coal",
+			"name": "Синграули",
+			"country": "IND",
+			"lon": 82.7,
+			"lat": 24.2,
+			"amount": 500
+		},
+		{
+			"good": "Coal",
+			"name": "Серрехон",
+			"country": "COL",
+			"lon": -72.6,
+			"lat": 11.1,
+			"amount": 300
+		},
+		{
+			"good": "Coal",
+			"name": "Таван-Толгой",
+			"country": "MNG",
+			"lon": 105.5,
+			"lat": 43.6,
+			"amount": 300
+		},
+		{
+			"good": "Coal",
+			"name": "Сома",
+			"country": "TUR",
+			"lon": 27.6,
+			"lat": 39.2,
+			"amount": 200
+		},
+		{
+			"good": "Coal",
+			"name": "Куангнинь",
+			"country": "VNM",
+			"lon": 107.2,
+			"lat": 21,
+			"amount": 250
+		},
+		{
+			"good": "IronOre",
+			"name": "Кривой Рог",
+			"country": "UKR",
+			"lon": 33.4,
+			"lat": 47.9,
+			"amount": 400
+		},
+		{
+			"good": "IronOre",
+			"name": "Голь-е-Гохар",
+			"country": "IRN",
+			"lon": 55.3,
+			"lat": 29.1,
+			"amount": 300
+		},
+		{
+			"good": "IronOre",
+			"name": "Сишен",
+			"country": "ZAF",
+			"lon": 23,
+			"lat": -27.7,
+			"amount": 350
+		},
+		{
+			"good": "IronOre",
+			"name": "Соколовское",
+			"country": "KAZ",
+			"lon": 62.6,
+			"lat": 53.2,
+			"amount": 250
+		},
+		{
+			"good": "IronOre",
+			"name": "Маркона",
+			"country": "PER",
+			"lon": -75.1,
+			"lat": -15.2,
+			"amount": 200
+		},
+		{
+			"good": "IronOre",
+			"name": "Эль-Ромераль",
+			"country": "CHL",
+			"lon": -70.5,
+			"lat": -27,
+			"amount": 200
+		},
+		{
+			"good": "CopperOre",
+			"name": "Дэсин",
+			"country": "CHN",
+			"lon": 117.6,
+			"lat": 28.9,
+			"amount": 500
+		},
+		{
+			"good": "CopperOre",
+			"name": "Норильск",
+			"country": "RUS",
+			"lon": 88.2,
+			"lat": 69.3,
+			"amount": 400
+		},
+		{
+			"good": "CopperOre",
+			"name": "Буэнависта",
+			"country": "MEX",
+			"lon": -110.3,
+			"lat": 30.9,
+			"amount": 350
+		},
+		{
+			"good": "CopperOre",
+			"name": "Жезказган",
+			"country": "KAZ",
+			"lon": 67.7,
+			"lat": 47.8,
+			"amount": 300
+		},
+		{
+			"good": "CopperOre",
+			"name": "Любин",
+			"country": "POL",
+			"lon": 16.2,
+			"lat": 51.4,
+			"amount": 250
+		},
+		{
+			"good": "CopperOre",
+			"name": "Серро-Верде",
+			"country": "PER",
+			"lon": -71.6,
+			"lat": -16.5,
+			"amount": 350
+		},
+		{
+			"good": "Bauxite",
+			"name": "Западный Калимантан",
+			"country": "IDN",
+			"lon": 109.3,
+			"lat": 0.5,
+			"amount": 400
+		},
+		{
+			"good": "Bauxite",
+			"name": "Ямайка",
+			"country": "JAM",
+			"lon": -77.4,
+			"lat": 18.2,
+			"amount": 200
+		},
+		{
+			"good": "Uranium",
+			"name": "Учкудук",
+			"country": "UZB",
+			"lon": 63.6,
+			"lat": 42.2,
+			"amount": 400
+		},
+		{
+			"good": "Uranium",
+			"name": "Краснокаменск",
+			"country": "RUS",
+			"lon": 118,
+			"lat": 50.1,
+			"amount": 300
+		},
+		{
+			"good": "RareEarth",
+			"name": "Качин",
+			"country": "MMR",
+			"lon": 97.5,
+			"lat": 25.5,
+			"amount": 500
+		},
+		{
+			"good": "RareEarth",
+			"name": "Ловозеро",
+			"country": "RUS",
+			"lon": 34.5,
+			"lat": 67.8,
+			"amount": 200
+		},
+		{
+			"good": "RareEarth",
+			"name": "Керала",
+			"country": "IND",
+			"lon": 76.5,
+			"lat": 9,
+			"amount": 150
+		},
+		{
+			"good": "Gas",
+			"name": "Гавар-газ",
+			"country": "SAU",
+			"lon": 49.6,
+			"lat": 25.4,
+			"amount": 500
+		},
+		{
+			"good": "Gas",
+			"name": "Абу-Даби-газ",
+			"country": "ARE",
+			"lon": 53.7,
+			"lat": 24,
+			"amount": 400
+		},
+		{
+			"good": "Gas",
+			"name": "Вака-Муэрта",
+			"country": "ARG",
+			"lon": -69.2,
+			"lat": -38.5,
+			"amount": 350
+		},
+		{
+			"good": "Gas",
+			"name": "Хазан",
+			"country": "OMN",
+			"lon": 56,
+			"lat": 22,
+			"amount": 250
+		},
+		{
+			"good": "IronOre",
+			"name": "Байладила",
+			"country": "IND",
+			"lon": 81.3,
+			"lat": 18.7,
+			"amount": 500
+		},
+		{
+			"good": "IronOre",
+			"name": "Кеонджхар",
+			"country": "IND",
+			"lon": 85.6,
+			"lat": 21.6,
+			"amount": 400
+		},
+		{
+			"good": "CopperOre",
+			"name": "Олимпик-Дам-медь",
+			"country": "AUS",
+			"lon": 136.89,
+			"lat": -30.44,
+			"amount": 400
+		},
+		{
+			"good": "CopperOre",
+			"name": "Садбери",
+			"country": "CAN",
+			"lon": -81,
+			"lat": 46.5,
+			"amount": 300
+		},
+		{
+			"good": "CopperOre",
+			"name": "Каражас-медь",
+			"country": "BRA",
+			"lon": -50.2,
+			"lat": -6.1,
+			"amount": 300
+		},
+		{
+			"good": "Bauxite",
+			"name": "Шаньси",
+			"country": "CHN",
+			"lon": 112.5,
+			"lat": 37.5,
+			"amount": 900
+		},
+		{
+			"good": "Bauxite",
+			"name": "Тиман",
+			"country": "RUS",
+			"lon": 50,
+			"lat": 65.5,
+			"amount": 250
+		},
+		{
+			"good": "Bauxite",
+			"name": "Тургай",
+			"country": "KAZ",
+			"lon": 64,
+			"lat": 52,
+			"amount": 200
+		},
+		{
+			"good": "Bauxite",
+			"name": "Эз-Забира",
+			"country": "SAU",
+			"lon": 43.6,
+			"lat": 27.9,
+			"amount": 150
+		},
+		{
+			"good": "Coal",
+			"name": "Кандиота",
+			"country": "BRA",
+			"lon": -53.7,
+			"lat": -31.5,
+			"amount": 200
+		},
+		{
+			"good": "Coal",
+			"name": "Сабинас",
+			"country": "MEX",
+			"lon": -101.4,
+			"lat": 27.9,
+			"amount": 150
+		},
+		{
+			"good": "Uranium",
+			"name": "Или",
+			"country": "CHN",
+			"lon": 81.3,
+			"lat": 43.9,
+			"amount": 200
+		},
+		{
+			"good": "Uranium",
+			"name": "Джадугуда",
+			"country": "IND",
+			"lon": 86.35,
+			"lat": 22.65,
+			"amount": 100
+		},
+		{
+			"good": "Uranium",
+			"name": "Жёлтые Воды",
+			"country": "UKR",
+			"lon": 33.5,
+			"lat": 48.35,
+			"amount": 150
+		},
+		{
+			"good": "Oil",
+			"name": "Духан",
+			"country": "QAT",
+			"lon": 50.889,
+			"lat": 25.377,
+			"amount": 300
 		}
 	]
 }

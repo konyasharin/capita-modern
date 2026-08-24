@@ -21,6 +21,7 @@ const errors = []
 const warnings = []
 
 const goodIds = new Set(goods.map((g) => g.id))
+const isoKnown = new Set(countries.map((c) => c.iso))
 if (goodIds.size !== goods.length) errors.push('goods.json: повторяющиеся id')
 
 for (const b of buildings) {
@@ -137,7 +138,37 @@ for (const c of countries) {
 const noPop = countries.filter((c) => !c.population).length
 if (noPop) warnings.push(`стран без населения: ${noPop}`)
 
+// Стартовая промышленность: типы должны существовать, регионы — тоже, а сумма по
+// каждому типу обязана совпасть с мировым итогом из production.json.
+const production = read('data', 'economy', 'production.json')
+const industry = read('data', 'economy', 'start-industry.json').regions
+
+const typeIds = new Set(buildings.map((b) => b.type))
+const regionIds = new Set(regions.map((r) => r.id))
+const placed = {}
+let industryTotal = 0
+
+for (const [id, bag] of Object.entries(industry)) {
+	if (!regionIds.has(+id)) errors.push(`промышленность: нет региона ${id}`)
+
+	for (const [type, count] of Object.entries(bag)) {
+		if (!typeIds.has(type)) errors.push(`регион ${id}: неизвестный тип ${type}`)
+		if (!Number.isInteger(count) || count <= 0) errors.push(`регион ${id}: ${type} = ${count}`)
+		placed[type] = (placed[type] ?? 0) + count
+		industryTotal += count
+	}
+}
+
+for (const [type, info] of Object.entries(production.types)) {
+	const got = placed[type] ?? 0
+	if (got !== info.world) errors.push(`${type}: разложено ${got} из ${info.world}`)
+	for (const iso of Object.keys(info.shares)) {
+		if (!isoKnown.has(iso)) errors.push(`${type}: неизвестная страна ${iso}`)
+	}
+}
+
 console.log(`товаров ${goods.length}, построек ${buildings.length}, месторождений ${deposits.length}`)
+console.log(`предприятий на старте ${industryTotal} в ${Object.keys(industry).length} регионах`)
 console.log(`стран ${countries.length}, городов ${cities.length}, регионов ${regions.length}`)
 console.log(`население: ${(countries.reduce((s, c) => s + c.population, 0) / 1e9).toFixed(2)} млрд`)
 
