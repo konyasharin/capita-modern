@@ -101,6 +101,14 @@ float land_mask(vec2 uv, vec2 texel) {
 	return m;
 }
 
+// Граница как отрыв победителя от второго: там, где они сравнялись, проходит линия.
+// Изолиния «веса победителя» для этого не годится — вокруг точки, где сходятся три
+// или четыре области, вес победителя проседает ниже половины, и уровень 0.5
+// замыкается в кольцо. У отрыва такой беды нет: на стыке он просто обращается в ноль.
+float border(float margin, float width) {
+	return 1.0 - smoothstep(0.0, width, margin / max(fwidth(margin), 1e-6));
+}
+
 // Изолиния 0.5 маски, антиалиасенная и постоянной экранной толщины.
 float contour(float mask, float width) {
 	float d = (mask - 0.5) / max(fwidth(mask), 1e-6);
@@ -206,17 +214,33 @@ void fragment() {
 		float q01 = w01 + (r00 == r01 ? w00 : 0.0) + (r10 == r01 ? w10 : 0.0) + (r11 == r01 ? w11 : 0.0);
 		float q11 = w11 + (r00 == r11 ? w00 : 0.0) + (r10 == r11 ? w10 : 0.0) + (r01 == r11 ? w01 : 0.0);
 
-		float region_own = max(max(q00, q10), max(q01, q11));
+		int rid = r00;
+		float region_own = q00;
+		if (q10 > region_own) { rid = r10; region_own = q10; }
+		if (q01 > region_own) { rid = r01; region_own = q01; }
+		if (q11 > region_own) { rid = r11; region_own = q11; }
+
+		float region_rival = 0.0;
+		if (r00 != rid) region_rival = max(region_rival, q00);
+		if (r10 != rid) region_rival = max(region_rival, q10);
+		if (r01 != rid) region_rival = max(region_rival, q01);
+		if (r11 != rid) region_rival = max(region_rival, q11);
 
 		col = mix(col, region_line_color.rgb,
-			contour(region_own, region_px) * regions * region_line_color.a * on_land);
+			border(region_own - region_rival, region_px) * regions * region_line_color.a * on_land);
 	}
 
 	// Толстая тёмная обводка по берегу и белые границы внутри суши.
 	col = mix(col, coast_color.rgb, contour(land, coast_px * mix(1.0, far_coast_scale, far)));
 
+	float rival = 0.0;
+	if (i00 != id) rival = max(rival, s00);
+	if (i10 != id) rival = max(rival, s10);
+	if (i01 != id) rival = max(rival, s01);
+	if (i11 != id) rival = max(rival, s11);
+
 	float width = border_px * mix(1.0, far_border_scale, far) * (hovered ? 1.7 : 1.0);
-	float political = contour(own, width) * on_land * step(0.5, land);
+	float political = border(own - rival, width) * on_land * step(0.5, land);
 	col = mix(col, hovered ? select_color.rgb : border_color.rgb, political);
 
 	COLOR = vec4(col, 1.0);

@@ -315,14 +315,14 @@ for (let pass = 0; pass < 3; pass++) {
 			const id = cell[at]
 			if (!id) continue
 
-			const around = [cell[at - 1], cell[at + 1], cell[at - W], cell[at + W]]
 			const votes = new Map()
 			let own = 0
 
-			for (const n of around) {
-				if (!n || owner[at] !== owner[at]) continue
-				if (n === id) own++
-				else votes.set(n, (votes.get(n) ?? 0) + 1)
+			for (const m of [at - 1, at + 1, at - W, at + W]) {
+				// Только свои: иначе единственная ячейка Монако уедет во Францию.
+				if (!cell[m] || owner[m] !== owner[at]) continue
+				if (cell[m] === id) own++
+				else votes.set(cell[m], (votes.get(cell[m]) ?? 0) + 1)
 			}
 
 			let best = 0
@@ -343,6 +343,90 @@ for (let pass = 0; pass < 3; pass++) {
 	if (!fixes.length) break
 	for (const [at, id] of fixes) cell[at] = id
 	console.log(`убрано крапин: ${fixes.length}`)
+}
+
+// После чистки крапин остаются кусочки покрупнее — по две-три ячейки, отколотые
+// от своей области. Каждый рисуется отдельным замкнутым контуром и выглядит на
+// карте кружком, поэтому мелкие куски отдаются соседу с самой длинной границей.
+{
+	const seen = new Uint8Array(cell.length)
+	const parts = new Map()
+
+	for (let i = 0; i < cell.length; i++) {
+		if (!cell[i] || seen[i]) continue
+
+		const id = cell[i]
+		const stack = [i]
+		const part = []
+		seen[i] = 1
+
+		while (stack.length) {
+			const at = stack.pop()
+			part.push(at)
+			const x = at % W
+			const y = (at / W) | 0
+
+			for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+				const nx = x + dx
+				const ny = y + dy
+				if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue
+
+				const m = ny * W + nx
+				if (!seen[m] && cell[m] === id) {
+					seen[m] = 1
+					stack.push(m)
+				}
+			}
+		}
+
+		if (!parts.has(id)) parts.set(id, [])
+		parts.get(id).push(part)
+	}
+
+	let cleaned = 0
+
+	for (const [, list] of parts) {
+		if (list.length < 2) continue
+		list.sort((a, b) => b.length - a.length)
+
+		for (let k = 1; k < list.length; k++) {
+			if (list[k].length > 3) continue
+
+			const votes = new Map()
+
+			for (const at of list[k]) {
+				const x = at % W
+				const y = (at / W) | 0
+
+				for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+					const nx = x + dx
+					const ny = y + dy
+					if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue
+
+					const m = ny * W + nx
+					// Только своя страна: остров нельзя отдать соседнему государству.
+					if (!cell[m] || cell[m] === cell[at] || owner[m] !== owner[at]) continue
+					votes.set(cell[m], (votes.get(cell[m]) ?? 0) + 1)
+				}
+			}
+
+			let best = 0
+			let bestVotes = 0
+			for (const [id, v] of votes) {
+				if (v > bestVotes) {
+					bestVotes = v
+					best = id
+				}
+			}
+
+			// Настоящий остров без соседей по суше остаётся как есть.
+			if (!best) continue
+			for (const at of list[k]) cell[at] = best
+			cleaned++
+		}
+	}
+
+	console.log(`приклеено отколотых кусков: ${cleaned}`)
 }
 
 const sumX = new Float64Array(kept.length + 1)

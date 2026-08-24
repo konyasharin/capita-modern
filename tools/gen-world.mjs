@@ -208,6 +208,26 @@ bin.writeInt32LE(HEIGHT, 8)
 Buffer.from(owner.buffer).copy(bin, 12)
 fs.writeFileSync(path.join(outDir, 'world.bin'), bin)
 
+// Natural Earth даёт оценки середины 2019, а партия начинается 1 января 2020:
+// у быстрорастущих стран это разница в годовой прирост (Индия +13 млн). Крупные
+// страны берутся из таблицы, остальные домножаются на средний рост за полгода.
+const TAIL_GROWTH = 1.008
+const table = JSON.parse(
+	fs.readFileSync(path.join(outDir, 'population.json'), 'utf8')
+).population
+
+let overridden = 0
+for (const c of list) {
+	const real = table[c.iso]
+	if (real !== undefined) {
+		c.population = Math.round(real * 1e6)
+		overridden++
+	} else {
+		c.population = Math.round(c.population * TAIL_GROWTH)
+	}
+}
+console.log(`население на 2020: из таблицы ${overridden}, остальным рост ${((TAIL_GROWTH - 1) * 100).toFixed(1)}%`)
+
 const meta = {
 	width: WIDTH,
 	height: HEIGHT,
