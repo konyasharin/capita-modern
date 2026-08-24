@@ -16,7 +16,7 @@ import path from 'node:path'
 const MIN_CELLS = 3
 
 // Доля веса, раздаваемая по площади: в cities.json только крупные города.
-const RURAL_SHARE = 0.6
+const RURAL_SHARE = 0.45
 
 const src = process.argv[2]
 if (!src) {
@@ -298,20 +298,72 @@ for (let i = 0; i < regions.length; i++) {
 }
 
 const cell = new Uint16Array(owner.length)
+
+for (let i = 0; i < owner.length; i++) {
+	if (regionOf[i] >= 0) cell[i] = finalId[find(regionOf[i])]
+}
+
+// Растеризация областей 1:10m по сетке в 20 км оставляет крапины: одиночные ячейки,
+// вокруг которых сплошь чужая область. На карте они выглядят как кружки на стыках,
+// потому что вокруг каждой рисуется собственный замкнутый контур.
+for (let pass = 0; pass < 3; pass++) {
+	const fixes = []
+
+	for (let y = 1; y < H - 1; y++) {
+		for (let x = 1; x < W - 1; x++) {
+			const at = y * W + x
+			const id = cell[at]
+			if (!id) continue
+
+			const around = [cell[at - 1], cell[at + 1], cell[at - W], cell[at + W]]
+			const votes = new Map()
+			let own = 0
+
+			for (const n of around) {
+				if (!n || owner[at] !== owner[at]) continue
+				if (n === id) own++
+				else votes.set(n, (votes.get(n) ?? 0) + 1)
+			}
+
+			let best = 0
+			let bestVotes = 0
+			for (const [n, v] of votes) {
+				if (v > bestVotes) {
+					bestVotes = v
+					best = n
+				}
+			}
+
+			// Меняем только там, где своих соседей нет вовсе: такая ячейка по
+			// определению крапина. Узкие области с хотя бы одним своим соседом целы.
+			if (best && own === 0) fixes.push([at, best])
+		}
+	}
+
+	if (!fixes.length) break
+	for (const [at, id] of fixes) cell[at] = id
+	console.log(`убрано крапин: ${fixes.length}`)
+}
+
 const sumX = new Float64Array(kept.length + 1)
 const sumY = new Float64Array(kept.length + 1)
 const count = new Int32Array(kept.length + 1)
+const area = new Float64Array(kept.length + 1)
 
 for (let y = 0; y < H; y++) {
-	for (let x = 0; x < W; x++) {
-		const at = y * W + x
-		if (regionOf[at] < 0) continue
+	// У равнопрямоугольной проекции ячейка к полюсу мельче по площади: без поправки
+	// Сибирь получила бы вчетверо больше сельского населения, чем ей причитается.
+	const lat = LAT_TOP - (y + 0.5) * DEG
+	const wide = Math.cos((lat * Math.PI) / 180)
 
-		const id = finalId[find(regionOf[at])]
-		cell[at] = id
+	for (let x = 0; x < W; x++) {
+		const id = cell[y * W + x]
+		if (!id) continue
+
 		sumX[id] += x
 		sumY[id] += y
 		count[id]++
+		area[id] += wide
 	}
 }
 
@@ -350,10 +402,16 @@ for (const [countryId, ids] of byCountry) {
 	// Города дают вес, остальное раздаётся по площади: в cities.json только крупные,
 	// и без второго слагаемого сельские области вышли бы пустыми.
 	const cityTotal = ids.reduce((s, id) => s + cityWeight[id], 0)
-	const cellTotal = ids.reduce((s, id) => s + count[id], 0) || 1
+	const areaTotal = ids.reduce((s, id) => s + area[id], 0) || 1
 	const pool = cityTotal > 0 ? cityTotal * RURAL_SHARE : 1
 
-	const weights = ids.map((id) => cityWeight[id] + (count[id] / cellTotal) * pool)
+	// Корень из площади вместо самой площади: сельское население живёт рядом с
+	// городами и пашней, а не размазано по километрам. Без этого Якутия с её
+	// территорией получала бы вдесятеро больше людей, чем в ней живёт.
+	const damped = ids.map((id) => Math.sqrt(area[id]))
+	const dampedTotal = damped.reduce((a, b) => a + b, 0) || 1
+
+	const weights = ids.map((id, k) => cityWeight[id] + (damped[k] / dampedTotal) * pool)
 	const sum = weights.reduce((a, b) => a + b, 0) || 1
 
 	const exact = weights.map((w) => (total * w) / sum)
@@ -370,6 +428,9 @@ const out = []
 for (let k = 0; k < kept.length; k++) {
 	const id = k + 1
 	const r = regions[kept[k]]
+
+	// Область могла состоять из одной крапины и после чистки исчезнуть.
+	if (count[id] === 0) continue
 
 	out.push({
 		id,
