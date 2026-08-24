@@ -9,9 +9,9 @@ namespace CapitaModern.Core.World;
 public sealed class Country
 {
     /// <summary>Тот же байт, что лежит в world.bin для каждой ячейки.</summary>
-    public byte Id { get; init; }
+    public byte Id { get; }
 
-    public string Name { get; init; } = "";
+    public string Name { get; }
 
     /// <summary>
     /// Казна в целых единицах. Дробей не бывает намеренно: плавающая точка копит
@@ -20,7 +20,15 @@ public sealed class Country
     public long Balance { get; private set; }
 
     /// <summary>Склад: накопленные за всю партию количества, отсюда long.</summary>
-    private Dictionary<GoodType, long> Stock { get; init; } = new();
+    private Dictionary<GoodType, long> Stock { get; }
+
+    public Country(byte id, string name, long balance, IReadOnlyDictionary<GoodType, long> stock)
+    {
+        Id = id;
+        Name = name;
+        Balance = balance;
+        Stock = new(stock);
+    }
 
     public void Receive(long amount)
     {

@@ -1,7 +1,12 @@
 ﻿using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Loading;
 
-string json = File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "map", "regions.json"));
+string regionsJson = File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "map", "regions.json"));
+string countriesJson = File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "map", "countries.json"));
 
-var file = WorldDataLoader.LoadRegionsFile(json);
-Console.WriteLine(file.Regions[161].Deposits.Count);
+string buildingsJson = File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "economy", "buildings.json"));
+
+var world = WorldDataLoader.LoadWorld(countriesJson, regionsJson, buildingsJson);
+
+
+Console.WriteLine(world.Buildings[BuildingType.Refinery].OptimalWorkers);

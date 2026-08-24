@@ -1,4 +1,6 @@
-﻿namespace CapitaModern.Core.World;
+﻿using CapitaModern.Core.Buildings;
+
+namespace CapitaModern.Core.World;
 
 /// <summary>
 /// Состояние партии: единственный владелец массивов регионов и стран.
@@ -6,13 +8,16 @@
 /// </summary>
 public sealed class GameWorld
 {
+    public BuildingCatalog Buildings { get; }
+
     private readonly Region[] _regions;
     private readonly Country[] _countries;
     private readonly Region[] _regionsById;
     private readonly Country[] _countriesById;
 
-    public GameWorld(Region[] regions, Country[] countries)
+    public GameWorld(Region[] regions, Country[] countries, BuildingCatalog buildings)
     {
+        Buildings = buildings;
         _regions = regions;
         _countries = countries;
 
