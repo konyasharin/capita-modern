@@ -1,0 +1,171 @@
+{
+	"note": "Штаты одинаковы для всего мира: сравнивать армии двух стран можно напрямую. equipment — полный штат, upkeep — расход за сутки боя. Сила соединения = штатная сила × min(укомплектованность техникой, укомплектованность людьми) × качество.",
+	"roles": {
+		"ground": "держит территорию, участвует в захвате областей",
+		"support": "стоит в области, территорию не берёт, прикрывает свои и соседние",
+		"air": "базируется в области, действует на радиус по приказу",
+		"strike": "только удары в глубину, на фронте бесполезно"
+	},
+	"divisions": [
+		{
+			"type": "MotorRifle",
+			"name": "Мотострелковая дивизия",
+			"role": "ground",
+			"manpower": 10000,
+			"equipment": {
+				"Armour": 120,
+				"Artillery": 40,
+				"SmallArms": 100,
+				"TacticalDrones": 30,
+				"AirDefence": 8,
+				"ElectronicWarfare": 4
+			},
+			"upkeep": {
+				"Ammunition": 12,
+				"TacticalDrones": 6
+			}
+		},
+		{
+			"type": "Tank",
+			"name": "Танковая дивизия",
+			"role": "ground",
+			"manpower": 8000,
+			"equipment": {
+				"Armour": 250,
+				"Artillery": 30,
+				"SmallArms": 70,
+				"TacticalDrones": 25,
+				"AirDefence": 6,
+				"ElectronicWarfare": 4
+			},
+			"upkeep": {
+				"Ammunition": 10,
+				"TacticalDrones": 5
+			}
+		},
+		{
+			"type": "Infantry",
+			"name": "Пехотная дивизия",
+			"role": "ground",
+			"manpower": 12000,
+			"equipment": {
+				"Armour": 30,
+				"Artillery": 45,
+				"SmallArms": 120,
+				"TacticalDrones": 40,
+				"AirDefence": 6,
+				"ElectronicWarfare": 3
+			},
+			"upkeep": {
+				"Ammunition": 13,
+				"TacticalDrones": 8
+			}
+		},
+		{
+			"type": "Airborne",
+			"name": "Воздушно-десантная дивизия",
+			"role": "ground",
+			"manpower": 6000,
+			"equipment": {
+				"Armour": 40,
+				"Artillery": 20,
+				"SmallArms": 60,
+				"TacticalDrones": 25,
+				"AirDefence": 4,
+				"ElectronicWarfare": 2
+			},
+			"upkeep": {
+				"Ammunition": 6,
+				"TacticalDrones": 5
+			}
+		},
+		{
+			"type": "Marine",
+			"name": "Дивизия морской пехоты",
+			"role": "ground",
+			"manpower": 8000,
+			"equipment": {
+				"Armour": 60,
+				"Artillery": 25,
+				"SmallArms": 80,
+				"TacticalDrones": 30,
+				"AirDefence": 5,
+				"ElectronicWarfare": 3
+			},
+			"upkeep": {
+				"Ammunition": 8,
+				"TacticalDrones": 6
+			}
+		},
+		{
+			"type": "AirDefenceDivision",
+			"name": "Дивизия ПВО",
+			"role": "support",
+			"manpower": 2500,
+			"equipment": {
+				"AirDefence": 60,
+				"Missiles": 60,
+				"SmallArms": 25,
+				"ElectronicWarfare": 6
+			},
+			"upkeep": {
+				"Missiles": 2
+			}
+		},
+		{
+			"type": "ElectronicWarfare",
+			"name": "Бригада РЭБ",
+			"role": "support",
+			"manpower": 1200,
+			"equipment": {
+				"ElectronicWarfare": 40,
+				"SmallArms": 12
+			},
+			"upkeep": {}
+		},
+		{
+			"type": "AirWing",
+			"name": "Авиакрыло",
+			"role": "air",
+			"manpower": 1500,
+			"equipment": {
+				"Aircraft": 60,
+				"Missiles": 40,
+				"SmallArms": 15
+			},
+			"upkeep": {
+				"Missiles": 4,
+				"Fuel": 6
+			}
+		},
+		{
+			"type": "StrikeDroneWing",
+			"name": "Полк дальнобойных БПЛА",
+			"role": "strike",
+			"manpower": 700,
+			"equipment": {
+				"StrikeDrones": 40,
+				"Missiles": 10,
+				"SmallArms": 7
+			},
+			"upkeep": {
+				"StrikeDrones": 3,
+				"Missiles": 1
+			}
+		},
+		{
+			"type": "MissileBrigade",
+			"name": "Ракетная бригада",
+			"role": "strike",
+			"manpower": 1500,
+			"equipment": {
+				"Missiles": 120,
+				"SmallArms": 15,
+				"AirDefence": 4
+			},
+			"upkeep": {
+				"Missiles": 8
+			}
+		}
+	]
+}

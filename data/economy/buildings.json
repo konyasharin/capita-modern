@@ -390,24 +390,201 @@
 		}
 	},
 	{
-		"type": "ArmsFactory",
-		"name": "Военный завод",
-		"icon": "arms-factory",
+		"type": "ArmourPlant",
+		"name": "Танковый завод",
+		"icon": "armour-plant",
+		"requiresDeposit": null,
+		"inputs": {
+			"Metals": 12,
+			"Electronics": 3,
+			"Chemicals": 2
+		},
+		"outputs": {
+			"Armour": 1
+		},
+		"optimalWorkers": 6000,
+		"buildCost": {
+			"Materials": 500,
+			"Metals": 420,
+			"Electronics": 90
+		}
+	},
+	{
+		"type": "ArtilleryPlant",
+		"name": "Артиллерийский завод",
+		"icon": "artillery-plant",
 		"requiresDeposit": null,
 		"inputs": {
 			"Metals": 10,
-			"Electronics": 4,
-			"Chemicals": 3,
+			"Electronics": 2,
+			"Chemicals": 1
+		},
+		"outputs": {
+			"Artillery": 1
+		},
+		"optimalWorkers": 4500,
+		"buildCost": {
+			"Materials": 420,
+			"Metals": 340,
+			"Electronics": 60
+		}
+	},
+	{
+		"type": "SmallArmsPlant",
+		"name": "Оружейный завод",
+		"icon": "small-arms-plant",
+		"requiresDeposit": null,
+		"inputs": {
+			"Metals": 5,
+			"Chemicals": 2
+		},
+		"outputs": {
+			"SmallArms": 1
+		},
+		"optimalWorkers": 2500,
+		"buildCost": {
+			"Materials": 260,
+			"Metals": 200,
+			"Electronics": 20
+		}
+	},
+	{
+		"type": "AmmunitionPlant",
+		"name": "Патронно-снарядный завод",
+		"icon": "ammunition-plant",
+		"requiresDeposit": null,
+		"inputs": {
+			"Metals": 6,
+			"Chemicals": 8
+		},
+		"outputs": {
+			"Ammunition": 1
+		},
+		"optimalWorkers": 3000,
+		"buildCost": {
+			"Materials": 300,
+			"Metals": 220,
+			"Electronics": 30
+		}
+	},
+	{
+		"type": "TacticalDronePlant",
+		"name": "Завод тактических дронов",
+		"icon": "tactical-drone-plant",
+		"requiresDeposit": null,
+		"inputs": {
+			"Electronics": 6,
+			"Chemicals": 2,
+			"Metals": 1
+		},
+		"outputs": {
+			"TacticalDrones": 1
+		},
+		"optimalWorkers": 900,
+		"buildCost": {
+			"Materials": 140,
+			"Metals": 70,
+			"Electronics": 110
+		}
+	},
+	{
+		"type": "StrikeDronePlant",
+		"name": "Завод дальнобойных БПЛА",
+		"icon": "strike-drone-plant",
+		"requiresDeposit": null,
+		"inputs": {
+			"Electronics": 8,
+			"Metals": 3,
+			"Chemicals": 2,
+			"Fuel": 1
+		},
+		"outputs": {
+			"StrikeDrones": 1
+		},
+		"optimalWorkers": 2200,
+		"buildCost": {
+			"Materials": 240,
+			"Metals": 150,
+			"Electronics": 170
+		}
+	},
+	{
+		"type": "MissilePlant",
+		"name": "Ракетный завод",
+		"icon": "missile-plant",
+		"requiresDeposit": null,
+		"inputs": {
+			"Metals": 4,
+			"Electronics": 6,
+			"Chemicals": 5
+		},
+		"outputs": {
+			"Missiles": 1
+		},
+		"optimalWorkers": 3500,
+		"buildCost": {
+			"Materials": 380,
+			"Metals": 280,
+			"Electronics": 140
+		}
+	},
+	{
+		"type": "AircraftPlant",
+		"name": "Авиазавод",
+		"icon": "aircraft-plant",
+		"requiresDeposit": null,
+		"inputs": {
+			"Metals": 8,
+			"Electronics": 10,
 			"Fuel": 2
 		},
 		"outputs": {
-			"Weapons": 3
+			"Aircraft": 1
 		},
-		"optimalWorkers": 5000,
+		"optimalWorkers": 8000,
 		"buildCost": {
-			"Materials": 520,
-			"Metals": 450,
-			"Electronics": 100
+			"Materials": 600,
+			"Metals": 500,
+			"Electronics": 200
+		}
+	},
+	{
+		"type": "AirDefencePlant",
+		"name": "Завод ПВО",
+		"icon": "air-defence-plant",
+		"requiresDeposit": null,
+		"inputs": {
+			"Metals": 6,
+			"Electronics": 8,
+			"Chemicals": 2
+		},
+		"outputs": {
+			"AirDefence": 1
+		},
+		"optimalWorkers": 4000,
+		"buildCost": {
+			"Materials": 400,
+			"Metals": 300,
+			"Electronics": 150
+		}
+	},
+	{
+		"type": "ElectronicWarfarePlant",
+		"name": "Завод РЭБ",
+		"icon": "electronic-warfare-plant",
+		"requiresDeposit": null,
+		"inputs": {
+			"Electronics": 9,
+			"Metals": 3
+		},
+		"outputs": {
+			"ElectronicWarfare": 1
+		},
+		"optimalWorkers": 2600,
+		"buildCost": {
+			"Materials": 260,
+			"Metals": 150,
+			"Electronics": 190
 		}
 	}
 ]

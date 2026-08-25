@@ -510,26 +510,127 @@
 				"CAN": 1
 			}
 		},
-		"ArmsFactory": {
-			"world": 150,
+		"ArmourPlant": {
+			"world": 16,
+			"tail": 0,
+			"shares": {
+				"USA": 3,
+				"RUS": 3,
+				"CHN": 3,
+				"DEU": 1,
+				"KOR": 1,
+				"IND": 1,
+				"ISR": 1,
+				"TUR": 1,
+				"FRA": 1,
+				"UKR": 1
+			}
+		},
+		"ArtilleryPlant": {
+			"world": 6,
+			"tail": 0,
+			"shares": {
+				"CHN": 1,
+				"RUS": 1,
+				"USA": 1,
+				"KOR": 1,
+				"IND": 1,
+				"TUR": 1
+			}
+		},
+		"SmallArmsPlant": {
+			"world": 29,
 			"tail": 2,
 			"shares": {
-				"USA": 38,
-				"RUS": 12,
-				"CHN": 12,
-				"FRA": 5,
-				"GBR": 4,
-				"DEU": 4,
-				"ITA": 3,
-				"KOR": 3,
-				"IND": 3,
-				"ISR": 2,
-				"ESP": 2,
+				"USA": 6,
+				"CHN": 5,
+				"RUS": 3,
+				"BRA": 2,
 				"TUR": 2,
-				"UKR": 1,
-				"SWE": 1,
-				"JPN": 1,
-				"BRA": 1
+				"IND": 2,
+				"DEU": 2,
+				"ITA": 2,
+				"AUT": 1,
+				"BEL": 1,
+				"CZE": 1
+			}
+		},
+		"AmmunitionPlant": {
+			"world": 18,
+			"tail": 1,
+			"shares": {
+				"CHN": 4,
+				"USA": 3,
+				"RUS": 3,
+				"IND": 2,
+				"KOR": 1,
+				"TUR": 1,
+				"PAK": 1,
+				"BRA": 1,
+				"POL": 1
+			}
+		},
+		"TacticalDronePlant": {
+			"world": 4,
+			"tail": 0,
+			"shares": {
+				"CHN": 2,
+				"USA": 1,
+				"ISR": 1
+			}
+		},
+		"StrikeDronePlant": {
+			"world": 5,
+			"tail": 0,
+			"shares": {
+				"USA": 1,
+				"ISR": 1,
+				"TUR": 1,
+				"CHN": 1,
+				"IRN": 1
+			}
+		},
+		"MissilePlant": {
+			"world": 14,
+			"tail": 0,
+			"shares": {
+				"USA": 4,
+				"CHN": 3,
+				"RUS": 3,
+				"FRA": 1,
+				"IND": 1,
+				"ISR": 1,
+				"KOR": 1
+			}
+		},
+		"AircraftPlant": {
+			"world": 6,
+			"tail": 0,
+			"shares": {
+				"USA": 2,
+				"RUS": 1,
+				"CHN": 1,
+				"FRA": 1,
+				"GBR": 1
+			}
+		},
+		"AirDefencePlant": {
+			"world": 5,
+			"tail": 0,
+			"shares": {
+				"RUS": 2,
+				"USA": 1,
+				"CHN": 1,
+				"ISR": 1
+			}
+		},
+		"ElectronicWarfarePlant": {
+			"world": 4,
+			"tail": 0,
+			"shares": {
+				"RUS": 2,
+				"USA": 1,
+				"CHN": 1
 			}
 		}
 	}

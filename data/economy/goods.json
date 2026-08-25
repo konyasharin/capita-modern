@@ -152,11 +152,93 @@
 		"worldOutput2019": 365000
 	},
 	{
-		"id": "Weapons",
-		"name": "Военная техника",
-		"category": "final",
-		"icon": "weapons",
-		"unit": "условная",
-		"worldOutput2019": 164000
+		"id": "Armour",
+		"name": "Бронетехника",
+		"category": "military",
+		"icon": "armour",
+		"unit": "1 машина",
+		"consumable": false,
+		"worldOutput2019": 5840
+	},
+	{
+		"id": "Artillery",
+		"name": "Артиллерия",
+		"category": "military",
+		"icon": "artillery",
+		"unit": "1 орудие",
+		"consumable": false,
+		"worldOutput2019": 2190
+	},
+	{
+		"id": "SmallArms",
+		"name": "Стрелковое вооружение",
+		"category": "military",
+		"icon": "small-arms",
+		"unit": "100 комплектов",
+		"consumable": false,
+		"worldOutput2019": 10585
+	},
+	{
+		"id": "Ammunition",
+		"name": "Боеприпасы",
+		"category": "military",
+		"icon": "ammunition",
+		"unit": "1000 выстрелов",
+		"consumable": true,
+		"worldOutput2019": 6570
+	},
+	{
+		"id": "TacticalDrones",
+		"name": "Тактические дроны",
+		"category": "military",
+		"icon": "tactical-drones",
+		"unit": "10 аппаратов",
+		"consumable": true,
+		"worldOutput2019": 1460
+	},
+	{
+		"id": "StrikeDrones",
+		"name": "Дальнобойные БПЛА",
+		"category": "military",
+		"icon": "strike-drones",
+		"unit": "1 аппарат",
+		"consumable": false,
+		"worldOutput2019": 1825
+	},
+	{
+		"id": "Missiles",
+		"name": "Ракеты",
+		"category": "military",
+		"icon": "missiles",
+		"unit": "10 ракет",
+		"consumable": true,
+		"worldOutput2019": 5110
+	},
+	{
+		"id": "Aircraft",
+		"name": "Боевая авиация",
+		"category": "military",
+		"icon": "aircraft",
+		"unit": "1 самолёт",
+		"consumable": false,
+		"worldOutput2019": 2190
+	},
+	{
+		"id": "AirDefence",
+		"name": "ПВО",
+		"category": "military",
+		"icon": "air-defence",
+		"unit": "1 пусковая",
+		"consumable": false,
+		"worldOutput2019": 1825
+	},
+	{
+		"id": "ElectronicWarfare",
+		"name": "РЭБ",
+		"category": "military",
+		"icon": "electronic-warfare",
+		"unit": "1 комплекс",
+		"consumable": false,
+		"worldOutput2019": 1460
 	}
 ]
