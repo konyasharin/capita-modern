@@ -8,6 +8,9 @@ render_mode unshaded;
 
 uniform sampler2D owner_tex : filter_nearest, repeat_disable;
 uniform sampler2D region_tex : filter_nearest, repeat_disable;
+// Прочность владения ячейкой, 0..1. На спокойной территории единица, у фронта
+// проседает — за счёт этого граница едет плавно, а не прыгает целыми ячейками.
+uniform sampler2D control_tex : filter_nearest, repeat_disable;
 uniform sampler2D palette_tex : filter_nearest, repeat_disable;
 uniform vec2 map_size = vec2(2048.0, 800.0);
 
@@ -82,6 +85,10 @@ int region_at(vec2 uv) {
 	return int(t.r * 255.0 + 0.5) + int(t.g * 255.0 + 0.5) * 256;
 }
 
+float control_at(vec2 uv) {
+	return texture(control_tex, clamp(uv, vec2(0.0), vec2(1.0))).r;
+}
+
 vec3 country_color(int id) {
 	return texture(palette_tex, vec2((float(id) + 0.5) / 256.0, 0.5)).rgb;
 }
@@ -149,11 +156,23 @@ void fragment() {
 	float land = (i00 != 0 ? w00 : 0.0) + (i10 != 0 ? w10 : 0.0)
 		+ (i01 != 0 ? w01 : 0.0) + (i11 != 0 ? w11 : 0.0);
 
-	// Вес кандидата — сумма весов всех ячеек с тем же владельцем.
-	float s00 = w00 + (i10 == i00 ? w10 : 0.0) + (i01 == i00 ? w01 : 0.0) + (i11 == i00 ? w11 : 0.0);
-	float s10 = w10 + (i00 == i10 ? w00 : 0.0) + (i01 == i10 ? w01 : 0.0) + (i11 == i10 ? w11 : 0.0);
-	float s01 = w01 + (i00 == i01 ? w00 : 0.0) + (i10 == i01 ? w10 : 0.0) + (i11 == i01 ? w11 : 0.0);
-	float s11 = w11 + (i00 == i11 ? w00 : 0.0) + (i10 == i11 ? w10 : 0.0) + (i01 == i11 ? w01 : 0.0);
+	// Вес кандидата — сумма весов всех ячеек с тем же владельцем, но каждая ячейка
+	// голосует за своего с силой control, а против чужого — с остатком. Пока
+	// прочность единица, это ровно прежняя формула; на фронте ослабевшая ячейка
+	// начинает голосовать за противника, и граница смещается на доли ячейки.
+	float c00 = control_at(uv00);
+	float c10 = control_at(uv00 + vec2(texel.x, 0.0));
+	float c01 = control_at(uv00 + vec2(0.0, texel.y));
+	float c11 = control_at(uv00 + texel);
+
+	float s00 = w00 * c00 + w10 * (i10 == i00 ? c10 : 1.0 - c10)
+		+ w01 * (i01 == i00 ? c01 : 1.0 - c01) + w11 * (i11 == i00 ? c11 : 1.0 - c11);
+	float s10 = w10 * c10 + w00 * (i00 == i10 ? c00 : 1.0 - c00)
+		+ w01 * (i01 == i10 ? c01 : 1.0 - c01) + w11 * (i11 == i10 ? c11 : 1.0 - c11);
+	float s01 = w01 * c01 + w00 * (i00 == i01 ? c00 : 1.0 - c00)
+		+ w10 * (i10 == i01 ? c10 : 1.0 - c10) + w11 * (i11 == i01 ? c11 : 1.0 - c11);
+	float s11 = w11 * c11 + w00 * (i00 == i11 ? c00 : 1.0 - c00)
+		+ w10 * (i10 == i11 ? c10 : 1.0 - c10) + w01 * (i01 == i11 ? c01 : 1.0 - c01);
 
 	int id = i00;
 	float own = s00;

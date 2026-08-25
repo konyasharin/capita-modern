@@ -14,6 +14,9 @@ public partial class WorldMapView : Sprite2D
 
     private ShaderMaterial _material = null!;
     private ImageTexture _ownerTex = null!;
+    private ImageTexture _controlTex = null!;
+    private Image _ownerImage = null!;
+    private Image _controlImage = null!;
     private int _hoverId;
 
     public WorldMap Map { get; private set; } = null!;
@@ -32,9 +35,12 @@ public partial class WorldMapView : Sprite2D
         Centered = false;
         TextureFilter = TextureFilterEnum.Nearest;
 
-        var image = Image.CreateFromData(Map.Width, Map.Height, false, Image.Format.R8, Map.Owner);
-        _ownerTex = ImageTexture.CreateFromImage(image);
+        _ownerImage = Image.CreateFromData(Map.Width, Map.Height, false, Image.Format.R8, Map.Owner);
+        _ownerTex = ImageTexture.CreateFromImage(_ownerImage);
         Texture = _ownerTex;
+
+        _controlImage = Image.CreateFromData(Map.Width, Map.Height, false, Image.Format.R8, ControlBytes());
+        _controlTex = ImageTexture.CreateFromImage(_controlImage);
 
         var started = Time.GetTicksMsec();
         Regions = RegionMap.FromData(
@@ -51,6 +57,7 @@ public partial class WorldMapView : Sprite2D
         Material = _material;
 
         _material.SetShaderParameter("owner_tex", _ownerTex);
+        _material.SetShaderParameter("control_tex", _controlTex);
         _material.SetShaderParameter("region_tex", ImageTexture.CreateFromImage(regionImage));
         _material.SetShaderParameter("palette_tex", BuildPaletteTexture());
         _material.SetShaderParameter("map_size", MapSize);
@@ -77,6 +84,29 @@ public partial class WorldMapView : Sprite2D
         }
 
         return ImageTexture.CreateFromImage(image);
+    }
+
+    /// <summary>Прочность владения в байтах: шейдеру нужна текстура, а не float.</summary>
+    private byte[] ControlBytes()
+    {
+        var data = new byte[Map.Control.Length];
+
+        for (var i = 0; i < data.Length; i++)
+        {
+            data[i] = (byte)Mathf.Clamp(Mathf.RoundToInt(Map.Control[i] * 255f), 0, 255);
+        }
+
+        return data;
+    }
+
+    /// <summary>Перезалить поле владения в текстуры после того, как его подвинули.</summary>
+    public void RefreshField()
+    {
+        _ownerImage.SetData(Map.Width, Map.Height, false, Image.Format.R8, Map.Owner);
+        _ownerTex.Update(_ownerImage);
+
+        _controlImage.SetData(Map.Width, Map.Height, false, Image.Format.R8, ControlBytes());
+        _controlTex.Update(_controlImage);
     }
 
     /// <summary>Владелец ячейки под точкой в координатах карты, 0 — океан или мимо.</summary>
