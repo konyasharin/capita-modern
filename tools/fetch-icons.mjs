@@ -30,7 +30,16 @@ const GOODS = {
 	food: 'delapouite/meal',
 	'consumer-goods': 'delapouite/clothes',
 	medicine: 'delapouite/medicine-pills',
-	weapons: 'cathelineau/great-war-tank',
+	armour: 'cathelineau/great-war-tank',
+	artillery: 'quoting/field-gun',
+	'small-arms': 'skoll/ak47',
+	ammunition: 'sbed/ammo-box',
+	'tactical-drones': 'delapouite/delivery-drone',
+	'strike-drones': 'lord-berandas/light-fighter',
+	missiles: 'lorc/missile-swarm',
+	aircraft: 'delapouite/jet-fighter',
+	'air-defence': 'delapouite/missile-launcher',
+	'electronic-warfare': 'lorc/aerial-signal',
 }
 
 const BUILDINGS = {
@@ -57,7 +66,16 @@ const BUILDINGS = {
 	'food-plant': 'delapouite/canned-fish',
 	'consumer-goods-plant': 'delapouite/factory',
 	'pharma-plant': 'delapouite/lab-coat',
-	'arms-factory': 'sbed/ammo-box',
+	'armour-plant': 'skoll/tank-tread',
+	'artillery-plant': 'lorc/cannon',
+	'small-arms-plant': 'skoll/machine-gun',
+	'ammunition-plant': 'lorc/bullets',
+	'tactical-drone-plant': 'delapouite/helicopter',
+	'strike-drone-plant': 'delapouite/starfighter',
+	'missile-plant': 'lorc/missile-pod',
+	'aircraft-plant': 'skoll/airplane',
+	'air-defence-plant': 'lorc/radar-sweep',
+	'electronic-warfare-plant': 'lorc/radar-dish',
 }
 
 const root = path.resolve(import.meta.dirname, '..')
