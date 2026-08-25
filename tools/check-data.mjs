@@ -45,9 +45,12 @@ for (const g of goods) {
 	if (!produced.has(g.id)) errors.push(`${g.id}: нет производителя`)
 }
 
-const consumed = new Set(
-	buildings.flatMap((b) => [...Object.keys(b.inputs), ...Object.keys(b.buildCost ?? {})])
-)
+// Военные категории потребляют не рецепты, а штаты дивизий — их берём оттуда.
+const divisions = read('data', 'military', 'divisions.json').divisions
+const consumed = new Set([
+	...buildings.flatMap((b) => [...Object.keys(b.inputs), ...Object.keys(b.buildCost ?? {})]),
+	...divisions.flatMap((d) => [...Object.keys(d.equipment), ...Object.keys(d.upkeep)]),
+])
 for (const g of goods) {
 	if (g.category !== 'final' && !consumed.has(g.id)) {
 		warnings.push(`${g.id}: не используется ни в одном рецепте`)
