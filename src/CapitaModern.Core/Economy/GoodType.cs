@@ -26,5 +26,17 @@ public enum GoodType
     Food,
     ConsumerGoods,
     Medicine,
-    Weapons,
+
+    // Военная техника. Расходуемое тратится каждые сутки боя, долговременное теряется
+    // только с потерями — от этого зависит, что важнее стране: склад или выпуск.
+    Armour,
+    Artillery,
+    SmallArms,
+    Ammunition,
+    TacticalDrones,
+    StrikeDrones,
+    Missiles,
+    Aircraft,
+    AirDefence,
+    ElectronicWarfare,
 }
