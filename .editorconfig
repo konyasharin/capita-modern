@@ -16,6 +16,11 @@ dotnet_sort_system_directives_first = true
 dotnet_style_namespace_match_folder = true:suggestion
 csharp_style_namespace_declarations = file_scoped:suggestion
 
+# Первичные конструкторы у классов не предлагать: обычный конструктор привычнее и
+# читается однозначнее. Записей это не касается — там позиционные параметры уместны.
+csharp_style_prefer_primary_constructors = false:none
+resharper_convert_to_primary_constructor_highlighting = none
+
 [*.{json,tscn,tres,godot}]
 indent_style = space
 indent_size = 2

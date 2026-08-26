@@ -21,4 +21,7 @@ public sealed class BuildingInfo
     /// Рабочих меньше — выпуск пропорционально ниже.
     /// </summary>
     public int OptimalWorkers { get; init; }
+    /// <summary>Какое месторождение нужно в области, чтобы предприятие работало.
+    /// Пусто у всех, кроме добычи: без этой проверки нефть польётся из Швейцарии.</summary>
+    public GoodType? RequiresDeposit { get; init; }
 }

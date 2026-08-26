@@ -38,6 +38,9 @@ public sealed class Region
         CellsCount = Owned.Values.Sum();
     }
 
+    /// <summary>Типы построек вместе с количеством. Тику нужны обе половины сразу,
+    /// иначе он ищет количество отдельным поиском на каждую строчку рецепта.</summary>
+    public IEnumerable<KeyValuePair<BuildingType, int>> BuildingsCount => Buildings;
     public int CellsOf(byte country) => Owned.GetValueOrDefault(country, 0);
     /// <summary>Доля 0..1 — для показа игроку. Делить постройки ею нельзя: округление
     /// накопит расхождение, для этого есть BuildingsOf с двумя аргументами.</summary>
