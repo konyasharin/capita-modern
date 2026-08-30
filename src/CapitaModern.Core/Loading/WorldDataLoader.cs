@@ -41,6 +41,7 @@ public static class WorldDataLoader
     private static Country ToCountry(CountryDto dto) => new Country(
         dto.Id,
         dto.Name,
+        dto.Iso,
         0,
         new Dictionary<GoodType, long>()
     ); // баланс и склад - заглушки

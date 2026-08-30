@@ -10,8 +10,8 @@ public sealed class Country
 {
     /// <summary>Тот же байт, что лежит в world.bin для каждой ячейки.</summary>
     public byte Id { get; }
-
     public string Name { get; }
+    public string Iso { get; }
 
     /// <summary>
     /// Казна в целых единицах. Дробей не бывает намеренно: плавающая точка копит
@@ -22,10 +22,11 @@ public sealed class Country
     /// <summary>Склад: накопленные за всю партию количества, отсюда long.</summary>
     private Dictionary<GoodType, long> Stock { get; }
 
-    public Country(byte id, string name, long balance, IReadOnlyDictionary<GoodType, long> stock)
+    public Country(byte id, string name, string iso, long balance, IReadOnlyDictionary<GoodType, long> stock)
     {
         Id = id;
         Name = name;
+        Iso = iso;
         Balance = balance;
         Stock = new(stock);
     }

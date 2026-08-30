@@ -1,4 +1,6 @@
-﻿namespace CapitaModern.Core.Economy;
+﻿using System.Collections;
+
+namespace CapitaModern.Core.Economy;
 
 /// <summary>
 /// Счётчик «страна → товар → сколько» на один тик: спрос предприятий и выпуск
@@ -10,11 +12,11 @@
 /// обработанная раньше завода, успела бы отдать ему руду в том же тике, и итог
 /// зависел бы от номеров областей.
 /// </remarks>
-public sealed class GoodsTally
+public sealed class GoodsTally : IEnumerable<(byte Country, GoodType Good, long Amount)>
 {
     private readonly Dictionary<byte, Dictionary<GoodType, long>> _amounts = new();
 
-    public IEnumerable<(byte, GoodType, long)> Entries()
+    public IEnumerator<(byte Country, GoodType Good, long Amount)> GetEnumerator()
     {
         foreach (var (country, goods) in _amounts)
         {
@@ -25,6 +27,8 @@ public sealed class GoodsTally
         }
     }
 
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
     /// <summary>Прибавляет к уже накопленному. Ноль допустим: предприятие, которому
     /// не хватило сырья, отработает ноль раз, и это обычный исход, а не ошибка.</summary>
     public void Add(byte country, GoodType good, long amount)
@@ -33,6 +37,19 @@ public sealed class GoodsTally
 
         var goods = GoodsOf(country);
         goods[good] = goods.GetValueOrDefault(good) + amount;
+    }
+
+    /// <summary>Ноль для всего, чего не спрашивали: пустая ячейка и ноль здесь
+    /// неразличимы по смыслу, а исключение ломало бы обход по всем товарам.</summary>
+    public long Get(byte country, GoodType good)
+    {
+        if (
+            !_amounts.TryGetValue(country, out var countryAmounts) ||
+            !countryAmounts.TryGetValue(good, out var result)
+        )
+            return 0;
+
+        return result;
     }
 
     public void Set(byte country, GoodType good, long amount)
