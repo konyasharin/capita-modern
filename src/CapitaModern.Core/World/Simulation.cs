@@ -16,9 +16,20 @@ namespace CapitaModern.Core.World;
 public sealed class Simulation
 {
     private readonly GameWorld _world;
+
+    /// <summary>Сколько каждого товара заказали все предприятия страны за этот тик.</summary>
     private readonly Tally<GoodType> _inputs = new();
+
+    /// <summary>Что произведено за тик. В склады вливается только в конце.</summary>
     private readonly Tally<GoodType> _outputs = new();
+
+    /// <summary>Склады на начало тика. Живой склад по ходу второго прохода убывает,
+    /// и без снимка первая обработанная страна видела бы одни числа, а последняя другие.</summary>
     private readonly Tally<GoodType> _available = new();
+
+    /// <summary>Предприятия, способные работать, сложенные по стране и типу.
+    /// Заводы одной страны считаются вместе, где бы они ни стояли: склад у страны общий,
+    /// а раздельный подсчёт по областям добивал бы округлением одиночные предприятия.</summary>
     private readonly Tally<BuildingType> _working = new();
 
     public Simulation(GameWorld world)
@@ -46,6 +57,15 @@ public sealed class Simulation
         _working.Clear();
     }
 
+    /// <summary>
+    /// Может ли предприятие этого типа работать в этой области.
+    /// </summary>
+    /// <remarks>
+    /// Зовётся только из первого прохода: во второй попадает уже готовый список
+    /// работоспособных. Проверять там заново нельзя было бы забыть, а разъехавшиеся
+    /// проходы дают тихо неверные числа — неработающая шахта раздувает спрос и
+    /// отнимает долю у тех, кто работает.
+    /// </remarks>
     private bool CanWork(Region region, BuildingType building)
     {
         return _world.Buildings[building].RequiresDeposit is not { } deposit || region.HasDeposit(deposit);
@@ -85,6 +105,9 @@ public sealed class Simulation
         {
             var recipe = _world.Buildings[building];
 
+            // Доля общая для всех потребителей товара, поэтому расход самого рецепта в
+            // ней сокращается и в расчёте не участвует. Умножение идёт до деления:
+            // иначе сто заводов при половине сырья дали бы ноль вместо пятидесяти.
             long runs = count;
             foreach (var (good, _) in recipe.Inputs)
             {
@@ -95,6 +118,7 @@ public sealed class Simulation
 
             if (runs == 0) continue;
 
+            // Приведение безопасно: runs не может превысить count, с которого начали.
             var consumed = _world.CountryById(country).TryConsume(recipe.Inputs, (int)runs);
             if (!consumed) throw new InvalidOperationException("Не получилось потратить предметы " +
                                                                "со склада, ошибка в расчетах в коде");
