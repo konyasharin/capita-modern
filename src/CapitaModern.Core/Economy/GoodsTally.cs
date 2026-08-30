@@ -12,39 +12,47 @@
 /// </remarks>
 public sealed class GoodsTally
 {
-    private readonly Dictionary<byte, Dictionary<GoodType, int>> _amounts = new();
+    private readonly Dictionary<byte, Dictionary<GoodType, long>> _amounts = new();
 
-    /// <summary>Прибавляет к уже накопленному. Ноль допустим: предприятие, которому
-    /// не хватило сырья, отработает ноль раз, и это обычный исход, а не ошибка.</summary>
-    public void Add(byte country, GoodType good, int amount)
+    public IEnumerable<(byte, GoodType, long)> Entries()
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(amount);
-
-        if (!_amounts.TryGetValue(country, out var goods))
+        foreach (var (country, goods) in _amounts)
         {
-            _amounts[country] = new Dictionary<GoodType, int>{{ good, amount }};
-        }
-        else
-        {
-            goods[good] = goods.GetValueOrDefault(good) + amount;
+            foreach (var (good, amount) in goods)
+            {
+                yield return (country, good, amount);
+            }
         }
     }
 
-    /// <summary>Ноль для всего, чего не спрашивали: пустая ячейка и ноль здесь
-    /// неразличимы по смыслу, а исключение ломало бы обход по всем товарам.</summary>
-    public int Get(byte country, GoodType good)
+    /// <summary>Прибавляет к уже накопленному. Ноль допустим: предприятие, которому
+    /// не хватило сырья, отработает ноль раз, и это обычный исход, а не ошибка.</summary>
+    public void Add(byte country, GoodType good, long amount)
     {
-        if (
-            !_amounts.TryGetValue(country, out var countryAmounts) ||
-            !countryAmounts.TryGetValue(good, out var result)
-        )
-            return 0;
+        ArgumentOutOfRangeException.ThrowIfNegative(amount);
 
-        return result;
+        var goods = GoodsOf(country);
+        goods[good] = goods.GetValueOrDefault(good) + amount;
+    }
+
+    public void Set(byte country, GoodType good, long amount)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(amount);
+        GoodsOf(country)[good] = amount;
     }
 
     public void Clear()
     {
         _amounts.Clear();
+    }
+
+    private Dictionary<GoodType, long> GoodsOf(byte country)
+    {
+        if (!_amounts.TryGetValue(country, out var goods))
+        {
+            _amounts[country] = goods = new();
+        }
+
+        return goods;
     }
 }

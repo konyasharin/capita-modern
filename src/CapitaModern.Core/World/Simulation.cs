@@ -17,6 +17,7 @@ public sealed class Simulation
     private readonly GameWorld _world;
     private readonly GoodsTally _inputs = new();
     private readonly GoodsTally _outputs = new();
+    private readonly GoodsTally _available = new();
 
     public Simulation(GameWorld world)
     {
@@ -42,6 +43,10 @@ public sealed class Simulation
             }
         }
 
+        foreach (var (country, good, _) in _inputs.Entries())
+        {
+            _available.Set(country, good, _world.CountryById(country).StockOf(good));
+        }
 
     }
 
@@ -52,5 +57,6 @@ public sealed class Simulation
     {
         _inputs.Clear();
         _outputs.Clear();
+        _available.Clear();
     }
 }
