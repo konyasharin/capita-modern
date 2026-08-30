@@ -3,8 +3,8 @@
 namespace CapitaModern.Core.Economy;
 
 /// <summary>
-/// Счётчик «страна → товар → сколько» на один тик: спрос предприятий и выпуск
-/// накапливаются в нём, а не в складах стран.
+/// Счётчик «страна → ключ → сколько» на один тик: спрос, выпуск, остатки складов и
+/// число работающих предприятий копятся в нём, а не в самих странах.
 /// </summary>
 /// <remarks>
 /// Отдельная таблица нужна, чтобы тик не зависел от порядка обхода: все считают от
@@ -12,17 +12,19 @@ namespace CapitaModern.Core.Economy;
 /// обработанная раньше завода, успела бы отдать ему руду в том же тике, и итог
 /// зависел бы от номеров областей.
 /// </remarks>
-public sealed class GoodsTally : IEnumerable<(byte Country, GoodType Good, long Amount)>
+/// <typeparam name="TKey">Что считаем: товары или типы построек.</typeparam>
+public sealed class Tally<TKey> : IEnumerable<(byte Country, TKey Key, long Amount)>
+    where TKey : struct, Enum
 {
-    private readonly Dictionary<byte, Dictionary<GoodType, long>> _amounts = new();
+    private readonly Dictionary<byte, Dictionary<TKey, long>> _amounts = new();
 
-    public IEnumerator<(byte Country, GoodType Good, long Amount)> GetEnumerator()
+    public IEnumerator<(byte Country, TKey Key, long Amount)> GetEnumerator()
     {
-        foreach (var (country, goods) in _amounts)
+        foreach (var (country, amounts) in _amounts)
         {
-            foreach (var (good, amount) in goods)
+            foreach (var (key, amount) in amounts)
             {
-                yield return (country, good, amount);
+                yield return (country, key, amount);
             }
         }
     }
@@ -31,31 +33,31 @@ public sealed class GoodsTally : IEnumerable<(byte Country, GoodType Good, long 
 
     /// <summary>Прибавляет к уже накопленному. Ноль допустим: предприятие, которому
     /// не хватило сырья, отработает ноль раз, и это обычный исход, а не ошибка.</summary>
-    public void Add(byte country, GoodType good, long amount)
+    public void Add(byte country, TKey key, long amount)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(amount);
 
-        var goods = GoodsOf(country);
-        goods[good] = goods.GetValueOrDefault(good) + amount;
+        var amounts = AmountsOf(country);
+        amounts[key] = amounts.GetValueOrDefault(key) + amount;
     }
 
     /// <summary>Ноль для всего, чего не спрашивали: пустая ячейка и ноль здесь
-    /// неразличимы по смыслу, а исключение ломало бы обход по всем товарам.</summary>
-    public long Get(byte country, GoodType good)
+    /// неразличимы по смыслу, а исключение ломало бы обход по всем ключам.</summary>
+    public long Get(byte country, TKey key)
     {
         if (
             !_amounts.TryGetValue(country, out var countryAmounts) ||
-            !countryAmounts.TryGetValue(good, out var result)
+            !countryAmounts.TryGetValue(key, out var result)
         )
             return 0;
 
         return result;
     }
 
-    public void Set(byte country, GoodType good, long amount)
+    public void Set(byte country, TKey key, long amount)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(amount);
-        GoodsOf(country)[good] = amount;
+        AmountsOf(country)[key] = amount;
     }
 
     public void Clear()
@@ -63,13 +65,13 @@ public sealed class GoodsTally : IEnumerable<(byte Country, GoodType Good, long 
         _amounts.Clear();
     }
 
-    private Dictionary<GoodType, long> GoodsOf(byte country)
+    private Dictionary<TKey, long> AmountsOf(byte country)
     {
-        if (!_amounts.TryGetValue(country, out var goods))
+        if (!_amounts.TryGetValue(country, out var amounts))
         {
-            _amounts[country] = goods = new();
+            _amounts[country] = amounts = new();
         }
 
-        return goods;
+        return amounts;
     }
 }

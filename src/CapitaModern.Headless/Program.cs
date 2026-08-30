@@ -17,9 +17,9 @@ var simulation = new Simulation(world);
 foreach (var tick in Enumerable.Range(0, 30))
 {
     simulation.Tick();
-    if (tick is 1 or 5 or 10 or 30)
+    if (tick + 1 is 1 or 5 or 10 or 30)
     {
-        Console.WriteLine($"Simulation tick #{tick}");
+        Console.WriteLine($"Simulation tick #{tick + 1}");
         foreach (var good in Enum.GetValues<GoodType>())
         {
             var amount = russia.StockOf(good);

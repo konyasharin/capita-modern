@@ -16,9 +16,10 @@ namespace CapitaModern.Core.World;
 public sealed class Simulation
 {
     private readonly GameWorld _world;
-    private readonly GoodsTally _inputs = new();
-    private readonly GoodsTally _outputs = new();
-    private readonly GoodsTally _available = new();
+    private readonly Tally<GoodType> _inputs = new();
+    private readonly Tally<GoodType> _outputs = new();
+    private readonly Tally<GoodType> _available = new();
+    private readonly Tally<BuildingType> _working = new();
 
     public Simulation(GameWorld world)
     {
@@ -42,6 +43,7 @@ public sealed class Simulation
         _inputs.Clear();
         _outputs.Clear();
         _available.Clear();
+        _working.Clear();
     }
 
     private bool CanWork(Region region, BuildingType building)
@@ -64,6 +66,7 @@ public sealed class Simulation
                 {
                     _inputs.Add(owner, input.Key, building.Value * input.Value);
                 }
+                _working.Add(owner, building.Key, building.Value);
             }
         }
     }
@@ -78,33 +81,27 @@ public sealed class Simulation
 
     private void CollectOutputs()
     {
-        foreach (var region in _world.Regions)
+        foreach (var (country, building, count) in _working)
         {
-            var owner = region.LargestOwner;
+            var recipe = _world.Buildings[building];
 
-            foreach (var building in region.BuildingsCount)
+            long runs = count;
+            foreach (var (good, _) in recipe.Inputs)
             {
-                if (!CanWork(region, building.Key)) continue;
-                var recipe = _world.Buildings[building.Key];
+                long available = _available.Get(country, good);
+                long input = _inputs.Get(country, good);
+                runs = Math.Min(runs, count * available / input);
+            }
 
-                long runs = building.Value;
-                foreach (var (good, _) in recipe.Inputs)
-                {
-                    long available = _available.Get(owner, good);
-                    long input = _inputs.Get(owner, good);
-                    runs = Math.Min(runs, building.Value * available / input);
-                }
+            if (runs == 0) continue;
 
-                if (runs == 0) continue;
+            var consumed = _world.CountryById(country).TryConsume(recipe.Inputs, (int)runs);
+            if (!consumed) throw new InvalidOperationException("Не получилось потратить предметы " +
+                                                               "со склада, ошибка в расчетах в коде");
 
-                var consumed = _world.CountryById(owner).TryConsume(recipe.Inputs, (int)runs);
-                if (!consumed) throw new InvalidOperationException("Не получилось потратить предметы " +
-                                                                   "со склада, ошибка в рассчетах в коде");
-
-                foreach (var (good, amount) in recipe.Outputs)
-                {
-                    _outputs.Add(owner, good, amount * runs);
-                }
+            foreach (var (good, amount) in recipe.Outputs)
+            {
+                _outputs.Add(country, good, amount * runs);
             }
         }
     }
