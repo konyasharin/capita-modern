@@ -1,18 +1,11 @@
 ﻿namespace CapitaModern.Core.Loading;
 
-/// <summary>
-/// Поиск корня репозитория для консольных прогонов.
-/// </summary>
-/// <remarks>
-/// Только для разработки. В собранной игре папки <c>data</c> на диске нет — файлы
-/// упакованы в .pck, и достаёт их Godot через <c>res://</c>.
-/// </remarks>
+/// <summary>Ищет корень репозитория для консольных прогонов. Только для разработки:
+/// в собранной игре данные лежат в .pck, и достаёт их Godot.</summary>
 public static class RepoPaths
 {
-    /// <summary>
-    /// Поднимается вверх от папки с exe, пока не найдёт <c>data</c>: рабочий каталог
-    /// у консольного проекта — bin/Debug/net8.0, а не корень репозитория.
-    /// </summary>
+    /// <summary>Идёт вверх от папки с exe, пока не найдёт <c>data</c>: запускается всё
+    /// из bin/Debug, а не из корня.</summary>
     public static string GetRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

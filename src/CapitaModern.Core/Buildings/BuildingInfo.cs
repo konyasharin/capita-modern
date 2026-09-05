@@ -2,26 +2,20 @@
 
 namespace CapitaModern.Core.Buildings;
 
-/// <summary>
-/// Описание типа постройки из data/economy/buildings.json. Одно на весь мир:
-/// у построек нет индивидуальных характеристик, только тип.
-/// </summary>
+/// <summary>Описание типа постройки из buildings.json, одно на весь мир.</summary>
 public sealed class BuildingInfo
 {
     public BuildingType Type { get; init; }
 
     /// <summary>Сколько чего съедает за один тик при полной загрузке рабочими.</summary>
-    public Dictionary<GoodType, int> Inputs { get; init; } = new();
+    public Dictionary<GoodType, GoodAmount> Inputs { get; init; } = new();
 
     /// <summary>Сколько чего выдаёт за один тик при полной загрузке рабочими.</summary>
-    public Dictionary<GoodType, int> Outputs { get; init; } = new();
+    public Dictionary<GoodType, GoodAmount> Outputs { get; init; } = new();
 
-    /// <summary>
-    /// Численность, при которой выпуск равен <see cref="Outputs"/>.
-    /// Рабочих меньше — выпуск пропорционально ниже.
-    /// </summary>
+    /// <summary>Рабочих для полного выпуска. Меньше — выпуск ниже. Пока не используется.</summary>
     public int OptimalWorkers { get; init; }
-    /// <summary>Какое месторождение нужно в области, чтобы предприятие работало.
-    /// Пусто у всех, кроме добычи: без этой проверки нефть польётся из Швейцарии.</summary>
+    /// <summary>Без этого месторождения в области предприятие не работает. Пусто у всех,
+    /// кроме добычи.</summary>
     public GoodType? RequiresDeposit { get; init; }
 }

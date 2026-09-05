@@ -3,14 +3,12 @@ using CapitaModern.Core.Economy;
 
 namespace CapitaModern.Core.Loading;
 
-/// <summary>
-/// Регион как он лежит в data/map/regions.json. Геометрии здесь нет: какие ячейки
-/// в регион входят, знает только карта, ядру достаточно их количества.
-/// </summary>
-/// <param name="Id">Номер региона, до 2985 — в байт не влезает, в отличие от id страны.</param>
-/// <param name="Country">Владелец на старте: регион по построению целиком внутри одной страны.</param>
-/// <param name="Cells">Сколько ячеек карты в регионе — знаменатель для доли захвата.</param>
-/// <param name="Deposits">Потенциал добычи по товарам; чего нет в словаре, того не добыть.</param>
+/// <summary>Область как она лежит в regions.json. Геометрии нет — ядру хватает
+/// количества ячеек.</summary>
+/// <param name="Id">Номер области, до 2985 — в байт не влезает.</param>
+/// <param name="Country">Владелец на старте. Область всегда внутри одной страны.</param>
+/// <param name="Cells">Ячеек карты в области — знаменатель доли захвата.</param>
+/// <param name="Deposits">Что можно добывать. Чего нет в словаре — того не добыть.</param>
 public record RegionDto(
     int Id,
     byte Country,

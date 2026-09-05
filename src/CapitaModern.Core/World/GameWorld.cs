@@ -2,10 +2,7 @@
 
 namespace CapitaModern.Core.World;
 
-/// <summary>
-/// Состояние партии: единственный владелец массивов регионов и стран.
-/// Всё остальное получает его ссылкой, а не хранит свои копии.
-/// </summary>
+/// <summary>Состояние партии. Владеет областями и странами, остальные берут их ссылкой.</summary>
 public sealed class GameWorld
 {
     public BuildingCatalog Buildings { get; }

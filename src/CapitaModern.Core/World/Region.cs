@@ -3,16 +3,13 @@ using CapitaModern.Core.Economy;
 
 namespace CapitaModern.Core.World;
 
-/// <summary>
-/// Условная единица деления суши: нужна только для просмотра статистики.
-/// Владельца одним полем здесь нет — фронт может разрезать регион пополам,
-/// поэтому принадлежность это доли ячеек. См. docs/03-industry.md.
-/// </summary>
+/// <summary>Область — единица статистики. Владелец не одно поле, а доли ячеек: фронт
+/// может разрезать область пополам. См. docs/03-industry.md.</summary>
 public sealed class Region
 {
     public int Id { get; }
 
-    /// <summary>Сколько ячеек карты в регионе. Выводится из долей, отдельно не задаётся.</summary>
+    /// <summary>Ячеек карты в области. Считается из долей.</summary>
     public int CellsCount { get; }
 
     public int Population { get; private set; }
@@ -20,10 +17,10 @@ public sealed class Region
     /// <summary>Сколько ячеек у какой страны. Сумма всегда равна CellsCount.</summary>
     private Dictionary<byte, int> Owned { get; }
 
-    /// <summary>Счётчик построек по типам: экземпляров построек нет, только числа.</summary>
+    /// <summary>Постройки по типам. Объектов нет, только числа.</summary>
     private Dictionary<BuildingType, int> Buildings { get; }
 
-    /// <summary>Потенциал добычи по товарам; чего нет, того в регионе не добыть.</summary>
+    /// <summary>Что можно добывать. Чего нет — того не добыть.</summary>
     private Dictionary<GoodType, int> Deposits { get; }
 
     public Region(int id, int population, IReadOnlyDictionary<byte, int> owned, IReadOnlyDictionary<BuildingType, int> buildings, IReadOnlyDictionary<GoodType, int> deposits)
@@ -38,16 +35,14 @@ public sealed class Region
         CellsCount = Owned.Values.Sum();
     }
 
-    /// <summary>Типы построек вместе с количеством. Тику нужны обе половины сразу,
-    /// иначе он ищет количество отдельным поиском на каждую строчку рецепта.</summary>
+    /// <summary>Типы построек вместе с количеством — тику нужны обе половины сразу.</summary>
     public IEnumerable<KeyValuePair<BuildingType, int>> BuildingsCount => Buildings;
     public int CellsOf(byte country) => Owned.GetValueOrDefault(country, 0);
-    /// <summary>Доля 0..1 — для показа игроку. Делить постройки ею нельзя: округление
-    /// накопит расхождение, для этого есть BuildingsOf с двумя аргументами.</summary>
+    /// <summary>Доля 0..1 для показа игроку. Постройки ею делить нельзя — для этого есть
+    /// BuildingsOf с двумя аргументами.</summary>
     public float ShareOf(byte country) => (float)CellsOf(country) / CellsCount;
-    /// <summary>Кому принадлежит бо́льшая часть. При равенстве побеждает больший id —
-    /// правило произвольное, но обязано быть явным: порядок перебора словаря не
-    /// гарантирован, а ответ должен быть одним и тем же всегда.</summary>
+    /// <summary>Кому принадлежит большая часть. При равенстве побеждает больший id —
+    /// правило любое, но ответ должен быть всегда одинаковым.</summary>
     public byte LargestOwner
     {
         get
@@ -67,8 +62,8 @@ public sealed class Region
         }
     }
     public bool IsSplit => Owned.Count > 1;
-    /// <summary>Единственный способ изменить владение: держит сумму долей равной
-    /// CellsCount и не даёт уйти в минус.</summary>
+    /// <summary>Единственный способ менять владение: держит сумму долей и не даёт уйти
+    /// в минус.</summary>
     public void TransferCells(byte from, byte to, int count)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);
@@ -85,15 +80,9 @@ public sealed class Region
     }
 
     public int BuildingsOf(BuildingType type) => Buildings.GetValueOrDefault(type, 0);
-    /// <summary>
-    /// Сколько построек этого типа досталось стране при разрезанном регионе.
-    /// </summary>
-    /// <remarks>
-    /// Метод спрашивают про одну страну, но считает он весь дележ: целые части
-    /// раздаются по доле ячеек, а остаток — тем, кого сильнее обделили округлением
-    /// (метод наибольших остатков). Иначе суммы по странам не сошлись бы с общим
-    /// числом построек. Всё в целых числах: остаток от деления заменяет дробную часть.
-    /// </remarks>
+    /// <summary>Сколько построек досталось стране, если область разрезана фронтом.</summary>
+    /// <remarks>Считает весь делёж, чтобы суммы сошлись: целые части по доле ячеек,
+    /// остаток — самым обделённым (метод наибольших остатков).</remarks>
     public int BuildingsOf(BuildingType type, byte country)
     {
         var buildings = BuildingsOf(type);

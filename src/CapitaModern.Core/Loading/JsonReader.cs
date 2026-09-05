@@ -3,22 +3,19 @@ using System.Text.Json.Serialization;
 
 namespace CapitaModern.Core.Loading;
 
-/// <summary>
-/// Разбор JSON с настройками, общими для всех файлов данных.
-/// Файл не читает: путь и способ чтения знает вызывающий, ядру они неизвестны.
-/// </summary>
+/// <summary>Разбор json с общими настройками. Сам файл не читает — содержимое даёт
+/// вызывающий.</summary>
 public static class JsonReader
 {
     private static readonly JsonSerializerOptions Options = new()
     {
         PropertyNameCaseInsensitive = true,
 
-        // Без этого не разберутся ни значения enum ("OilRig"), ни ключи словарей
-        // ({"Oil": 10}) — а на них держатся рецепты и месторождения.
-        Converters = { new JsonStringEnumConverter() },
+        // Первый разбирает enum ("OilRig") и ключи словарей ({"Oil": 10}),
+        // второй переводит количества из единиц в сотые.
+        Converters = { new JsonStringEnumConverter(), new GoodAmountJsonConverter() },
 
-        // Файлы данных правятся руками, поэтому висящая запятая и комментарий
-        // не должны ронять загрузку.
+        // Файлы правятся руками: лишняя запятая и комментарий не должны ронять загрузку.
         AllowTrailingCommas = true,
         ReadCommentHandling = JsonCommentHandling.Skip,
     };

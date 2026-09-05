@@ -1,19 +1,18 @@
-﻿using CapitaModern.Core.Loading;
+﻿using CapitaModern.Core.Economy;
+using CapitaModern.Core.Loading;
 
 namespace CapitaModern.Core.Buildings;
 
 public sealed class BuildingCatalog
 {
-    // Массив по значению enum, а не словарь: индексатор дёргается в тике
-    // на каждую постройку, обращение по индексу дешевле хеширования.
+    // Массив, а не словарь: в тике сюда обращаются на каждую постройку.
     private readonly BuildingInfo[] _byType;
 
     public BuildingCatalog(IEnumerable<BuildingInfo> infos)
     {
         _byType = new BuildingInfo[Enum.GetValues<BuildingType>().Length];
 
-        // Дубль и пропуск должны падать при загрузке с внятным текстом,
-        // а не всплывать NullReferenceException посреди тика.
+        // Дубль и пропуск ловим при загрузке, а не в тике.
         foreach (var info in infos)
         {
             int index = (int)info.Type;

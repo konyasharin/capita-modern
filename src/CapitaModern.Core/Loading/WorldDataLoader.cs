@@ -5,10 +5,8 @@ using CapitaModern.Core.World;
 
 namespace CapitaModern.Core.Loading;
 
-/// <summary>
-/// Разбор файлов мира. Принимает содержимое, а не пути: в игре файлы достаёт Godot
-/// из <c>res://</c>, в консоли — обычный File, и ядро не должно знать разницы.
-/// </summary>
+/// <summary>Собирает мир из файлов. Принимает содержимое, а не пути: в игре файлы
+/// достаёт Godot, в консоли — File.</summary>
 public static class WorldDataLoader
 {
     public static GameWorld LoadWorld(string countriesJson, string regionsJson, string buildingsJson, string startBuildingsJson)
@@ -43,6 +41,6 @@ public static class WorldDataLoader
         dto.Name,
         dto.Iso,
         0,
-        new Dictionary<GoodType, long>()
+        new Dictionary<GoodType, GoodAmount>()
     ); // баланс и склад - заглушки
 }
