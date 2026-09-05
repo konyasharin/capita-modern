@@ -4,5 +4,5 @@
 public static class Load
 {
     /// <summary>Полная загрузка одного предприятия.</summary>
-    public const int Full = 100;
+    public const int Full = 10000;
 }

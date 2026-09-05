@@ -95,6 +95,9 @@ public sealed class Simulation
             {
                 GoodAmount available = _available.Get(country, good);
                 GoodAmount input = _inputs.Get(country, good);
+                // Хватает всем — загрузка остаётся полной. Заодно не считаем самое
+                // большое произведение: переполниться оно могло бы только здесь.
+                if (available >= input) continue;
                 runs = Math.Min(runs, (long)Load.Full * count * available.Raw / input.Raw);
             }
 

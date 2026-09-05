@@ -9,7 +9,7 @@ public readonly record struct GoodAmount(long Raw) :
     IComparisonOperators<GoodAmount, GoodAmount, bool>
 {
     /// <summary>Сколько сотых в одной единице товара.</summary>
-    public const int Scale = 100;
+    public const int Scale = 10000;
 
     public static GoodAmount FromUnits(long units) => new(units * Scale);
     public double Units => (double)Raw / Scale;
