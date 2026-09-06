@@ -44,5 +44,5 @@ internal static class Build
         new(id, population, new Dictionary<byte, int> { [owner] = cells }, buildings ?? [], deposits ?? []);
 
     public static Country Country(byte id, Dictionary<GoodType, GoodAmount>? stock = null) =>
-        new(id, $"country {id}", $"C{id:00}", 0, stock ?? []);
+        new(id, $"country {id}", $"C{id:00}", 0, new Stock(stock ?? []));
 }

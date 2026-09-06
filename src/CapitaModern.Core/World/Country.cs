@@ -2,7 +2,7 @@
 
 namespace CapitaModern.Core.World;
 
-/// <summary>Государство: казна и общий склад. Территории здесь нет — её знает карта.</summary>
+/// <summary>Государство: казна и склад. Территории здесь нет — её знает карта.</summary>
 public sealed class Country
 {
     /// <summary>Тот же байт, что лежит в world.bin для каждой ячейки.</summary>
@@ -14,16 +14,15 @@ public sealed class Country
     /// тиков копит ошибку.</summary>
     public long Balance { get; private set; }
 
-    /// <summary>Склад страны.</summary>
-    private Dictionary<GoodType, GoodAmount> Stock { get; }
+    public Stock Stock { get; }
 
-    public Country(byte id, string name, string iso, long balance, IReadOnlyDictionary<GoodType, GoodAmount> stock)
+    public Country(byte id, string name, string iso, long balance, Stock stock)
     {
         Id = id;
         Name = name;
         Iso = iso;
         Balance = balance;
-        Stock = new(stock);
+        Stock = stock;
     }
 
     public void Receive(long amount)
@@ -37,35 +36,8 @@ public sealed class Country
     {
         ArgumentOutOfRangeException.ThrowIfNegative(amount);
         if (Balance - amount < 0) return false;
+
         Balance -= amount;
-        return true;
-    }
-
-    public GoodAmount StockOf(GoodType goodType) => Stock.GetValueOrDefault(goodType);
-
-    public void Store(GoodType good, GoodAmount amount)
-    {
-        if (amount < default(GoodAmount)) throw new ArgumentOutOfRangeException(nameof(amount));
-        Stock[good] = StockOf(good) + amount;
-    }
-
-    /// <summary>Списывает рецепт целиком или ничего: если руда есть, а угля нет, руда
-    /// должна остаться.</summary>
-    /// <param name="load">Загрузка: <see cref="Load.Full"/> — один завод на полную.</param>
-    public bool TryConsume(IReadOnlyDictionary<GoodType, GoodAmount> recipe, long load)
-    {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(load);
-
-        foreach (var good in recipe.Keys)
-        {
-            if (StockOf(good) - recipe[good] * load / Load.Full < default(GoodAmount)) return false;
-        }
-
-        foreach (var good in recipe.Keys)
-        {
-            Stock[good] = StockOf(good) - recipe[good] * load / Load.Full;
-        }
-
         return true;
     }
 }

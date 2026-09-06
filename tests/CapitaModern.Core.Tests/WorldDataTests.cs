@@ -80,7 +80,7 @@ public class WorldDataTests
         {
             foreach (var good in Enum.GetValues<GoodType>())
             {
-                Assert.True(country.StockOf(good) >= default(GoodAmount),
+                Assert.True(country.Stock.Of(good) >= default(GoodAmount),
                     $"{country.Iso} ушла в минус по {good}");
             }
         }
@@ -115,7 +115,7 @@ public class WorldDataTests
             var simulation = new Simulation(world);
             for (var tick = 0; tick < 30; tick++) simulation.Tick();
 
-            return world.Countries.Sum(country => country.StockOf(GoodType.Metals).Raw);
+            return world.Countries.Sum(country => country.Stock.Of(GoodType.Metals).Raw);
         }
 
         Assert.Equal(Run(), Run());

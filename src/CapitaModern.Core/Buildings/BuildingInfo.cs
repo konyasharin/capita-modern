@@ -6,7 +6,7 @@ namespace CapitaModern.Core.Buildings;
 public sealed class BuildingInfo
 {
     public BuildingType Type { get; init; }
-
+    public Sector Sector { get; init; }
     /// <summary>Сколько чего съедает за один тик при полной загрузке рабочими.</summary>
     public Dictionary<GoodType, GoodAmount> Inputs { get; init; } = new();
 
