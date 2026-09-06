@@ -20,6 +20,8 @@ public sealed class Simulation
     /// <summary>Склады на начало тика. Во втором проходе живой склад убывает, а доли
     /// должны считаться от одних и тех же чисел.</summary>
     private readonly Tally<GoodType, GoodAmount> _available = new();
+
+    /// <summary>Тот же заказ, но умноженный на вес отрасли. По нему делится нехватка.</summary>
     private readonly Tally<GoodType, GoodAmount> _claims = new();
 
     /// <summary>Работоспособные предприятия по стране и типу. Считаются вместе, где бы
@@ -108,6 +110,8 @@ public sealed class Simulation
                 // большое произведение: переполниться оно могло бы только здесь.
                 if (available >= demand) continue;
 
+                // Доля отрасли — её вес против весов остальных претендентов.
+                // Int128: пять множителей до деления не влезают в long.
                 GoodAmount claims = _claims.Get(country, good);
                 runs = Math.Min(
                     runs,
