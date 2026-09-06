@@ -342,7 +342,7 @@
 			"Electricity": 8
 		},
 		"outputs": {
-			"Electronics": 6
+			"Electronics": 47
 		},
 		"optimalWorkers": 3000,
 		"buildCost": {
@@ -380,7 +380,7 @@
 		"inputs": {
 			"Chemicals": 4,
 			"Metals": 4,
-			"Electronics": 2
+			"Electronics": 25
 		},
 		"outputs": {
 			"ConsumerGoods": 8

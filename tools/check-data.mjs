@@ -53,6 +53,23 @@ for (const [id, rate] of Object.entries(consumption)) {
 	if (!(rate > 0)) errors.push(`потребление: ставка ${id} должна быть больше нуля`)
 }
 
+
+// С пустых складов должно запускаться всё: если товар косвенно требует сам себя,
+// экономика встанет на первом тике и никогда не тронется.
+const reachable = new Set()
+for (let changed = true; changed; ) {
+	changed = false
+	for (const b of buildings) {
+		if (!Object.keys(b.inputs).every((g) => reachable.has(g))) continue
+		for (const g of Object.keys(b.outputs)) {
+			if (!reachable.has(g)) { reachable.add(g); changed = true }
+		}
+	}
+}
+for (const g of goods) {
+	if (!reachable.has(g.id)) errors.push(`${g.id}: не запустится с пустых складов, рецепты зациклены`)
+}
+
 const produced = new Set(buildings.flatMap((b) => Object.keys(b.outputs)))
 for (const g of goods) {
 	if (!produced.has(g.id)) errors.push(`${g.id}: нет производителя`)
