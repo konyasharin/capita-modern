@@ -51,7 +51,7 @@ public sealed class Country
 
     /// <summary>Списывает рецепт целиком или ничего: если руда есть, а угля нет, руда
     /// должна остаться.</summary>
-    /// <param name="load">Загрузка в сотых долях: 100 — один завод на полную.</param>
+    /// <param name="load">Загрузка: <see cref="Load.Full"/> — один завод на полную.</param>
     public bool TryConsume(IReadOnlyDictionary<GoodType, GoodAmount> recipe, long load)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(load);

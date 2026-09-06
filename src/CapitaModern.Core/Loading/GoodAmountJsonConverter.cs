@@ -5,7 +5,7 @@ using CapitaModern.Core.Economy;
 
 namespace CapitaModern.Core.Loading;
 
-/// <summary>В файлах количества в единицах, внутри — в сотых. Здесь единственное
+/// <summary>В файлах количества целыми единицами, внутри — долями. Здесь единственное
 /// место, где происходит умножение.</summary>
 public sealed class GoodAmountJsonConverter : JsonConverter<GoodAmount>
 {

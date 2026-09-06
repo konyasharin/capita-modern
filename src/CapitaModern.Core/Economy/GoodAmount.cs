@@ -2,13 +2,13 @@
 
 namespace CapitaModern.Core.Economy;
 
-/// <summary>Количество товара. Внутри хранится в сотых долях единицы, чтобы завод мог
+/// <summary>Количество товара. Внутри хранится дробными долями единицы, чтобы завод мог
 /// работать не на полную и не округляться до нуля.</summary>
 public readonly record struct GoodAmount(long Raw) :
     IAdditionOperators<GoodAmount, GoodAmount, GoodAmount>,
     IComparisonOperators<GoodAmount, GoodAmount, bool>
 {
-    /// <summary>Сколько сотых в одной единице товара.</summary>
+    /// <summary>Сколько долей в одной единице товара.</summary>
     public const int Scale = 10000;
 
     public static GoodAmount FromUnits(long units) => new(units * Scale);

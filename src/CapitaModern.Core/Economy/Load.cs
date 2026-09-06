@@ -1,6 +1,6 @@
 ﻿namespace CapitaModern.Core.Economy;
 
-/// <summary>Загрузка предприятия в сотых долях: 100 — работает на полную, 40 — на 40%.</summary>
+/// <summary>Загрузка предприятия дробными долями: Full — на полную, Full/2 — вполсилы.</summary>
 public static class Load
 {
     /// <summary>Полная загрузка одного предприятия.</summary>

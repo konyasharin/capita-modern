@@ -1,4 +1,4 @@
-using CapitaModern.Core.Buildings;
+﻿using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
 using Xunit;
 
@@ -36,7 +36,7 @@ public class BuildingCatalogTests
         Assert.Contains(nameof(BuildingType.SteelMill), error.Message);
     }
 
-    /// <summary>Рецепты приезжают из файла единицами и должны стать сотыми.</summary>
+    /// <summary>Рецепты приезжают из файла единицами и должны стать долями.</summary>
     [Fact]
     public void RecipesComeFromJsonScaled()
     {

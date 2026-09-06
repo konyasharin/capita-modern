@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using CapitaModern.Core.Economy;
 using CapitaModern.Core.Loading;
@@ -74,7 +74,7 @@ public class GoodAmountTests
         Assert.Equal(small, GoodAmount.FromUnits(1));
     }
 
-    /// <summary>Рецепт в файле записан единицами, а внутри должен стать сотыми.</summary>
+    /// <summary>Рецепт в файле записан единицами, а внутри должен стать долями.</summary>
     [Fact]
     public void JsonReadsUnitsAndScalesThem()
     {
