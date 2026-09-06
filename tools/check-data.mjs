@@ -40,6 +40,19 @@ for (const b of buildings) {
 	if (!(b.optimalWorkers > 0)) errors.push(`${b.type}: некорректные рабочие`)
 }
 
+
+// Отрасль нужна для весов приоритета: без неё постройку некуда отнести при дележе дефицита.
+const SECTORS = new Set(['Mining', 'Power', 'Heavy', 'Civil', 'Military'])
+for (const b of buildings) {
+	if (!SECTORS.has(b.sector)) errors.push(`${b.type}: отрасль "${b.sector}" неизвестна`)
+}
+
+const consumption = read('data', 'economy', 'consumption.json').unitPerMillionPeople
+for (const [id, rate] of Object.entries(consumption)) {
+	if (!goods.some((g) => g.id === id)) errors.push(`потребление: товара ${id} не существует`)
+	if (!(rate > 0)) errors.push(`потребление: ставка ${id} должна быть больше нуля`)
+}
+
 const produced = new Set(buildings.flatMap((b) => Object.keys(b.outputs)))
 for (const g of goods) {
 	if (!produced.has(g.id)) errors.push(`${g.id}: нет производителя`)

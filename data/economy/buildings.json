@@ -3,6 +3,7 @@
 		"type": "CoalMine",
 		"name": "Угольный разрез",
 		"icon": "coal-mine",
+		"sector": "Mining",
 		"requiresDeposit": "Coal",
 		"inputs": {},
 		"outputs": {
@@ -18,6 +19,7 @@
 		"type": "OilRig",
 		"name": "Нефтепромысел",
 		"icon": "oil-rig",
+		"sector": "Mining",
 		"requiresDeposit": "Oil",
 		"inputs": {},
 		"outputs": {
@@ -33,6 +35,7 @@
 		"type": "GasField",
 		"name": "Газовый промысел",
 		"icon": "gas-field",
+		"sector": "Mining",
 		"requiresDeposit": "Gas",
 		"inputs": {},
 		"outputs": {
@@ -48,6 +51,7 @@
 		"type": "IronMine",
 		"name": "Железный рудник",
 		"icon": "iron-mine",
+		"sector": "Mining",
 		"requiresDeposit": "IronOre",
 		"inputs": {},
 		"outputs": {
@@ -63,6 +67,7 @@
 		"type": "CopperMine",
 		"name": "Медный рудник",
 		"icon": "copper-mine",
+		"sector": "Mining",
 		"requiresDeposit": "CopperOre",
 		"inputs": {},
 		"outputs": {
@@ -78,6 +83,7 @@
 		"type": "BauxiteMine",
 		"name": "Бокситовый карьер",
 		"icon": "bauxite-mine",
+		"sector": "Mining",
 		"requiresDeposit": "Bauxite",
 		"inputs": {},
 		"outputs": {
@@ -93,6 +99,7 @@
 		"type": "UraniumMine",
 		"name": "Урановый рудник",
 		"icon": "uranium-mine",
+		"sector": "Mining",
 		"requiresDeposit": "Uranium",
 		"inputs": {},
 		"outputs": {
@@ -108,6 +115,7 @@
 		"type": "RareEarthMine",
 		"name": "Рудник редкозёмов",
 		"icon": "rare-earth-mine",
+		"sector": "Mining",
 		"requiresDeposit": "RareEarth",
 		"inputs": {},
 		"outputs": {
@@ -123,6 +131,7 @@
 		"type": "LoggingCamp",
 		"name": "Лесозаготовка",
 		"icon": "logging-camp",
+		"sector": "Mining",
 		"requiresDeposit": null,
 		"inputs": {},
 		"outputs": {
@@ -138,6 +147,7 @@
 		"type": "Farm",
 		"name": "Агрохозяйство",
 		"icon": "farm",
+		"sector": "Mining",
 		"requiresDeposit": null,
 		"inputs": {},
 		"outputs": {
@@ -153,6 +163,7 @@
 		"type": "CoalPlant",
 		"name": "Угольная ТЭС",
 		"icon": "coal-plant",
+		"sector": "Power",
 		"requiresDeposit": null,
 		"inputs": {
 			"Coal": 17
@@ -170,6 +181,7 @@
 		"type": "GasPlant",
 		"name": "Газовая ТЭС",
 		"icon": "gas-plant",
+		"sector": "Power",
 		"requiresDeposit": null,
 		"inputs": {
 			"Gas": 8
@@ -187,6 +199,7 @@
 		"type": "NuclearPlant",
 		"name": "АЭС",
 		"icon": "nuclear-plant",
+		"sector": "Power",
 		"requiresDeposit": null,
 		"inputs": {
 			"Uranium": 2
@@ -205,6 +218,7 @@
 		"type": "HydroPlant",
 		"name": "ГЭС",
 		"icon": "hydro-plant",
+		"sector": "Power",
 		"requiresDeposit": null,
 		"inputs": {},
 		"outputs": {
@@ -220,6 +234,7 @@
 		"type": "Refinery",
 		"name": "НПЗ",
 		"icon": "refinery",
+		"sector": "Heavy",
 		"requiresDeposit": null,
 		"inputs": {
 			"Oil": 10,
@@ -238,6 +253,7 @@
 		"type": "SteelMill",
 		"name": "Металлургический завод",
 		"icon": "steel-mill",
+		"sector": "Heavy",
 		"requiresDeposit": null,
 		"inputs": {
 			"IronOre": 13,
@@ -257,6 +273,7 @@
 		"type": "Smelter",
 		"name": "Цветная металлургия",
 		"icon": "smelter",
+		"sector": "Heavy",
 		"requiresDeposit": null,
 		"inputs": {
 			"Bauxite": 30,
@@ -276,6 +293,7 @@
 		"type": "ChemicalPlant",
 		"name": "Химкомбинат",
 		"icon": "chemical-plant",
+		"sector": "Heavy",
 		"requiresDeposit": null,
 		"inputs": {
 			"Fuel": 4,
@@ -295,6 +313,7 @@
 		"type": "MaterialsPlant",
 		"name": "Завод стройматериалов",
 		"icon": "materials-plant",
+		"sector": "Heavy",
 		"requiresDeposit": null,
 		"inputs": {
 			"Timber": 2,
@@ -314,6 +333,7 @@
 		"type": "ElectronicsPlant",
 		"name": "Электронный завод",
 		"icon": "electronics-plant",
+		"sector": "Heavy",
 		"requiresDeposit": null,
 		"inputs": {
 			"RareEarth": 1,
@@ -335,6 +355,7 @@
 		"type": "FoodPlant",
 		"name": "Пищевой комбинат",
 		"icon": "food-plant",
+		"sector": "Civil",
 		"requiresDeposit": null,
 		"inputs": {
 			"Agriculture": 20,
@@ -354,6 +375,7 @@
 		"type": "ConsumerGoodsPlant",
 		"name": "Лёгкая промышленность",
 		"icon": "consumer-goods-plant",
+		"sector": "Civil",
 		"requiresDeposit": null,
 		"inputs": {
 			"Chemicals": 4,
@@ -374,6 +396,7 @@
 		"type": "PharmaPlant",
 		"name": "Фармацевтика",
 		"icon": "pharma-plant",
+		"sector": "Civil",
 		"requiresDeposit": null,
 		"inputs": {
 			"Chemicals": 5,
@@ -393,6 +416,7 @@
 		"type": "ArmourPlant",
 		"name": "Танковый завод",
 		"icon": "armour-plant",
+		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
 			"Metals": 12,
@@ -413,6 +437,7 @@
 		"type": "ArtilleryPlant",
 		"name": "Артиллерийский завод",
 		"icon": "artillery-plant",
+		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
 			"Metals": 10,
@@ -433,6 +458,7 @@
 		"type": "SmallArmsPlant",
 		"name": "Оружейный завод",
 		"icon": "small-arms-plant",
+		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
 			"Metals": 5,
@@ -452,6 +478,7 @@
 		"type": "AmmunitionPlant",
 		"name": "Патронно-снарядный завод",
 		"icon": "ammunition-plant",
+		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
 			"Metals": 6,
@@ -471,6 +498,7 @@
 		"type": "TacticalDronePlant",
 		"name": "Завод тактических дронов",
 		"icon": "tactical-drone-plant",
+		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
 			"Electronics": 6,
@@ -491,6 +519,7 @@
 		"type": "StrikeDronePlant",
 		"name": "Завод дальнобойных БПЛА",
 		"icon": "strike-drone-plant",
+		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
 			"Electronics": 8,
@@ -512,6 +541,7 @@
 		"type": "MissilePlant",
 		"name": "Ракетный завод",
 		"icon": "missile-plant",
+		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
 			"Metals": 4,
@@ -532,6 +562,7 @@
 		"type": "AircraftPlant",
 		"name": "Авиазавод",
 		"icon": "aircraft-plant",
+		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
 			"Metals": 8,
@@ -552,6 +583,7 @@
 		"type": "AirDefencePlant",
 		"name": "Завод ПВО",
 		"icon": "air-defence-plant",
+		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
 			"Metals": 6,
@@ -572,6 +604,7 @@
 		"type": "ElectronicWarfarePlant",
 		"name": "Завод РЭБ",
 		"icon": "electronic-warfare-plant",
+		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
 			"Electronics": 9,
