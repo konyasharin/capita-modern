@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
+using CapitaModern.Core.Politics;
 using CapitaModern.Core.World;
 
 namespace CapitaModern.Core.Loading;
@@ -41,6 +42,7 @@ public static class WorldDataLoader
         dto.Name,
         dto.Iso,
         0,
-        new Stock(new Dictionary<GoodType, GoodAmount>())
+        new Stock(new Dictionary<GoodType, GoodAmount>()),
+        new Priorities()
     ); // баланс и склад - заглушки
 }

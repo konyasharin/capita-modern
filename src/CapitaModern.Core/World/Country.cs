@@ -1,4 +1,5 @@
 ﻿using CapitaModern.Core.Economy;
+using CapitaModern.Core.Politics;
 
 namespace CapitaModern.Core.World;
 
@@ -15,14 +16,16 @@ public sealed class Country
     public long Balance { get; private set; }
 
     public Stock Stock { get; }
+    public Priorities Priorities { get; }
 
-    public Country(byte id, string name, string iso, long balance, Stock stock)
+    public Country(byte id, string name, string iso, long balance, Stock stock, Priorities priorities)
     {
         Id = id;
         Name = name;
         Iso = iso;
         Balance = balance;
         Stock = stock;
+        Priorities = priorities;
     }
 
     public void Receive(long amount)

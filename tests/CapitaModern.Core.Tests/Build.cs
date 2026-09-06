@@ -1,5 +1,6 @@
 using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
+using CapitaModern.Core.Politics;
 using CapitaModern.Core.World;
 
 namespace CapitaModern.Core.Tests;
@@ -13,9 +14,11 @@ internal static class Build
         BuildingType type,
         Dictionary<GoodType, GoodAmount>? inputs = null,
         Dictionary<GoodType, GoodAmount>? outputs = null,
-        GoodType? deposit = null) => new()
+        GoodType? deposit = null,
+        Sector sector = Sector.Heavy) => new()
     {
         Type = type,
+        Sector = sector,
         Inputs = inputs ?? [],
         Outputs = outputs ?? [],
         RequiresDeposit = deposit,
@@ -43,6 +46,9 @@ internal static class Build
         int population = 1000) =>
         new(id, population, new Dictionary<byte, int> { [owner] = cells }, buildings ?? [], deposits ?? []);
 
-    public static Country Country(byte id, Dictionary<GoodType, GoodAmount>? stock = null) =>
-        new(id, $"country {id}", $"C{id:00}", 0, new Stock(stock ?? []));
+    public static Country Country(
+        byte id,
+        Dictionary<GoodType, GoodAmount>? stock = null,
+        Dictionary<Sector, int>? weights = null) =>
+        new(id, $"country {id}", $"C{id:00}", 0, new Stock(stock ?? []), new Priorities(weights));
 }

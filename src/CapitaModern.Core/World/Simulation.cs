@@ -1,5 +1,6 @@
 ﻿using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
+using CapitaModern.Core.Politics;
 
 namespace CapitaModern.Core.World;
 
@@ -19,6 +20,7 @@ public sealed class Simulation
     /// <summary>Склады на начало тика. Во втором проходе живой склад убывает, а доли
     /// должны считаться от одних и тех же чисел.</summary>
     private readonly Tally<GoodType, GoodAmount> _available = new();
+    private readonly Tally<GoodType, GoodAmount> _claims = new();
 
     /// <summary>Работоспособные предприятия по стране и типу. Считаются вместе, где бы
     /// ни стояли: склад у страны общий.</summary>
@@ -45,6 +47,7 @@ public sealed class Simulation
         _inputs.Clear();
         _outputs.Clear();
         _available.Clear();
+        _claims.Clear();
         _working.Clear();
     }
 
@@ -65,9 +68,14 @@ public sealed class Simulation
             foreach (var building in region.BuildingsCount)
             {
                 if (!CanWork(region, building.Key)) continue;
-                foreach (var input in _world.Buildings[building.Key].Inputs)
+                var info = _world.Buildings[building.Key];
+                var weight = _world.CountryById(owner).Priorities.WeightOf(info.Sector);
+
+                foreach (var input in info.Inputs)
                 {
-                    _inputs.Add(owner, input.Key, new GoodAmount(building.Value * input.Value.Raw));
+                    var demand = new GoodAmount(building.Value * input.Value.Raw);
+                    _inputs.Add(owner, input.Key, demand);
+                    _claims.Add(owner, input.Key, demand * weight / Priorities.NormalWeight);
                 }
                 _working.Add(owner, building.Key, building.Value);
             }
@@ -87,6 +95,7 @@ public sealed class Simulation
         foreach (var (country, building, count) in _working)
         {
             var recipe = _world.Buildings[building];
+            var weight = _world.CountryById(country).Priorities.WeightOf(recipe.Sector);
 
             // Доля общая на всех, поэтому расход рецепта в ней сокращается.
             // Умножаем до деления, иначе целые числа дадут ноль.
@@ -94,11 +103,19 @@ public sealed class Simulation
             foreach (var (good, _) in recipe.Inputs)
             {
                 GoodAmount available = _available.Get(country, good);
-                GoodAmount input = _inputs.Get(country, good);
+                GoodAmount demand = _inputs.Get(country, good);
                 // Хватает всем — загрузка остаётся полной. Заодно не считаем самое
                 // большое произведение: переполниться оно могло бы только здесь.
-                if (available >= input) continue;
-                runs = Math.Min(runs, (long)Load.Full * count * available.Raw / input.Raw);
+                if (available >= demand) continue;
+
+                GoodAmount claims = _claims.Get(country, good);
+                runs = Math.Min(
+                    runs,
+                    (long)(
+                        (Int128)Load.Full * count * weight * available.Raw /
+                        (claims.Raw * Priorities.NormalWeight)
+                    )
+                );
             }
 
             if (runs == 0) continue;
