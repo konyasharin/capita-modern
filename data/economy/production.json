@@ -376,7 +376,7 @@
 			}
 		},
 		"ChemicalPlant": {
-			"world": 658,
+			"world": 775,
 			"tail": 6,
 			"shares": {
 				"CHN": 42,
@@ -419,23 +419,28 @@
 			}
 		},
 		"ElectronicsPlant": {
-			"world": 400,
-			"tail": 3,
+			"world": 202,
+			"tail": 2,
 			"shares": {
-				"CHN": 34,
-				"TWN": 12,
-				"KOR": 10,
-				"USA": 10,
-				"JPN": 8,
-				"VNM": 4,
-				"MYS": 4,
-				"SGP": 3,
-				"DEU": 3,
-				"MEX": 2,
-				"IND": 2,
-				"THA": 2,
-				"PHL": 2,
-				"HUN": 1
+				"CHN": 62,
+				"TWN": 22,
+				"KOR": 20,
+				"USA": 18,
+				"JPN": 15,
+				"MYS": 8,
+				"VNM": 8,
+				"DEU": 7,
+				"SGP": 5,
+				"PHL": 5,
+				"THA": 4,
+				"IND": 4,
+				"MEX": 4,
+				"HUN": 3,
+				"ISR": 3,
+				"FRA": 3,
+				"GBR": 2,
+				"POL": 2,
+				"CZE": 2
 			}
 		},
 		"FoodPlant": {
@@ -631,6 +636,64 @@
 				"RUS": 2,
 				"USA": 1,
 				"CHN": 1
+			}
+		},
+		"MicroelectronicsPlant": {
+			"world": 80,
+			"tail": 0,
+			"shares": {
+				"TWN": 24,
+				"KOR": 16,
+				"USA": 12,
+				"CHN": 11,
+				"JPN": 8,
+				"DEU": 3,
+				"ISR": 2,
+				"SGP": 2,
+				"NLD": 1,
+				"IRL": 1
+			}
+		},
+		"ComponentsPlant": {
+			"world": 307,
+			"tail": 10,
+			"shares": {
+				"CHN": 74,
+				"USA": 26,
+				"IND": 16,
+				"DEU": 15,
+				"JPN": 13,
+				"KOR": 10,
+				"TWN": 9,
+				"ITA": 8,
+				"MEX": 8,
+				"VNM": 7,
+				"BRA": 7,
+				"FRA": 6,
+				"TUR": 6,
+				"POL": 6,
+				"MYS": 5,
+				"THA": 5,
+				"RUS": 5,
+				"GBR": 5,
+				"IDN": 4,
+				"ESP": 4,
+				"CZE": 4,
+				"PHL": 4,
+				"CAN": 3,
+				"UKR": 3,
+				"ROU": 3,
+				"HUN": 3,
+				"ARG": 2,
+				"EGY": 2,
+				"ZAF": 2,
+				"PAK": 2,
+				"BGD": 2,
+				"MAR": 2,
+				"SGP": 2,
+				"NGA": 1,
+				"KEN": 1,
+				"VEN": 1
 			}
 		}
 	}

@@ -20,7 +20,9 @@ public enum GoodType
     Metals,
     Chemicals,
     Materials,
+    Components,
     Electronics,
+    Microelectronics,
 
     // Конечное потребление
     Food,

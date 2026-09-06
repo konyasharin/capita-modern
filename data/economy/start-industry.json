@@ -32,7 +32,8 @@
 			"ArmourPlant": 1,
 			"SmallArmsPlant": 1,
 			"AmmunitionPlant": 1,
-			"MissilePlant": 1
+			"MissilePlant": 1,
+			"ComponentsPlant": 1
 		},
 		"6": {
 			"HydroPlant": 1
@@ -82,7 +83,8 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"14": {
 			"HydroPlant": 1
@@ -162,7 +164,8 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"44": {
 			"LoggingCamp": 1,
@@ -191,7 +194,8 @@
 			"Refinery": 5,
 			"Smelter": 1,
 			"FoodPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"54": {
 			"LoggingCamp": 2
@@ -206,6 +210,7 @@
 			"HydroPlant": 1,
 			"Refinery": 2,
 			"SteelMill": 1,
+			"ChemicalPlant": 1,
 			"MaterialsPlant": 1
 		},
 		"58": {
@@ -232,7 +237,8 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"64": {
 			"LoggingCamp": 1
@@ -249,6 +255,7 @@
 			"HydroPlant": 1,
 			"Refinery": 2,
 			"SteelMill": 1,
+			"ChemicalPlant": 1,
 			"MaterialsPlant": 1
 		},
 		"70": {
@@ -317,7 +324,8 @@
 			"AmmunitionPlant": 1,
 			"MissilePlant": 1,
 			"AirDefencePlant": 1,
-			"ElectronicWarfarePlant": 1
+			"ElectronicWarfarePlant": 1,
+			"ComponentsPlant": 1
 		},
 		"86": {
 			"HydroPlant": 5,
@@ -340,7 +348,8 @@
 			"HydroPlant": 5,
 			"Refinery": 3,
 			"FoodPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"90": {
 			"OilRig": 52,
@@ -422,6 +431,7 @@
 			"HydroPlant": 1,
 			"Refinery": 2,
 			"SteelMill": 1,
+			"ChemicalPlant": 1,
 			"MaterialsPlant": 1
 		},
 		"131": {
@@ -469,7 +479,8 @@
 			"MaterialsPlant": 1,
 			"FoodPlant": 4,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"147": {
 			"Refinery": 1
@@ -559,7 +570,6 @@
 			"Smelter": 1,
 			"ChemicalPlant": 2,
 			"MaterialsPlant": 2,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
 			"PharmaPlant": 1,
@@ -570,7 +580,8 @@
 			"MissilePlant": 1,
 			"AircraftPlant": 1,
 			"AirDefencePlant": 1,
-			"ElectronicWarfarePlant": 1
+			"ElectronicWarfarePlant": 1,
+			"ComponentsPlant": 1
 		},
 		"172": {
 			"PharmaPlant": 1
@@ -586,13 +597,13 @@
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"182": {
 			"CoalPlant": 1,
 			"Refinery": 1,
 			"ChemicalPlant": 1,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
 			"PharmaPlant": 1
@@ -605,7 +616,8 @@
 			"Farm": 1,
 			"CoalPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"187": {
 			"Refinery": 1
@@ -650,9 +662,11 @@
 			"NuclearPlant": 1,
 			"Refinery": 2,
 			"MaterialsPlant": 1,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"196": {
 			"CoalPlant": 1,
@@ -696,11 +710,12 @@
 			"CoalPlant": 2,
 			"Refinery": 2,
 			"SteelMill": 1,
-			"ChemicalPlant": 2,
+			"ChemicalPlant": 3,
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 2
+			"PharmaPlant": 2,
+			"ComponentsPlant": 1
 		},
 		"210": {
 			"Refinery": 1
@@ -710,10 +725,10 @@
 			"Refinery": 1,
 			"SteelMill": 1,
 			"ChemicalPlant": 1,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"212": {
 			"CoalPlant": 1,
@@ -723,7 +738,8 @@
 			"Refinery": 1
 		},
 		"216": {
-			"PharmaPlant": 5
+			"PharmaPlant": 5,
+			"MicroelectronicsPlant": 1
 		},
 		"217": {
 			"GasPlant": 1,
@@ -752,13 +768,15 @@
 			"Refinery": 11,
 			"SteelMill": 13,
 			"Smelter": 1,
-			"ChemicalPlant": 14,
+			"ChemicalPlant": 16,
 			"MaterialsPlant": 21,
-			"ElectronicsPlant": 6,
+			"ElectronicsPlant": 3,
 			"FoodPlant": 3,
 			"ConsumerGoodsPlant": 10,
 			"PharmaPlant": 2,
-			"SmallArmsPlant": 1
+			"SmallArmsPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 3
 		},
 		"223": {
 			"GasPlant": 1,
@@ -774,17 +792,19 @@
 			"Refinery": 1,
 			"SteelMill": 1,
 			"ChemicalPlant": 1,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"226": {
 			"LoggingCamp": 1,
 			"Farm": 1,
 			"CoalPlant": 2,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 2
+			"ConsumerGoodsPlant": 2,
+			"ComponentsPlant": 1
 		},
 		"229": {
 			"PharmaPlant": 1
@@ -795,7 +815,8 @@
 			"Refinery": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"232": {
 			"Refinery": 1,
@@ -813,12 +834,14 @@
 			"Refinery": 9,
 			"SteelMill": 11,
 			"Smelter": 1,
-			"ChemicalPlant": 12,
+			"ChemicalPlant": 14,
 			"MaterialsPlant": 18,
-			"ElectronicsPlant": 5,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 3,
 			"ConsumerGoodsPlant": 9,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 3
 		},
 		"235": {
 			"Refinery": 3,
@@ -839,6 +862,9 @@
 			"FoodPlant": 1,
 			"PharmaPlant": 1
 		},
+		"241": {
+			"ChemicalPlant": 1
+		},
 		"242": {
 			"LoggingCamp": 1,
 			"Farm": 1,
@@ -858,7 +884,8 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"245": {
 			"PharmaPlant": 1
@@ -877,14 +904,16 @@
 			"HydroPlant": 1,
 			"Refinery": 6,
 			"SteelMill": 2,
-			"ChemicalPlant": 6,
+			"ChemicalPlant": 7,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 2,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 3,
 			"ConsumerGoodsPlant": 4,
 			"PharmaPlant": 4,
 			"ArmourPlant": 1,
-			"SmallArmsPlant": 1
+			"SmallArmsPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 3
 		},
 		"248": {
 			"LoggingCamp": 1,
@@ -893,18 +922,20 @@
 			"ChemicalPlant": 5,
 			"MaterialsPlant": 1,
 			"FoodPlant": 3,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"MicroelectronicsPlant": 1
 		},
 		"249": {
 			"Refinery": 1,
-			"ChemicalPlant": 1,
+			"ChemicalPlant": 2,
 			"FoodPlant": 1
 		},
 		"250": {
 			"LoggingCamp": 1,
 			"CoalPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"251": {
 			"ConsumerGoodsPlant": 1
@@ -924,7 +955,8 @@
 			"Refinery": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"256": {
 			"LoggingCamp": 1,
@@ -940,7 +972,7 @@
 		},
 		"262": {
 			"Refinery": 1,
-			"ChemicalPlant": 1,
+			"ChemicalPlant": 2,
 			"FoodPlant": 1
 		},
 		"263": {
@@ -964,10 +996,12 @@
 			"SteelMill": 1,
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 2,
 			"PharmaPlant": 2,
-			"AircraftPlant": 1
+			"AircraftPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"267": {
 			"LoggingCamp": 1,
@@ -975,11 +1009,12 @@
 			"CoalPlant": 2,
 			"Refinery": 3,
 			"SteelMill": 1,
-			"ChemicalPlant": 3,
+			"ChemicalPlant": 4,
 			"ElectronicsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 2
+			"PharmaPlant": 2,
+			"ComponentsPlant": 2
 		},
 		"268": {
 			"Refinery": 1,
@@ -992,11 +1027,12 @@
 			"CoalPlant": 1,
 			"Refinery": 1,
 			"SteelMill": 1,
-			"ChemicalPlant": 1,
+			"ChemicalPlant": 2,
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"270": {
 			"Farm": 1
@@ -1008,7 +1044,7 @@
 			"LoggingCamp": 1,
 			"Farm": 1,
 			"NuclearPlant": 1,
-			"ChemicalPlant": 5,
+			"ChemicalPlant": 6,
 			"MaterialsPlant": 1,
 			"ConsumerGoodsPlant": 1,
 			"PharmaPlant": 4,
@@ -1060,9 +1096,11 @@
 			"Refinery": 1,
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 4,
-			"AmmunitionPlant": 1
+			"AmmunitionPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"289": {
 			"ChemicalPlant": 3,
@@ -1074,12 +1112,14 @@
 			"CoalPlant": 2,
 			"Refinery": 3,
 			"SteelMill": 1,
-			"ChemicalPlant": 3,
+			"ChemicalPlant": 4,
 			"MaterialsPlant": 1,
 			"ElectronicsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 2
+			"PharmaPlant": 2,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"295": {
 			"Farm": 1
@@ -1093,7 +1133,8 @@
 			"NuclearPlant": 1,
 			"SteelMill": 1,
 			"MaterialsPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"298": {
 			"Farm": 1
@@ -1102,7 +1143,8 @@
 			"LoggingCamp": 1,
 			"CoalPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"302": {
 			"Farm": 1,
@@ -1112,7 +1154,13 @@
 			"LoggingCamp": 1,
 			"Farm": 1,
 			"NuclearPlant": 1,
-			"SmallArmsPlant": 1
+			"ElectronicsPlant": 1,
+			"SmallArmsPlant": 1,
+			"ComponentsPlant": 1
+		},
+		"306": {
+			"ElectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"309": {
 			"LoggingCamp": 1,
@@ -1142,6 +1190,9 @@
 			"ConsumerGoodsPlant": 1,
 			"PharmaPlant": 1
 		},
+		"314": {
+			"ComponentsPlant": 1
+		},
 		"316": {
 			"Farm": 1
 		},
@@ -1154,17 +1205,22 @@
 			"CoalPlant": 3,
 			"Refinery": 5,
 			"SteelMill": 2,
-			"ChemicalPlant": 5,
+			"ChemicalPlant": 6,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 2,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 3,
 			"ConsumerGoodsPlant": 4,
 			"PharmaPlant": 3,
-			"SmallArmsPlant": 1
+			"SmallArmsPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 3
 		},
 		"325": {
 			"Refinery": 1,
 			"ChemicalPlant": 1
+		},
+		"327": {
+			"ComponentsPlant": 1
 		},
 		"332": {
 			"IronMine": 7,
@@ -1181,7 +1237,8 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"336": {
 			"LoggingCamp": 1,
@@ -1192,7 +1249,7 @@
 			"HydroPlant": 2,
 			"Refinery": 1,
 			"SteelMill": 1,
-			"ChemicalPlant": 4,
+			"ChemicalPlant": 5,
 			"MaterialsPlant": 1,
 			"ElectronicsPlant": 1,
 			"FoodPlant": 4,
@@ -1200,7 +1257,8 @@
 			"PharmaPlant": 3,
 			"ArmourPlant": 1,
 			"MissilePlant": 1,
-			"AircraftPlant": 1
+			"AircraftPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"337": {
 			"UraniumMine": 1
@@ -1209,7 +1267,8 @@
 			"IronMine": 7,
 			"Farm": 1,
 			"NuclearPlant": 1,
-			"SteelMill": 1
+			"SteelMill": 1,
+			"ComponentsPlant": 1
 		},
 		"339": {
 			"LoggingCamp": 1,
@@ -1223,7 +1282,8 @@
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"ArmourPlant": 1
+			"ArmourPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"340": {
 			"OilRig": 17
@@ -1240,14 +1300,16 @@
 			"Refinery": 11,
 			"SteelMill": 13,
 			"Smelter": 1,
-			"ChemicalPlant": 14,
+			"ChemicalPlant": 17,
 			"MaterialsPlant": 22,
-			"ElectronicsPlant": 6,
+			"ElectronicsPlant": 3,
 			"FoodPlant": 3,
 			"ConsumerGoodsPlant": 11,
 			"PharmaPlant": 2,
 			"SmallArmsPlant": 1,
-			"AmmunitionPlant": 1
+			"AmmunitionPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 3
 		},
 		"345": {
 			"LoggingCamp": 2,
@@ -1263,7 +1325,9 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"346": {
 			"LoggingCamp": 1,
@@ -1317,11 +1381,9 @@
 			"FoodPlant": 1,
 			"PharmaPlant": 1
 		},
-		"363": {
-			"ElectronicsPlant": 1
-		},
 		"364": {
-			"ElectronicsPlant": 1
+			"ElectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"366": {
 			"LoggingCamp": 1,
@@ -1336,7 +1398,6 @@
 			"GasPlant": 2,
 			"Refinery": 4,
 			"ChemicalPlant": 1,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
 			"PharmaPlant": 1
@@ -1361,7 +1422,8 @@
 		},
 		"383": {
 			"Farm": 1,
-			"ElectronicsPlant": 1
+			"ElectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"391": {
 			"HydroPlant": 1
@@ -1378,10 +1440,14 @@
 			"HydroPlant": 1,
 			"PharmaPlant": 5
 		},
+		"406": {
+			"ComponentsPlant": 1
+		},
 		"409": {
 			"LoggingCamp": 1,
 			"GasPlant": 1,
-			"Refinery": 1
+			"Refinery": 1,
+			"ChemicalPlant": 1
 		},
 		"411": {
 			"HydroPlant": 1,
@@ -1397,8 +1463,7 @@
 			"GasPlant": 2,
 			"NuclearPlant": 1,
 			"Refinery": 4,
-			"ChemicalPlant": 1,
-			"ElectronicsPlant": 1,
+			"ChemicalPlant": 2,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
 			"PharmaPlant": 1
@@ -1411,7 +1476,8 @@
 			"PharmaPlant": 1
 		},
 		"422": {
-			"ElectronicsPlant": 1
+			"ElectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"426": {
 			"LoggingCamp": 1,
@@ -1432,7 +1498,8 @@
 			"ChemicalPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"433": {
 			"PharmaPlant": 1
@@ -1464,9 +1531,11 @@
 			"HydroPlant": 1,
 			"ChemicalPlant": 2,
 			"MaterialsPlant": 1,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"452": {
 			"Farm": 1,
@@ -1475,7 +1544,8 @@
 			"ChemicalPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"461": {
 			"PharmaPlant": 1
@@ -1491,12 +1561,13 @@
 			"HydroPlant": 1,
 			"Refinery": 4,
 			"SteelMill": 1,
-			"ChemicalPlant": 1,
+			"ChemicalPlant": 2,
 			"MaterialsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 4,
 			"PharmaPlant": 2,
-			"SmallArmsPlant": 1
+			"SmallArmsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"464": {
 			"Refinery": 1,
@@ -1511,7 +1582,8 @@
 			"ChemicalPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"479": {
 			"LoggingCamp": 2,
@@ -1524,13 +1596,14 @@
 			"SteelMill": 1,
 			"ChemicalPlant": 2,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"483": {
-			"Farm": 1
+			"Farm": 1,
+			"ComponentsPlant": 1
 		},
 		"490": {
 			"LoggingCamp": 1,
@@ -1553,12 +1626,13 @@
 			"Refinery": 7,
 			"SteelMill": 8,
 			"Smelter": 1,
-			"ChemicalPlant": 9,
+			"ChemicalPlant": 10,
 			"MaterialsPlant": 14,
-			"ElectronicsPlant": 4,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 7,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"501": {
 			"CoalPlant": 1
@@ -1584,12 +1658,14 @@
 			"HydroPlant": 1,
 			"Refinery": 2,
 			"SteelMill": 2,
-			"ChemicalPlant": 1,
+			"ChemicalPlant": 2,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 2,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"525": {
 			"GasPlant": 1,
@@ -1600,11 +1676,13 @@
 			"Farm": 2,
 			"NuclearPlant": 1,
 			"HydroPlant": 1,
-			"ChemicalPlant": 1,
+			"ChemicalPlant": 2,
 			"MaterialsPlant": 1,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"529": {
 			"Farm": 1,
@@ -1613,7 +1691,8 @@
 			"ChemicalPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"535": {
 			"CoalMine": 11,
@@ -1638,9 +1717,9 @@
 			"HydroPlant": 2,
 			"Refinery": 20,
 			"SteelMill": 2,
-			"ChemicalPlant": 6,
+			"ChemicalPlant": 7,
 			"MaterialsPlant": 2,
-			"ElectronicsPlant": 3,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 4,
 			"ConsumerGoodsPlant": 5,
 			"PharmaPlant": 5,
@@ -1648,7 +1727,9 @@
 			"SmallArmsPlant": 1,
 			"AmmunitionPlant": 1,
 			"MissilePlant": 1,
-			"AircraftPlant": 1
+			"AircraftPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"538": {
 			"Refinery": 1
@@ -1660,7 +1741,8 @@
 			"ChemicalPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"542": {
 			"Farm": 1
@@ -1675,7 +1757,8 @@
 			"Refinery": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"551": {
 			"GasPlant": 1,
@@ -1691,7 +1774,8 @@
 			"ChemicalPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"578": {
 			"Farm": 1,
@@ -1734,23 +1818,26 @@
 			"Refinery": 12,
 			"SteelMill": 14,
 			"Smelter": 1,
-			"ChemicalPlant": 15,
+			"ChemicalPlant": 18,
 			"MaterialsPlant": 24,
-			"ElectronicsPlant": 7,
+			"ElectronicsPlant": 3,
 			"FoodPlant": 4,
 			"ConsumerGoodsPlant": 11,
 			"PharmaPlant": 2,
 			"ArmourPlant": 1,
 			"SmallArmsPlant": 1,
 			"AmmunitionPlant": 1,
-			"MissilePlant": 1
+			"MissilePlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 4
 		},
 		"601": {
 			"Farm": 1,
 			"Refinery": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"607": {
 			"Farm": 1
@@ -1780,7 +1867,8 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"620": {
 			"Refinery": 1
@@ -1796,7 +1884,8 @@
 			"MaterialsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"622": {
 			"Refinery": 1,
@@ -1817,12 +1906,13 @@
 			"HydroPlant": 3,
 			"Refinery": 6,
 			"SteelMill": 7,
-			"ChemicalPlant": 8,
+			"ChemicalPlant": 9,
 			"MaterialsPlant": 13,
-			"ElectronicsPlant": 3,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 6,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"646": {
 			"LoggingCamp": 5,
@@ -1833,13 +1923,15 @@
 			"HydroPlant": 1,
 			"Refinery": 11,
 			"SteelMill": 1,
-			"ChemicalPlant": 3,
+			"ChemicalPlant": 4,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 2,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 3,
 			"PharmaPlant": 3,
-			"SmallArmsPlant": 1
+			"SmallArmsPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"647": {
 			"GasField": 115,
@@ -1857,7 +1949,9 @@
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 2,
 			"PharmaPlant": 2,
-			"SmallArmsPlant": 1
+			"SmallArmsPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"656": {
 			"LoggingCamp": 3,
@@ -1869,12 +1963,13 @@
 			"Refinery": 8,
 			"SteelMill": 10,
 			"Smelter": 1,
-			"ChemicalPlant": 10,
+			"ChemicalPlant": 12,
 			"MaterialsPlant": 16,
-			"ElectronicsPlant": 4,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 8,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"657": {
 			"LoggingCamp": 3,
@@ -1890,7 +1985,9 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"660": {
 			"LoggingCamp": 1,
@@ -1899,7 +1996,8 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"669": {
 			"RareEarthMine": 18,
@@ -1912,9 +2010,9 @@
 			"Refinery": 33,
 			"SteelMill": 3,
 			"Smelter": 1,
-			"ChemicalPlant": 10,
+			"ChemicalPlant": 12,
 			"MaterialsPlant": 3,
-			"ElectronicsPlant": 5,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 7,
 			"ConsumerGoodsPlant": 8,
 			"PharmaPlant": 8,
@@ -1927,7 +2025,9 @@
 			"MissilePlant": 1,
 			"AircraftPlant": 1,
 			"AirDefencePlant": 1,
-			"ElectronicWarfarePlant": 1
+			"ElectronicWarfarePlant": 1,
+			"MicroelectronicsPlant": 2,
+			"ComponentsPlant": 3
 		},
 		"670": {
 			"LoggingCamp": 2,
@@ -1936,7 +2036,6 @@
 			"GasPlant": 2,
 			"Refinery": 4,
 			"ChemicalPlant": 1,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
 			"PharmaPlant": 1
@@ -1949,7 +2048,6 @@
 			"GasPlant": 2,
 			"Refinery": 4,
 			"ChemicalPlant": 1,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
 			"PharmaPlant": 1
@@ -1978,7 +2076,8 @@
 			"ChemicalPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"688": {
 			"LoggingCamp": 2,
@@ -1986,8 +2085,7 @@
 			"CoalPlant": 1,
 			"GasPlant": 2,
 			"Refinery": 4,
-			"ChemicalPlant": 1,
-			"ElectronicsPlant": 1,
+			"ChemicalPlant": 2,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
 			"PharmaPlant": 1
@@ -2009,7 +2107,8 @@
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 3,
 			"PharmaPlant": 2,
-			"SmallArmsPlant": 1
+			"SmallArmsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"722": {
 			"LoggingCamp": 1,
@@ -2021,14 +2120,14 @@
 			"SteelMill": 2,
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 4,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 5,
 			"ArmourPlant": 1,
 			"ArtilleryPlant": 1,
 			"SmallArmsPlant": 1,
 			"AmmunitionPlant": 1,
-			"StrikeDronePlant": 1
+			"StrikeDronePlant": 1,
+			"ComponentsPlant": 1
 		},
 		"725": {
 			"GasField": 7
@@ -2040,7 +2139,6 @@
 			"SteelMill": 1,
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 1,
 			"ConsumerGoodsPlant": 1
 		},
 		"728": {
@@ -2064,7 +2162,8 @@
 			"MaterialsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"751": {
 			"Farm": 1,
@@ -2081,12 +2180,13 @@
 			"HydroPlant": 4,
 			"Refinery": 6,
 			"SteelMill": 8,
-			"ChemicalPlant": 8,
+			"ChemicalPlant": 10,
 			"MaterialsPlant": 13,
-			"ElectronicsPlant": 4,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 6,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"762": {
 			"LoggingCamp": 2,
@@ -2102,7 +2202,8 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"766": {
 			"MaterialsPlant": 1,
@@ -2131,7 +2232,8 @@
 			"MaterialsPlant": 2,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 2,
-			"SmallArmsPlant": 1
+			"SmallArmsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"777": {
 			"Farm": 1
@@ -2145,16 +2247,17 @@
 			"HydroPlant": 1,
 			"Refinery": 5,
 			"ChemicalPlant": 2,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"779": {
 			"CoalMine": 24,
 			"LoggingCamp": 1,
 			"GasPlant": 1,
-			"Refinery": 1
+			"Refinery": 1,
+			"ChemicalPlant": 1
 		},
 		"783": {
 			"Farm": 1,
@@ -2164,7 +2267,8 @@
 			"SteelMill": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"785": {
 			"LoggingCamp": 1,
@@ -2181,12 +2285,13 @@
 			"Refinery": 7,
 			"SteelMill": 8,
 			"Smelter": 1,
-			"ChemicalPlant": 9,
+			"ChemicalPlant": 10,
 			"MaterialsPlant": 13,
-			"ElectronicsPlant": 4,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 6,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"797": {
 			"Farm": 1
@@ -2198,7 +2303,7 @@
 			"GasPlant": 1,
 			"Refinery": 1,
 			"SteelMill": 1,
-			"ElectronicsPlant": 1
+			"ChemicalPlant": 1
 		},
 		"800": {
 			"Farm": 1,
@@ -2215,12 +2320,13 @@
 			"HydroPlant": 2,
 			"Refinery": 4,
 			"SteelMill": 5,
-			"ChemicalPlant": 5,
+			"ChemicalPlant": 6,
 			"MaterialsPlant": 8,
-			"ElectronicsPlant": 2,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 4,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"808": {
 			"GasField": 66,
@@ -2231,11 +2337,11 @@
 			"NuclearPlant": 1,
 			"HydroPlant": 1,
 			"Refinery": 4,
-			"ChemicalPlant": 1,
-			"ElectronicsPlant": 1,
+			"ChemicalPlant": 2,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"811": {
 			"Refinery": 1,
@@ -2258,7 +2364,9 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"826": {
 			"GasPlant": 1,
@@ -2280,7 +2388,8 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"831": {
 			"LoggingCamp": 1,
@@ -2291,7 +2400,8 @@
 			"SteelMill": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 2
+			"ConsumerGoodsPlant": 2,
+			"ComponentsPlant": 1
 		},
 		"835": {
 			"GasField": 15
@@ -2306,12 +2416,13 @@
 			"HydroPlant": 3,
 			"Refinery": 6,
 			"SteelMill": 7,
-			"ChemicalPlant": 8,
+			"ChemicalPlant": 9,
 			"MaterialsPlant": 12,
-			"ElectronicsPlant": 3,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 6,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"840": {
 			"LoggingCamp": 1,
@@ -2332,12 +2443,13 @@
 			"HydroPlant": 3,
 			"Refinery": 5,
 			"SteelMill": 6,
-			"ChemicalPlant": 6,
+			"ChemicalPlant": 7,
 			"MaterialsPlant": 10,
-			"ElectronicsPlant": 3,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 5,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"847": {
 			"LoggingCamp": 1,
@@ -2346,11 +2458,11 @@
 			"HydroPlant": 1,
 			"Refinery": 2,
 			"SteelMill": 2,
-			"ChemicalPlant": 2,
+			"ChemicalPlant": 3,
 			"MaterialsPlant": 3,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 2
+			"ConsumerGoodsPlant": 2,
+			"ComponentsPlant": 1
 		},
 		"849": {
 			"LoggingCamp": 2,
@@ -2360,8 +2472,7 @@
 			"NuclearPlant": 1,
 			"HydroPlant": 1,
 			"Refinery": 4,
-			"ChemicalPlant": 1,
-			"ElectronicsPlant": 1,
+			"ChemicalPlant": 2,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
 			"PharmaPlant": 1
@@ -2392,12 +2503,12 @@
 			"Refinery": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"859": {
 			"GasPlant": 1,
-			"Refinery": 1,
-			"ElectronicsPlant": 1
+			"Refinery": 1
 		},
 		"864": {
 			"CoalPlant": 1,
@@ -2409,14 +2520,16 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"868": {
 			"Farm": 1,
 			"Refinery": 2,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"870": {
 			"Farm": 1,
@@ -2432,7 +2545,8 @@
 			"SteelMill": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"878": {
 			"GasPlant": 1,
@@ -2443,10 +2557,12 @@
 			"GasPlant": 1,
 			"Refinery": 3,
 			"SteelMill": 1,
-			"ChemicalPlant": 1,
+			"ChemicalPlant": 2,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 3,
-			"ConsumerGoodsPlant": 1
+			"ElectronicsPlant": 1,
+			"ConsumerGoodsPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"881": {
 			"CoalPlant": 1,
@@ -2455,7 +2571,6 @@
 			"SteelMill": 1,
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 1,
 			"ConsumerGoodsPlant": 1
 		},
 		"883": {
@@ -2468,7 +2583,8 @@
 			"ChemicalPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"884": {
 			"LoggingCamp": 1,
@@ -2484,9 +2600,9 @@
 			"Refinery": 14,
 			"SteelMill": 16,
 			"Smelter": 1,
-			"ChemicalPlant": 17,
+			"ChemicalPlant": 20,
 			"MaterialsPlant": 27,
-			"ElectronicsPlant": 7,
+			"ElectronicsPlant": 3,
 			"FoodPlant": 4,
 			"ConsumerGoodsPlant": 13,
 			"PharmaPlant": 2,
@@ -2494,7 +2610,9 @@
 			"SmallArmsPlant": 1,
 			"AmmunitionPlant": 1,
 			"TacticalDronePlant": 1,
-			"MissilePlant": 1
+			"MissilePlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 4
 		},
 		"891": {
 			"Refinery": 1
@@ -2508,16 +2626,18 @@
 			"HydroPlant": 1,
 			"Refinery": 17,
 			"SteelMill": 7,
-			"ChemicalPlant": 9,
+			"ChemicalPlant": 11,
 			"MaterialsPlant": 4,
-			"ElectronicsPlant": 16,
+			"ElectronicsPlant": 8,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 6,
 			"PharmaPlant": 2,
 			"ArmourPlant": 1,
 			"ArtilleryPlant": 1,
 			"AmmunitionPlant": 1,
-			"MissilePlant": 1
+			"MissilePlant": 1,
+			"MicroelectronicsPlant": 6,
+			"ComponentsPlant": 4
 		},
 		"894": {
 			"MaterialsPlant": 1,
@@ -2531,7 +2651,8 @@
 			"SteelMill": 1,
 			"MaterialsPlant": 2,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"897": {
 			"CoalPlant": 1,
@@ -2540,7 +2661,6 @@
 			"SteelMill": 1,
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1
 		},
@@ -2563,9 +2683,11 @@
 			"SteelMill": 2,
 			"ChemicalPlant": 3,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 5,
+			"ElectronicsPlant": 2,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"MicroelectronicsPlant": 2,
+			"ComponentsPlant": 1
 		},
 		"910": {
 			"Farm": 1,
@@ -2584,7 +2706,8 @@
 			"SteelMill": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"912": {
 			"Farm": 1
@@ -2604,9 +2727,11 @@
 			"SteelMill": 1,
 			"ChemicalPlant": 2,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 3,
+			"ElectronicsPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"921": {
 			"LoggingCamp": 3,
@@ -2617,13 +2742,15 @@
 			"HydroPlant": 1,
 			"Refinery": 7,
 			"SteelMill": 1,
-			"ChemicalPlant": 2,
+			"ChemicalPlant": 3,
 			"MaterialsPlant": 1,
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 2,
 			"PharmaPlant": 2,
-			"SmallArmsPlant": 1
+			"SmallArmsPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"922": {
 			"LoggingCamp": 1,
@@ -2632,7 +2759,6 @@
 			"GasPlant": 2,
 			"Refinery": 4,
 			"ChemicalPlant": 1,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
 			"PharmaPlant": 1
@@ -2644,7 +2770,6 @@
 			"GasPlant": 2,
 			"Refinery": 4,
 			"ChemicalPlant": 1,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
 			"PharmaPlant": 1
@@ -2671,7 +2796,8 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 2,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 2
+			"ConsumerGoodsPlant": 2,
+			"ComponentsPlant": 1
 		},
 		"932": {
 			"Farm": 1
@@ -2683,14 +2809,12 @@
 			"SteelMill": 1,
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1
 		},
 		"935": {
 			"GasPlant": 1,
-			"Refinery": 1,
-			"ElectronicsPlant": 1
+			"Refinery": 1
 		},
 		"943": {
 			"Refinery": 1
@@ -2699,6 +2823,7 @@
 			"LoggingCamp": 1,
 			"Farm": 2,
 			"Refinery": 1,
+			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1
@@ -2709,7 +2834,8 @@
 			"SteelMill": 1,
 			"ChemicalPlant": 1,
 			"ElectronicsPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"MicroelectronicsPlant": 1
 		},
 		"948": {
 			"LoggingCamp": 2,
@@ -2719,11 +2845,11 @@
 			"NuclearPlant": 1,
 			"HydroPlant": 1,
 			"Refinery": 4,
-			"ChemicalPlant": 1,
-			"ElectronicsPlant": 1,
+			"ChemicalPlant": 2,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"950": {
 			"LoggingCamp": 1,
@@ -2735,7 +2861,8 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"957": {
 			"OilRig": 109,
@@ -2747,16 +2874,18 @@
 			"HydroPlant": 2,
 			"Refinery": 18,
 			"SteelMill": 2,
-			"ChemicalPlant": 6,
+			"ChemicalPlant": 7,
 			"MaterialsPlant": 2,
-			"ElectronicsPlant": 3,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 4,
 			"ConsumerGoodsPlant": 4,
 			"PharmaPlant": 4,
 			"ArmourPlant": 1,
 			"SmallArmsPlant": 1,
 			"AmmunitionPlant": 1,
-			"MissilePlant": 1
+			"MissilePlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"958": {
 			"LoggingCamp": 1,
@@ -2777,10 +2906,10 @@
 			"Refinery": 5,
 			"SteelMill": 1,
 			"ChemicalPlant": 2,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"960": {
 			"GasPlant": 1
@@ -2798,12 +2927,13 @@
 			"HydroPlant": 3,
 			"Refinery": 6,
 			"SteelMill": 7,
-			"ChemicalPlant": 7,
+			"ChemicalPlant": 9,
 			"MaterialsPlant": 11,
-			"ElectronicsPlant": 3,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 5,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"977": {
 			"GasPlant": 1,
@@ -2821,16 +2951,17 @@
 			"Refinery": 10,
 			"SteelMill": 11,
 			"Smelter": 1,
-			"ChemicalPlant": 12,
+			"ChemicalPlant": 14,
 			"MaterialsPlant": 19,
-			"ElectronicsPlant": 5,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 3,
 			"ConsumerGoodsPlant": 9,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 3
 		},
 		"980": {
-			"Refinery": 1,
-			"ElectronicsPlant": 1
+			"Refinery": 1
 		},
 		"984": {
 			"CoalPlant": 1,
@@ -2839,8 +2970,10 @@
 			"SteelMill": 1,
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 2,
-			"ConsumerGoodsPlant": 1
+			"ElectronicsPlant": 1,
+			"ConsumerGoodsPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"991": {
 			"LoggingCamp": 1,
@@ -2852,10 +2985,10 @@
 			"SteelMill": 2,
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 4,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"StrikeDronePlant": 1
+			"StrikeDronePlant": 1,
+			"ComponentsPlant": 1
 		},
 		"995": {
 			"Farm": 1
@@ -2879,9 +3012,11 @@
 			"SteelMill": 2,
 			"ChemicalPlant": 3,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 5,
+			"ElectronicsPlant": 3,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"MicroelectronicsPlant": 2,
+			"ComponentsPlant": 1
 		},
 		"1006": {
 			"LoggingCamp": 2,
@@ -2892,12 +3027,14 @@
 			"HydroPlant": 3,
 			"Refinery": 13,
 			"SteelMill": 8,
-			"ChemicalPlant": 7,
+			"ChemicalPlant": 8,
 			"MaterialsPlant": 6,
-			"ElectronicsPlant": 9,
+			"ElectronicsPlant": 5,
 			"FoodPlant": 5,
 			"ConsumerGoodsPlant": 7,
-			"PharmaPlant": 4
+			"PharmaPlant": 4,
+			"MicroelectronicsPlant": 3,
+			"ComponentsPlant": 4
 		},
 		"1013": {
 			"GasPlant": 1,
@@ -2910,7 +3047,8 @@
 			"SteelMill": 1,
 			"ChemicalPlant": 1,
 			"ElectronicsPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"MicroelectronicsPlant": 1
 		},
 		"1017": {
 			"CoalPlant": 1,
@@ -2922,7 +3060,8 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1018": {
 			"Farm": 1,
@@ -2935,7 +3074,8 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1019": {
 			"LoggingCamp": 1,
@@ -2950,7 +3090,9 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1025": {
 			"LoggingCamp": 1,
@@ -2967,9 +3109,11 @@
 			"SteelMill": 1,
 			"ChemicalPlant": 2,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 3,
+			"ElectronicsPlant": 2,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1038": {
 			"CoalPlant": 1,
@@ -2977,7 +3121,6 @@
 			"Refinery": 1,
 			"SteelMill": 1,
 			"ChemicalPlant": 1,
-			"ElectronicsPlant": 1,
 			"ConsumerGoodsPlant": 1
 		},
 		"1039": {
@@ -2995,7 +3138,9 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1041": {
 			"CoalPlant": 1,
@@ -3004,7 +3149,6 @@
 			"SteelMill": 1,
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
 			"PharmaPlant": 1
@@ -3043,12 +3187,14 @@
 			"Refinery": 11,
 			"SteelMill": 12,
 			"Smelter": 1,
-			"ChemicalPlant": 13,
+			"ChemicalPlant": 16,
 			"MaterialsPlant": 21,
-			"ElectronicsPlant": 6,
+			"ElectronicsPlant": 3,
 			"FoodPlant": 3,
 			"ConsumerGoodsPlant": 10,
-			"PharmaPlant": 2
+			"PharmaPlant": 2,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 3
 		},
 		"1054": {
 			"Farm": 1,
@@ -3062,7 +3208,8 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1055": {
 			"LoggingCamp": 1,
@@ -3078,7 +3225,6 @@
 			"GasPlant": 2,
 			"Refinery": 3,
 			"ChemicalPlant": 1,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
 			"PharmaPlant": 1
@@ -3097,7 +3243,9 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1061": {
 			"LoggingCamp": 1,
@@ -3107,7 +3255,8 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1063": {
 			"LoggingCamp": 1,
@@ -3118,12 +3267,14 @@
 			"HydroPlant": 1,
 			"Refinery": 4,
 			"SteelMill": 3,
-			"ChemicalPlant": 2,
+			"ChemicalPlant": 3,
 			"MaterialsPlant": 2,
-			"ElectronicsPlant": 3,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1067": {
 			"LoggingCamp": 1,
@@ -3156,12 +3307,13 @@
 			"Refinery": 8,
 			"SteelMill": 10,
 			"Smelter": 1,
-			"ChemicalPlant": 11,
+			"ChemicalPlant": 12,
 			"MaterialsPlant": 16,
-			"ElectronicsPlant": 4,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 8,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"1087": {
 			"Farm": 1
@@ -3193,18 +3345,21 @@
 			"Refinery": 12,
 			"SteelMill": 14,
 			"Smelter": 1,
-			"ChemicalPlant": 15,
+			"ChemicalPlant": 17,
 			"MaterialsPlant": 23,
-			"ElectronicsPlant": 6,
+			"ElectronicsPlant": 3,
 			"FoodPlant": 4,
 			"ConsumerGoodsPlant": 11,
 			"PharmaPlant": 2,
 			"SmallArmsPlant": 1,
-			"AmmunitionPlant": 1
+			"AmmunitionPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 3
 		},
 		"1095": {
 			"LoggingCamp": 1,
-			"Farm": 1
+			"Farm": 1,
+			"ComponentsPlant": 1
 		},
 		"1098": {
 			"LoggingCamp": 4,
@@ -3221,7 +3376,8 @@
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 3,
 			"PharmaPlant": 1,
-			"AmmunitionPlant": 1
+			"AmmunitionPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1102": {
 			"Farm": 1,
@@ -3235,7 +3391,9 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1104": {
 			"LoggingCamp": 1,
@@ -3244,7 +3402,8 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1106": {
 			"LoggingCamp": 1,
@@ -3256,7 +3415,7 @@
 		},
 		"1111": {
 			"Refinery": 1,
-			"ElectronicsPlant": 1
+			"ChemicalPlant": 1
 		},
 		"1113": {
 			"GasPlant": 1
@@ -3281,18 +3440,19 @@
 			"Refinery": 10,
 			"SteelMill": 12,
 			"Smelter": 1,
-			"ChemicalPlant": 13,
+			"ChemicalPlant": 15,
 			"MaterialsPlant": 20,
-			"ElectronicsPlant": 5,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 3,
 			"ConsumerGoodsPlant": 9,
-			"PharmaPlant": 2
+			"PharmaPlant": 2,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 3
 		},
 		"1126": {
 			"GasPlant": 1,
 			"Refinery": 1,
-			"SteelMill": 1,
-			"ElectronicsPlant": 1
+			"SteelMill": 1
 		},
 		"1127": {
 			"LoggingCamp": 1,
@@ -3329,6 +3489,10 @@
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1
 		},
+		"1148": {
+			"ElectronicsPlant": 1,
+			"MicroelectronicsPlant": 1
+		},
 		"1149": {
 			"LoggingCamp": 1,
 			"Farm": 1,
@@ -3345,18 +3509,21 @@
 			"MaterialsPlant": 2,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1151": {
 			"GasPlant": 1
 		},
 		"1154": {
 			"Farm": 1,
+			"ElectronicsPlant": 1,
 			"ArmourPlant": 1,
 			"TacticalDronePlant": 1,
 			"StrikeDronePlant": 1,
 			"MissilePlant": 1,
-			"AirDefencePlant": 1
+			"AirDefencePlant": 1,
+			"MicroelectronicsPlant": 1
 		},
 		"1160": {
 			"GasPlant": 1,
@@ -3370,12 +3537,13 @@
 			"HydroPlant": 3,
 			"Refinery": 5,
 			"SteelMill": 6,
-			"ChemicalPlant": 7,
+			"ChemicalPlant": 8,
 			"MaterialsPlant": 11,
-			"ElectronicsPlant": 3,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 5,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"1162": {
 			"Refinery": 1
@@ -3407,7 +3575,11 @@
 			"MaterialsPlant": 1,
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
+		},
+		"1169": {
+			"ElectronicsPlant": 1
 		},
 		"1171": {
 			"GasPlant": 1,
@@ -3422,12 +3594,13 @@
 			"Refinery": 7,
 			"SteelMill": 9,
 			"Smelter": 1,
-			"ChemicalPlant": 9,
+			"ChemicalPlant": 11,
 			"MaterialsPlant": 14,
-			"ElectronicsPlant": 4,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 7,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"1173": {
 			"GasPlant": 1
@@ -3453,7 +3626,8 @@
 			"Refinery": 1,
 			"MaterialsPlant": 3,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1179": {
 			"GasField": 14,
@@ -3493,12 +3667,13 @@
 			"Refinery": 8,
 			"SteelMill": 9,
 			"Smelter": 1,
-			"ChemicalPlant": 10,
+			"ChemicalPlant": 12,
 			"MaterialsPlant": 16,
-			"ElectronicsPlant": 4,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 7,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"1193": {
 			"LoggingCamp": 7,
@@ -3509,14 +3684,16 @@
 			"HydroPlant": 2,
 			"Refinery": 17,
 			"SteelMill": 2,
-			"ChemicalPlant": 5,
+			"ChemicalPlant": 6,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 2,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 3,
 			"ConsumerGoodsPlant": 4,
 			"PharmaPlant": 4,
 			"SmallArmsPlant": 1,
-			"MissilePlant": 1
+			"MissilePlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"1195": {
 			"LoggingCamp": 2,
@@ -3539,10 +3716,10 @@
 			"SteelMill": 1,
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 8,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1202": {
 			"CoalMine": 53,
@@ -3558,7 +3735,8 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 3,
-			"PharmaPlant": 2
+			"PharmaPlant": 2,
+			"ComponentsPlant": 1
 		},
 		"1205": {
 			"MaterialsPlant": 1
@@ -3574,7 +3752,8 @@
 			"MaterialsPlant": 4,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1210": {
 			"Refinery": 13
@@ -3589,12 +3768,14 @@
 			"Refinery": 8,
 			"SteelMill": 10,
 			"Smelter": 1,
-			"ChemicalPlant": 11,
+			"ChemicalPlant": 12,
 			"MaterialsPlant": 16,
-			"ElectronicsPlant": 5,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 3,
 			"ConsumerGoodsPlant": 8,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 3
 		},
 		"1213": {
 			"CopperMine": 27,
@@ -3604,21 +3785,22 @@
 			"HydroPlant": 3,
 			"Refinery": 6,
 			"SteelMill": 7,
-			"ChemicalPlant": 8,
+			"ChemicalPlant": 10,
 			"MaterialsPlant": 13,
-			"ElectronicsPlant": 4,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 6,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"1214": {
 			"Farm": 1,
 			"GasPlant": 1,
 			"Refinery": 1,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1216": {
 			"OilRig": 9
@@ -3640,12 +3822,13 @@
 			"HydroPlant": 3,
 			"Refinery": 6,
 			"SteelMill": 7,
-			"ChemicalPlant": 7,
+			"ChemicalPlant": 9,
 			"MaterialsPlant": 11,
-			"ElectronicsPlant": 3,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 5,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"1226": {
 			"Refinery": 1
@@ -3668,7 +3851,7 @@
 			"Farm": 1,
 			"GasPlant": 4,
 			"Refinery": 9,
-			"ChemicalPlant": 3,
+			"ChemicalPlant": 4,
 			"MaterialsPlant": 2
 		},
 		"1230": {
@@ -3684,12 +3867,13 @@
 			"Refinery": 7,
 			"SteelMill": 8,
 			"Smelter": 1,
-			"ChemicalPlant": 8,
+			"ChemicalPlant": 10,
 			"MaterialsPlant": 13,
-			"ElectronicsPlant": 4,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 6,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"1232": {
 			"GasPlant": 1,
@@ -3720,12 +3904,12 @@
 			"HydroPlant": 1,
 			"Refinery": 5,
 			"SteelMill": 2,
-			"ChemicalPlant": 1,
+			"ChemicalPlant": 2,
 			"MaterialsPlant": 5,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1238": {
 			"LoggingCamp": 3,
@@ -3737,7 +3921,8 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 3,
 			"FoodPlant": 2,
-			"ConsumerGoodsPlant": 3
+			"ConsumerGoodsPlant": 3,
+			"ComponentsPlant": 1
 		},
 		"1239": {
 			"RareEarthMine": 13
@@ -3751,7 +3936,8 @@
 			"Refinery": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1243": {
 			"LoggingCamp": 2,
@@ -3762,12 +3948,13 @@
 			"Refinery": 7,
 			"SteelMill": 9,
 			"Smelter": 1,
-			"ChemicalPlant": 9,
+			"ChemicalPlant": 11,
 			"MaterialsPlant": 15,
-			"ElectronicsPlant": 4,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 7,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"1251": {
 			"LoggingCamp": 1,
@@ -3787,7 +3974,8 @@
 			"MaterialsPlant": 1,
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1256": {
 			"LoggingCamp": 1,
@@ -3802,9 +3990,9 @@
 			"GasPlant": 1,
 			"Refinery": 1,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1260": {
 			"LoggingCamp": 1,
@@ -3814,7 +4002,8 @@
 			"ChemicalPlant": 4,
 			"MaterialsPlant": 3,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1261": {
 			"GasPlant": 1,
@@ -3824,7 +4013,8 @@
 		},
 		"1262": {
 			"GasPlant": 1,
-			"Refinery": 1
+			"Refinery": 1,
+			"ChemicalPlant": 1
 		},
 		"1263": {
 			"LoggingCamp": 2,
@@ -3836,7 +4026,8 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 2,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1265": {
 			"IronMine": 4
@@ -3858,7 +4049,8 @@
 			"ConsumerGoodsPlant": 3,
 			"PharmaPlant": 2,
 			"SmallArmsPlant": 1,
-			"AmmunitionPlant": 1
+			"AmmunitionPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"1268": {
 			"Farm": 1,
@@ -3883,7 +4075,8 @@
 			"MaterialsPlant": 4,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1275": {
 			"Refinery": 1
@@ -3904,12 +4097,13 @@
 			"Refinery": 8,
 			"SteelMill": 9,
 			"Smelter": 1,
-			"ChemicalPlant": 10,
+			"ChemicalPlant": 12,
 			"MaterialsPlant": 15,
-			"ElectronicsPlant": 4,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 7,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"1283": {
 			"Smelter": 1
@@ -3952,9 +4146,9 @@
 			"Refinery": 19,
 			"SteelMill": 22,
 			"Smelter": 2,
-			"ChemicalPlant": 23,
+			"ChemicalPlant": 27,
 			"MaterialsPlant": 36,
-			"ElectronicsPlant": 10,
+			"ElectronicsPlant": 5,
 			"FoodPlant": 6,
 			"ConsumerGoodsPlant": 17,
 			"PharmaPlant": 3,
@@ -3967,7 +4161,9 @@
 			"MissilePlant": 1,
 			"AircraftPlant": 1,
 			"AirDefencePlant": 1,
-			"ElectronicWarfarePlant": 1
+			"ElectronicWarfarePlant": 1,
+			"MicroelectronicsPlant": 1,
+			"ComponentsPlant": 5
 		},
 		"1294": {
 			"MaterialsPlant": 1
@@ -4008,21 +4204,23 @@
 			"SteelMill": 1,
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 3,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 12,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1299": {
 			"LoggingCamp": 1,
 			"Farm": 1,
 			"Refinery": 1,
 			"SteelMill": 3,
-			"ChemicalPlant": 8,
+			"ChemicalPlant": 10,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 26,
+			"ElectronicsPlant": 12,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"MicroelectronicsPlant": 13,
+			"ComponentsPlant": 5
 		},
 		"1304": {
 			"Farm": 1,
@@ -4031,8 +4229,10 @@
 		"1305": {
 			"Farm": 1,
 			"SteelMill": 3,
-			"ChemicalPlant": 7,
-			"ElectronicsPlant": 21
+			"ChemicalPlant": 8,
+			"ElectronicsPlant": 10,
+			"MicroelectronicsPlant": 11,
+			"ComponentsPlant": 4
 		},
 		"1307": {
 			"OilRig": 34,
@@ -4049,21 +4249,18 @@
 			"HydroPlant": 1,
 			"Refinery": 5,
 			"SteelMill": 2,
-			"ChemicalPlant": 1,
+			"ChemicalPlant": 2,
 			"MaterialsPlant": 6,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1311": {
 			"Farm": 1,
 			"GasPlant": 1,
 			"Refinery": 1,
 			"ConsumerGoodsPlant": 1
-		},
-		"1315": {
-			"ElectronicsPlant": 1
 		},
 		"1316": {
 			"LoggingCamp": 1,
@@ -4079,7 +4276,8 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 5
+			"ConsumerGoodsPlant": 5,
+			"ComponentsPlant": 1
 		},
 		"1321": {
 			"OilRig": 9,
@@ -4109,7 +4307,7 @@
 			"Farm": 1,
 			"GasPlant": 4,
 			"Refinery": 9,
-			"ChemicalPlant": 3,
+			"ChemicalPlant": 4,
 			"MaterialsPlant": 2
 		},
 		"1329": {
@@ -4141,7 +4339,8 @@
 			"MaterialsPlant": 1,
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1350": {
 			"Farm": 1
@@ -4153,9 +4352,9 @@
 			"Refinery": 1,
 			"SteelMill": 1,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1360": {
 			"IronMine": 15,
@@ -4170,7 +4369,8 @@
 			"MaterialsPlant": 2,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1363": {
 			"LoggingCamp": 1,
@@ -4181,15 +4381,17 @@
 			"SteelMill": 4,
 			"ChemicalPlant": 5,
 			"MaterialsPlant": 7,
-			"ElectronicsPlant": 2,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 3,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1364": {
 			"LoggingCamp": 1,
 			"GasPlant": 1,
-			"Refinery": 1
+			"Refinery": 1,
+			"ChemicalPlant": 1
 		},
 		"1369": {
 			"Farm": 1,
@@ -4208,7 +4410,7 @@
 			"Refinery": 13,
 			"SteelMill": 6,
 			"Smelter": 1,
-			"ChemicalPlant": 3,
+			"ChemicalPlant": 4,
 			"MaterialsPlant": 14,
 			"ElectronicsPlant": 1,
 			"FoodPlant": 4,
@@ -4218,11 +4420,11 @@
 			"ArtilleryPlant": 1,
 			"SmallArmsPlant": 1,
 			"AmmunitionPlant": 1,
-			"MissilePlant": 1
+			"MissilePlant": 1,
+			"ComponentsPlant": 2
 		},
 		"1377": {
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 1,
 			"ConsumerGoodsPlant": 1
 		},
 		"1379": {
@@ -4251,9 +4453,10 @@
 			"Refinery": 1,
 			"SteelMill": 1,
 			"MaterialsPlant": 4,
-			"ElectronicsPlant": 2,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 4
+			"ConsumerGoodsPlant": 4,
+			"ComponentsPlant": 1
 		},
 		"1397": {
 			"HydroPlant": 1
@@ -4267,7 +4470,8 @@
 			"MaterialsPlant": 2,
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 2
+			"ConsumerGoodsPlant": 2,
+			"ComponentsPlant": 1
 		},
 		"1401": {
 			"Farm": 1,
@@ -4302,8 +4506,8 @@
 			"GasPlant": 1,
 			"Refinery": 2,
 			"ChemicalPlant": 1,
-			"ElectronicsPlant": 1,
-			"FoodPlant": 1
+			"FoodPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1419": {
 			"LoggingCamp": 2,
@@ -4315,10 +4519,11 @@
 			"SteelMill": 2,
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 2,
-			"ElectronicsPlant": 2,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 4,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"1420": {
 			"Farm": 1,
@@ -4328,7 +4533,6 @@
 			"SteelMill": 1,
 			"ChemicalPlant": 2,
 			"MaterialsPlant": 2,
-			"ElectronicsPlant": 1,
 			"ConsumerGoodsPlant": 1
 		},
 		"1423": {
@@ -4336,7 +4540,6 @@
 			"CoalPlant": 1,
 			"HydroPlant": 1,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 1,
 			"ConsumerGoodsPlant": 1
 		},
 		"1429": {
@@ -4350,7 +4553,8 @@
 			"MaterialsPlant": 4,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1442": {
 			"GasPlant": 1,
@@ -4369,10 +4573,10 @@
 			"SteelMill": 2,
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 5,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1458": {
 			"LoggingCamp": 1,
@@ -4408,12 +4612,12 @@
 			"HydroPlant": 1,
 			"Refinery": 5,
 			"SteelMill": 2,
-			"ChemicalPlant": 1,
+			"ChemicalPlant": 2,
 			"MaterialsPlant": 6,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1493": {
 			"Farm": 1,
@@ -4428,7 +4632,8 @@
 			"MaterialsPlant": 1,
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1498": {
 			"BauxiteMine": 2
@@ -4452,12 +4657,14 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1515": {
 			"Farm": 1,
 			"GasPlant": 1,
-			"Refinery": 1
+			"Refinery": 1,
+			"ChemicalPlant": 1
 		},
 		"1516": {
 			"RareEarthMine": 1,
@@ -4470,9 +4677,10 @@
 			"SteelMill": 1,
 			"ChemicalPlant": 4,
 			"MaterialsPlant": 2,
-			"ElectronicsPlant": 4,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 2,
-			"ConsumerGoodsPlant": 2
+			"ConsumerGoodsPlant": 2,
+			"ComponentsPlant": 2
 		},
 		"1534": {
 			"LoggingCamp": 1,
@@ -4489,7 +4697,8 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1538": {
 			"Farm": 1,
@@ -4498,12 +4707,12 @@
 			"SteelMill": 1,
 			"MaterialsPlant": 1,
 			"ElectronicsPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1540": {
 			"Farm": 1,
-			"CoalPlant": 1,
-			"ElectronicsPlant": 1
+			"CoalPlant": 1
 		},
 		"1551": {
 			"LoggingCamp": 1,
@@ -4514,7 +4723,8 @@
 			"MaterialsPlant": 1,
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1560": {
 			"LoggingCamp": 1,
@@ -4522,7 +4732,8 @@
 			"Refinery": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1578": {
 			"LoggingCamp": 1,
@@ -4537,7 +4748,8 @@
 			"Refinery": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1582": {
 			"HydroPlant": 1
@@ -4556,10 +4768,11 @@
 			"SteelMill": 1,
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 2,
-			"ElectronicsPlant": 3,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 2
 		},
 		"1606": {
 			"LoggingCamp": 1,
@@ -4578,7 +4791,8 @@
 			"HydroPlant": 1,
 			"MaterialsPlant": 1,
 			"ElectronicsPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1632": {
 			"MaterialsPlant": 1,
@@ -4591,12 +4805,10 @@
 			"Farm": 1,
 			"GasPlant": 1,
 			"Refinery": 1,
-			"ChemicalPlant": 1,
-			"ElectronicsPlant": 1
+			"ChemicalPlant": 1
 		},
 		"1650": {
-			"Farm": 1,
-			"ElectronicsPlant": 1
+			"Farm": 1
 		},
 		"1652": {
 			"Farm": 1
@@ -4610,7 +4822,8 @@
 			"Refinery": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1675": {
 			"LoggingCamp": 1,
@@ -4623,9 +4836,11 @@
 			"LoggingCamp": 3,
 			"Farm": 1,
 			"Refinery": 1,
+			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1682": {
 			"LoggingCamp": 5,
@@ -4640,11 +4855,11 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 3,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1701": {
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 1,
 			"ConsumerGoodsPlant": 1
 		},
 		"1716": {
@@ -4665,7 +4880,6 @@
 		"1722": {
 			"CoalPlant": 1,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 1,
 			"ConsumerGoodsPlant": 1
 		},
 		"1723": {
@@ -4680,13 +4894,15 @@
 			"Refinery": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1731": {
 			"LoggingCamp": 1,
 			"Farm": 1,
 			"GasPlant": 1,
 			"Refinery": 1,
+			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1
@@ -4726,7 +4942,8 @@
 			"MaterialsPlant": 1,
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1768": {
 			"OilRig": 8,
@@ -4736,7 +4953,6 @@
 		"1772": {
 			"CoalPlant": 1,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 1,
 			"ConsumerGoodsPlant": 1
 		},
 		"1773": {
@@ -4780,7 +4996,8 @@
 			"Refinery": 2,
 			"ChemicalPlant": 1,
 			"ElectronicsPlant": 1,
-			"FoodPlant": 1
+			"FoodPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1803": {
 			"LoggingCamp": 1,
@@ -4792,15 +5009,15 @@
 			"SteelMill": 1,
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 5,
-			"ElectronicsPlant": 3,
+			"ElectronicsPlant": 2,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 5,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1809": {
 			"CoalPlant": 1,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 1,
 			"ConsumerGoodsPlant": 1
 		},
 		"1814": {
@@ -4819,7 +5036,8 @@
 			"Refinery": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1825": {
 			"MaterialsPlant": 1,
@@ -4839,10 +5057,10 @@
 			"SteelMill": 1,
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 2,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1837": {
 			"HydroPlant": 1
@@ -4859,7 +5077,8 @@
 			"MaterialsPlant": 1,
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1849": {
 			"HydroPlant": 1
@@ -4892,7 +5111,8 @@
 			"CoalPlant": 1,
 			"MaterialsPlant": 1,
 			"ElectronicsPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1886": {
 			"LoggingCamp": 2,
@@ -4959,11 +5179,13 @@
 			"Refinery": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1956": {
 			"GasPlant": 1,
-			"ElectronicsPlant": 2
+			"ElectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1965": {
 			"LoggingCamp": 1,
@@ -4987,14 +5209,12 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"1987": {
 			"LoggingCamp": 1,
 			"Farm": 1
-		},
-		"1992": {
-			"ElectronicsPlant": 1
 		},
 		"1993": {
 			"OilRig": 9
@@ -5005,7 +5225,8 @@
 			"Refinery": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2002": {
 			"HydroPlant": 1
@@ -5017,16 +5238,14 @@
 			"LoggingCamp": 1,
 			"Farm": 1
 		},
-		"2007": {
-			"ElectronicsPlant": 1
-		},
 		"2014": {
 			"LoggingCamp": 1,
 			"Farm": 1,
 			"Refinery": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2016": {
 			"LoggingCamp": 1,
@@ -5051,10 +5270,11 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
-		"2026": {
-			"ElectronicsPlant": 1
+		"2023": {
+			"ChemicalPlant": 1
 		},
 		"2030": {
 			"GasField": 7,
@@ -5065,10 +5285,12 @@
 			"Farm": 1,
 			"GasPlant": 1,
 			"Refinery": 1,
+			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 3,
+			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2035": {
 			"OilRig": 17
@@ -5084,7 +5306,8 @@
 			"Refinery": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2044": {
 			"LoggingCamp": 2,
@@ -5105,7 +5328,8 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2050": {
 			"Farm": 1,
@@ -5116,7 +5340,8 @@
 			"GasField": 15,
 			"Farm": 1,
 			"GasPlant": 1,
-			"ElectronicsPlant": 2
+			"ElectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2057": {
 			"ElectronicsPlant": 1
@@ -5157,7 +5382,8 @@
 		"2074": {
 			"Farm": 1,
 			"GasPlant": 1,
-			"ElectronicsPlant": 2
+			"ElectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2080": {
 			"LoggingCamp": 1,
@@ -5167,7 +5393,8 @@
 		},
 		"2085": {
 			"GasPlant": 1,
-			"ElectronicsPlant": 1
+			"ElectronicsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2087": {
 			"IronMine": 35,
@@ -5180,7 +5407,8 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2090": {
 			"Farm": 1
@@ -5206,7 +5434,8 @@
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2100": {
 			"BauxiteMine": 4,
@@ -5225,13 +5454,16 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2108": {
 			"Farm": 1,
 			"Refinery": 15,
-			"ChemicalPlant": 8,
-			"ElectronicsPlant": 12
+			"ChemicalPlant": 9,
+			"ElectronicsPlant": 5,
+			"MicroelectronicsPlant": 2,
+			"ComponentsPlant": 2
 		},
 		"2109": {
 			"LoggingCamp": 1,
@@ -5302,6 +5534,7 @@
 			"Farm": 1,
 			"HydroPlant": 1,
 			"Refinery": 1,
+			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1
 		},
@@ -5393,9 +5626,9 @@
 			"SteelMill": 1,
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
-			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2219": {
 			"LoggingCamp": 1
@@ -5416,7 +5649,8 @@
 			"Refinery": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2230": {
 			"LoggingCamp": 1,
@@ -5445,7 +5679,8 @@
 			"ElectronicsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 2,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2247": {
 			"LoggingCamp": 1,
@@ -5464,7 +5699,8 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 2,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2249": {
 			"LoggingCamp": 2,
@@ -5473,7 +5709,8 @@
 			"Refinery": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2250": {
 			"LoggingCamp": 1,
@@ -5486,7 +5723,8 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2251": {
 			"LoggingCamp": 2,
@@ -5498,7 +5736,8 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 2,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 2
+			"ConsumerGoodsPlant": 2,
+			"ComponentsPlant": 1
 		},
 		"2256": {
 			"LoggingCamp": 1,
@@ -5554,15 +5793,18 @@
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2288": {
 			"LoggingCamp": 1,
 			"Farm": 2,
 			"Refinery": 1,
+			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2293": {
 			"LoggingCamp": 1,
@@ -5592,7 +5834,8 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2337": {
 			"CopperMine": 13,
@@ -5652,7 +5895,8 @@
 			"MaterialsPlant": 2,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2368": {
 			"CopperMine": 13,
@@ -5691,13 +5935,15 @@
 			"Refinery": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2426": {
 			"LoggingCamp": 2,
 			"Farm": 1,
 			"HydroPlant": 1,
 			"Refinery": 1,
+			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1
 		},
@@ -5721,7 +5967,8 @@
 			"ConsumerGoodsPlant": 3,
 			"PharmaPlant": 1,
 			"SmallArmsPlant": 1,
-			"AmmunitionPlant": 1
+			"AmmunitionPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2446": {
 			"UraniumMine": 8
@@ -5735,12 +5982,13 @@
 			"HydroPlant": 4,
 			"Refinery": 3,
 			"SteelMill": 1,
-			"ChemicalPlant": 1,
+			"ChemicalPlant": 2,
 			"MaterialsPlant": 2,
 			"FoodPlant": 2,
 			"ConsumerGoodsPlant": 2,
 			"PharmaPlant": 1,
-			"SmallArmsPlant": 1
+			"SmallArmsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2451": {
 			"CopperMine": 80,
@@ -5776,9 +6024,11 @@
 			"LoggingCamp": 1,
 			"Farm": 1,
 			"Refinery": 1,
+			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2486": {
 			"CoalPlant": 1
@@ -5801,7 +6051,8 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2493": {
 			"IronMine": 4
@@ -5852,7 +6103,8 @@
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
 			"ConsumerGoodsPlant": 1,
-			"PharmaPlant": 1
+			"PharmaPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2514": {
 			"LoggingCamp": 1,
@@ -5860,7 +6112,8 @@
 			"GasPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2516": {
 			"LoggingCamp": 1,
@@ -5870,7 +6123,8 @@
 			"Smelter": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2521": {
 			"LoggingCamp": 1
@@ -5893,7 +6147,8 @@
 			"CoalPlant": 2,
 			"MaterialsPlant": 1,
 			"FoodPlant": 1,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2540": {
 			"LoggingCamp": 1,
@@ -5922,7 +6177,8 @@
 			"ChemicalPlant": 1,
 			"MaterialsPlant": 1,
 			"FoodPlant": 2,
-			"ConsumerGoodsPlant": 1
+			"ConsumerGoodsPlant": 1,
+			"ComponentsPlant": 1
 		},
 		"2557": {
 			"Farm": 2,

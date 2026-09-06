@@ -1,3 +1,4 @@
+using System.Text.Json;
 using CapitaModern.Core.Economy;
 using CapitaModern.Core.Loading;
 using CapitaModern.Core.World;
@@ -31,14 +32,21 @@ public class WorldDataTests
         Assert.Equal(2606, world.Regions.Count);
     }
 
+    /// <summary>Загрузчик не должен терять предприятия: сверяемся с самим файлом.</summary>
     [Fact]
     public void StartingIndustryIsThere()
     {
-        var total = Shared.Value.Regions
+        var loaded = Shared.Value.Regions
             .SelectMany(region => region.BuildingsCount)
             .Sum(pair => pair.Value);
 
-        Assert.Equal(11899, total);
+        var inFile = JsonDocument
+            .Parse(File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "economy", "start-industry.json")))
+            .RootElement.GetProperty("regions").EnumerateObject()
+            .Sum(region => region.Value.EnumerateObject().Sum(building => building.Value.GetInt32()));
+
+        Assert.Equal(inFile, loaded);
+        Assert.True(loaded > 10_000, "стартовая промышленность подозрительно мала");
     }
 
     [Fact]

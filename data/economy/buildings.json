@@ -330,12 +330,33 @@
 		}
 	},
 	{
+		"type": "ComponentsPlant",
+		"name": "Завод электрокомпонентов",
+		"icon": "components-plant",
+		"sector": "Heavy",
+		"requiresDeposit": null,
+		"inputs": {
+			"Metals": 6,
+			"Chemicals": 3,
+			"Electricity": 4
+		},
+		"outputs": {
+			"Components": 30
+		},
+		"optimalWorkers": 1800,
+		"buildCost": {
+			"Materials": 200,
+			"Metals": 150
+		}
+	},
+	{
 		"type": "ElectronicsPlant",
 		"name": "Электронный завод",
 		"icon": "electronics-plant",
 		"sector": "Heavy",
 		"requiresDeposit": null,
 		"inputs": {
+			"Components": 8,
 			"RareEarth": 1,
 			"CopperOre": 3,
 			"Chemicals": 4,
@@ -348,7 +369,29 @@
 		"buildCost": {
 			"Materials": 350,
 			"Metals": 250,
-			"Electronics": 80
+			"Components": 80
+		}
+	},
+	{
+		"type": "MicroelectronicsPlant",
+		"name": "Завод микроэлектроники",
+		"icon": "microelectronics-plant",
+		"sector": "Heavy",
+		"requiresDeposit": null,
+		"inputs": {
+			"Electronics": 6,
+			"RareEarth": 2,
+			"Chemicals": 3,
+			"Electricity": 10
+		},
+		"outputs": {
+			"Microelectronics": 20
+		},
+		"optimalWorkers": 4000,
+		"buildCost": {
+			"Materials": 420,
+			"Metals": 300,
+			"Electronics": 120
 		}
 	},
 	{
@@ -380,7 +423,9 @@
 		"inputs": {
 			"Chemicals": 4,
 			"Metals": 4,
-			"Electronics": 25
+			"Components": 10,
+			"Electronics": 12,
+			"Microelectronics": 2
 		},
 		"outputs": {
 			"ConsumerGoods": 8
@@ -420,8 +465,8 @@
 		"requiresDeposit": null,
 		"inputs": {
 			"Metals": 12,
-			"Electronics": 3,
-			"Chemicals": 2
+			"Chemicals": 2,
+			"Components": 4
 		},
 		"outputs": {
 			"Armour": 1
@@ -441,8 +486,8 @@
 		"requiresDeposit": null,
 		"inputs": {
 			"Metals": 10,
-			"Electronics": 2,
-			"Chemicals": 1
+			"Chemicals": 1,
+			"Components": 3
 		},
 		"outputs": {
 			"Artillery": 1
@@ -462,7 +507,8 @@
 		"requiresDeposit": null,
 		"inputs": {
 			"Metals": 5,
-			"Chemicals": 2
+			"Chemicals": 2,
+			"Components": 1
 		},
 		"outputs": {
 			"SmallArms": 1
@@ -482,7 +528,8 @@
 		"requiresDeposit": null,
 		"inputs": {
 			"Metals": 6,
-			"Chemicals": 8
+			"Chemicals": 8,
+			"Components": 2
 		},
 		"outputs": {
 			"Ammunition": 1
@@ -501,9 +548,9 @@
 		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
-			"Electronics": 6,
 			"Chemicals": 2,
-			"Metals": 1
+			"Metals": 1,
+			"Electronics": 6
 		},
 		"outputs": {
 			"TacticalDrones": 1
@@ -522,10 +569,11 @@
 		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
-			"Electronics": 8,
 			"Metals": 3,
 			"Chemicals": 2,
-			"Fuel": 1
+			"Fuel": 1,
+			"Electronics": 4,
+			"Microelectronics": 4
 		},
 		"outputs": {
 			"StrikeDrones": 1
@@ -545,8 +593,9 @@
 		"requiresDeposit": null,
 		"inputs": {
 			"Metals": 4,
-			"Electronics": 6,
-			"Chemicals": 5
+			"Chemicals": 5,
+			"Electronics": 4,
+			"Microelectronics": 2
 		},
 		"outputs": {
 			"Missiles": 1
@@ -566,8 +615,9 @@
 		"requiresDeposit": null,
 		"inputs": {
 			"Metals": 8,
-			"Electronics": 10,
-			"Fuel": 2
+			"Fuel": 2,
+			"Electronics": 4,
+			"Microelectronics": 6
 		},
 		"outputs": {
 			"Aircraft": 1
@@ -587,8 +637,9 @@
 		"requiresDeposit": null,
 		"inputs": {
 			"Metals": 6,
-			"Electronics": 8,
-			"Chemicals": 2
+			"Chemicals": 2,
+			"Electronics": 3,
+			"Microelectronics": 5
 		},
 		"outputs": {
 			"AirDefence": 1
@@ -607,8 +658,9 @@
 		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
-			"Electronics": 9,
-			"Metals": 3
+			"Metals": 3,
+			"Electronics": 3,
+			"Microelectronics": 6
 		},
 		"outputs": {
 			"ElectronicWarfare": 1

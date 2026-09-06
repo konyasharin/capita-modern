@@ -26,7 +26,9 @@ public enum BuildingType
     Smelter,
     ChemicalPlant,
     MaterialsPlant,
+    ComponentsPlant,
     ElectronicsPlant,
+    MicroelectronicsPlant,
 
     // Конечная продукция
     FoodPlant,

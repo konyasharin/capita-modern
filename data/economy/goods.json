@@ -109,7 +109,7 @@
 		"category": "intermediate",
 		"icon": "chemicals",
 		"unit": "1000 т",
-		"worldOutput2019": 2400000
+		"worldOutput2019": 2828750
 	},
 	{
 		"id": "Materials",
@@ -120,12 +120,28 @@
 		"worldOutput2019": 4100000
 	},
 	{
+		"id": "Components",
+		"name": "Электрокомпоненты",
+		"category": "intermediate",
+		"icon": "components",
+		"unit": "условная",
+		"worldOutput2019": 3361650
+	},
+	{
 		"id": "Electronics",
 		"name": "Электроника",
 		"category": "intermediate",
 		"icon": "electronics",
 		"unit": "условная",
-		"worldOutput2019": 6862000
+		"worldOutput2019": 3465310
+	},
+	{
+		"id": "Microelectronics",
+		"name": "Микроэлектроника",
+		"category": "intermediate",
+		"icon": "microelectronics",
+		"unit": "условная",
+		"worldOutput2019": 584000
 	},
 	{
 		"id": "Food",
