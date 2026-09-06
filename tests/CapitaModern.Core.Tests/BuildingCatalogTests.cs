@@ -9,7 +9,7 @@ public class BuildingCatalogTests
     [Fact]
     public void GivesBackWhatWasPutIn()
     {
-        var info = Build.Info(BuildingType.SteelMill, outputs: new() { [GoodType.Metals] = Build.Units(4) });
+        var info = Build.Info(BuildingType.SteelMill, outputs: new() { [GoodType.Metals] = Build.Whole(4) });
         var catalog = Build.Catalog(info);
 
         Assert.Same(info, catalog[BuildingType.SteelMill]);
@@ -42,8 +42,8 @@ public class BuildingCatalogTests
     {
         var catalog = BuildingCatalog.FromJson(Json());
 
-        Assert.Equal(Build.Units(13), catalog[BuildingType.SteelMill].Inputs[GoodType.IronOre]);
-        Assert.Equal(Build.Units(4), catalog[BuildingType.SteelMill].Outputs[GoodType.Metals]);
+        Assert.Equal(Build.Whole(13), catalog[BuildingType.SteelMill].Inputs[GoodType.IronOre]);
+        Assert.Equal(Build.Whole(4), catalog[BuildingType.SteelMill].Outputs[GoodType.Metals]);
         Assert.Equal(GoodType.Oil, catalog[BuildingType.OilRig].RequiresDeposit);
         Assert.Null(catalog[BuildingType.SteelMill].RequiresDeposit);
     }

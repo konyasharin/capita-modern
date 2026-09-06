@@ -41,7 +41,7 @@ public static class WorldDataLoader
         dto.Id,
         dto.Name,
         dto.Iso,
-        0,
+        new Treasury(0),
         new Stock(new Dictionary<GoodType, GoodAmount>()),
         new Priorities()
     ); // баланс и склад - заглушки

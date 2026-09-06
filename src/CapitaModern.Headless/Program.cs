@@ -22,7 +22,7 @@ foreach (var tick in Enumerable.Range(0, 30))
         Console.WriteLine($"Simulation tick #{tick + 1}");
         foreach (var good in Enum.GetValues<GoodType>())
         {
-            var amount = russia.Stock.Of(good).Units;
+            var amount = russia.Stock.Of(good).Exact;
             Console.WriteLine($"{good}: {amount}");
         }
     }

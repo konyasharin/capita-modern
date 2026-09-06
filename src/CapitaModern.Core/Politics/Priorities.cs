@@ -1,4 +1,5 @@
 ﻿using CapitaModern.Core.Buildings;
+using CapitaModern.Core.Economy;
 
 namespace CapitaModern.Core.Politics;
 

@@ -10,10 +10,10 @@ public class CountryTests
     {
         var country = Build.Country(1);
 
-        country.Receive(100);
+        country.Treasury.Receive(100);
 
-        Assert.True(country.TrySpend(40));
-        Assert.Equal(60, country.Balance);
+        Assert.True(country.Treasury.TrySpend(40));
+        Assert.Equal(60, country.Treasury.Balance);
     }
 
     [Fact]
@@ -21,10 +21,10 @@ public class CountryTests
     {
         var country = Build.Country(1);
 
-        country.Receive(100);
+        country.Treasury.Receive(100);
 
-        Assert.False(country.TrySpend(101));
-        Assert.Equal(100, country.Balance);
+        Assert.False(country.Treasury.TrySpend(101));
+        Assert.Equal(100, country.Treasury.Balance);
     }
 
     [Fact]
@@ -32,10 +32,10 @@ public class CountryTests
     {
         var country = Build.Country(1);
 
-        country.Receive(100);
+        country.Treasury.Receive(100);
 
-        Assert.True(country.TrySpend(100));
-        Assert.Equal(0, country.Balance);
+        Assert.True(country.Treasury.TrySpend(100));
+        Assert.Equal(0, country.Treasury.Balance);
     }
 
     [Fact]
@@ -43,15 +43,15 @@ public class CountryTests
     {
         var country = Build.Country(1);
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => country.Receive(-1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => country.TrySpend(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => country.Treasury.Receive(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => country.Treasury.TrySpend(-1));
     }
 
     [Fact]
     public void CountryCarriesItsOwnStock()
     {
-        var country = Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Units(5) });
+        var country = Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Whole(5) });
 
-        Assert.Equal(Build.Units(5), country.Stock.Of(GoodType.Coal));
+        Assert.Equal(Build.Whole(5), country.Stock.Of(GoodType.Coal));
     }
 }

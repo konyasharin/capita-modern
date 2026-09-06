@@ -8,7 +8,7 @@ namespace CapitaModern.Core.Tests;
 /// <summary>Сборка маленьких миров для тестов.</summary>
 internal static class Build
 {
-    public static GoodAmount Units(long n) => GoodAmount.FromUnits(n);
+    public static GoodAmount Whole(long n) => GoodAmount.FromWhole(n);
 
     public static BuildingInfo Info(
         BuildingType type,
@@ -50,5 +50,5 @@ internal static class Build
         byte id,
         Dictionary<GoodType, GoodAmount>? stock = null,
         Dictionary<Sector, int>? weights = null) =>
-        new(id, $"country {id}", $"C{id:00}", 0, new Stock(stock ?? []), new Priorities(weights));
+        new(id, $"country {id}", $"C{id:00}", new Treasury(0), new Stock(stock ?? []), new Priorities(weights));
 }

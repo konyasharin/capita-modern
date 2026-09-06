@@ -11,10 +11,10 @@ public class TallyTests
     {
         var tally = new Tally<GoodType, GoodAmount>();
 
-        tally.Add(1, GoodType.Coal, Build.Units(5));
-        tally.Add(1, GoodType.Coal, Build.Units(3));
+        tally.Add(1, GoodType.Coal, Build.Whole(5));
+        tally.Add(1, GoodType.Coal, Build.Whole(3));
 
-        Assert.Equal(Build.Units(8), tally.Get(1, GoodType.Coal));
+        Assert.Equal(Build.Whole(8), tally.Get(1, GoodType.Coal));
     }
 
     [Fact]
@@ -22,10 +22,10 @@ public class TallyTests
     {
         var tally = new Tally<GoodType, GoodAmount>();
 
-        tally.Add(1, GoodType.Coal, Build.Units(5));
-        tally.Set(1, GoodType.Coal, Build.Units(2));
+        tally.Add(1, GoodType.Coal, Build.Whole(5));
+        tally.Set(1, GoodType.Coal, Build.Whole(2));
 
-        Assert.Equal(Build.Units(2), tally.Get(1, GoodType.Coal));
+        Assert.Equal(Build.Whole(2), tally.Get(1, GoodType.Coal));
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class TallyTests
     {
         var tally = new Tally<GoodType, GoodAmount>();
 
-        tally.Add(1, GoodType.Coal, Build.Units(5));
+        tally.Add(1, GoodType.Coal, Build.Whole(5));
 
         Assert.Equal(default, tally.Get(1, GoodType.Oil));
         Assert.Equal(default, tally.Get(2, GoodType.Coal));
@@ -44,11 +44,11 @@ public class TallyTests
     {
         var tally = new Tally<GoodType, GoodAmount>();
 
-        tally.Add(1, GoodType.Coal, Build.Units(5));
-        tally.Add(2, GoodType.Coal, Build.Units(7));
+        tally.Add(1, GoodType.Coal, Build.Whole(5));
+        tally.Add(2, GoodType.Coal, Build.Whole(7));
 
-        Assert.Equal(Build.Units(5), tally.Get(1, GoodType.Coal));
-        Assert.Equal(Build.Units(7), tally.Get(2, GoodType.Coal));
+        Assert.Equal(Build.Whole(5), tally.Get(1, GoodType.Coal));
+        Assert.Equal(Build.Whole(7), tally.Get(2, GoodType.Coal));
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class TallyTests
     {
         var tally = new Tally<GoodType, GoodAmount>();
 
-        tally.Add(1, GoodType.Coal, Build.Units(5));
+        tally.Add(1, GoodType.Coal, Build.Whole(5));
         tally.Clear();
 
         Assert.Equal(default, tally.Get(1, GoodType.Coal));
@@ -87,16 +87,16 @@ public class TallyTests
     {
         var tally = new Tally<GoodType, GoodAmount>();
 
-        tally.Add(1, GoodType.Coal, Build.Units(5));
-        tally.Add(1, GoodType.Oil, Build.Units(6));
-        tally.Add(2, GoodType.Coal, Build.Units(7));
+        tally.Add(1, GoodType.Coal, Build.Whole(5));
+        tally.Add(1, GoodType.Oil, Build.Whole(6));
+        tally.Add(2, GoodType.Coal, Build.Whole(7));
 
         var entries = tally.ToList();
 
         Assert.Equal(3, entries.Count);
-        Assert.Contains(((byte)1, GoodType.Coal, Build.Units(5)), entries);
-        Assert.Contains(((byte)1, GoodType.Oil, Build.Units(6)), entries);
-        Assert.Contains(((byte)2, GoodType.Coal, Build.Units(7)), entries);
+        Assert.Contains(((byte)1, GoodType.Coal, Build.Whole(5)), entries);
+        Assert.Contains(((byte)1, GoodType.Oil, Build.Whole(6)), entries);
+        Assert.Contains(((byte)2, GoodType.Coal, Build.Whole(7)), entries);
     }
 
     /// <summary>Постройки считаются штуками, а не количеством товара — тот же счётчик.</summary>

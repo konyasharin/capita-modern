@@ -5,8 +5,8 @@ namespace CapitaModern.Core.Tests;
 
 public class StockTests
 {
-    private static Stock With(params (GoodType Good, long Units)[] items) =>
-        new(items.ToDictionary(item => item.Good, item => Build.Units(item.Units)));
+    private static Stock With(params (GoodType Good, long Whole)[] items) =>
+        new(items.ToDictionary(item => item.Good, item => Build.Whole(item.Whole)));
 
     [Fact]
     public void EmptyStockIsZeroNotAnError()
@@ -19,10 +19,10 @@ public class StockTests
     {
         var stock = With();
 
-        stock.Store(GoodType.Coal, Build.Units(5));
-        stock.Store(GoodType.Coal, Build.Units(3));
+        stock.Store(GoodType.Coal, Build.Whole(5));
+        stock.Store(GoodType.Coal, Build.Whole(3));
 
-        Assert.Equal(Build.Units(8), stock.Of(GoodType.Coal));
+        Assert.Equal(Build.Whole(8), stock.Of(GoodType.Coal));
     }
 
     [Fact]
@@ -38,33 +38,33 @@ public class StockTests
 
         var recipe = new Dictionary<GoodType, GoodAmount>
         {
-            [GoodType.Coal] = Build.Units(2),
-            [GoodType.IronOre] = Build.Units(3),
+            [GoodType.Coal] = Build.Whole(2),
+            [GoodType.IronOre] = Build.Whole(3),
         };
 
         Assert.True(stock.TryConsume(recipe, Load.Full));
-        Assert.Equal(Build.Units(8), stock.Of(GoodType.Coal));
-        Assert.Equal(Build.Units(7), stock.Of(GoodType.IronOre));
+        Assert.Equal(Build.Whole(8), stock.Of(GoodType.Coal));
+        Assert.Equal(Build.Whole(7), stock.Of(GoodType.IronOre));
     }
 
     [Fact]
     public void PartialLoadEatsPartOfTheRecipe()
     {
         var stock = With((GoodType.Coal, 10));
-        var recipe = new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Units(2) };
+        var recipe = new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Whole(2) };
 
         Assert.True(stock.TryConsume(recipe, Load.Full / 4));
-        Assert.Equal(Build.Units(10) - Build.Units(2) / 4, stock.Of(GoodType.Coal));
+        Assert.Equal(Build.Whole(10) - Build.Whole(2) / 4, stock.Of(GoodType.Coal));
     }
 
     [Fact]
     public void SeveralPlantsEatProportionally()
     {
         var stock = With((GoodType.Coal, 10));
-        var recipe = new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Units(2) };
+        var recipe = new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Whole(2) };
 
         Assert.True(stock.TryConsume(recipe, Load.Full * 3));
-        Assert.Equal(Build.Units(4), stock.Of(GoodType.Coal));
+        Assert.Equal(Build.Whole(4), stock.Of(GoodType.Coal));
     }
 
     /// <summary>Если хватает на руду, но не на уголь, руда должна остаться на складе.</summary>
@@ -75,20 +75,20 @@ public class StockTests
 
         var recipe = new Dictionary<GoodType, GoodAmount>
         {
-            [GoodType.Coal] = Build.Units(2),
-            [GoodType.IronOre] = Build.Units(3),
+            [GoodType.Coal] = Build.Whole(2),
+            [GoodType.IronOre] = Build.Whole(3),
         };
 
         Assert.False(stock.TryConsume(recipe, Load.Full));
-        Assert.Equal(Build.Units(1), stock.Of(GoodType.Coal));
-        Assert.Equal(Build.Units(10), stock.Of(GoodType.IronOre));
+        Assert.Equal(Build.Whole(1), stock.Of(GoodType.Coal));
+        Assert.Equal(Build.Whole(10), stock.Of(GoodType.IronOre));
     }
 
     [Fact]
     public void ConsumingExactlyEverythingIsAllowed()
     {
         var stock = With((GoodType.Coal, 2));
-        var recipe = new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Units(2) };
+        var recipe = new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Whole(2) };
 
         Assert.True(stock.TryConsume(recipe, Load.Full));
         Assert.Equal(default, stock.Of(GoodType.Coal));
@@ -97,7 +97,7 @@ public class StockTests
     [Fact]
     public void ZeroLoadIsRejected()
     {
-        var recipe = new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Units(1) };
+        var recipe = new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Whole(1) };
 
         Assert.Throws<ArgumentOutOfRangeException>(() => With().TryConsume(recipe, 0));
     }
@@ -107,8 +107,8 @@ public class StockTests
     {
         var stock = With((GoodType.Food, 10));
 
-        Assert.Equal(Build.Units(4), stock.TakeUpTo(GoodType.Food, Build.Units(4)));
-        Assert.Equal(Build.Units(6), stock.Of(GoodType.Food));
+        Assert.Equal(Build.Whole(4), stock.TakeUpTo(GoodType.Food, Build.Whole(4)));
+        Assert.Equal(Build.Whole(6), stock.Of(GoodType.Food));
     }
 
     /// <summary>Населению недостача не ошибка: берём сколько есть и сообщаем сколько вышло.</summary>
@@ -117,14 +117,14 @@ public class StockTests
     {
         var stock = With((GoodType.Food, 3));
 
-        Assert.Equal(Build.Units(3), stock.TakeUpTo(GoodType.Food, Build.Units(10)));
+        Assert.Equal(Build.Whole(3), stock.TakeUpTo(GoodType.Food, Build.Whole(10)));
         Assert.Equal(default, stock.Of(GoodType.Food));
     }
 
     [Fact]
     public void TakeUpToFromEmptyGivesNothing()
     {
-        Assert.Equal(default, With().TakeUpTo(GoodType.Food, Build.Units(10)));
+        Assert.Equal(default, With().TakeUpTo(GoodType.Food, Build.Whole(10)));
     }
 
     [Fact]

@@ -16,13 +16,13 @@ public class PriorityTests
     private static GameWorld WorldWith(long coal, Dictionary<Sector, int>? weights = null) =>
         new(
             [Build.Region(1, 1, new Dictionary<BuildingType, int> { [Civil] = 1, [Army] = 1 })],
-            [Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Units(coal) }, weights)],
+            [Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Whole(coal) }, weights)],
             Build.Catalog(
-                Build.Info(Civil, inputs: new() { [GoodType.Coal] = Build.Units(10) },
-                                  outputs: new() { [GoodType.ConsumerGoods] = Build.Units(1) },
+                Build.Info(Civil, inputs: new() { [GoodType.Coal] = Build.Whole(10) },
+                                  outputs: new() { [GoodType.ConsumerGoods] = Build.Whole(1) },
                                   sector: Sector.Civil),
-                Build.Info(Army, inputs: new() { [GoodType.Coal] = Build.Units(10) },
-                                 outputs: new() { [GoodType.Armour] = Build.Units(1) },
+                Build.Info(Army, inputs: new() { [GoodType.Coal] = Build.Whole(10) },
+                                 outputs: new() { [GoodType.Armour] = Build.Whole(1) },
                                  sector: Sector.Military)));
 
     private static GoodAmount Part(int numerator, int denominator) =>
@@ -84,9 +84,9 @@ public class PriorityTests
 
         var country = world.CountryById(1);
 
-        Assert.Equal(Build.Units(1), country.Stock.Of(GoodType.Armour));
-        Assert.Equal(Build.Units(1), country.Stock.Of(GoodType.ConsumerGoods));
-        Assert.Equal(Build.Units(80), country.Stock.Of(GoodType.Coal));
+        Assert.Equal(Build.Whole(1), country.Stock.Of(GoodType.Armour));
+        Assert.Equal(Build.Whole(1), country.Stock.Of(GoodType.ConsumerGoods));
+        Assert.Equal(Build.Whole(80), country.Stock.Of(GoodType.Coal));
     }
 
     /// <summary>Нулевой вес отключает отрасль от снабжения полностью.</summary>
@@ -100,7 +100,7 @@ public class PriorityTests
         var country = world.CountryById(1);
 
         Assert.Equal(default, country.Stock.Of(GoodType.ConsumerGoods));
-        Assert.Equal(Build.Units(1), country.Stock.Of(GoodType.Armour));
+        Assert.Equal(Build.Whole(1), country.Stock.Of(GoodType.Armour));
     }
 
     /// <summary>Доля не может превысить собственный заказ: лишнее остаётся на складе.</summary>
@@ -116,7 +116,7 @@ public class PriorityTests
 
         var country = world.CountryById(1);
 
-        Assert.Equal(Build.Units(1), country.Stock.Of(GoodType.Armour));
+        Assert.Equal(Build.Whole(1), country.Stock.Of(GoodType.Armour));
         Assert.True(country.Stock.Of(GoodType.Coal) > default(GoodAmount), "остаток должен остаться на складе");
     }
 

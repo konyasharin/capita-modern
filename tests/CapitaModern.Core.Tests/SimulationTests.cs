@@ -18,11 +18,11 @@ public class SimulationTests
         var world = WorldWith(
             Build.Region(1, 1, new Dictionary<BuildingType, int> { [Mine] = 3 }),
             Build.Country(1),
-            Build.Info(Mine, outputs: new() { [GoodType.Coal] = Build.Units(10) }));
+            Build.Info(Mine, outputs: new() { [GoodType.Coal] = Build.Whole(10) }));
 
         new Simulation(world).Tick();
 
-        Assert.Equal(Build.Units(30), world.CountryById(1).Stock.Of(GoodType.Coal));
+        Assert.Equal(Build.Whole(30), world.CountryById(1).Stock.Of(GoodType.Coal));
     }
 
     [Fact]
@@ -31,12 +31,12 @@ public class SimulationTests
         var world = WorldWith(
             Build.Region(1, 1, new Dictionary<BuildingType, int> { [Mine] = 1 }),
             Build.Country(1),
-            Build.Info(Mine, outputs: new() { [GoodType.Coal] = Build.Units(10) }));
+            Build.Info(Mine, outputs: new() { [GoodType.Coal] = Build.Whole(10) }));
 
         var simulation = new Simulation(world);
         for (var i = 0; i < 5; i++) simulation.Tick();
 
-        Assert.Equal(Build.Units(50), world.CountryById(1).Stock.Of(GoodType.Coal));
+        Assert.Equal(Build.Whole(50), world.CountryById(1).Stock.Of(GoodType.Coal));
     }
 
     /// <summary>Свежая продукция достаётся следующему тику, а не заводам в этом же.</summary>
@@ -46,9 +46,9 @@ public class SimulationTests
         var world = WorldWith(
             Build.Region(1, 1, new Dictionary<BuildingType, int> { [Mine] = 1, [Mill] = 1 }),
             Build.Country(1),
-            Build.Info(Mine, outputs: new() { [GoodType.Coal] = Build.Units(10) }),
-            Build.Info(Mill, inputs: new() { [GoodType.Coal] = Build.Units(10) },
-                             outputs: new() { [GoodType.Metals] = Build.Units(4) }));
+            Build.Info(Mine, outputs: new() { [GoodType.Coal] = Build.Whole(10) }),
+            Build.Info(Mill, inputs: new() { [GoodType.Coal] = Build.Whole(10) },
+                             outputs: new() { [GoodType.Metals] = Build.Whole(4) }));
 
         var simulation = new Simulation(world);
         simulation.Tick();
@@ -57,7 +57,7 @@ public class SimulationTests
 
         simulation.Tick();
 
-        Assert.Equal(Build.Units(4), world.CountryById(1).Stock.Of(GoodType.Metals));
+        Assert.Equal(Build.Whole(4), world.CountryById(1).Stock.Of(GoodType.Metals));
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public class SimulationTests
         var world = WorldWith(
             Build.Region(1, 1, new Dictionary<BuildingType, int> { [Mine] = 1 }),
             Build.Country(1),
-            Build.Info(Mine, outputs: new() { [GoodType.Oil] = Build.Units(10) }, deposit: GoodType.Oil));
+            Build.Info(Mine, outputs: new() { [GoodType.Oil] = Build.Whole(10) }, deposit: GoodType.Oil));
 
         new Simulation(world).Tick();
 
@@ -81,11 +81,11 @@ public class SimulationTests
             new Dictionary<GoodType, int> { [GoodType.Oil] = 400 });
 
         var world = WorldWith(region, Build.Country(1),
-            Build.Info(Mine, outputs: new() { [GoodType.Oil] = Build.Units(10) }, deposit: GoodType.Oil));
+            Build.Info(Mine, outputs: new() { [GoodType.Oil] = Build.Whole(10) }, deposit: GoodType.Oil));
 
         new Simulation(world).Tick();
 
-        Assert.Equal(Build.Units(10), world.CountryById(1).Stock.Of(GoodType.Oil));
+        Assert.Equal(Build.Whole(10), world.CountryById(1).Stock.Of(GoodType.Oil));
     }
 
     /// <summary>
@@ -96,18 +96,18 @@ public class SimulationTests
     {
         var world = WorldWith(
             Build.Region(1, 1, new Dictionary<BuildingType, int> { [Mill] = 1, [Plant] = 4 }),
-            Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Units(25) }),
-            Build.Info(Mill, inputs: new() { [GoodType.Coal] = Build.Units(10) },
-                             outputs: new() { [GoodType.Metals] = Build.Units(1) }),
-            Build.Info(Plant, inputs: new() { [GoodType.Coal] = Build.Units(10) },
-                              outputs: new() { [GoodType.Chemicals] = Build.Units(1) }));
+            Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Whole(25) }),
+            Build.Info(Mill, inputs: new() { [GoodType.Coal] = Build.Whole(10) },
+                             outputs: new() { [GoodType.Metals] = Build.Whole(1) }),
+            Build.Info(Plant, inputs: new() { [GoodType.Coal] = Build.Whole(10) },
+                              outputs: new() { [GoodType.Chemicals] = Build.Whole(1) }));
 
         new Simulation(world).Tick();
 
         var country = world.CountryById(1);
 
-        Assert.Equal(Build.Units(1) / 2, country.Stock.Of(GoodType.Metals));
-        Assert.Equal(Build.Units(2), country.Stock.Of(GoodType.Chemicals));
+        Assert.Equal(Build.Whole(1) / 2, country.Stock.Of(GoodType.Metals));
+        Assert.Equal(Build.Whole(2), country.Stock.Of(GoodType.Chemicals));
         Assert.Equal(default, country.Stock.Of(GoodType.Coal));
     }
 
@@ -117,9 +117,9 @@ public class SimulationTests
     {
         var world = WorldWith(
             Build.Region(1, 1, new Dictionary<BuildingType, int> { [Mill] = 1 }),
-            Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Units(3) }),
-            Build.Info(Mill, inputs: new() { [GoodType.Coal] = Build.Units(10) },
-                             outputs: new() { [GoodType.Metals] = Build.Units(1) }));
+            Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Whole(3) }),
+            Build.Info(Mill, inputs: new() { [GoodType.Coal] = Build.Whole(10) },
+                             outputs: new() { [GoodType.Metals] = Build.Whole(1) }));
 
         new Simulation(world).Tick();
 
@@ -135,14 +135,14 @@ public class SimulationTests
                 Build.Region(1, 1, new Dictionary<BuildingType, int> { [Mill] = 1 }),
                 Build.Region(2, 1, new Dictionary<BuildingType, int> { [Mill] = 1 }),
             ],
-            [Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Units(20) })],
+            [Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Whole(20) })],
             Build.Catalog(Build.Info(Mill,
-                inputs: new() { [GoodType.Coal] = Build.Units(10) },
-                outputs: new() { [GoodType.Metals] = Build.Units(1) })));
+                inputs: new() { [GoodType.Coal] = Build.Whole(10) },
+                outputs: new() { [GoodType.Metals] = Build.Whole(1) })));
 
         new Simulation(world).Tick();
 
-        Assert.Equal(Build.Units(2), world.CountryById(1).Stock.Of(GoodType.Metals));
+        Assert.Equal(Build.Whole(2), world.CountryById(1).Stock.Of(GoodType.Metals));
     }
 
     [Fact]
@@ -154,16 +154,16 @@ public class SimulationTests
                 Build.Region(2, 2, new Dictionary<BuildingType, int> { [Mill] = 1 }),
             ],
             [
-                Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Units(10) }),
+                Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Whole(10) }),
                 Build.Country(2),
             ],
             Build.Catalog(Build.Info(Mill,
-                inputs: new() { [GoodType.Coal] = Build.Units(10) },
-                outputs: new() { [GoodType.Metals] = Build.Units(1) })));
+                inputs: new() { [GoodType.Coal] = Build.Whole(10) },
+                outputs: new() { [GoodType.Metals] = Build.Whole(1) })));
 
         new Simulation(world).Tick();
 
-        Assert.Equal(Build.Units(1), world.CountryById(1).Stock.Of(GoodType.Metals));
+        Assert.Equal(Build.Whole(1), world.CountryById(1).Stock.Of(GoodType.Metals));
         Assert.Equal(default, world.CountryById(2).Stock.Of(GoodType.Metals));
     }
 
@@ -173,8 +173,8 @@ public class SimulationTests
         var world = WorldWith(
             Build.Region(1, 1, new Dictionary<BuildingType, int> { [Mill] = 1 }),
             Build.Country(1),
-            Build.Info(Mill, inputs: new() { [GoodType.Coal] = Build.Units(10) },
-                             outputs: new() { [GoodType.Metals] = Build.Units(1) }));
+            Build.Info(Mill, inputs: new() { [GoodType.Coal] = Build.Whole(10) },
+                             outputs: new() { [GoodType.Metals] = Build.Whole(1) }));
 
         new Simulation(world).Tick();
 
@@ -190,9 +190,9 @@ public class SimulationTests
             var world = WorldWith(
                 Build.Region(1, 1, new Dictionary<BuildingType, int> { [Mine] = 3, [Mill] = 2 }),
                 Build.Country(1),
-                Build.Info(Mine, outputs: new() { [GoodType.Coal] = Build.Units(7) }),
-                Build.Info(Mill, inputs: new() { [GoodType.Coal] = Build.Units(10) },
-                                 outputs: new() { [GoodType.Metals] = Build.Units(3) }));
+                Build.Info(Mine, outputs: new() { [GoodType.Coal] = Build.Whole(7) }),
+                Build.Info(Mill, inputs: new() { [GoodType.Coal] = Build.Whole(10) },
+                                 outputs: new() { [GoodType.Metals] = Build.Whole(3) }));
 
             var simulation = new Simulation(world);
             for (var i = 0; i < 20; i++) simulation.Tick();

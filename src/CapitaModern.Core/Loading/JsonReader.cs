@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using CapitaModern.Core.Economy;
 
 namespace CapitaModern.Core.Loading;
 
@@ -13,7 +14,7 @@ public static class JsonReader
 
         // Первый разбирает enum ("OilRig") и ключи словарей ({"Oil": 10}),
         // второй переводит количества из единиц в сотые.
-        Converters = { new JsonStringEnumConverter(), new GoodAmountJsonConverter() },
+        Converters = { new JsonStringEnumConverter(), new FixedJsonConverter<Goods>() },
 
         // Файлы правятся руками: лишняя запятая и комментарий не должны ронять загрузку.
         AllowTrailingCommas = true,
