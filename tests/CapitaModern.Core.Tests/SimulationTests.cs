@@ -130,7 +130,7 @@ public class SimulationTests
     [Fact]
     public void PlantsInDifferentRegionsShareOneStock()
     {
-        var world = new GameWorld(
+        var world = Build.World(
             [
                 Build.Region(1, 1, new Dictionary<BuildingType, int> { [Mill] = 1 }),
                 Build.Region(2, 1, new Dictionary<BuildingType, int> { [Mill] = 1 }),
@@ -148,7 +148,7 @@ public class SimulationTests
     [Fact]
     public void CountriesDoNotFeedEachOther()
     {
-        var world = new GameWorld(
+        var world = Build.World(
             [
                 Build.Region(1, 1, new Dictionary<BuildingType, int> { [Mill] = 1 }),
                 Build.Region(2, 2, new Dictionary<BuildingType, int> { [Mill] = 1 }),
@@ -204,5 +204,5 @@ public class SimulationTests
     }
 
     private static GameWorld WorldWith(Region region, Country country, params BuildingInfo[] infos) =>
-        new([region], [country], Build.Catalog(infos));
+        Build.World([region], [country], Build.Catalog(infos));
 }

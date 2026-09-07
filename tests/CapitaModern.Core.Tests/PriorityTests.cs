@@ -14,7 +14,7 @@ public class PriorityTests
 
     /// <summary>По заводу на отрасль, каждому нужно 10 угля, а на складе столько-то.</summary>
     private static GameWorld WorldWith(long coal, Dictionary<Sector, int>? weights = null) =>
-        new(
+        Build.World(
             [Build.Region(1, 1, new Dictionary<BuildingType, int> { [Civil] = 1, [Army] = 1 })],
             [Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Whole(coal) }, weights)],
             Build.Catalog(

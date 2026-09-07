@@ -8,12 +8,14 @@ string countriesJson = File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "d
 
 string buildingsJson = File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "economy", "buildings.json"));
 string startBuildingsJson = File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "economy", "start-industry.json"));
+string consumptionJson = File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "economy", "consumption.json"));
 
-var world = WorldDataLoader.LoadWorld(countriesJson, regionsJson, buildingsJson, startBuildingsJson);
+var world = WorldDataLoader.LoadWorld(countriesJson, regionsJson, buildingsJson, startBuildingsJson, consumptionJson);
 var russia = world.Countries.First(c => c.Iso == "RUS");
 
 var simulation = new Simulation(world);
 
+Console.WriteLine(world.Consumption[GoodType.Food].Exact);
 foreach (var tick in Enumerable.Range(0, 30))
 {
     simulation.Tick();

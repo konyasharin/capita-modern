@@ -10,8 +10,9 @@ namespace CapitaModern.Core.Loading;
 /// достаёт Godot, в консоли — File.</summary>
 public static class WorldDataLoader
 {
-    public static GameWorld LoadWorld(string countriesJson, string regionsJson, string buildingsJson, string startBuildingsJson)
+    public static GameWorld LoadWorld(string countriesJson, string regionsJson, string buildingsJson, string startBuildingsJson, string consumptionJson)
     {
+        var consumption = LoadConsumptionFile(consumptionJson).UnitPerMillionPeople;
         var startBuildings = LoadStartBuildingsFile(startBuildingsJson).StartBuildings;
         var countriesFile = LoadCountriesFile(countriesJson);
         var regionsFile = LoadRegionsFile(regionsJson);
@@ -24,12 +25,13 @@ public static class WorldDataLoader
         Country[] countries = countriesFile.Countries.Select(ToCountry).ToArray();
         BuildingCatalog buildingCatalog = BuildingCatalog.FromJson(buildingsJson);
 
-        return new GameWorld(regions, countries, buildingCatalog);
+        return new GameWorld(regions, countries, buildingCatalog, consumption);
     }
 
     private static CountriesFile LoadCountriesFile(string json) => JsonReader.Read<CountriesFile>(json);
     private static RegionsFile LoadRegionsFile(string json) => JsonReader.Read<RegionsFile>(json);
     private static StartBuildingsFile LoadStartBuildingsFile(string json) => JsonReader.Read<StartBuildingsFile>(json);
+    private static ConsumptionFile LoadConsumptionFile(string json) => JsonReader.Read<ConsumptionFile>(json);
     private static Region ToRegion(RegionDto dto, Dictionary<BuildingType, int> buildings) => new(
         dto.Id,
         Population.FromWhole(dto.Population),

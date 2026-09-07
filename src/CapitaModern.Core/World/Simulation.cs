@@ -23,6 +23,13 @@ public sealed class Simulation
 
     /// <summary>Тот же заказ, но умноженный на вес отрасли. По нему делится нехватка.</summary>
     private readonly Tally<GoodType, GoodAmount> _claims = new();
+    /// <summary>Чего не хватило населению. Пока только копится: смертность и настроения,
+    /// на которые это должно влиять, ещё не сделаны.</summary>
+    private readonly Tally<GoodType, GoodAmount> _deficit = new();
+
+    /// <summary>Сколько товара хочет население страны за тик. Считается в первом проходе,
+    /// чтобы во втором не повторять формулу и не разойтись с дележом.</summary>
+    private readonly Tally<GoodType, GoodAmount> _peopleWants = new();
 
     /// <summary>Работоспособные предприятия по стране и типу. Считаются вместе, где бы
     /// ни стояли: склад у страны общий.</summary>
@@ -39,6 +46,7 @@ public sealed class Simulation
         CollectInputs();
         CollectAvailable();
         CollectOutputs();
+        FeedPeople();
         Store();
         UpdateDemographics();
     }
@@ -52,6 +60,8 @@ public sealed class Simulation
         _available.Clear();
         _claims.Clear();
         _working.Clear();
+        _peopleWants.Clear();
+        _deficit.Clear();
     }
 
     /// <summary>Может ли предприятие работать в этой области. Зовётся только из первого
@@ -81,6 +91,20 @@ public sealed class Simulation
                     _claims.Add(owner, input.Key, demand * weight / Priorities.NormalWeight);
                 }
                 _working.Add(owner, building.Key, building.Value);
+            }
+        }
+
+        // Население — такой же претендент на товар, как отрасли, и со своим весом:
+        // карточная система станет обычным законом, который этот вес поднимает.
+        foreach (var country in _world.Countries)
+        {
+            var weight = country.Priorities.WeightOf(Sector.People);
+            foreach (var (good, ratePerMillion) in _world.Consumption)
+            {
+                var wanted = ratePerMillion * _world.PopulationOf(country.Id).Whole / 1_000_000;
+                _peopleWants.Add(country.Id, good, wanted);
+                _inputs.Add(country.Id, good, wanted);
+                _claims.Add(country.Id, good, wanted * weight / Priorities.NormalWeight);
             }
         }
     }
@@ -134,6 +158,18 @@ public sealed class Simulation
             {
                 _outputs.Add(country, good, amount * runs / Load.Full);
             }
+        }
+    }
+
+    /// <summary>Население забирает свою долю. Недобор одного товара не отменяет выдачу
+    /// остальных — в отличие от рецепта, где либо всё, либо ничего.</summary>
+    private void FeedPeople()
+    {
+        foreach (var (country, good, wanted) in _peopleWants)
+        {
+            var deficit = wanted - _world.CountryById(country).Stock.TakeUpTo(good, wanted);
+            if (deficit.Raw == 0) continue;
+            _deficit.Add(country, good, deficit);
         }
     }
 

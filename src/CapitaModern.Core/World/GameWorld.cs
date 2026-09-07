@@ -1,4 +1,5 @@
 ﻿using CapitaModern.Core.Buildings;
+using CapitaModern.Core.Economy;
 
 namespace CapitaModern.Core.World;
 
@@ -6,6 +7,8 @@ namespace CapitaModern.Core.World;
 public sealed class GameWorld
 {
     public BuildingCatalog Buildings { get; }
+    /// <summary>Сколько товара население съедает за сутки на миллион человек.</summary>
+    public readonly IReadOnlyDictionary<GoodType, GoodAmount> Consumption;
 
     private readonly Region[] _regions;
     private readonly Country[] _countries;
@@ -13,9 +16,14 @@ public sealed class GameWorld
     private readonly Country[] _countriesById;
     private readonly Population[] _populationsByCountry;
 
-    public GameWorld(Region[] regions, Country[] countries, BuildingCatalog buildings)
-    {
+    public GameWorld(
+        Region[] regions,
+        Country[] countries,
+        BuildingCatalog buildings,
+        IReadOnlyDictionary<GoodType, GoodAmount> consumption
+    ) {
         Buildings = buildings;
+        Consumption = consumption;
         _regions = regions;
         _countries = countries;
 

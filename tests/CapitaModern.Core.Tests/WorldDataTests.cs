@@ -20,7 +20,8 @@ public class WorldDataTests
             Read("data", "map", "countries.json"),
             Read("data", "map", "regions.json"),
             Read("data", "economy", "buildings.json"),
-            Read("data", "economy", "start-industry.json"));
+            Read("data", "economy", "start-industry.json"),
+            Read("data", "economy", "consumption.json"));
     }
 
     [Fact]

@@ -46,6 +46,10 @@ internal static class Build
         int population = 1000) =>
         new(id, Population.FromWhole(population), new Dictionary<byte, int> { [owner] = cells }, buildings ?? [], deposits ?? []);
 
+    /// <summary>Мир без потребления населением: тесты производства о нём не знают.</summary>
+    public static GameWorld World(Region[] regions, Country[] countries, BuildingCatalog catalog) =>
+        new(regions, countries, catalog, new Dictionary<GoodType, GoodAmount>());
+
     public static Country Country(
         byte id,
         Dictionary<GoodType, GoodAmount>? stock = null,
