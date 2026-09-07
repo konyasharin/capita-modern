@@ -44,7 +44,7 @@ internal static class Build
         Dictionary<GoodType, int>? deposits = null,
         int cells = 10,
         int population = 1000) =>
-        new(id, population, new Dictionary<byte, int> { [owner] = cells }, buildings ?? [], deposits ?? []);
+        new(id, Population.FromWhole(population), new Dictionary<byte, int> { [owner] = cells }, buildings ?? [], deposits ?? []);
 
     public static Country Country(
         byte id,

@@ -11,4 +11,8 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'ExportRelease' ">
     <Optimize>true</Optimize>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Тестам нужны internal-члены: они проверяют инварианты, а не публичный слой -->
+    <InternalsVisibleTo Include="CapitaModern.Core.Tests" />
+  </ItemGroup>
 </Project>

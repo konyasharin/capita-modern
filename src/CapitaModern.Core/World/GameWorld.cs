@@ -11,6 +11,7 @@ public sealed class GameWorld
     private readonly Country[] _countries;
     private readonly Region[] _regionsById;
     private readonly Country[] _countriesById;
+    private readonly Population[] _populationsByCountry;
 
     public GameWorld(Region[] regions, Country[] countries, BuildingCatalog buildings)
     {
@@ -23,6 +24,9 @@ public sealed class GameWorld
 
         _countriesById = new Country[countries.Max(country => country.Id) + 1];
         foreach (var country in countries) _countriesById[country.Id] = country;
+
+        _populationsByCountry = new Population[_countries.Max(country => country.Id) + 1];
+        UpdatePopulations();
     }
 
     public IReadOnlyList<Region> Regions => _regions;
@@ -37,4 +41,23 @@ public sealed class GameWorld
             country :
             throw new ArgumentOutOfRangeException(nameof(id), id, "Страны не найдено");
 
+    public Population PopulationOf(byte country) =>
+        country < _populationsByCountry.Length ?
+            _populationsByCountry[country] :
+            throw new ArgumentOutOfRangeException(nameof(country), country, "Страны не найдено");
+
+    public void UpdatePopulations()
+    {
+        Array.Clear(_populationsByCountry);
+        foreach (var region in _regions)
+        {
+            _populationsByCountry[region.LargestOwner] += region.Demographics.Population;
+        }
+    }
+
+    public void TransferCells(int region, byte from, byte to, int count)
+    {
+        _regionsById[region].TransferCells(from, to, count);
+        UpdatePopulations();
+    }
 }

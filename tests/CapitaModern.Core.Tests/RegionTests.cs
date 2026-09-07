@@ -8,14 +8,14 @@ namespace CapitaModern.Core.Tests;
 public class RegionTests
 {
     private static Region Split(int first, int second, Dictionary<BuildingType, int>? buildings = null) =>
-        new(1, 1000, new Dictionary<byte, int> { [1] = first, [2] = second },
+        new(1, Population.FromWhole(1000), new Dictionary<byte, int> { [1] = first, [2] = second },
             buildings ?? new Dictionary<BuildingType, int>(), new Dictionary<GoodType, int>());
 
     [Fact]
     public void RegionWithoutOwnersIsRejected()
     {
         Assert.Throws<ArgumentException>(() =>
-            new Region(1, 0, new Dictionary<byte, int>(), new Dictionary<BuildingType, int>(), new Dictionary<GoodType, int>()));
+            new Region(1, default, new Dictionary<byte, int>(), new Dictionary<BuildingType, int>(), new Dictionary<GoodType, int>()));
     }
 
     [Fact]

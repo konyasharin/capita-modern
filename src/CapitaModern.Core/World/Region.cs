@@ -12,7 +12,7 @@ public sealed class Region
     /// <summary>Ячеек карты в области. Считается из долей.</summary>
     public int CellsCount { get; }
 
-    public int Population { get; private set; }
+    public Demographics Demographics { get; }
 
     /// <summary>Сколько ячеек у какой страны. Сумма всегда равна CellsCount.</summary>
     private Dictionary<byte, int> Owned { get; }
@@ -23,12 +23,13 @@ public sealed class Region
     /// <summary>Что можно добывать. Чего нет — того не добыть.</summary>
     private Dictionary<GoodType, int> Deposits { get; }
 
-    public Region(int id, int population, IReadOnlyDictionary<byte, int> owned, IReadOnlyDictionary<BuildingType, int> buildings, IReadOnlyDictionary<GoodType, int> deposits)
+    public Region(int id, Population population, IReadOnlyDictionary<byte, int> owned,
+        IReadOnlyDictionary<BuildingType, int> buildings, IReadOnlyDictionary<GoodType, int> deposits)
     {
         if (owned.Values.Sum() == 0) throw new ArgumentException("Регион без владельцев");
 
         Id = id;
-        Population = population;
+        Demographics = new Demographics(population);
         Owned = new(owned);
         Buildings = new(buildings);
         Deposits = new(deposits);
@@ -64,7 +65,7 @@ public sealed class Region
     public bool IsSplit => Owned.Count > 1;
     /// <summary>Единственный способ менять владение: держит сумму долей и не даёт уйти
     /// в минус.</summary>
-    public void TransferCells(byte from, byte to, int count)
+    internal void TransferCells(byte from, byte to, int count)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);
         if (from == to) throw new ArgumentException($"Id стран одинаковые - {from} = {to}");

@@ -10,8 +10,6 @@ public sealed class Country
     public byte Id { get; }
     public string Name { get; }
     public string Iso { get; }
-    public int Population { get; } = 0;
-
     public Treasury Treasury { get; }
     public Stock Stock { get; }
     public Priorities Priorities { get; }
@@ -24,6 +22,5 @@ public sealed class Country
         Treasury = treasury;
         Stock = stock;
         Priorities = priorities;
-
     }
 }

@@ -40,6 +40,7 @@ public sealed class Simulation
         CollectAvailable();
         CollectOutputs();
         Store();
+        UpdateDemographics();
     }
 
     /// <summary>Счётчики живут один тик. Чистим в начале, чтобы прошлые числа можно было
@@ -143,4 +144,16 @@ public sealed class Simulation
             _world.CountryById(country).Stock.Store(good, amount);
         }
     }
+
+    private void UpdateDemographics()
+    {
+        var random = new Random(123313); // пока делаем изменение население рандомным и всегда в плюс;
+        foreach (var region in _world.Regions)
+        {
+            var diff = random.Next(1, 10);
+            region.Demographics.Grow(Population.FromWhole(diff));
+        }
+        _world.UpdatePopulations();
+    }
+
 }

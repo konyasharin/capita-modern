@@ -30,14 +30,14 @@ public static class WorldDataLoader
     private static CountriesFile LoadCountriesFile(string json) => JsonReader.Read<CountriesFile>(json);
     private static RegionsFile LoadRegionsFile(string json) => JsonReader.Read<RegionsFile>(json);
     private static StartBuildingsFile LoadStartBuildingsFile(string json) => JsonReader.Read<StartBuildingsFile>(json);
-    private static Region ToRegion(RegionDto dto, Dictionary<BuildingType, int> buildings) => new Region(
+    private static Region ToRegion(RegionDto dto, Dictionary<BuildingType, int> buildings) => new(
         dto.Id,
-        dto.Population,
+        Population.FromWhole(dto.Population),
         new Dictionary<byte, int>{ [dto.Country] = dto.Cells },
         buildings,
         dto.Deposits
     );
-    private static Country ToCountry(CountryDto dto) => new Country(
+    private static Country ToCountry(CountryDto dto) => new(
         dto.Id,
         dto.Name,
         dto.Iso,
