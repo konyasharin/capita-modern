@@ -14,6 +14,7 @@
 - [`05-architecture.md`](./docs/05-architecture.md) — проекты, тик, данные, сейвы
 - [`06-roadmap.md`](./docs/06-roadmap.md) — фазы и нерешённые вопросы
 - [`07-economy.md`](./docs/07-economy.md) — категории товаров, кто строит предприятия
+- [`08-economic-model.md`](./docs/08-economic-model.md) — **полный расчёт экономики: формулы, данные, погрешность**
 
 ## Стек
 
