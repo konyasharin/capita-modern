@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using CapitaModern.Core.Economy;
 using CapitaModern.Core.Loading;
 using CapitaModern.Core.World;
@@ -89,7 +89,7 @@ public class WorldDataTests
         {
             foreach (var good in Enum.GetValues<GoodType>())
             {
-                Assert.True(country.Stock.Of(good) >= default(GoodAmount),
+                Assert.True(country.State.Stock.Of(good) >= default(GoodAmount),
                     $"{country.Iso} ушла в минус по {good}");
             }
         }
@@ -124,7 +124,7 @@ public class WorldDataTests
             var simulation = new Simulation(world);
             for (var tick = 0; tick < 30; tick++) simulation.Tick();
 
-            return world.Countries.Sum(country => country.Stock.Of(GoodType.Metals).Raw);
+            return world.Countries.Sum(country => country.State.Stock.Of(GoodType.Metals).Raw);
         }
 
         Assert.Equal(Run(), Run());

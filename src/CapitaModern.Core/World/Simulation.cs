@@ -113,7 +113,7 @@ public sealed class Simulation
     {
         foreach (var (country, good, _) in _inputs)
         {
-            _available.Set(country, good, _world.CountryById(country).Stock.Of(good));
+            _available.Set(country, good, _world.CountryById(country).State.Stock.Of(good));
         }
     }
 
@@ -150,7 +150,7 @@ public sealed class Simulation
             if (runs == 0) continue;
 
             // Приведение безопасно: runs не может превысить count, с которого начали.
-            var consumed = _world.CountryById(country).Stock.TryConsume(recipe.Inputs, runs);
+            var consumed = _world.CountryById(country).State.Stock.TryConsume(recipe.Inputs, runs);
             if (!consumed) throw new InvalidOperationException("Не получилось потратить предметы " +
                                                                "со склада, ошибка в расчетах в коде");
 
@@ -167,7 +167,7 @@ public sealed class Simulation
     {
         foreach (var (country, good, wanted) in _peopleWants)
         {
-            var deficit = wanted - _world.CountryById(country).Stock.TakeUpTo(good, wanted);
+            var deficit = wanted - _world.CountryById(country).State.Stock.TakeUpTo(good, wanted);
             if (deficit.Raw == 0) continue;
             _deficit.Add(country, good, deficit);
         }
@@ -177,7 +177,7 @@ public sealed class Simulation
     {
         foreach (var (country, good, amount) in _outputs)
         {
-            _world.CountryById(country).Stock.Store(good, amount);
+            _world.CountryById(country).State.Stock.Store(good, amount);
         }
     }
 

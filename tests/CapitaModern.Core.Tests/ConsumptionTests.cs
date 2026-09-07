@@ -1,4 +1,4 @@
-using CapitaModern.Core.Buildings;
+﻿using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
 using CapitaModern.Core.Politics;
 using CapitaModern.Core.World;
@@ -34,7 +34,7 @@ public class ConsumptionTests
 
         new Simulation(world).Tick();
 
-        Assert.Equal(Build.Whole(94), world.CountryById(1).Stock.Of(GoodType.Food));
+        Assert.Equal(Build.Whole(94), world.CountryById(1).State.Stock.Of(GoodType.Food));
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class ConsumptionTests
         var simulation = new Simulation(world);
         for (var tick = 0; tick < 5; tick++) simulation.Tick();
 
-        Assert.Equal(Build.Whole(70), world.CountryById(1).Stock.Of(GoodType.Food));
+        Assert.Equal(Build.Whole(70), world.CountryById(1).State.Stock.Of(GoodType.Food));
     }
 
     /// <summary>Вдвое больше людей — вдвое больше съедено.</summary>
@@ -58,8 +58,8 @@ public class ConsumptionTests
         new Simulation(small).Tick();
         new Simulation(big).Tick();
 
-        Assert.Equal(Build.Whole(94), small.CountryById(1).Stock.Of(GoodType.Food));
-        Assert.Equal(Build.Whole(88), big.CountryById(1).Stock.Of(GoodType.Food));
+        Assert.Equal(Build.Whole(94), small.CountryById(1).State.Stock.Of(GoodType.Food));
+        Assert.Equal(Build.Whole(88), big.CountryById(1).State.Stock.Of(GoodType.Food));
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class ConsumptionTests
 
         new Simulation(world).Tick();
 
-        Assert.Equal(default, world.CountryById(1).Stock.Of(GoodType.Food));
+        Assert.Equal(default, world.CountryById(1).State.Stock.Of(GoodType.Food));
     }
 
     /// <summary>Съесть больше, чем лежит, нельзя — склад просто опустеет.</summary>
@@ -81,7 +81,7 @@ public class ConsumptionTests
         var simulation = new Simulation(world);
         for (var tick = 0; tick < 3; tick++) simulation.Tick();
 
-        Assert.Equal(default, world.CountryById(1).Stock.Of(GoodType.Food));
+        Assert.Equal(default, world.CountryById(1).State.Stock.Of(GoodType.Food));
     }
 
     /// <summary>Свежая еда достаётся следующему тику: население ест до пополнения складов.</summary>
@@ -94,11 +94,11 @@ public class ConsumptionTests
         var simulation = new Simulation(world);
         simulation.Tick();
 
-        Assert.Equal(Build.Whole(10), world.CountryById(1).Stock.Of(GoodType.Food));
+        Assert.Equal(Build.Whole(10), world.CountryById(1).State.Stock.Of(GoodType.Food));
 
         simulation.Tick();
 
-        Assert.Equal(Build.Whole(18), world.CountryById(1).Stock.Of(GoodType.Food));
+        Assert.Equal(Build.Whole(18), world.CountryById(1).State.Stock.Of(GoodType.Food));
     }
 
     /// <summary>Население делит нехватку с заводами по весу, а не берёт вне очереди.</summary>
@@ -121,8 +121,8 @@ public class ConsumptionTests
 
         // Завод и население заказали по 2, на складе 1: каждому по 0.5 еды.
         // Заводу на запуск нужно 2, значит он отработает четверть и выдаст 0.25.
-        Assert.Equal(Build.Whole(1) / 4, country.Stock.Of(GoodType.ConsumerGoods));
-        Assert.Equal(default, country.Stock.Of(GoodType.Food));
+        Assert.Equal(Build.Whole(1) / 4, country.State.Stock.Of(GoodType.ConsumerGoods));
+        Assert.Equal(default, country.State.Stock.Of(GoodType.Food));
     }
 
     /// <summary>Нулевой вес населения отдаёт всё заводам.</summary>
@@ -143,7 +143,7 @@ public class ConsumptionTests
 
         new Simulation(world).Tick();
 
-        Assert.Equal(Build.Whole(1) / 2, world.CountryById(1).Stock.Of(GoodType.ConsumerGoods));
+        Assert.Equal(Build.Whole(1) / 2, world.CountryById(1).State.Stock.Of(GoodType.ConsumerGoods));
     }
 
     /// <summary>Без ставок население не ест вовсе — так устроены тесты производства.</summary>
@@ -154,6 +154,6 @@ public class ConsumptionTests
 
         new Simulation(world).Tick();
 
-        Assert.Equal(Build.Whole(100), world.CountryById(1).Stock.Of(GoodType.Food));
+        Assert.Equal(Build.Whole(100), world.CountryById(1).State.Stock.Of(GoodType.Food));
     }
 }

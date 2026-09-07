@@ -1,4 +1,4 @@
-using CapitaModern.Core.Buildings;
+﻿using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
 using CapitaModern.Core.Politics;
 using CapitaModern.Core.World;
@@ -48,9 +48,9 @@ public class PriorityTests
 
         var country = world.CountryById(1);
 
-        Assert.Equal(Part(1, 2), country.Stock.Of(GoodType.ConsumerGoods));
-        Assert.Equal(Part(1, 2), country.Stock.Of(GoodType.Armour));
-        Assert.Equal(default, country.Stock.Of(GoodType.Coal));
+        Assert.Equal(Part(1, 2), country.State.Stock.Of(GoodType.ConsumerGoods));
+        Assert.Equal(Part(1, 2), country.State.Stock.Of(GoodType.Armour));
+        Assert.Equal(default, country.State.Stock.Of(GoodType.Coal));
     }
 
     /// <summary>Втрое больший вес даёт втрое большую долю: 75 против 25 процентов.</summary>
@@ -66,9 +66,9 @@ public class PriorityTests
 
         var country = world.CountryById(1);
 
-        Assert.Equal(Part(3, 4), country.Stock.Of(GoodType.Armour));
-        Assert.Equal(Part(1, 4), country.Stock.Of(GoodType.ConsumerGoods));
-        Assert.Equal(default, country.Stock.Of(GoodType.Coal));
+        Assert.Equal(Part(3, 4), country.State.Stock.Of(GoodType.Armour));
+        Assert.Equal(Part(1, 4), country.State.Stock.Of(GoodType.ConsumerGoods));
+        Assert.Equal(default, country.State.Stock.Of(GoodType.Coal));
     }
 
     /// <summary>Приоритет включается только в нехватке: когда сырья хватает, он не значит ничего.</summary>
@@ -84,9 +84,9 @@ public class PriorityTests
 
         var country = world.CountryById(1);
 
-        Assert.Equal(Build.Whole(1), country.Stock.Of(GoodType.Armour));
-        Assert.Equal(Build.Whole(1), country.Stock.Of(GoodType.ConsumerGoods));
-        Assert.Equal(Build.Whole(80), country.Stock.Of(GoodType.Coal));
+        Assert.Equal(Build.Whole(1), country.State.Stock.Of(GoodType.Armour));
+        Assert.Equal(Build.Whole(1), country.State.Stock.Of(GoodType.ConsumerGoods));
+        Assert.Equal(Build.Whole(80), country.State.Stock.Of(GoodType.Coal));
     }
 
     /// <summary>Нулевой вес отключает отрасль от снабжения полностью.</summary>
@@ -99,8 +99,8 @@ public class PriorityTests
 
         var country = world.CountryById(1);
 
-        Assert.Equal(default, country.Stock.Of(GoodType.ConsumerGoods));
-        Assert.Equal(Build.Whole(1), country.Stock.Of(GoodType.Armour));
+        Assert.Equal(default, country.State.Stock.Of(GoodType.ConsumerGoods));
+        Assert.Equal(Build.Whole(1), country.State.Stock.Of(GoodType.Armour));
     }
 
     /// <summary>Доля не может превысить собственный заказ: лишнее остаётся на складе.</summary>
@@ -116,8 +116,8 @@ public class PriorityTests
 
         var country = world.CountryById(1);
 
-        Assert.Equal(Build.Whole(1), country.Stock.Of(GoodType.Armour));
-        Assert.True(country.Stock.Of(GoodType.Coal) > default(GoodAmount), "остаток должен остаться на складе");
+        Assert.Equal(Build.Whole(1), country.State.Stock.Of(GoodType.Armour));
+        Assert.True(country.State.Stock.Of(GoodType.Coal) > default(GoodAmount), "остаток должен остаться на складе");
     }
 
     [Fact]

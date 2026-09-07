@@ -1,4 +1,4 @@
-using CapitaModern.Core.Economy;
+﻿using CapitaModern.Core.Economy;
 using Xunit;
 
 namespace CapitaModern.Core.Tests;
@@ -10,10 +10,10 @@ public class CountryTests
     {
         var country = Build.Country(1);
 
-        country.Treasury.Receive(100);
+        country.State.Treasury.Receive(100);
 
-        Assert.True(country.Treasury.TrySpend(40));
-        Assert.Equal(60, country.Treasury.Balance);
+        Assert.True(country.State.Treasury.TrySpend(40));
+        Assert.Equal(60, country.State.Treasury.Balance);
     }
 
     [Fact]
@@ -21,10 +21,10 @@ public class CountryTests
     {
         var country = Build.Country(1);
 
-        country.Treasury.Receive(100);
+        country.State.Treasury.Receive(100);
 
-        Assert.False(country.Treasury.TrySpend(101));
-        Assert.Equal(100, country.Treasury.Balance);
+        Assert.False(country.State.Treasury.TrySpend(101));
+        Assert.Equal(100, country.State.Treasury.Balance);
     }
 
     [Fact]
@@ -32,10 +32,10 @@ public class CountryTests
     {
         var country = Build.Country(1);
 
-        country.Treasury.Receive(100);
+        country.State.Treasury.Receive(100);
 
-        Assert.True(country.Treasury.TrySpend(100));
-        Assert.Equal(0, country.Treasury.Balance);
+        Assert.True(country.State.Treasury.TrySpend(100));
+        Assert.Equal(0, country.State.Treasury.Balance);
     }
 
     [Fact]
@@ -43,8 +43,8 @@ public class CountryTests
     {
         var country = Build.Country(1);
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => country.Treasury.Receive(-1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => country.Treasury.TrySpend(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => country.State.Treasury.Receive(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => country.State.Treasury.TrySpend(-1));
     }
 
     [Fact]
@@ -52,6 +52,6 @@ public class CountryTests
     {
         var country = Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Coal] = Build.Whole(5) });
 
-        Assert.Equal(Build.Whole(5), country.Stock.Of(GoodType.Coal));
+        Assert.Equal(Build.Whole(5), country.State.Stock.Of(GoodType.Coal));
     }
 }

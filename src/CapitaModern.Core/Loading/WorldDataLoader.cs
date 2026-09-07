@@ -43,8 +43,8 @@ public static class WorldDataLoader
         dto.Id,
         dto.Name,
         dto.Iso,
-        new Treasury(0),
-        new Stock(new Dictionary<GoodType, GoodAmount>()),
+        // Номер продавца пока совпадает с номером страны: государство одно на страну.
+        new Producer(dto.Id, new Stock(new Dictionary<GoodType, GoodAmount>()), new Treasury(0)),
         new Priorities()
     ); // баланс и склад - заглушки
 }

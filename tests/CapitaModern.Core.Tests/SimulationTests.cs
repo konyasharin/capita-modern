@@ -1,4 +1,4 @@
-using CapitaModern.Core.Buildings;
+﻿using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
 using CapitaModern.Core.World;
 using Xunit;
@@ -22,7 +22,7 @@ public class SimulationTests
 
         new Simulation(world).Tick();
 
-        Assert.Equal(Build.Whole(30), world.CountryById(1).Stock.Of(GoodType.Coal));
+        Assert.Equal(Build.Whole(30), world.CountryById(1).State.Stock.Of(GoodType.Coal));
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class SimulationTests
         var simulation = new Simulation(world);
         for (var i = 0; i < 5; i++) simulation.Tick();
 
-        Assert.Equal(Build.Whole(50), world.CountryById(1).Stock.Of(GoodType.Coal));
+        Assert.Equal(Build.Whole(50), world.CountryById(1).State.Stock.Of(GoodType.Coal));
     }
 
     /// <summary>Свежая продукция достаётся следующему тику, а не заводам в этом же.</summary>
@@ -53,11 +53,11 @@ public class SimulationTests
         var simulation = new Simulation(world);
         simulation.Tick();
 
-        Assert.Equal(default, world.CountryById(1).Stock.Of(GoodType.Metals));
+        Assert.Equal(default, world.CountryById(1).State.Stock.Of(GoodType.Metals));
 
         simulation.Tick();
 
-        Assert.Equal(Build.Whole(4), world.CountryById(1).Stock.Of(GoodType.Metals));
+        Assert.Equal(Build.Whole(4), world.CountryById(1).State.Stock.Of(GoodType.Metals));
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class SimulationTests
 
         new Simulation(world).Tick();
 
-        Assert.Equal(default, world.CountryById(1).Stock.Of(GoodType.Oil));
+        Assert.Equal(default, world.CountryById(1).State.Stock.Of(GoodType.Oil));
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class SimulationTests
 
         new Simulation(world).Tick();
 
-        Assert.Equal(Build.Whole(10), world.CountryById(1).Stock.Of(GoodType.Oil));
+        Assert.Equal(Build.Whole(10), world.CountryById(1).State.Stock.Of(GoodType.Oil));
     }
 
     /// <summary>
@@ -106,9 +106,9 @@ public class SimulationTests
 
         var country = world.CountryById(1);
 
-        Assert.Equal(Build.Whole(1) / 2, country.Stock.Of(GoodType.Metals));
-        Assert.Equal(Build.Whole(2), country.Stock.Of(GoodType.Chemicals));
-        Assert.Equal(default, country.Stock.Of(GoodType.Coal));
+        Assert.Equal(Build.Whole(1) / 2, country.State.Stock.Of(GoodType.Metals));
+        Assert.Equal(Build.Whole(2), country.State.Stock.Of(GoodType.Chemicals));
+        Assert.Equal(default, country.State.Stock.Of(GoodType.Coal));
     }
 
     /// <summary>Ради этого и вводилась дробная загрузка: раньше такой завод стоял.</summary>
@@ -123,7 +123,7 @@ public class SimulationTests
 
         new Simulation(world).Tick();
 
-        Assert.Equal(new GoodAmount(GoodAmount.Scale * 3 / 10), world.CountryById(1).Stock.Of(GoodType.Metals));
+        Assert.Equal(new GoodAmount(GoodAmount.Scale * 3 / 10), world.CountryById(1).State.Stock.Of(GoodType.Metals));
     }
 
     /// <summary>Заводы одной страны считаются вместе, где бы ни стояли.</summary>
@@ -142,7 +142,7 @@ public class SimulationTests
 
         new Simulation(world).Tick();
 
-        Assert.Equal(Build.Whole(2), world.CountryById(1).Stock.Of(GoodType.Metals));
+        Assert.Equal(Build.Whole(2), world.CountryById(1).State.Stock.Of(GoodType.Metals));
     }
 
     [Fact]
@@ -163,8 +163,8 @@ public class SimulationTests
 
         new Simulation(world).Tick();
 
-        Assert.Equal(Build.Whole(1), world.CountryById(1).Stock.Of(GoodType.Metals));
-        Assert.Equal(default, world.CountryById(2).Stock.Of(GoodType.Metals));
+        Assert.Equal(Build.Whole(1), world.CountryById(1).State.Stock.Of(GoodType.Metals));
+        Assert.Equal(default, world.CountryById(2).State.Stock.Of(GoodType.Metals));
     }
 
     [Fact]
@@ -178,7 +178,7 @@ public class SimulationTests
 
         new Simulation(world).Tick();
 
-        Assert.Equal(default, world.CountryById(1).Stock.Of(GoodType.Metals));
+        Assert.Equal(default, world.CountryById(1).State.Stock.Of(GoodType.Metals));
     }
 
     /// <summary>Тик обязан быть воспроизводимым: одинаковый старт — одинаковый итог.</summary>
@@ -197,7 +197,7 @@ public class SimulationTests
             var simulation = new Simulation(world);
             for (var i = 0; i < 20; i++) simulation.Tick();
 
-            return world.CountryById(1).Stock.Of(GoodType.Metals);
+            return world.CountryById(1).State.Stock.Of(GoodType.Metals);
         }
 
         Assert.Equal(Run(), Run());
