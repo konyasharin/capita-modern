@@ -9,7 +9,7 @@
 		"outputs": {
 			"Coal": 20
 		},
-		"optimalWorkers": 3000,
+		"optimalWorkers": 6306,
 		"buildCost": {
 			"Materials": 220,
 			"Metals": 120
@@ -25,7 +25,7 @@
 		"outputs": {
 			"Oil": 15
 		},
-		"optimalWorkers": 1500,
+		"optimalWorkers": 3663,
 		"buildCost": {
 			"Materials": 180,
 			"Metals": 200
@@ -41,7 +41,7 @@
 		"outputs": {
 			"Gas": 18
 		},
-		"optimalWorkers": 1200,
+		"optimalWorkers": 1608,
 		"buildCost": {
 			"Materials": 160,
 			"Metals": 180
@@ -57,7 +57,7 @@
 		"outputs": {
 			"IronOre": 20
 		},
-		"optimalWorkers": 3000,
+		"optimalWorkers": 4386,
 		"buildCost": {
 			"Materials": 220,
 			"Metals": 120
@@ -73,7 +73,7 @@
 		"outputs": {
 			"CopperOre": 8
 		},
-		"optimalWorkers": 2500,
+		"optimalWorkers": 3584,
 		"buildCost": {
 			"Materials": 200,
 			"Metals": 130
@@ -89,7 +89,7 @@
 		"outputs": {
 			"Bauxite": 12
 		},
-		"optimalWorkers": 2000,
+		"optimalWorkers": 2381,
 		"buildCost": {
 			"Materials": 180,
 			"Metals": 100
@@ -105,7 +105,7 @@
 		"outputs": {
 			"Uranium": 2
 		},
-		"optimalWorkers": 1500,
+		"optimalWorkers": 676,
 		"buildCost": {
 			"Materials": 240,
 			"Metals": 160
@@ -121,7 +121,7 @@
 		"outputs": {
 			"RareEarth": 3
 		},
-		"optimalWorkers": 1800,
+		"optimalWorkers": 752,
 		"buildCost": {
 			"Materials": 200,
 			"Metals": 140
@@ -137,7 +137,7 @@
 		"outputs": {
 			"Timber": 15
 		},
-		"optimalWorkers": 1000,
+		"optimalWorkers": 17931,
 		"buildCost": {
 			"Materials": 90,
 			"Metals": 40
@@ -153,7 +153,7 @@
 		"outputs": {
 			"Agriculture": 25
 		},
-		"optimalWorkers": 5000,
+		"optimalWorkers": 992018,
 		"buildCost": {
 			"Materials": 120,
 			"Metals": 60
@@ -171,7 +171,7 @@
 		"outputs": {
 			"Electricity": 20
 		},
-		"optimalWorkers": 800,
+		"optimalWorkers": 5848,
 		"buildCost": {
 			"Materials": 400,
 			"Metals": 260
@@ -189,7 +189,7 @@
 		"outputs": {
 			"Electricity": 20
 		},
-		"optimalWorkers": 500,
+		"optimalWorkers": 4505,
 		"buildCost": {
 			"Materials": 300,
 			"Metals": 220
@@ -207,7 +207,7 @@
 		"outputs": {
 			"Electricity": 40
 		},
-		"optimalWorkers": 1500,
+		"optimalWorkers": 8696,
 		"buildCost": {
 			"Materials": 900,
 			"Metals": 600,
@@ -224,7 +224,7 @@
 		"outputs": {
 			"Electricity": 25
 		},
-		"optimalWorkers": 400,
+		"optimalWorkers": 2797,
 		"buildCost": {
 			"Materials": 800,
 			"Metals": 300
@@ -243,7 +243,7 @@
 		"outputs": {
 			"Fuel": 10
 		},
-		"optimalWorkers": 1200,
+		"optimalWorkers": 1698,
 		"buildCost": {
 			"Materials": 350,
 			"Metals": 400
@@ -263,7 +263,7 @@
 		"outputs": {
 			"Metals": 10
 		},
-		"optimalWorkers": 4000,
+		"optimalWorkers": 11742,
 		"buildCost": {
 			"Materials": 450,
 			"Metals": 350
@@ -276,14 +276,14 @@
 		"sector": "Heavy",
 		"requiresDeposit": null,
 		"inputs": {
-			"Bauxite": 30,
-			"CopperOre": 8,
-			"Electricity": 50
+			"Bauxite": 16,
+			"CopperOre": 4.3,
+			"Electricity": 27
 		},
 		"outputs": {
 			"Metals": 8
 		},
-		"optimalWorkers": 2500,
+		"optimalWorkers": 29412,
 		"buildCost": {
 			"Materials": 380,
 			"Metals": 300
@@ -303,7 +303,7 @@
 		"outputs": {
 			"Chemicals": 10
 		},
-		"optimalWorkers": 2000,
+		"optimalWorkers": 25806,
 		"buildCost": {
 			"Materials": 400,
 			"Metals": 320
@@ -323,7 +323,7 @@
 		"outputs": {
 			"Materials": 12
 		},
-		"optimalWorkers": 1500,
+		"optimalWorkers": 16026,
 		"buildCost": {
 			"Materials": 200,
 			"Metals": 180
@@ -336,14 +336,14 @@
 		"sector": "Heavy",
 		"requiresDeposit": null,
 		"inputs": {
-			"Metals": 6,
-			"Chemicals": 3,
-			"Electricity": 4
+			"Metals": 2.4,
+			"Chemicals": 1.2,
+			"Electricity": 1.6
 		},
 		"outputs": {
 			"Components": 30
 		},
-		"optimalWorkers": 1800,
+		"optimalWorkers": 16287,
 		"buildCost": {
 			"Materials": 200,
 			"Metals": 150
@@ -356,16 +356,16 @@
 		"sector": "Heavy",
 		"requiresDeposit": null,
 		"inputs": {
-			"Components": 8,
-			"RareEarth": 1,
-			"CopperOre": 3,
-			"Chemicals": 4,
-			"Electricity": 8
+			"Components": 5,
+			"RareEarth": 0.63,
+			"CopperOre": 1.9,
+			"Chemicals": 2.5,
+			"Electricity": 5
 		},
 		"outputs": {
 			"Electronics": 47
 		},
-		"optimalWorkers": 3000,
+		"optimalWorkers": 14851,
 		"buildCost": {
 			"Materials": 350,
 			"Metals": 250,
@@ -379,15 +379,15 @@
 		"sector": "Heavy",
 		"requiresDeposit": null,
 		"inputs": {
-			"Electronics": 6,
-			"RareEarth": 2,
-			"Chemicals": 3,
-			"Electricity": 10
+			"Electronics": 4.4,
+			"RareEarth": 1.5,
+			"Chemicals": 2.2,
+			"Electricity": 7.3
 		},
 		"outputs": {
 			"Microelectronics": 20
 		},
-		"optimalWorkers": 4000,
+		"optimalWorkers": 7500,
 		"buildCost": {
 			"Materials": 420,
 			"Metals": 300,
@@ -408,7 +408,7 @@
 		"outputs": {
 			"Food": 20
 		},
-		"optimalWorkers": 2500,
+		"optimalWorkers": 60827,
 		"buildCost": {
 			"Materials": 260,
 			"Metals": 160
@@ -430,7 +430,7 @@
 		"outputs": {
 			"ConsumerGoods": 8
 		},
-		"optimalWorkers": 4000,
+		"optimalWorkers": 142857,
 		"buildCost": {
 			"Materials": 300,
 			"Metals": 200,
@@ -450,7 +450,7 @@
 		"outputs": {
 			"Medicine": 4
 		},
-		"optimalWorkers": 1500,
+		"optimalWorkers": 20000,
 		"buildCost": {
 			"Materials": 280,
 			"Metals": 180,
@@ -464,14 +464,14 @@
 		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
-			"Metals": 12,
-			"Chemicals": 2,
-			"Components": 4
+			"Metals": 3.3,
+			"Chemicals": 0.55,
+			"Components": 1.1
 		},
 		"outputs": {
 			"Armour": 1
 		},
-		"optimalWorkers": 6000,
+		"optimalWorkers": 75000,
 		"buildCost": {
 			"Materials": 500,
 			"Metals": 420,
@@ -485,14 +485,14 @@
 		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
-			"Metals": 10,
-			"Chemicals": 1,
-			"Components": 3
+			"Metals": 2.1,
+			"Chemicals": 0.21,
+			"Components": 0.64
 		},
 		"outputs": {
 			"Artillery": 1
 		},
-		"optimalWorkers": 4500,
+		"optimalWorkers": 66667,
 		"buildCost": {
 			"Materials": 420,
 			"Metals": 340,
@@ -506,14 +506,14 @@
 		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
-			"Metals": 5,
-			"Chemicals": 2,
-			"Components": 1
+			"Metals": 0.053,
+			"Chemicals": 0.021,
+			"Components": 0.011
 		},
 		"outputs": {
 			"SmallArms": 1
 		},
-		"optimalWorkers": 2500,
+		"optimalWorkers": 20690,
 		"buildCost": {
 			"Materials": 260,
 			"Metals": 200,
@@ -527,14 +527,14 @@
 		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
-			"Metals": 6,
-			"Chemicals": 8,
-			"Components": 2
+			"Metals": 0.23,
+			"Chemicals": 0.31,
+			"Components": 0.077
 		},
 		"outputs": {
 			"Ammunition": 1
 		},
-		"optimalWorkers": 3000,
+		"optimalWorkers": 50000,
 		"buildCost": {
 			"Materials": 300,
 			"Metals": 220,
@@ -548,14 +548,14 @@
 		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
-			"Chemicals": 2,
-			"Metals": 1,
-			"Electronics": 6
+			"Chemicals": 0.069,
+			"Metals": 0.035,
+			"Electronics": 0.21
 		},
 		"outputs": {
 			"TacticalDrones": 1
 		},
-		"optimalWorkers": 900,
+		"optimalWorkers": 37500,
 		"buildCost": {
 			"Materials": 140,
 			"Metals": 70,
@@ -569,16 +569,16 @@
 		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
-			"Metals": 3,
-			"Chemicals": 2,
-			"Fuel": 1,
-			"Electronics": 4,
-			"Microelectronics": 4
+			"Metals": 1.5,
+			"Chemicals": 0.99,
+			"Fuel": 0.49,
+			"Electronics": 2,
+			"Microelectronics": 2
 		},
 		"outputs": {
 			"StrikeDrones": 1
 		},
-		"optimalWorkers": 2200,
+		"optimalWorkers": 40000,
 		"buildCost": {
 			"Materials": 240,
 			"Metals": 150,
@@ -592,15 +592,15 @@
 		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
-			"Metals": 4,
-			"Chemicals": 5,
-			"Electronics": 4,
-			"Microelectronics": 2
+			"Metals": 2.7,
+			"Chemicals": 3.4,
+			"Electronics": 2.7,
+			"Microelectronics": 1.4
 		},
 		"outputs": {
 			"Missiles": 1
 		},
-		"optimalWorkers": 3500,
+		"optimalWorkers": 107143,
 		"buildCost": {
 			"Materials": 380,
 			"Metals": 280,
@@ -622,7 +622,7 @@
 		"outputs": {
 			"Aircraft": 1
 		},
-		"optimalWorkers": 8000,
+		"optimalWorkers": 416667,
 		"buildCost": {
 			"Materials": 600,
 			"Metals": 500,
@@ -644,7 +644,7 @@
 		"outputs": {
 			"AirDefence": 1
 		},
-		"optimalWorkers": 4000,
+		"optimalWorkers": 160000,
 		"buildCost": {
 			"Materials": 400,
 			"Metals": 300,
@@ -665,7 +665,7 @@
 		"outputs": {
 			"ElectronicWarfare": 1
 		},
-		"optimalWorkers": 2600,
+		"optimalWorkers": 100000,
 		"buildCost": {
 			"Materials": 260,
 			"Metals": 150,
