@@ -47,7 +47,7 @@ public static class WorldDataLoader
         buildings,
         dto.Deposits
     );
-    private static Country ToCountry(CountryDto dto, IReadOnlyDictionary<GoodType, Price> startPrices) => new(
+    private static Country ToCountry(CountryDto dto, IReadOnlyDictionary<GoodType, Money> startPrices) => new(
         dto.Id,
         dto.Name,
         dto.Iso,
@@ -56,7 +56,7 @@ public static class WorldDataLoader
         new Producer(
             dto.Id,
             new Stock(new Dictionary<GoodType, GoodAmount>()),
-            new Treasury(0),
+            new Treasury(default),
             new Prices(startPrices)),
         new Priorities()
     ); // баланс и склад - заглушки

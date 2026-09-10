@@ -18,7 +18,7 @@ public static class JsonReader
         {
             new JsonStringEnumConverter(),
             new FixedJsonConverter<Goods>(),
-            new FixedJsonConverter<Money>(),
+            new FixedJsonConverter<Cash>(),
         },
 
         // Файлы правятся руками: лишняя запятая и комментарий не должны ронять загрузку.

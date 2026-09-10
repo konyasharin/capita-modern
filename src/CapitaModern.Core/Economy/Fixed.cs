@@ -22,7 +22,7 @@ public readonly struct People : IUnitScale
 
 /// <summary>Деньги: единица — тысяча долларов, доли до сотых. Мельче цене не нужно,
 /// крупнее — потолок шага в 2% перестал бы двигать дешёвые товары.</summary>
-public readonly struct Money : IUnitScale
+public readonly struct Cash : IUnitScale
 {
     public static int Scale => 100;
 }

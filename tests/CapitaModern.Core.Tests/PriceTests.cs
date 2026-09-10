@@ -14,9 +14,9 @@ public class PriceTests
 
     /// <summary>Стартовая цена 100 — на ней процент шага виден целым числом.</summary>
     private static Prices Start(long price = 100) =>
-        new(Enum.GetValues<GoodType>().ToDictionary(good => good, _ => Price.FromWhole(price)));
+        new(Enum.GetValues<GoodType>().ToDictionary(good => good, _ => Money.FromWhole(price)));
 
-    private static Price Moved(GoodAmount demand, GoodAmount available)
+    private static Money Moved(GoodAmount demand, GoodAmount available)
     {
         var prices = Start();
         prices.Move(GoodType.Coal, demand, available);
@@ -27,28 +27,28 @@ public class PriceTests
     [Fact]
     public void EmptyStockRaisesPriceByTheFullStep()
     {
-        Assert.Equal(Price.FromWhole(102), Moved(Build.Whole(10), default));
+        Assert.Equal(Money.FromWhole(102), Moved(Build.Whole(10), default));
     }
 
     /// <summary>Спроса нет вовсе — перекос ровно −1, полный шаг вниз.</summary>
     [Fact]
     public void NobodyWantsItSoItGetsCheaperByTheFullStep()
     {
-        Assert.Equal(Price.FromWhole(98), Moved(default, Build.Whole(10)));
+        Assert.Equal(Money.FromWhole(98), Moved(default, Build.Whole(10)));
     }
 
     /// <summary>Запаса ровно на норму — цену двигать незачем.</summary>
     [Fact]
     public void PriceHoldsAtTheTargetCover()
     {
-        Assert.Equal(Price.FromWhole(100), Moved(Build.Whole(1), Build.Whole(Prices.TargetCoverDays)));
+        Assert.Equal(Money.FromWhole(100), Moved(Build.Whole(1), Build.Whole(Prices.TargetCoverDays)));
     }
 
     /// <summary>Половина нормы даёт треть перекоса, а не весь шаг: (40−20)/(40+20).</summary>
     [Fact]
     public void HalfTheStockMovesPriceByPartOfTheStep()
     {
-        var expected = Price.FromWhole(100) + new Price(Price.Scale * 100 * 2 * 20 / (60 * 100));
+        var expected = Money.FromWhole(100) + new Money(Money.Scale * 100 * 2 * 20 / (60 * 100));
 
         Assert.Equal(expected, Moved(Build.Whole(1), Build.Whole(Prices.TargetCoverDays / 2)));
     }
@@ -57,7 +57,7 @@ public class PriceTests
     [Fact]
     public void NothingKnownMeansNoMove()
     {
-        Assert.Equal(Price.FromWhole(100), Moved(default, default));
+        Assert.Equal(Money.FromWhole(100), Moved(default, default));
     }
 
     /// <summary>Цена не должна доехать до нуля: оттуда товар уже не оживёт. Останавливает
@@ -71,7 +71,7 @@ public class PriceTests
             prices.Move(GoodType.Coal, default, Build.Whole(1));
         }
 
-        Assert.Equal(Price.FromWhole(1), prices.Of(GoodType.Coal));
+        Assert.Equal(Money.FromWhole(1), prices.Of(GoodType.Coal));
     }
 
     /// <summary>Вечная нехватка не должна разгонять цену без предела: пока нет торговли,
@@ -85,7 +85,7 @@ public class PriceTests
             prices.Move(GoodType.Coal, Build.Whole(10), default);
         }
 
-        Assert.Equal(Price.FromWhole(100 * Prices.MaxSwingTimes), prices.Of(GoodType.Coal));
+        Assert.Equal(Money.FromWhole(100 * Prices.MaxSwingTimes), prices.Of(GoodType.Coal));
     }
 
     /// <summary>Резкое движение приходит событием, а не ежедневной формулой.</summary>
@@ -95,7 +95,7 @@ public class PriceTests
         var prices = Start();
         prices.Shock(GoodType.Oil, 400);
 
-        Assert.Equal(Price.FromWhole(500), prices.Of(GoodType.Oil));
+        Assert.Equal(Money.FromWhole(500), prices.Of(GoodType.Oil));
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public class PriceTests
         var prices = Start();
         prices.Shock(GoodType.Oil, -100);
 
-        Assert.Equal(Price.FromWhole(1), prices.Of(GoodType.Oil));
+        Assert.Equal(Money.FromWhole(1), prices.Of(GoodType.Oil));
     }
 
     /// <summary>Дешёвому товару коридор считается от его собственного старта, а не от
@@ -115,8 +115,8 @@ public class PriceTests
         var prices = Start(2);
         prices.Shock(GoodType.Oil, 100_000);
 
-        Assert.Equal(Price.FromWhole(2 * Prices.MaxSwingTimes), prices.Of(GoodType.Oil));
-        Assert.Equal(Price.FromWhole(2), prices.StartOf(GoodType.Oil));
+        Assert.Equal(Money.FromWhole(2 * Prices.MaxSwingTimes), prices.Of(GoodType.Oil));
+        Assert.Equal(Money.FromWhole(2), prices.StartOf(GoodType.Oil));
     }
 
     [Fact]
@@ -124,7 +124,7 @@ public class PriceTests
     {
         var prices = Start();
 
-        Assert.Equal(Price.FromWhole(250), prices.CostOf(GoodType.Coal, Build.Whole(5) / 2));
+        Assert.Equal(Money.FromWhole(250), prices.CostOf(GoodType.Coal, Build.Whole(5) / 2));
     }
 
     [Fact]
@@ -146,7 +146,7 @@ public class PriceTests
 
         new Simulation(world).Tick();
 
-        Assert.Equal(Price.FromWhole(102), world.CountryById(1).State.Prices.Of(GoodType.Coal));
+        Assert.Equal(Money.FromWhole(102), world.CountryById(1).State.Prices.Of(GoodType.Coal));
     }
 
     /// <summary>Товар, который никто не заказывает, дешевеет — даже если его выпускают.
@@ -163,7 +163,7 @@ public class PriceTests
         simulation.Tick();
         simulation.Tick();
 
-        Assert.Equal(Price.FromWhole(98), world.CountryById(1).State.Prices.Of(GoodType.Coal));
+        Assert.Equal(Money.FromWhole(98), world.CountryById(1).State.Prices.Of(GoodType.Coal));
     }
 
     /// <summary>Шахта выдаёт уголь из ничего, завод превращает его в металл. ВВП — это
@@ -187,7 +187,7 @@ public class PriceTests
         simulation.Tick();
 
         // 10 угля по 100 плюс 4 металла по 700 минус 10 угля, ушедших в передел.
-        Assert.Equal(Price.FromWhole(2800), simulation.ValueAddedOf(1));
+        Assert.Equal(Money.FromWhole(2800), simulation.ValueAddedOf(1));
     }
 
     [Fact]
@@ -199,9 +199,9 @@ public class PriceTests
         Assert.Equal(default, new Simulation(world).ValueAddedOf(1));
     }
 
-    private static Dictionary<GoodType, Price> StartPrices() => new()
+    private static Dictionary<GoodType, Money> StartPrices() => new()
     {
-        [GoodType.Coal] = Price.FromWhole(100),
-        [GoodType.Metals] = Price.FromWhole(700),
+        [GoodType.Coal] = Money.FromWhole(100),
+        [GoodType.Metals] = Money.FromWhole(700),
     };
 }

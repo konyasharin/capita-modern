@@ -21,7 +21,7 @@ Console.WriteLine("покрытие  сутки    неделя   месяц    
 
 foreach (var coverDays in new[] { 0, 5, 10, 20, 30, 40, 60, 100, 400 })
 {
-    var prices = new Prices(goods.ToDictionary(good => good, _ => Price.FromWhole(1000)));
+    var prices = new Prices(goods.ToDictionary(good => good, _ => Money.FromWhole(1000)));
     var demand = GoodAmount.FromWhole(100);
     var stock = GoodAmount.FromWhole(100 * coverDays);
     var line = $"{coverDays,4} сут ";
@@ -55,7 +55,7 @@ Console.WriteLine("=== Б. Сколько суток нашей формуле �
 
 foreach (var (name, times, realDays) in episodes)
 {
-    var prices = new Prices(goods.ToDictionary(good => good, _ => Price.FromWhole(10000)));
+    var prices = new Prices(goods.ToDictionary(good => good, _ => Money.FromWhole(10000)));
     var rising = times > 1;
     var demand = GoodAmount.FromWhole(100);
     // Полный перекос: либо склад пуст, либо спроса нет вовсе.
@@ -89,7 +89,7 @@ foreach (var (name, times, realDays) in episodes)
     // цена уходит ровно во столько раз, во сколько ушла в жизни.
     for (var tenths = 0; tenths <= 4000; tenths++)
     {
-        var prices = new Prices(goods.ToDictionary(good => good, _ => Price.FromWhole(100000)));
+        var prices = new Prices(goods.ToDictionary(good => good, _ => Money.FromWhole(100000)));
         var demand = GoodAmount.FromWhole(10);
         var stock = new GoodAmount(GoodAmount.FromWhole(10).Raw * tenths / 10);
 
@@ -116,8 +116,8 @@ var startPrices = watched.ToDictionary(
     country => country.Iso,
     country => goods.ToDictionary(good => good, country.State.Prices.Of));
 
-var yearValueAdded = world.Countries.ToDictionary(country => country.Id, _ => default(Price));
-var firstTickValueAdded = new Dictionary<byte, Price>();
+var yearValueAdded = world.Countries.ToDictionary(country => country.Id, _ => default(Money));
+var firstTickValueAdded = new Dictionary<byte, Money>();
 
 // Сколько цен уехало на рельсы коридора — по ходу года, а не только в конце.
 void CountRails(int day)
@@ -172,8 +172,8 @@ foreach (var (iso, realGdp) in real)
 }
 
 Console.WriteLine();
-Console.WriteLine($"Мир: {yearValueAdded.Values.Aggregate(default(Price), (a, b) => a + b).Exact / 1e9:F2} трлн " +
-                  $"по ходу года, {firstTickValueAdded.Values.Aggregate(default(Price), (a, b) => a + b).Exact * 365 / 1e9:F2} " +
+Console.WriteLine($"Мир: {yearValueAdded.Values.Aggregate(default(Money), (a, b) => a + b).Exact / 1e9:F2} трлн " +
+                  $"по ходу года, {firstTickValueAdded.Values.Aggregate(default(Money), (a, b) => a + b).Exact * 365 / 1e9:F2} " +
                   $"трлн по ценам старта, в жизни 85 трлн");
 
 Console.WriteLine();

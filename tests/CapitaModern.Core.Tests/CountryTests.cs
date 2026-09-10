@@ -5,15 +5,17 @@ namespace CapitaModern.Core.Tests;
 
 public class CountryTests
 {
+    private static Money Cash(long thousands) => Money.FromWhole(thousands);
+
     [Fact]
     public void TreasuryTakesAndSpends()
     {
         var country = Build.Country(1);
 
-        country.State.Treasury.Receive(100);
+        country.State.Treasury.Receive(Cash(100));
 
-        Assert.True(country.State.Treasury.TrySpend(40));
-        Assert.Equal(60, country.State.Treasury.Balance);
+        Assert.True(country.State.Treasury.TrySpend(Cash(40)));
+        Assert.Equal(Cash(60), country.State.Treasury.Balance);
     }
 
     [Fact]
@@ -21,10 +23,10 @@ public class CountryTests
     {
         var country = Build.Country(1);
 
-        country.State.Treasury.Receive(100);
+        country.State.Treasury.Receive(Cash(100));
 
-        Assert.False(country.State.Treasury.TrySpend(101));
-        Assert.Equal(100, country.State.Treasury.Balance);
+        Assert.False(country.State.Treasury.TrySpend(Cash(101)));
+        Assert.Equal(Cash(100), country.State.Treasury.Balance);
     }
 
     [Fact]
@@ -32,10 +34,10 @@ public class CountryTests
     {
         var country = Build.Country(1);
 
-        country.State.Treasury.Receive(100);
+        country.State.Treasury.Receive(Cash(100));
 
-        Assert.True(country.State.Treasury.TrySpend(100));
-        Assert.Equal(0, country.State.Treasury.Balance);
+        Assert.True(country.State.Treasury.TrySpend(Cash(100)));
+        Assert.Equal(default, country.State.Treasury.Balance);
     }
 
     [Fact]
@@ -43,8 +45,8 @@ public class CountryTests
     {
         var country = Build.Country(1);
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => country.State.Treasury.Receive(-1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => country.State.Treasury.TrySpend(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => country.State.Treasury.Receive(Cash(-1)));
+        Assert.Throws<ArgumentOutOfRangeException>(() => country.State.Treasury.TrySpend(Cash(-1)));
     }
 
     [Fact]

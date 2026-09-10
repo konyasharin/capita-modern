@@ -6,5 +6,5 @@ namespace CapitaModern.Core.Loading;
 /// Только отправная точка: дальше цену двигает игра.</summary>
 public record PricesFile
 (
-    Dictionary<GoodType, Price> Prices
+    Dictionary<GoodType, Money> Prices
 );

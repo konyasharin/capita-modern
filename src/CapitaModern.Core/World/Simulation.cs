@@ -215,10 +215,10 @@ public sealed class Simulation
     /// <summary>Добавленная стоимость страны за прошедший тик: что выпущено минус то,
     /// что на это ушло. Сумма по всем странам — мировой ВВП за сутки.</summary>
     /// <remarks>Может быть отрицательной: значит, сырьё стоит дороже продукции.</remarks>
-    public Price ValueAddedOf(byte country)
+    public Money ValueAddedOf(byte country)
     {
         var prices = _world.CountryById(country).State.Prices;
-        var total = default(Price);
+        var total = default(Money);
 
         foreach (var good in AllGoods)
         {

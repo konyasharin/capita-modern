@@ -54,8 +54,8 @@ internal static class Build
         byte id,
         Dictionary<GoodType, GoodAmount>? stock = null,
         Dictionary<Sector, int>? weights = null,
-        Dictionary<GoodType, Price>? prices = null) =>
+        Dictionary<GoodType, Money>? prices = null) =>
         new(id, $"country {id}", $"C{id:00}",
-            new Producer(id, new Stock(stock ?? []), new Treasury(0), new Prices(prices)),
+            new Producer(id, new Stock(stock ?? []), new Treasury(default), new Prices(prices)),
             new Priorities(weights));
 }

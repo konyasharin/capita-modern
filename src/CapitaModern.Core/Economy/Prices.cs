@@ -29,17 +29,17 @@ public sealed class Prices
 
     /// <summary>Ниже цена не опускается ни при каком старте: ноль — состояние без выхода,
     /// из него товар уже никогда не подорожает настолько, чтобы его стали делать.</summary>
-    public static readonly Price Floor = new(1);
+    public static readonly Money Floor = new(1);
 
     /// <summary>Цена товара, которого нет в стартовых данных.</summary>
-    public static readonly Price Default = Price.FromWhole(1);
+    public static readonly Money Default = Money.FromWhole(1);
 
-    private readonly Dictionary<GoodType, Price> _values = new();
-    private readonly Dictionary<GoodType, Price> _start = new();
+    private readonly Dictionary<GoodType, Money> _values = new();
+    private readonly Dictionary<GoodType, Money> _start = new();
 
-    public Prices(IReadOnlyDictionary<GoodType, Price>? startPrices = null)
+    public Prices(IReadOnlyDictionary<GoodType, Money>? startPrices = null)
     {
-        startPrices ??= new Dictionary<GoodType, Price>();
+        startPrices ??= new Dictionary<GoodType, Money>();
         foreach (var good in Enum.GetValues<GoodType>())
         {
             var price = startPrices.GetValueOrDefault(good, Default);
@@ -48,13 +48,13 @@ public sealed class Prices
         }
     }
 
-    public Price Of(GoodType good) => _values[good];
+    public Money Of(GoodType good) => _values[good];
 
     /// <summary>С чего цена начинала. Нужна как база: и для коридора, и потом для
     /// индекса цен.</summary>
-    public Price StartOf(GoodType good) => _start[good];
+    public Money StartOf(GoodType good) => _start[good];
 
-    public void Set(GoodType good, Price price)
+    public void Set(GoodType good, Money price)
     {
         if (price < Floor) throw new ArgumentOutOfRangeException(nameof(price));
 
@@ -62,7 +62,7 @@ public sealed class Prices
     }
 
     /// <summary>Сколько стоит такая партия товара.</summary>
-    public Price CostOf(GoodType good, GoodAmount amount) =>
+    public Money CostOf(GoodType good, GoodAmount amount) =>
         new((long)((Int128)Of(good).Raw * amount.Raw / GoodAmount.Scale));
 
     /// <summary>Сдвигает цену за тик по тому, на сколько суток хватит запаса.</summary>
@@ -107,10 +107,10 @@ public sealed class Prices
     }
 
     /// <summary>Держит цену в коридоре вокруг стартовой.</summary>
-    private Price Clamped(GoodType good, long raw)
+    private Money Clamped(GoodType good, long raw)
     {
         long start = _start[good].Raw;
 
-        return new Price(Math.Clamp(raw, Math.Max(start / MaxSwingTimes, Floor.Raw), start * MaxSwingTimes));
+        return new Money(Math.Clamp(raw, Math.Max(start / MaxSwingTimes, Floor.Raw), start * MaxSwingTimes));
     }
 }

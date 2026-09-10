@@ -1,27 +1,28 @@
-﻿namespace CapitaModern.Core.Economy;
+namespace CapitaModern.Core.Economy;
 
+/// <summary>Деньги продавца. Долей меньше сотой доли тысячи долларов не бывает: за
+/// тысячи тиков плавающая точка накопила бы ошибку.</summary>
 public sealed class Treasury
 {
-    /// <summary>Казна в целых. Дробных денег нет намеренно: плавающая точка за тысячи
-    /// тиков копит ошибку.</summary>
-    public long Balance { get; private set; }
+    public Money Balance { get; private set; }
 
-    public Treasury(long balance)
+    public Treasury(Money balance)
     {
         Balance = balance;
     }
 
-    public void Receive(long amount)
+    public void Receive(Money amount)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(amount);
+        if (amount < default(Money)) throw new ArgumentOutOfRangeException(nameof(amount));
+
         Balance += amount;
     }
 
     /// <summary>Списывает, если хватает. Не хватило — возвращает false, казна не тронута.</summary>
-    public bool TrySpend(long amount)
+    public bool TrySpend(Money amount)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(amount);
-        if (Balance - amount < 0) return false;
+        if (amount < default(Money)) throw new ArgumentOutOfRangeException(nameof(amount));
+        if (Balance - amount < default(Money)) return false;
 
         Balance -= amount;
         return true;
