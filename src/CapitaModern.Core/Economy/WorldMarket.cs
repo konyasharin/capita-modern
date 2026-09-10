@@ -72,7 +72,11 @@ public sealed class WorldMarket
                 if (rest <= 0) continue;
 
                 // left не уменьшается внутри прохода, иначе доли зависели бы от порядка.
+                // Но общий предел всё же нужен: со второго прохода доли считаются от
+                // суммы без урезанных деньгами, и без ограничения покупатели забирали бы
+                // больше, чем выставлено на продажу.
                 long want = Math.Min((long)((Int128)left * rest / share), rest);
+                want = Math.Min(want, left - taken);
                 long gets = Math.Min(want, Affordable(good, orders[i].Trader, bought[i]));
 
                 bought[i] += gets;

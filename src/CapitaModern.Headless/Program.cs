@@ -500,3 +500,14 @@ foreach (var (iso, real2020) in new[] { ("USA", 6.7), ("DEU", 11.0), ("CHN", 22.
 
 Console.WriteLine();
 Console.WriteLine($"Курс на полу коридора: {world.Countries.Count(c => c.ExchangeRate.Exact <= 0.02)} стран");
+
+Console.WriteLine();
+Console.WriteLine("=== Н. Стройка ===");
+var plants = world.Regions.SelectMany(r => r.BuildingsCount).Sum(p => p.Value);
+Console.WriteLine($"Предприятий в мире: {plants} (на старте 13787)");
+foreach (var group in world.Regions.SelectMany(r => r.BuildingsCount)
+             .GroupBy(p => p.Key).Select(g => (g.Key, Count: g.Sum(p => p.Value)))
+             .OrderByDescending(g => g.Count).Take(6))
+{
+    Console.WriteLine($"  {group.Key,-24} {group.Count}");
+}

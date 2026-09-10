@@ -9,10 +9,10 @@
 		"outputs": {
 			"Coal": 20
 		},
-		"optimalWorkers": 6306,
+		"optimalWorkers": 5039,
 		"buildCost": {
-			"Materials": 220,
-			"Metals": 120
+			"Materials": 7008,
+			"Metals": 375
 		}
 	},
 	{
@@ -25,10 +25,10 @@
 		"outputs": {
 			"Oil": 15
 		},
-		"optimalWorkers": 2979,
+		"optimalWorkers": 1754,
 		"buildCost": {
-			"Materials": 180,
-			"Metals": 200
+			"Materials": 26981,
+			"Metals": 1445
 		}
 	},
 	{
@@ -41,10 +41,10 @@
 		"outputs": {
 			"Gas": 18
 		},
-		"optimalWorkers": 1397,
+		"optimalWorkers": 1382,
 		"buildCost": {
-			"Materials": 160,
-			"Metals": 180
+			"Materials": 10512,
+			"Metals": 563
 		}
 	},
 	{
@@ -57,10 +57,10 @@
 		"outputs": {
 			"IronOre": 20
 		},
-		"optimalWorkers": 3036,
+		"optimalWorkers": 1482,
 		"buildCost": {
-			"Materials": 220,
-			"Metals": 120
+			"Materials": 12848,
+			"Metals": 688
 		}
 	},
 	{
@@ -75,8 +75,8 @@
 		},
 		"optimalWorkers": 3584,
 		"buildCost": {
-			"Materials": 200,
-			"Metals": 130
+			"Materials": 7242,
+			"Metals": 388
 		}
 	},
 	{
@@ -89,10 +89,10 @@
 		"outputs": {
 			"Bauxite": 12
 		},
-		"optimalWorkers": 2381,
+		"optimalWorkers": 1419,
 		"buildCost": {
-			"Materials": 180,
-			"Metals": 100
+			"Materials": 2102,
+			"Metals": 113
 		}
 	},
 	{
@@ -105,10 +105,10 @@
 		"outputs": {
 			"Uranium": 2
 		},
-		"optimalWorkers": 424,
+		"optimalWorkers": 410,
 		"buildCost": {
-			"Materials": 240,
-			"Metals": 160
+			"Materials": 771,
+			"Metals": 41
 		}
 	},
 	{
@@ -121,10 +121,10 @@
 		"outputs": {
 			"RareEarth": 3
 		},
-		"optimalWorkers": 617,
+		"optimalWorkers": 613,
 		"buildCost": {
-			"Materials": 200,
-			"Metals": 140
+			"Materials": 280,
+			"Metals": 15
 		}
 	},
 	{
@@ -137,10 +137,10 @@
 		"outputs": {
 			"Timber": 15
 		},
-		"optimalWorkers": 17931,
+		"optimalWorkers": 7458,
 		"buildCost": {
-			"Materials": 90,
-			"Metals": 40
+			"Materials": 8760,
+			"Metals": 469
 		}
 	},
 	{
@@ -155,8 +155,8 @@
 		},
 		"optimalWorkers": 992018,
 		"buildCost": {
-			"Materials": 120,
-			"Metals": 60
+			"Materials": 36500,
+			"Metals": 1955
 		}
 	},
 	{
@@ -171,10 +171,10 @@
 		"outputs": {
 			"Electricity": 20
 		},
-		"optimalWorkers": 5848,
+		"optimalWorkers": 5690,
 		"buildCost": {
-			"Materials": 400,
-			"Metals": 260
+			"Materials": 5723,
+			"Metals": 307
 		}
 	},
 	{
@@ -189,10 +189,10 @@
 		"outputs": {
 			"Electricity": 20
 		},
-		"optimalWorkers": 4505,
+		"optimalWorkers": 4386,
 		"buildCost": {
-			"Materials": 300,
-			"Metals": 220
+			"Materials": 7008,
+			"Metals": 375
 		}
 	},
 	{
@@ -207,11 +207,10 @@
 		"outputs": {
 			"Electricity": 40
 		},
-		"optimalWorkers": 8696,
+		"optimalWorkers": 8421,
 		"buildCost": {
-			"Materials": 900,
-			"Metals": 600,
-			"Electronics": 120
+			"Materials": 22589,
+			"Metals": 1210
 		}
 	},
 	{
@@ -224,10 +223,10 @@
 		"outputs": {
 			"Electricity": 25
 		},
-		"optimalWorkers": 2797,
+		"optimalWorkers": 2721,
 		"buildCost": {
-			"Materials": 800,
-			"Metals": 300
+			"Materials": 14600,
+			"Metals": 782
 		}
 	},
 	{
@@ -243,10 +242,10 @@
 		"outputs": {
 			"Fuel": 10
 		},
-		"optimalWorkers": 1698,
+		"optimalWorkers": 1000,
 		"buildCost": {
-			"Materials": 350,
-			"Metals": 400
+			"Materials": 7125,
+			"Metals": 382
 		}
 	},
 	{
@@ -263,10 +262,10 @@
 		"outputs": {
 			"Metals": 10
 		},
-		"optimalWorkers": 10118,
+		"optimalWorkers": 4942,
 		"buildCost": {
-			"Materials": 450,
-			"Metals": 350
+			"Materials": 27974,
+			"Metals": 1499
 		}
 	},
 	{
@@ -283,10 +282,10 @@
 		"outputs": {
 			"Metals": 8
 		},
-		"optimalWorkers": 25000,
+		"optimalWorkers": 12195,
 		"buildCost": {
-			"Materials": 380,
-			"Metals": 300
+			"Materials": 10240,
+			"Metals": 549
 		}
 	},
 	{
@@ -303,10 +302,10 @@
 		"outputs": {
 			"Chemicals": 10
 		},
-		"optimalWorkers": 18484,
+		"optimalWorkers": 18450,
 		"buildCost": {
-			"Materials": 400,
-			"Metals": 320
+			"Materials": 41464,
+			"Metals": 2221
 		}
 	},
 	{
@@ -323,10 +322,10 @@
 		"outputs": {
 			"Materials": 12
 		},
-		"optimalWorkers": 16026,
+		"optimalWorkers": 1471,
 		"buildCost": {
-			"Materials": 200,
-			"Metals": 180
+			"Materials": 6132,
+			"Metals": 329
 		}
 	},
 	{
@@ -345,8 +344,8 @@
 		},
 		"optimalWorkers": 11111,
 		"buildCost": {
-			"Materials": 200,
-			"Metals": 150
+			"Materials": 8351,
+			"Metals": 447
 		}
 	},
 	{
@@ -367,9 +366,8 @@
 		},
 		"optimalWorkers": 9646,
 		"buildCost": {
-			"Materials": 350,
-			"Metals": 250,
-			"Components": 80
+			"Materials": 11209,
+			"Metals": 601
 		}
 	},
 	{
@@ -389,9 +387,8 @@
 		},
 		"optimalWorkers": 4878,
 		"buildCost": {
-			"Materials": 420,
-			"Metals": 300,
-			"Electronics": 120
+			"Materials": 9503,
+			"Metals": 509
 		}
 	},
 	{
@@ -410,8 +407,8 @@
 		},
 		"optimalWorkers": 47438,
 		"buildCost": {
-			"Materials": 260,
-			"Metals": 160
+			"Materials": 41464,
+			"Metals": 2221
 		}
 	},
 	{
@@ -432,9 +429,8 @@
 		},
 		"optimalWorkers": 111732,
 		"buildCost": {
-			"Materials": 300,
-			"Metals": 200,
-			"Electronics": 40
+			"Materials": 76808,
+			"Metals": 4115
 		}
 	},
 	{
@@ -452,9 +448,8 @@
 		},
 		"optimalWorkers": 15432,
 		"buildCost": {
-			"Materials": 280,
-			"Metals": 180,
-			"Electronics": 30
+			"Materials": 52256,
+			"Metals": 2799
 		}
 	},
 	{
@@ -473,9 +468,8 @@
 		},
 		"optimalWorkers": 75000,
 		"buildCost": {
-			"Materials": 500,
-			"Metals": 420,
-			"Electronics": 90
+			"Materials": 11540,
+			"Metals": 618
 		}
 	},
 	{
@@ -494,9 +488,8 @@
 		},
 		"optimalWorkers": 66667,
 		"buildCost": {
-			"Materials": 420,
-			"Metals": 340,
-			"Electronics": 60
+			"Materials": 7152,
+			"Metals": 383
 		}
 	},
 	{
@@ -515,9 +508,8 @@
 		},
 		"optimalWorkers": 20690,
 		"buildCost": {
-			"Materials": 260,
-			"Metals": 200,
-			"Electronics": 20
+			"Materials": 235,
+			"Metals": 13
 		}
 	},
 	{
@@ -536,9 +528,8 @@
 		},
 		"optimalWorkers": 50000,
 		"buildCost": {
-			"Materials": 300,
-			"Metals": 220,
-			"Electronics": 30
+			"Materials": 1854,
+			"Metals": 99
 		}
 	},
 	{
@@ -557,9 +548,8 @@
 		},
 		"optimalWorkers": 37500,
 		"buildCost": {
-			"Materials": 140,
-			"Metals": 70,
-			"Electronics": 110
+			"Materials": 466,
+			"Metals": 25
 		}
 	},
 	{
@@ -580,9 +570,8 @@
 		},
 		"optimalWorkers": 40000,
 		"buildCost": {
-			"Materials": 240,
-			"Metals": 150,
-			"Electronics": 170
+			"Materials": 11514,
+			"Metals": 617
 		}
 	},
 	{
@@ -602,9 +591,8 @@
 		},
 		"optimalWorkers": 107143,
 		"buildCost": {
-			"Materials": 380,
-			"Metals": 280,
-			"Electronics": 140
+			"Materials": 23403,
+			"Metals": 1254
 		}
 	},
 	{
@@ -624,9 +612,8 @@
 		},
 		"optimalWorkers": 416667,
 		"buildCost": {
-			"Materials": 600,
-			"Metals": 500,
-			"Electronics": 200
+			"Materials": 417268,
+			"Metals": 22354
 		}
 	},
 	{
@@ -646,9 +633,8 @@
 		},
 		"optimalWorkers": 160000,
 		"buildCost": {
-			"Materials": 400,
-			"Metals": 300,
-			"Electronics": 150
+			"Materials": 41663,
+			"Metals": 2232
 		}
 	},
 	{
@@ -667,9 +653,8 @@
 		},
 		"optimalWorkers": 100000,
 		"buildCost": {
-			"Materials": 260,
-			"Metals": 150,
-			"Electronics": 190
+			"Materials": 34906,
+			"Metals": 1870
 		}
 	}
 ]

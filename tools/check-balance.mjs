@@ -1,5 +1,7 @@
 // Баланс производства и потребления по миру -> сходятся ли цепочки.
 //
+// Считает три потребителя: рецепты заводов, население и стройку.
+//
 //   node tools/check-balance.mjs
 //
 // Считает, сколько каждого товара за год делают все предприятия мира и сколько его
@@ -32,6 +34,17 @@ for (const b of buildings) {
 
 	for (const [good, amount] of Object.entries(b.outputs)) made[good] = (made[good] ?? 0) + n * amount
 	for (const [good, amount] of Object.entries(b.inputs)) used[good] = (used[good] ?? 0) + n * amount
+}
+
+// Стройка — такой же потребитель, и немаленький. В установившемся состоянии мир
+// ежегодно заменяет капитал целиком за срок его службы: капитал стоит три годовых
+// выпуска, вкладывают четверть выпуска, значит служит он двенадцать лет.
+const CAPITAL_LIFE_YEARS = 12
+for (const b of buildings) {
+	const perYear = world[b.type].world / CAPITAL_LIFE_YEARS
+	for (const [good, amount] of Object.entries(b.buildCost ?? {})) {
+		used[good] = (used[good] ?? 0) + perYear * amount
+	}
 }
 
 for (const [good, rate] of Object.entries(consumption)) {

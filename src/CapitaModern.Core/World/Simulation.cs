@@ -88,6 +88,14 @@ public sealed class Simulation
     /// не про пустую кассу: в кассе почти всегда что-то есть.</summary>
     private readonly HashSet<byte> _missedPayment = new();
 
+    /// <summary>Накопленный износ по областям. Целыми заводами он осыпается редко,
+    /// поэтому дробная часть копится.</summary>
+    private readonly Dictionary<int, int> _decay = new();
+
+    /// <summary>Отложенные на стройку деньги. Завод стоит три своих годовых выпуска,
+    /// за тик такого не накопить — поэтому копится.</summary>
+    private readonly Dictionary<byte, Money> _investment = new();
+
     /// <summary>Сколько тиков прошло с начала партии. Нужно, чтобы помнить, когда кто
     /// отказался платить.</summary>
     private int _day;
@@ -95,6 +103,9 @@ public sealed class Simulation
     /// <summary>Список товаров нужен каждый тик, а Enum.GetValues каждый раз выделяет
     /// новый массив.</summary>
     private static readonly GoodType[] AllGoods = Enum.GetValues<GoodType>();
+
+    /// <summary>Список типов построек: перебирается каждый тик при выборе стройки.</summary>
+    private static readonly BuildingType[] AllBuildings = Enum.GetValues<BuildingType>();
 
     public Simulation(GameWorld world)
     {
@@ -135,6 +146,8 @@ public sealed class Simulation
         FeedPeople();
         Store();
         MovePrices();
+        Wear();
+        Build();
         UpdateDemographics();
     }
 
@@ -260,7 +273,9 @@ public sealed class Simulation
                 else if (stock > target)
                 {
                     // Дорого — продают и часть своего запаса, но не больше, чем есть.
-                    var offer = Elasticity.Adjust(_world.Elasticity.Supply(good), stock - target, local, usual);
+                    var offer = Elasticity.Adjust(
+                        _world.Elasticity.Supply(good), stock - target, local, usual,
+                        Elasticity.MinFactor, Elasticity.MaxSupplyFactor);
                     if (offer > stock) offer = stock;
 
                     _orders.Add(new TradeOrder(country.State, default, offer));
@@ -743,6 +758,111 @@ public sealed class Simulation
         }
 
         return total;
+    }
+
+    /// <summary>Изношенное разваливается. Считается остатком: за срок службы должен
+    /// осыпаться весь капитал, а по одному заводу в тик этого не набрать.</summary>
+    private void Wear()
+    {
+        foreach (var region in _world.Regions)
+        {
+            var total = 0;
+            foreach (var (_, count) in region.BuildingsCount) total += count;
+            if (total == 0) continue;
+
+            _decay[region.Id] = _decay.GetValueOrDefault(region.Id) + total;
+            var due = _decay[region.Id] / (Construction.LifeYears * DaysInYear);
+            if (due == 0) continue;
+
+            _decay[region.Id] -= due * Construction.LifeYears * DaysInYear;
+
+            // Осыпается самое многочисленное: так износ не выбивает единственный завод.
+            var worst = default(BuildingType);
+            var most = 0;
+            foreach (var (type, count) in region.BuildingsCount)
+            {
+                if (count <= most) continue;
+
+                most = count;
+                worst = type;
+            }
+
+            region.TryRemoveBuildings(worst, Math.Min(due, most));
+        }
+    }
+
+    /// <summary>Страна откладывает часть выпуска и строит то, что ей выгоднее всего.</summary>
+    /// <remarks>
+    /// Здесь и рождается сравнительное преимущество. Выгода меряется прибылью на
+    /// работника: умелой стране тот же завод обходится меньшим числом рук, значит отдача
+    /// с человека выше. Она и строит сложное, а отстающая — добычу, где разрыв в умении
+    /// меньше всего. Никакой отдельной логики для этого не требуется.
+    /// </remarks>
+    private void Build()
+    {
+        foreach (var country in _world.Countries)
+        {
+            var added = ValueAddedOf(country.Id);
+            if (added.Raw > 0)
+            {
+                _investment[country.Id] = _investment.GetValueOrDefault(country.Id) +
+                    new Money(added.Raw * Construction.InvestmentShare / 100);
+            }
+
+            var best = BestBuild(country);
+            if (best is null) continue;
+
+            var info = _world.Buildings[best.Value.Type];
+            var price = Construction.CostOf(info.BuildCost, country.State.Prices);
+            if (_investment.GetValueOrDefault(country.Id) < price) continue;
+            if (!country.State.Stock.TryConsume(info.BuildCost, Load.Full)) continue;
+
+            _investment[country.Id] -= price;
+            best.Value.Where.AddBuildings(best.Value.Type, 1);
+        }
+    }
+
+    /// <summary>Что и где стране строить. Пусто, если ничего выгодного нет.</summary>
+    private (BuildingType Type, Region Where)? BestBuild(Country country)
+    {
+        (BuildingType Type, Region Where)? best = null;
+        var bestValue = 0L;
+
+        foreach (var type in AllBuildings)
+        {
+            var info = _world.Buildings[type];
+            if (info.BuildCost.Count == 0) continue;
+
+            var profit = Construction.ProfitOf(new BuildingRecipe(info.Inputs, info.Outputs), country.State.Prices);
+            if (profit.Raw <= 0) continue;
+
+            var value = Construction.ValuePerWorker(
+                profit, info.OptimalWorkers, _world.Efficiency.Of(country.Id, info.Sector));
+
+            if (value <= bestValue) continue;
+
+            var where = PlaceFor(country, info);
+            if (where is null) continue;
+
+            bestValue = value;
+            best = (type, where);
+        }
+
+        return best;
+    }
+
+    /// <summary>Где ставить: своя область, с месторождением если добыча, и та, где
+    /// больше людей. Список уже отсортирован, поэтому берём первую подходящую.</summary>
+    private Region? PlaceFor(Country country, Buildings.BuildingInfo info)
+    {
+        foreach (var region in _world.RegionsOf(country.Id))
+        {
+            if (info.RequiresDeposit is { } deposit && !region.HasDeposit(deposit)) continue;
+
+            return region;
+        }
+
+        return null;
     }
 
     private void UpdateDemographics()

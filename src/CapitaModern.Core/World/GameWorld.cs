@@ -34,6 +34,10 @@ public sealed class GameWorld
     private readonly Country[] _countriesById;
     private readonly Population[] _populationsByCountry;
 
+    /// <summary>Области страны, отсортированные по населению. Пересобираются вместе с
+    /// населением: перебирать две с половиной тысячи областей на каждую стройку нельзя.</summary>
+    private readonly List<Region>[] _regionsByCountry;
+
     public GameWorld(
         Region[] regions,
         Country[] countries,
@@ -60,6 +64,9 @@ public sealed class GameWorld
         foreach (var country in countries) _countriesById[country.Id] = country;
 
         _populationsByCountry = new Population[_countries.Max(country => country.Id) + 1];
+        _regionsByCountry = new List<Region>[_populationsByCountry.Length];
+        for (var i = 0; i < _regionsByCountry.Length; i++) _regionsByCountry[i] = [];
+
         UpdatePopulations();
     }
 
@@ -91,11 +98,24 @@ public sealed class GameWorld
     public void UpdatePopulations()
     {
         Array.Clear(_populationsByCountry);
+        foreach (var list in _regionsByCountry) list.Clear();
+
         foreach (var region in _regions)
         {
             _populationsByCountry[region.LargestOwner] += region.Demographics.Population;
+            _regionsByCountry[region.LargestOwner].Add(region);
+        }
+
+        // Самая населённая — первая: туда и ставят завод, там есть кому работать.
+        foreach (var list in _regionsByCountry)
+        {
+            list.Sort((a, b) => b.Demographics.Population.Raw.CompareTo(a.Demographics.Population.Raw));
         }
     }
+
+    /// <summary>Области страны, от самой населённой к самой пустой.</summary>
+    public IReadOnlyList<Region> RegionsOf(byte country) =>
+        country < _regionsByCountry.Length ? _regionsByCountry[country] : [];
 
     public void TransferCells(int region, byte from, byte to, int count)
     {
