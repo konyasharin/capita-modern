@@ -382,4 +382,34 @@ public class CreditTests
 
         Assert.Equal(before, Money0());
     }
+
+    /// <summary>Долг гасится по графику, а не когда останутся лишние деньги. У должника
+    /// с деньгами тело займа убывает само.</summary>
+    [Fact]
+    public void DebtShrinksOnSchedule()
+    {
+        var world = Build.World(
+            [
+                Build.Region(1, 1, new Dictionary<BuildingType, int> { [Mine] = 100 }),
+                Build.Region(2, 2, new Dictionary<BuildingType, int> { [Mill] = 1 }),
+            ],
+            [Build.Country(1, money: 10_000_000), Build.Country(2, money: 100)],
+            Build.Catalog(
+                Build.Info(Mine, outputs: new() { [Coal] = Build.Whole(10) }),
+                Build.Info(Mill, inputs: new() { [Coal] = Build.Whole(10) },
+                                 outputs: new() { [GoodType.Metals] = Build.Whole(1) })),
+            new Dictionary<GoodType, Money> { [Coal] = Money.FromWhole(1) });
+
+        var borrower = world.CountryById(2);
+        var simulation = new Simulation(world);
+        for (var tick = 0; tick < 30; tick++) simulation.Tick();
+
+        var peak = borrower.State.Treasury.Debt.Owed();
+        Assert.True(peak > default(Money), "должник так и не занял");
+
+        // Дальше он живёт с того, что купил, и график постепенно съедает тело.
+        for (var tick = 0; tick < 300; tick++) simulation.Tick();
+
+        Assert.True(borrower.State.Treasury.Debt.Owed() < peak, "долг не убывает по графику");
+    }
 }

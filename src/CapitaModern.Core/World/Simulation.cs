@@ -608,28 +608,49 @@ public sealed class Simulation
         foreach (var country in _world.Countries)
         {
             var debt = country.State.Treasury.Debt;
-            if (debt.Owed(LoanSource.Foreign).Raw == 0) continue;
+            var owed = debt.Owed(LoanSource.Foreign);
+            if (owed.Raw == 0) continue;
 
+            // Заём гасится по графику, а не когда останутся деньги. Иначе долг только
+            // растёт: страна платит проценты, а тело не трогает никогда.
+            var due = new Money(owed.Raw / (CreditMarket.LoanYears * DaysInYear));
+            if (due.Raw > 0 && Settle(country, due) < due) _missedPayment.Add(country.Id);
+
+            // Сверх графика гасят из того, что осталось после закупок: дорогое вперёд.
             var spare = country.State.Treasury.Reserves.Liquid - Valued(_bid, country.Id);
-            if (spare.Raw <= 0) continue;
+            if (spare.Raw > 0) Settle(country, spare);
 
+            debt.Forget();
+        }
+    }
+
+    /// <summary>Гасит тело займов, начиная с самого дорогого, и говорит, сколько ушло.</summary>
+    private Money Settle(Country country, Money amount)
+    {
+        var debt = country.State.Treasury.Debt;
+        var paid = default(Money);
+
+        while (amount.Raw > 0)
+        {
             var loan = debt.Priciest(country.KeyRate);
-            if (loan is null) continue;
+            if (loan is null) break;
 
             // Сначала списать, потом гасить: наоборот долг прощался бы бесплатно.
-            var paying = spare < loan.Principal ? spare : loan.Principal;
-            if (!country.State.Treasury.Reserves.TrySpend(paying)) continue;
+            var paying = amount < loan.Principal ? amount : loan.Principal;
+            if (paying.Raw == 0 || !country.State.Treasury.Reserves.TrySpend(paying)) break;
 
-            var paid = loan.Repay(paying);
+            var went = loan.Repay(paying);
+            amount -= went;
+            paid += went;
 
             if (loan.Lender is { } lender)
             {
                 var payee = _world.CountryById(lender).State;
-                payee.Treasury.Reserves.Add(Reserves.Incoming((byte)payee.Id, payee.Custody, paid));
+                payee.Treasury.Reserves.Add(Reserves.Incoming((byte)payee.Id, payee.Custody, went));
             }
-
-            debt.Forget();
         }
+
+        return paid;
     }
 
     /// <summary>Кто не может ни платить, ни вернуть — отказывается платить.</summary>
