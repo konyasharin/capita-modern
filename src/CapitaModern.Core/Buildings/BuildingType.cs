@@ -44,4 +44,7 @@ public enum BuildingType
     AircraftPlant,
     AirDefencePlant,
     ElectronicWarfarePlant,
+
+    /// <summary>Сфера услуг: сырья не ест, только людей. Две трети мирового ВВП.</summary>
+    ServiceFirm,
 }

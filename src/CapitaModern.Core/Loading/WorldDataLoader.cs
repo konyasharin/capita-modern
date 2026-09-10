@@ -189,5 +189,5 @@ public static class WorldDataLoader
             new Prices(startPrices)),
         new Priorities(),
         Savings(dto, moneySupply)
-    ); // склад - заглушка
+    ) { Bank = new CentralBank(MoneyOf(dto, moneySupply)) }; // склад - заглушка
 }

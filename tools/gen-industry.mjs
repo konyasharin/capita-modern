@@ -68,7 +68,8 @@ for (const [type, info] of Object.entries(production.types)) {
 	const tailShare = info.tail ?? 0
 	const scale = (100 - tailShare) / listedSum
 
-	const targets = [
+	// Услуги растут не с населением, а с достатком, поэтому раскладываются по ВВП.
+	const targets = info.byGdp ? countries.map((c) => ({ country: c, weight: Math.max(0, c.gdp) })) : [
 		...listed.map((iso) => ({ country: byIso.get(iso), weight: info.shares[iso] * scale })),
 		...tailCountries.map((c) => ({
 			country: c,

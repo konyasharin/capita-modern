@@ -29,6 +29,10 @@ public enum GoodType
     ConsumerGoods,
     Medicine,
 
+    /// <summary>Две трети мирового ВВП. Не хранятся и не возятся: стрижку впрок не
+    /// сделаешь и через границу не отправишь.</summary>
+    Services,
+
     // Военная техника
     Armour,
     Artillery,

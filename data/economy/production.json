@@ -695,6 +695,12 @@
 				"KEN": 1,
 				"VEN": 1
 			}
+		},
+		"ServiceFirm": {
+			"world": 5000,
+			"tail": 0,
+			"byGdp": true,
+			"shares": {}
 		}
 	}
 }

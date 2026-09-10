@@ -39,6 +39,7 @@
 		"Missiles": 10000,
 		"Aircraft": 80000,
 		"AirDefence": 15000,
-		"ElectronicWarfare": 10000
+		"ElectronicWarfare": 10000,
+		"Services": 100
 	}
 }

@@ -107,6 +107,10 @@ public sealed class Simulation
     /// <summary>Список типов построек: перебирается каждый тик при выборе стройки.</summary>
     private static readonly BuildingType[] AllBuildings = Enum.GetValues<BuildingType>();
 
+    /// <summary>Сколько заводов страна ставит за тик. Предел от бесконечного цикла, а не
+    /// от смысла: обычно упираются в отложенное или в материалы куда раньше.</summary>
+    private const int MaxBuildsPerTick = 8;
+
     public Simulation(GameWorld world)
     {
         _world = world;
@@ -240,6 +244,9 @@ public sealed class Simulation
     {
         foreach (var good in AllGoods)
         {
+            // Услуги через границу не возят: стрижку и лечение покупают там же, где живут.
+            if (good == GoodType.Services) continue;
+
             _orders.Clear();
             _stockBefore.Clear();
             _byOrder.Clear();
@@ -619,13 +626,45 @@ public sealed class Simulation
             if (made.Raw <= 0) continue;
 
             var owed = new Money(made.Raw * country.LabourShare / 100);
-            var paid = country.State.Treasury.TrySpend(owed) ? owed : PayWhatIsLeft(country);
+            var paid = owed;
+            if (!country.State.Treasury.TrySpend(owed))
+            {
+                // Не хватило — печатают недостающее. Не смогли и этого — платят сколько есть.
+                Print(country, owed);
+                if (!country.State.Treasury.TrySpend(owed)) paid = PayWhatIsLeft(country);
+            }
 
             country.Households.Earn(paid);
             _wages[country.Id] = paid;
 
             country.Payroll = paid;
         }
+    }
+
+    /// <summary>Занять не вышло, платить надо — печатают недостающее.</summary>
+    /// <remarks>Цена немедленная: местные цены растут на столько же, на сколько выросла
+    /// денежная масса, и ровно настолько же слабеет валюта. Так это и работает в жизни,
+    /// только не сразу, а за месяцы.</remarks>
+    private static void Print(Country country, Money owed)
+    {
+        // Печатать может тот, у кого есть своя денежная масса. У страны без неё нет и
+        // центробанка, а на нуле любая эмиссия была бы бесконечным ростом цен.
+        if (country.Bank.Supply.Raw <= 0) return;
+
+        var missing = owed - country.State.Treasury.Balance;
+        if (missing.Raw <= 0) return;
+
+        var growth = country.Bank.Emit(missing, EmissionKind.Open);
+        country.State.Treasury.Receive(missing);
+        if (growth == 0) return;
+
+        foreach (var good in Enum.GetValues<GoodType>())
+        {
+            country.State.Prices.Set(good, new Money(
+                country.State.Prices.Of(good).Raw * (100 + growth) / 100));
+        }
+
+        country.MoveRate(new Money(country.ExchangeRate.Raw * (100 + growth) / 100));
     }
 
     private static Money PayWhatIsLeft(Country country)
@@ -809,21 +848,24 @@ public sealed class Simulation
                     new Money(added.Raw * Construction.InvestmentShare / 100);
             }
 
-            var best = BestBuild(country);
-            if (best is null) continue;
+            // Пока хватает отложенного и материалов. Иначе самый выгодный тип может
+            // оказаться неподъёмным навсегда, и страна не построит вообще ничего.
+            for (var built = 0; built < MaxBuildsPerTick; built++)
+            {
+                var best = BestBuild(country, _investment.GetValueOrDefault(country.Id));
+                if (best is null) break;
 
-            var info = _world.Buildings[best.Value.Type];
-            var price = Construction.CostOf(info.BuildCost, country.State.Prices);
-            if (_investment.GetValueOrDefault(country.Id) < price) continue;
-            if (!country.State.Stock.TryConsume(info.BuildCost, Load.Full)) continue;
+                var info = _world.Buildings[best.Value.Type];
+                if (!country.State.Stock.TryConsume(info.BuildCost, Load.Full)) break;
 
-            _investment[country.Id] -= price;
-            best.Value.Where.AddBuildings(best.Value.Type, 1);
+                _investment[country.Id] -= Construction.CostOf(info.BuildCost, country.State.Prices);
+                best.Value.Where.AddBuildings(best.Value.Type, 1);
+            }
         }
     }
 
-    /// <summary>Что и где стране строить. Пусто, если ничего выгодного нет.</summary>
-    private (BuildingType Type, Region Where)? BestBuild(Country country)
+    /// <summary>Что и где стране строить по средствам. Пусто, если ничего не подходит.</summary>
+    private (BuildingType Type, Region Where)? BestBuild(Country country, Money purse)
     {
         (BuildingType Type, Region Where)? best = null;
         var bestValue = 0L;
@@ -835,6 +877,7 @@ public sealed class Simulation
 
             var profit = Construction.ProfitOf(new BuildingRecipe(info.Inputs, info.Outputs), country.State.Prices);
             if (profit.Raw <= 0) continue;
+            if (Construction.CostOf(info.BuildCost, country.State.Prices) > purse) continue;
 
             var value = Construction.ValuePerWorker(
                 profit, info.OptimalWorkers, _world.Efficiency.Of(country.Id, info.Sector));

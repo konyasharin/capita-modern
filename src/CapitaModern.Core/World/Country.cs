@@ -31,6 +31,9 @@ public sealed class Country
     /// </remarks>
     public Money ExchangeRate { get; private set; } = Money.FromWhole(1);
 
+    /// <summary>Печатный станок и денежная масса.</summary>
+    public CentralBank Bank { get; init; } = new(default);
+
     /// <summary>Ключевая ставка в сотых долях процента: 425 — это 4.25% годовых.</summary>
     /// <remarks>Пока только хранится. Заработает с плавающими займами, и тогда же станет
     /// рычагом игрока: поднял против инфляции — вырос свой же процентный расход.</remarks>

@@ -9,5 +9,6 @@ public enum Sector
     Heavy,
     Civil,
     Military,
+    Services,
     People
 }

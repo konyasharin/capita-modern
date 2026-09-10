@@ -318,5 +318,15 @@
 		"worldOutput2019": 1460,
 		"demandElasticity": -30,
 		"supplyElasticity": 40
+	},
+	{
+		"id": "Services",
+		"name": "Услуги",
+		"category": "final",
+		"icon": "services",
+		"unit": "100 тыс. $ услуг",
+		"worldOutput2019": 535000000,
+		"demandElasticity": -40,
+		"supplyElasticity": 90
 	}
 ]

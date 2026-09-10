@@ -195,7 +195,7 @@ foreach (var (iso, gdp, export, balance) in real)
 var worldGdp = realGdp.Values.Aggregate(default(Money), (a, b) => a + b).Exact / 1e9;
 var worldExport = exports.Values.Aggregate(default(Money), (a, b) => a + b).Exact / 1e9;
 Console.WriteLine();
-Console.WriteLine($"Мир: реальный ВВП {worldGdp:F2} трлн (материальное производство в жизни ~20 трлн)");
+Console.WriteLine($"Мир: реальный ВВП {worldGdp:F2} трлн (в жизни 84.9 трлн)");
 Console.WriteLine($"     товарный экспорт {worldExport:F2} трлн (в жизни 17.6 трлн)");
 Console.WriteLine($"     денег в мире {world.Countries.Sum(c => c.State.Treasury.Reserves.Value.Exact) / 1e9:F2} трлн " +
                   $"(на старте {startMoney / 1e9:F2})");
@@ -510,4 +510,17 @@ foreach (var group in world.Regions.SelectMany(r => r.BuildingsCount)
              .OrderByDescending(g => g.Count).Take(6))
 {
     Console.WriteLine($"  {group.Key,-24} {group.Count}");
+}
+
+// --- О. Эмиссия --------------------------------------------------------------------
+Console.WriteLine();
+Console.WriteLine("=== О. Печатный станок ===");
+var printers = world.Countries.Where(c => c.Bank.Printed.Raw > 0)
+    .OrderByDescending(c => c.Bank.Printed.Raw / Math.Max(1.0, c.Bank.Supply.Raw)).Take(6).ToArray();
+
+Console.WriteLine($"Печатали: {world.Countries.Count(c => c.Bank.Printed.Raw > 0)} стран из {world.Countries.Count}");
+foreach (var country in printers)
+{
+    var share = 100.0 * country.Bank.Printed.Exact / Math.Max(1, country.Bank.Supply.Exact);
+    Console.WriteLine($"  {country.Iso}: напечатано {share,6:F1}% массы, курс x{country.ExchangeRate.Exact:F2}");
 }

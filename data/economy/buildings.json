@@ -656,5 +656,20 @@
 			"Materials": 34906,
 			"Metals": 1870
 		}
+	},
+	{
+		"type": "ServiceFirm",
+		"name": "Сфера услуг",
+		"icon": "services",
+		"sector": "Services",
+		"inputs": {},
+		"outputs": {
+			"Services": 293
+		},
+		"optimalWorkers": 465200,
+		"buildCost": {
+			"Materials": 21400,
+			"Metals": 1150
+		}
 	}
 ]
