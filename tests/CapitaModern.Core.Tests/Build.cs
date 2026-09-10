@@ -46,6 +46,10 @@ internal static class Build
         int population = 1000) =>
         new(id, Population.FromWhole(population), new Dictionary<byte, int> { [owner] = cells }, buildings ?? [], deposits ?? []);
 
+    /// <summary>Резервы одной кучей у ничейного эмитента: тестам эмитент не важен.</summary>
+    public static Reserve[] Cash(long money) =>
+        [new Reserve(ReserveKind.ForeignCurrency, WorldMarket.WorldIssuer, Money.FromWhole(money))];
+
     /// <summary>Рынок со стартовыми ценами. Одна страна на нём торговать не с кем.</summary>
     public static WorldMarket Market(Dictionary<GoodType, Money>? prices = null) => new(new Prices(prices));
 
@@ -66,6 +70,6 @@ internal static class Build
         Dictionary<GoodType, Money>? prices = null,
         long money = 0) =>
         new(id, $"country {id}", $"C{id:00}",
-            new Producer(id, new Stock(stock ?? []), new Treasury(Money.FromWhole(money)), new Prices(prices)),
+            new Producer(id, new Stock(stock ?? []), new Treasury(Cash(money)), new Prices(prices)),
             new Priorities(weights));
 }

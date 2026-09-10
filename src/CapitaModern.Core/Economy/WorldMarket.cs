@@ -16,6 +16,10 @@ public sealed class WorldMarket
     /// <summary>Сколько раз перераздавать остаток от тех, кому не хватило денег.</summary>
     private const int MoneyPasses = 3;
 
+    /// <summary>Чья валюта приходит за экспорт. Ничья: мировая единица — мера, а не
+    /// валюта страны. Какая валюта станет резервной, пусть решится само.</summary>
+    public const byte WorldIssuer = 0;
+
     public Prices Prices { get; }
 
     public WorldMarket(Prices prices)
@@ -92,7 +96,7 @@ public sealed class WorldMarket
     private long Affordable(GoodType good, Producer trader, long alreadyBought)
     {
         long price = Prices.Of(good).Raw;
-        long rest = trader.Treasury.Balance.Raw - Prices.CostOf(good, new GoodAmount(alreadyBought)).Raw;
+        long rest = trader.Treasury.Reserves.Liquid.Raw - Prices.CostOf(good, new GoodAmount(alreadyBought)).Raw;
 
         return rest <= 0 ? 0 : (long)((Int128)rest * GoodAmount.Scale / price);
     }
@@ -107,7 +111,7 @@ public sealed class WorldMarket
             if (bought[i] == 0) continue;
 
             var cost = Prices.CostOf(good, new GoodAmount(bought[i]));
-            if (!orders[i].Trader.Treasury.TrySpend(cost))
+            if (!orders[i].Trader.Treasury.Reserves.TrySpend(cost))
                 throw new InvalidOperationException("Покупателю не хватило денег, ошибка в расчёте доли");
 
             orders[i].Trader.Stock.Store(good, new GoodAmount(bought[i]));
@@ -181,7 +185,9 @@ public sealed class WorldMarket
             if (orders[i].Trader.Stock.TakeUpTo(good, new GoodAmount(sold[i])).Raw != sold[i])
                 throw new InvalidOperationException("У продавца не оказалось товара, ошибка в расчёте доли");
 
-            orders[i].Trader.Treasury.Receive(new Money(earned[i]));
+            // Выручка приходит в валюте покупателей. Чьей именно — станет важно, когда
+            // валюты начнут расходиться в цене; пока весь мир считает в одной мере.
+            orders[i].Trader.Treasury.Reserves.Add(ReserveKind.ForeignCurrency, WorldIssuer, new Money(earned[i]));
         }
     }
 }

@@ -7,6 +7,7 @@ public class CountryTests
 {
     private static Money Cash(long thousands) => Money.FromWhole(thousands);
 
+
     [Fact]
     public void TreasuryTakesAndSpends()
     {

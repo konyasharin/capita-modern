@@ -18,7 +18,7 @@ public class TradeTests
     private static Producer Trader(int id, long coal = 0, long money = 0) => new(
         id,
         new Stock(new Dictionary<GoodType, GoodAmount> { [Coal] = Build.Whole(coal) }),
-        new Treasury(Money.FromWhole(money)),
+        new Treasury(Build.Cash(money)),
         new Prices());
 
     private static TradeOrder Buys(Producer trader, long coal) =>
@@ -28,7 +28,7 @@ public class TradeTests
         new(trader, default, Build.Whole(coal));
 
     private static long Coals(Producer trader) => trader.Stock.Of(Coal).Raw;
-    private static long Cash(Producer trader) => trader.Treasury.Balance.Raw;
+    private static long Cash(Producer trader) => trader.Treasury.Reserves.Value.Raw;
 
     [Fact]
     public void SurplusFlowsToShortage()
@@ -43,8 +43,8 @@ public class TradeTests
         Assert.Equal(default, seller.Stock.Of(Coal));
         Assert.Equal(Build.Whole(10), buyer.Stock.Of(Coal));
         // Десять единиц по сотне: покупатель отдал тысячу, продавец её получил.
-        Assert.Equal(Money.FromWhole(1000), seller.Treasury.Balance);
-        Assert.Equal(Money.FromWhole(1000), buyer.Treasury.Balance);
+        Assert.Equal(Money.FromWhole(1000), seller.Treasury.Reserves.Value);
+        Assert.Equal(Money.FromWhole(1000), buyer.Treasury.Reserves.Value);
     }
 
     /// <summary>Числа нарочно неровные: на них и вылезают потери от целочисленного
@@ -83,7 +83,7 @@ public class TradeTests
 
         // На 350 при цене 100 берётся три с половиной единицы, и казна в ноль.
         Assert.Equal(Build.Whole(7) / 2, buyer.Stock.Of(Coal));
-        Assert.Equal(default, buyer.Treasury.Balance);
+        Assert.Equal(default, buyer.Treasury.Reserves.Value);
         Assert.Equal(Build.Whole(13) / 2, seller.Stock.Of(Coal));
     }
 
@@ -219,7 +219,7 @@ public class TradeTests
 
         Assert.Equal(default, cutOff.State.Stock.Of(Coal));
         Assert.Equal(default, cutOff.State.Stock.Of(GoodType.Metals));
-        Assert.Equal(Money.FromWhole(10_000_000), cutOff.State.Treasury.Balance);
+        Assert.Equal(Money.FromWhole(10_000_000), cutOff.State.Treasury.Reserves.Value);
     }
 
     [Fact]
@@ -240,11 +240,11 @@ public class TradeTests
                                  outputs: new() { [GoodType.Metals] = Build.Whole(2) })),
             new Dictionary<GoodType, Money> { [Coal] = Money.FromWhole(3) });
 
-        var before = world.Countries.Sum(country => country.State.Treasury.Balance.Raw);
+        var before = world.Countries.Sum(country => country.State.Treasury.Reserves.Value.Raw);
 
         var simulation = new Simulation(world);
         for (var tick = 0; tick < 50; tick++) simulation.Tick();
 
-        Assert.Equal(before, world.Countries.Sum(country => country.State.Treasury.Balance.Raw));
+        Assert.Equal(before, world.Countries.Sum(country => country.State.Treasury.Reserves.Value.Raw));
     }
 }

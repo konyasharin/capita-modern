@@ -43,8 +43,9 @@ public static class WorldDataLoader
                 populations.GetValueOrDefault(region.LargestOwner) + region.Demographics.Population;
         }
 
+        var idByIso = countriesFile.Countries.ToDictionary(dto => dto.Iso, dto => dto.Id);
         Country[] countries = countriesFile.Countries
-            .Select(dto => ToCountry(dto, startPrices, reserves, populations.GetValueOrDefault(dto.Id)))
+            .Select(dto => ToCountry(dto, startPrices, reserves, idByIso, populations.GetValueOrDefault(dto.Id)))
             .ToArray();
         BuildingCatalog buildingCatalog = BuildingCatalog.FromJson(buildingsJson);
 
@@ -74,10 +75,38 @@ public static class WorldDataLoader
         return Money.FromWhole(reserves.DefaultPerMillionPeople * population.Whole / 1_000_000 * 1000);
     }
 
+    /// <summary>Раскладывает сумму по валютам. Доли нормируются по своей сумме: часть
+    /// мировых резервов лежит в валютах, которых у нас нет.</summary>
+    /// <remarks>Остаток от деления уходит эмитенту с наибольшей долей, иначе на двухстах
+    /// странах наберётся заметная недостача.</remarks>
+    private static Reserve[] Split(Money total, ReservesFile reserves, IReadOnlyDictionary<string, byte> idByIso)
+    {
+        var shares = reserves.Composition
+            .Where(pair => idByIso.ContainsKey(pair.Key))
+            .OrderByDescending(pair => pair.Value)
+            .ToArray();
+        var sum = shares.Sum(pair => pair.Value);
+        if (sum <= 0) return [];
+
+        var left = total;
+        var held = new Reserve[shares.Length];
+        for (var i = 1; i < shares.Length; i++)
+        {
+            var part = new Money(total.Raw * shares[i].Value / sum);
+            held[i] = new Reserve(ReserveKind.ForeignCurrency, idByIso[shares[i].Key], part);
+            left -= part;
+        }
+
+        held[0] = new Reserve(ReserveKind.ForeignCurrency, idByIso[shares[0].Key], left);
+
+        return held;
+    }
+
     private static Country ToCountry(
         CountryDto dto,
         IReadOnlyDictionary<GoodType, Money> startPrices,
         ReservesFile reserves,
+        IReadOnlyDictionary<string, byte> idByIso,
         Population population) => new(
         dto.Id,
         dto.Name,
@@ -87,7 +116,7 @@ public static class WorldDataLoader
         new Producer(
             dto.Id,
             new Stock(new Dictionary<GoodType, GoodAmount>()),
-            new Treasury(ReservesOf(dto, reserves, population)),
+            new Treasury(Split(ReservesOf(dto, reserves, population), reserves, idByIso)),
             new Prices(startPrices)),
         new Priorities()
     ); // баланс и склад - заглушки
