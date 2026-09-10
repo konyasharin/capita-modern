@@ -65,7 +65,7 @@ public sealed class Prices
     public Money CostOf(GoodType good, GoodAmount amount) =>
         new((long)((Int128)Of(good).Raw * amount.Raw / GoodAmount.Scale));
 
-    /// <summary>Сдвигает цену за тик по тому, на сколько суток хватит запаса.</summary>
+    /// <summary>Местная цена: двигается по тому, на сколько суток хватит запаса.</summary>
     /// <remarks>
     /// Сравнивается покрытие, а не склад со спросом напрямую: склад — это запас, спрос —
     /// расход за сутки. Делить одно на другое можно, только приведя к суткам, иначе цену
@@ -73,16 +73,26 @@ public sealed class Prices
     /// </remarks>
     /// <param name="demand">Сколько товара заказали за тик все — и заводы, и население.</param>
     /// <param name="available">Что лежало на складе на начало тика.</param>
-    public void Move(GoodType good, GoodAmount demand, GoodAmount available)
+    public void MoveFromCover(GoodType good, GoodAmount demand, GoodAmount available)
     {
         // перекос = (цель − покрытие) / (цель + покрытие), где покрытие = наличие / спрос.
         // Числитель и знаменатель домножены на спрос, чтобы обойтись без дроби.
-        long target = TargetCoverDays * demand.Raw;
-        long over = target + available.Raw;
-        if (over == 0) return; // ни спроса, ни запаса — двигать не от чего
-
         // Спроса нет вовсе: цель ноль, перекос ровно −1, цена падает полным шагом.
-        long under = target - available.Raw;
+        long target = TargetCoverDays * demand.Raw;
+
+        Apply(good, target - available.Raw, target + available.Raw);
+    }
+
+    /// <summary>Цена мирового рынка: двигается по балансу заявок и предложений.</summary>
+    /// <remarks>Здесь покрытие ни при чём: заявка и предложение — величины одного рода,
+    /// обе уже посчитаны от нормы запаса.</remarks>
+    public void MoveFromBalance(GoodType good, GoodAmount wanted, GoodAmount offered) =>
+        Apply(good, wanted.Raw - offered.Raw, wanted.Raw + offered.Raw);
+
+    /// <summary>Общий шаг обоих правил: перекос задаётся дробью under/over.</summary>
+    private void Apply(GoodType good, long under, long over)
+    {
+        if (over == 0) return; // ничего не известно — двигать не от чего
 
         // Int128: цена на процент на перекос не влезает в long у дорогих товаров.
         // Деление обрубает дробь в обе стороны одинаково, так что цена не сползает сама.

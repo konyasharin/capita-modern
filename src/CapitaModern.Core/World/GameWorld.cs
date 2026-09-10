@@ -7,6 +7,9 @@ namespace CapitaModern.Core.World;
 public sealed class GameWorld
 {
     public BuildingCatalog Buildings { get; }
+
+    /// <summary>Мировой рынок: один на партию, цены на нём свои.</summary>
+    public WorldMarket Market { get; }
     /// <summary>Сколько товара население съедает за сутки на миллион человек.</summary>
     public readonly IReadOnlyDictionary<GoodType, GoodAmount> Consumption;
 
@@ -20,9 +23,11 @@ public sealed class GameWorld
         Region[] regions,
         Country[] countries,
         BuildingCatalog buildings,
-        IReadOnlyDictionary<GoodType, GoodAmount> consumption
+        IReadOnlyDictionary<GoodType, GoodAmount> consumption,
+        WorldMarket market
     ) {
         Buildings = buildings;
+        Market = market;
         Consumption = consumption;
         _regions = regions;
         _countries = countries;

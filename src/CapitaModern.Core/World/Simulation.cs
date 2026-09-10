@@ -1,4 +1,5 @@
-﻿using CapitaModern.Core.Buildings;
+﻿using System.Runtime.InteropServices;
+using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
 using CapitaModern.Core.Politics;
 
@@ -39,6 +40,21 @@ public sealed class Simulation
     /// ни стояли: склад у страны общий.</summary>
     private readonly Tally<BuildingType, int> _working = new();
 
+    /// <summary>Заявки на рынок по одному товару. Переиспользуется: тик их создаёт по
+    /// штуке на товар, а мусора за год набежало бы много.</summary>
+    private readonly List<TradeOrder> _orders = new();
+
+    /// <summary>Склады участников до сведения сделок: по разнице видно, кто сколько
+    /// купил и продал.</summary>
+    private readonly List<GoodAmount> _stockBefore = new();
+
+    /// <summary>Что страна ввезла и вывезла за тик. Из них считается сальдо.</summary>
+    private readonly Tally<GoodType, GoodAmount> _imported = new();
+    private readonly Tally<GoodType, GoodAmount> _exported = new();
+
+    /// <summary>Чья заявка стоит на этом месте в списке.</summary>
+    private readonly List<byte> _byOrder = new();
+
     /// <summary>Список товаров нужен каждый тик, а Enum.GetValues каждый раз выделяет
     /// новый массив.</summary>
     private static readonly GoodType[] AllGoods = Enum.GetValues<GoodType>();
@@ -52,6 +68,7 @@ public sealed class Simulation
     {
         Prepare();
         CollectInputs();
+        Trade();
         CollectAvailable();
         CollectOutputs();
         FeedPeople();
@@ -70,6 +87,8 @@ public sealed class Simulation
         _claims.Clear();
         _working.Clear();
         _consumed.Clear();
+        _imported.Clear();
+        _exported.Clear();
         _peopleWants.Clear();
         _deficit.Clear();
     }
@@ -121,6 +140,75 @@ public sealed class Simulation
 
     /// <summary>Склады на начало тика. Берём все товары, а не только заказанные: цена
     /// того, что никому не нужно, тоже должна двигаться — вниз.</summary>
+    /// <summary>Докупить недостающее и продать лишнее. Стоит после <see cref="CollectInputs"/>
+    /// (нужен спрос) и до <see cref="CollectAvailable"/> (склады уже другие).</summary>
+    /// <remarks>Норма запаса та же, что двигает цену: страна докупает до неё и продаёт
+    /// всё сверх. Одна константа на два механизма, и торговля сама чинит цены, которые
+    /// иначе упирались бы в коридор.</remarks>
+    private void Trade()
+    {
+        foreach (var good in AllGoods)
+        {
+            _orders.Clear();
+            _stockBefore.Clear();
+            _byOrder.Clear();
+            foreach (var country in _world.Countries)
+            {
+                if (!country.TradeAccess.CanTrade(good)) continue;
+
+                var target = new GoodAmount(Prices.TargetCoverDays * _inputs.Get(country.Id, good).Raw);
+                var stock = country.State.Stock.Of(good);
+
+                if (target > stock) _orders.Add(new TradeOrder(country.State, target - stock, default));
+                else if (stock > target) _orders.Add(new TradeOrder(country.State, default, stock - target));
+                else continue;
+
+                _stockBefore.Add(stock);
+                _byOrder.Add(country.Id);
+            }
+
+            _world.Market.Settle(good, CollectionsMarshal.AsSpan(_orders));
+
+            for (var i = 0; i < _orders.Count; i++)
+            {
+                var now = _orders[i].Trader.Stock.Of(good);
+                if (now > _stockBefore[i]) _imported.Add(_byOrder[i], good, now - _stockBefore[i]);
+                else if (_stockBefore[i] > now) _exported.Add(_byOrder[i], good, _stockBefore[i] - now);
+            }
+        }
+    }
+
+    /// <summary>Что мир выпустил за прошедший тик.</summary>
+    public GoodAmount WorldOutputOf(GoodType good) => WorldSum(_outputs, good);
+
+    /// <summary>Сколько мир заказал за прошедший тик — и заводы, и население.</summary>
+    public GoodAmount WorldDemandOf(GoodType good) => WorldSum(_inputs, good);
+
+    private GoodAmount WorldSum(Tally<GoodType, GoodAmount> what, GoodType good)
+    {
+        var total = default(GoodAmount);
+        foreach (var country in _world.Countries) total += what.Get(country.Id, good);
+
+        return total;
+    }
+
+    /// <summary>Сколько страна ввезла за прошедший тик, в деньгах по ценам рынка.</summary>
+    public Money ImportsOf(byte country) => Valued(_imported, country);
+
+    /// <summary>Сколько страна вывезла за прошедший тик.</summary>
+    public Money ExportsOf(byte country) => Valued(_exported, country);
+
+    private Money Valued(Tally<GoodType, GoodAmount> what, byte country)
+    {
+        var total = default(Money);
+        foreach (var good in AllGoods)
+        {
+            total += _world.Market.Prices.CostOf(good, what.Get(country, good));
+        }
+
+        return total;
+    }
+
     private void CollectAvailable()
     {
         foreach (var country in _world.Countries)
@@ -208,16 +296,18 @@ public sealed class Simulation
     {
         foreach (var (country, good, available) in _available)
         {
-            _world.CountryById(country).State.Prices.Move(good, _inputs.Get(country, good), available);
+            _world.CountryById(country).State.Prices.MoveFromCover(good, _inputs.Get(country, good), available);
         }
     }
 
     /// <summary>Добавленная стоимость страны за прошедший тик: что выпущено минус то,
     /// что на это ушло. Сумма по всем странам — мировой ВВП за сутки.</summary>
     /// <remarks>Может быть отрицательной: значит, сырьё стоит дороже продукции.</remarks>
-    public Money ValueAddedOf(byte country)
+    /// <param name="at">В каких ценах считать. По умолчанию в своих: тогда это
+    /// номинальный ВВП. Постоянные цены дают реальный, который и надо сравнивать по годам.</param>
+    public Money ValueAddedOf(byte country, Prices? at = null)
     {
-        var prices = _world.CountryById(country).State.Prices;
+        var prices = at ?? _world.CountryById(country).State.Prices;
         var total = default(Money);
 
         foreach (var good in AllGoods)

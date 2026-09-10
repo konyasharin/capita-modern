@@ -25,7 +25,8 @@ public class ConsumptionTests
             [Build.Region(1, 1, buildings ?? [], population: (int)(millions * 1_000_000))],
             [Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Food] = Build.Whole(foodInStock) }, weights)],
             Build.Catalog(Build.Info(Farm, outputs: new() { [GoodType.Food] = Build.Whole(1) }, sector: Sector.Mining)),
-            rate ?? Rate);
+            rate ?? Rate,
+            Build.Market());
 
     [Fact]
     public void PeopleEatFromTheStock()
@@ -113,7 +114,8 @@ public class ConsumptionTests
                 inputs: new() { [GoodType.Food] = Build.Whole(2) },
                 outputs: new() { [GoodType.ConsumerGoods] = Build.Whole(1) },
                 sector: Sector.Civil)),
-            Rate);
+            Rate,
+            Build.Market());
 
         new Simulation(world).Tick();
 
@@ -139,7 +141,8 @@ public class ConsumptionTests
                 inputs: new() { [GoodType.Food] = Build.Whole(2) },
                 outputs: new() { [GoodType.ConsumerGoods] = Build.Whole(1) },
                 sector: Sector.Civil)),
-            Rate);
+            Rate,
+            Build.Market());
 
         new Simulation(world).Tick();
 

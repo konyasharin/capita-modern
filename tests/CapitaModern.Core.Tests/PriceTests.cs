@@ -19,7 +19,7 @@ public class PriceTests
     private static Money Moved(GoodAmount demand, GoodAmount available)
     {
         var prices = Start();
-        prices.Move(GoodType.Coal, demand, available);
+        prices.MoveFromCover(GoodType.Coal, demand, available);
 
         return prices.Of(GoodType.Coal);
     }
@@ -68,7 +68,7 @@ public class PriceTests
         var prices = Start();
         for (var tick = 0; tick < 5_000; tick++)
         {
-            prices.Move(GoodType.Coal, default, Build.Whole(1));
+            prices.MoveFromCover(GoodType.Coal, default, Build.Whole(1));
         }
 
         Assert.Equal(Money.FromWhole(1), prices.Of(GoodType.Coal));
@@ -82,7 +82,7 @@ public class PriceTests
         var prices = Start();
         for (var tick = 0; tick < 5_000; tick++)
         {
-            prices.Move(GoodType.Coal, Build.Whole(10), default);
+            prices.MoveFromCover(GoodType.Coal, Build.Whole(10), default);
         }
 
         Assert.Equal(Money.FromWhole(100 * Prices.MaxSwingTimes), prices.Of(GoodType.Coal));

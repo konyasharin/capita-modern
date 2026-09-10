@@ -46,16 +46,24 @@ internal static class Build
         int population = 1000) =>
         new(id, Population.FromWhole(population), new Dictionary<byte, int> { [owner] = cells }, buildings ?? [], deposits ?? []);
 
+    /// <summary>Рынок со стартовыми ценами. Одна страна на нём торговать не с кем.</summary>
+    public static WorldMarket Market(Dictionary<GoodType, Money>? prices = null) => new(new Prices(prices));
+
     /// <summary>Мир без потребления населением: тесты производства о нём не знают.</summary>
-    public static GameWorld World(Region[] regions, Country[] countries, BuildingCatalog catalog) =>
-        new(regions, countries, catalog, new Dictionary<GoodType, GoodAmount>());
+    public static GameWorld World(
+        Region[] regions,
+        Country[] countries,
+        BuildingCatalog catalog,
+        Dictionary<GoodType, Money>? marketPrices = null) =>
+        new(regions, countries, catalog, new Dictionary<GoodType, GoodAmount>(), Market(marketPrices));
 
     public static Country Country(
         byte id,
         Dictionary<GoodType, GoodAmount>? stock = null,
         Dictionary<Sector, int>? weights = null,
-        Dictionary<GoodType, Money>? prices = null) =>
+        Dictionary<GoodType, Money>? prices = null,
+        long money = 0) =>
         new(id, $"country {id}", $"C{id:00}",
-            new Producer(id, new Stock(stock ?? []), new Treasury(default), new Prices(prices)),
+            new Producer(id, new Stock(stock ?? []), new Treasury(Money.FromWhole(money)), new Prices(prices)),
             new Priorities(weights));
 }

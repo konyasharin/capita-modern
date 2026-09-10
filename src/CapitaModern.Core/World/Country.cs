@@ -1,4 +1,4 @@
-using CapitaModern.Core.Economy;
+﻿using CapitaModern.Core.Economy;
 using CapitaModern.Core.Politics;
 
 namespace CapitaModern.Core.World;
@@ -17,6 +17,9 @@ public sealed class Country
     public Producer State { get; }
 
     public Priorities Priorities { get; }
+
+    /// <summary>Пускают ли на мировой рынок. По умолчанию везде да.</summary>
+    public TradeAccess TradeAccess { get; } = new();
 
     public Country(byte id, string name, string iso, Producer state, Priorities priorities)
     {
