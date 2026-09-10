@@ -14,6 +14,9 @@ public sealed class GameWorld
     /// <summary>Насколько спрос отзывается на цену. Одна на мир: свойство товара,
     /// а не страны.</summary>
     public Elasticity Elasticity { get; }
+
+    /// <summary>Кто кому даёт в долг. Один на партию, как и товарный рынок.</summary>
+    public CreditMarket Credit { get; } = new();
     /// <summary>Сколько товара население съедает за сутки на миллион человек.</summary>
     public readonly IReadOnlyDictionary<GoodType, GoodAmount> Consumption;
 

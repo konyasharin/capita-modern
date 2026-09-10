@@ -55,6 +55,22 @@ public sealed class Simulation
     /// <summary>Чья заявка стоит на этом месте в списке.</summary>
     private readonly List<byte> _byOrder = new();
 
+    /// <summary>Заявки на кредитный рынок. Переиспользуется, как и товарные.</summary>
+    private readonly List<CreditOrder> _credit = new();
+
+    /// <summary>На сколько денег страна подала заявок на рынок за этот тик. Считать
+    /// нужду по свершившемуся ввозу нельзя: у кого нет валюты, тот и не ввозит, и
+    /// выходит, что занимать ему незачем.</summary>
+    private readonly Tally<GoodType, GoodAmount> _bid = new();
+
+    /// <summary>Кто в этот тик не смог заплатить проценты. Отказ платить — про это, а
+    /// не про пустую кассу: в кассе почти всегда что-то есть.</summary>
+    private readonly HashSet<byte> _missedPayment = new();
+
+    /// <summary>Сколько тиков прошло с начала партии. Нужно, чтобы помнить, когда кто
+    /// отказался платить.</summary>
+    private int _day;
+
     /// <summary>Список товаров нужен каждый тик, а Enum.GetValues каждый раз выделяет
     /// новый массив.</summary>
     private static readonly GoodType[] AllGoods = Enum.GetValues<GoodType>();
@@ -64,11 +80,26 @@ public sealed class Simulation
         _world = world;
     }
 
+    /// <summary>Сколько лет после отказа платить на рынок не пускают. В жизни
+    /// примерно столько и не пускают.</summary>
+    public const int DefaultLockYears = 5;
+
+    /// <summary>Нагрузка, после которой долг заведомо не вернуть: вчетверо больше
+    /// годового вывоза. В жизни зона риска начинается вдвое раньше.</summary>
+    public const int DefaultBurden = 400;
+
+    private const int DaysInYear = 365;
+
     public void Tick()
     {
+        _day++;
         Prepare();
         CollectInputs();
         Trade();
+        NoteTrade();
+        Borrow();
+        PayInterest();
+        CheckDefaults();
         MoveRates();
         CollectAvailable();
         CollectOutputs();
@@ -90,6 +121,7 @@ public sealed class Simulation
         _consumed.Clear();
         _imported.Clear();
         _exported.Clear();
+        _bid.Clear();
         _peopleWants.Clear();
         _deficit.Clear();
     }
@@ -177,6 +209,7 @@ public sealed class Simulation
 
                 if (target > stock)
                 {
+                    _bid.Add(country.Id, good, target - stock);
                     _orders.Add(new TradeOrder(country.State, target - stock, default));
                 }
                 else if (stock > target)
@@ -217,6 +250,106 @@ public sealed class Simulation
 
         return total;
     }
+
+    /// <summary>Запоминает вывоз, сглаживая его за год.</summary>
+    private void NoteTrade()
+    {
+        foreach (var country in _world.Countries) country.NoteExports(ExportsOf(country.Id), DaysInYear);
+    }
+
+    /// <summary>Кому не хватает валюты — тот занимает, у кого лишняя.</summary>
+    /// <remarks>
+    /// Без этого деньги — храповик в одну сторону: получить их можно только за экспорт,
+    /// и страна с дефицитом доезжает до нуля и перестаёт ввозить. Заём и есть капитальный
+    /// счёт, вторая половина платёжного баланса.
+    ///
+    /// Норма запаса валюты та же, что у товаров: <see cref="Prices.TargetCoverDays"/>
+    /// суток ввоза. Меньше — занимают, больше — дают.
+    /// </remarks>
+    private void Borrow()
+    {
+        _credit.Clear();
+        foreach (var country in _world.Countries)
+        {
+            // Занимают ровно на то, что заказали и не смогли оплатить.
+            var need = Valued(_bid, country.Id);
+            var have = country.State.Treasury.Reserves.Liquid;
+            var premium = CreditMarket.PremiumFor(
+                country.State.Treasury.Debt.BurdenToExports(country.ExportsPerDay * DaysInYear),
+                LockedOut(country));
+
+            _credit.Add(new CreditOrder(
+                country.Id,
+                country.State.Treasury,
+                need > have ? need - have : default,
+                have > need ? have - need : default,
+                country.KeyRate,
+                premium,
+                country.MaxBorrowRate));
+        }
+
+        _world.Credit.Settle(CollectionsMarshal.AsSpan(_credit));
+    }
+
+    /// <summary>Проценты за сутки. Нечем платить — они уходят в тело долга, и нагрузка
+    /// растёт сама собой.</summary>
+    private void PayInterest()
+    {
+        _missedPayment.Clear();
+        foreach (var country in _world.Countries)
+        {
+            foreach (var loan in country.State.Treasury.Debt.Loans)
+            {
+                if (loan.Principal.Raw == 0) continue;
+
+                var due = loan.InterestPerTick(loan.Lender is { } id ? _world.CountryById(id).KeyRate : 0);
+                if (due.Raw == 0) continue;
+
+                if (loan.Lender is { } lender && country.State.Treasury.Reserves.TrySpend(due))
+                {
+                    _world.CountryById(lender).State.Treasury.Reserves
+                        .Add(ReserveKind.ForeignCurrency, WorldMarket.WorldIssuer, due);
+                }
+                else
+                {
+                    loan.Capitalise(due);
+                    _missedPayment.Add(country.Id);
+                }
+            }
+
+            country.State.Treasury.Debt.Forget();
+        }
+    }
+
+    /// <summary>Кто не может ни платить, ни вернуть — отказывается платить.</summary>
+    /// <remarks>
+    /// Без этого мёртвый долг капитализируется вечно: проценты идут в тело, нагрузка
+    /// растёт, и страна тащит за собой весь мир. Отказ — не изъян, а выход, и он
+    /// недёшев: пять лет без рынка и обвал курса.
+    ///
+    /// Отказаться можно только по внешнему долгу. Внутренний — это уже не дефолт, а
+    /// инфляция или заморозка вкладов, и последствия у них другие.
+    /// </remarks>
+    private void CheckDefaults()
+    {
+        foreach (var country in _world.Countries)
+        {
+            if (LockedOut(country)) continue;
+
+            var debt = country.State.Treasury.Debt;
+            if (debt.Owed(LoanSource.Foreign).Raw == 0) continue;
+            if (!_missedPayment.Contains(country.Id)) continue;
+            if (debt.BurdenToExports(country.ExportsPerDay * DaysInYear) < DefaultBurden) continue;
+
+            debt.Default(LoanSource.Foreign);
+            country.DefaultedOnDay = _day;
+            country.MoveRate(country.ExchangeRate * 2);
+        }
+    }
+
+    /// <summary>Не пускают ли страну на кредитный рынок после отказа платить.</summary>
+    private bool LockedOut(Country country) =>
+        country.DefaultedOnDay > 0 && _day - country.DefaultedOnDay < DaysInYear * DefaultLockYears;
 
     /// <summary>Курс идёт за сальдо: кто больше ввозит, у того валюта дешевеет.</summary>
     /// <remarks>Петля замыкается через эластичность: подешевевшая валюта поднимает

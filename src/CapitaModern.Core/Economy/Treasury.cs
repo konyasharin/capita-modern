@@ -18,6 +18,10 @@ public sealed class Treasury
     /// <summary>Чужая валюта. Только ей платят за импорт.</summary>
     public Reserves Reserves { get; }
 
+    /// <summary>Займы списком: перезанять дорогое и объявить дефолт по одному источнику
+    /// иначе не выйдет.</summary>
+    public Debt Debt { get; } = new();
+
     public Treasury(IEnumerable<Reserve>? reserves = null, Money balance = default)
     {
         Reserves = new Reserves(reserves);

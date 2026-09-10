@@ -13,7 +13,8 @@ GameWorld Load() => WorldDataLoader.LoadWorld(
     Data("consumption.json"),
     Data("prices.json"),
     Data("reserves.json"),
-    Data("goods.json"));
+    Data("goods.json"),
+    Data("key-rates.json"));
 
 var goods = Enum.GetValues<GoodType>();
 
@@ -226,13 +227,10 @@ foreach (var good in goods.OrderBy(good =>
 // --- Е. Пять лет: не стекутся ли деньги к экспортёрам -----------------------------
 Console.WriteLine();
 Console.WriteLine("=== Е. Пять лет ===");
-Console.WriteLine("год   реальный ВВП   на рельсах   у богатейшей 10%   стран без денег  валюта вдвое");
+Console.WriteLine("год   реальный ВВП   на рельсах   внешний долг   нагрузка >200%   валюта вдвое");
 
 void Report(int year, double gdp)
 {
-    var cash = world.Countries.Select(c => c.State.Treasury.Reserves.Value.Exact).OrderByDescending(x => x).ToArray();
-    var top = cash.Take(world.Countries.Count / 10).Sum() / Math.Max(cash.Sum(), 1);
-    var broke = cash.Count(x => x <= 0);
     var rails = world.Countries.Sum(c => goods.Count(good =>
     {
         var times = c.State.Prices.Of(good).Exact / c.State.Prices.StartOf(good).Exact;
@@ -240,8 +238,12 @@ void Report(int year, double gdp)
     }));
 
         var weak = world.Countries.Count(c => c.ExchangeRate > Money.FromWhole(2));
+    var debt = world.Countries.Sum(c => c.State.Treasury.Debt.Owed().Exact) / 1e9;
+    var heavy = world.Countries.Count(c =>
+        c.State.Treasury.Debt.BurdenToExports(exports[c.Id] / Math.Max(year, 1)) > 200);
+
     Console.WriteLine($"{year,3} {gdp,14:F2} трлн {100.0 * rails / (world.Countries.Count * goods.Length),9:F1}% " +
-                      $"{top,17:P0} {broke,17} {weak,12}");
+                      $"{debt,10:F2} трлн {heavy,14} {weak,14}");
 }
 
 Report(1, worldGdp);
@@ -252,10 +254,41 @@ for (var year = 2; year <= 5; year++)
     for (var tick = 0; tick < 365; tick++)
     {
         simulation.Tick();
-        foreach (var country in world.Countries) yearGdp += simulation.ValueAddedOf(country.Id, constant);
+        foreach (var country in world.Countries)
+        {
+            yearGdp += simulation.ValueAddedOf(country.Id, constant);
+            exports[country.Id] += simulation.ExportsOf(country.Id);
+        }
     }
 
     Report(year, yearGdp.Exact / 1e9);
+}
+
+Console.WriteLine();
+Console.WriteLine("Крупнейшие должники через пять лет:");
+foreach (var country in world.Countries.OrderByDescending(c => c.State.Treasury.Debt.Owed().Raw).Take(6))
+{
+    var burden = country.State.Treasury.Debt.BurdenToExports(exports[country.Id] / 5);
+    Console.WriteLine($"  {country.Iso} долг {country.State.Treasury.Debt.Owed().Exact / 1e9,6:F2} трлн, " +
+                      $"нагрузка {(burden == int.MaxValue ? "без экспорта" : burden + "%"),12}, " +
+                      $"курс x{country.ExchangeRate.Exact:F2}");
+}
+
+Console.WriteLine();
+Console.WriteLine("Кто раздал в долг больше всех (плавающие ставки идут за ключевой):");
+var lentBy = world.Countries.ToDictionary(c => c.Id, _ => 0.0);
+foreach (var borrower in world.Countries)
+{
+    foreach (var loan in borrower.State.Treasury.Debt.Loans)
+    {
+        if (loan.Lender is { } id) lentBy[id] += loan.Principal.Exact;
+    }
+}
+
+foreach (var (id, sum) in lentBy.OrderByDescending(p => p.Value).Take(5))
+{
+    var lender = world.CountryById(id);
+    Console.WriteLine($"  {lender.Iso} {sum / 1e9,6:F2} трлн, ключевая {lender.KeyRate / 100.0:F2}%");
 }
 
 Console.WriteLine();

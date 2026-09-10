@@ -18,11 +18,13 @@ public static class WorldDataLoader
         string consumptionJson,
         string pricesJson,
         string reservesJson,
-        string goodsJson)
+        string goodsJson,
+        string keyRatesJson)
     {
         var consumption = LoadConsumptionFile(consumptionJson).UnitPerMillionPeople;
         var startPrices = LoadPricesFile(pricesJson).Prices;
         var reserves = LoadReservesFile(reservesJson);
+        var keyRates = JsonReader.Read<KeyRatesFile>(keyRatesJson);
         var goodDtos = JsonReader.Read<GoodDto[]>(goodsJson);
         var elasticity = new Elasticity(
             goodDtos.ToDictionary(dto => dto.Id, dto => dto.DemandElasticity),
@@ -49,6 +51,11 @@ public static class WorldDataLoader
         Country[] countries = countriesFile.Countries
             .Select(dto => ToCountry(dto, startPrices, reserves, idByIso, populations.GetValueOrDefault(dto.Id)))
             .ToArray();
+
+        foreach (var country in countries)
+        {
+            country.KeyRate = keyRates.ByIso.GetValueOrDefault(country.Iso, keyRates.DefaultRate);
+        }
         BuildingCatalog buildingCatalog = BuildingCatalog.FromJson(buildingsJson);
 
         return new GameWorld(regions, countries, buildingCatalog, consumption,
