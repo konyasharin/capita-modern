@@ -99,6 +99,7 @@ public sealed class Simulation
         NoteTrade();
         Borrow();
         PayInterest();
+        Repay();
         CheckDefaults();
         MoveRates();
         CollectAvailable();
@@ -319,6 +320,38 @@ public sealed class Simulation
             }
 
             country.State.Treasury.Debt.Forget();
+        }
+    }
+
+    /// <summary>Лишняя валюта уходит на погашение, начиная с самого дорогого займа.</summary>
+    /// <remarks>Без этого долг только растёт: проценты платятся, тело не гасится никогда,
+    /// и любая страна рано или поздно упирается в дефолт.</remarks>
+    private void Repay()
+    {
+        foreach (var country in _world.Countries)
+        {
+            var debt = country.State.Treasury.Debt;
+            if (debt.Owed(LoanSource.Foreign).Raw == 0) continue;
+
+            var spare = country.State.Treasury.Reserves.Liquid - Valued(_bid, country.Id);
+            if (spare.Raw <= 0) continue;
+
+            var loan = debt.Priciest(country.KeyRate);
+            if (loan is null) continue;
+
+            // Сначала списать, потом гасить: наоборот долг прощался бы бесплатно.
+            var paying = spare < loan.Principal ? spare : loan.Principal;
+            if (!country.State.Treasury.Reserves.TrySpend(paying)) continue;
+
+            var paid = loan.Repay(paying);
+
+            if (loan.Lender is { } lender)
+            {
+                var payee = _world.CountryById(lender).State;
+                payee.Treasury.Reserves.Add(Reserves.Incoming((byte)payee.Id, payee.Custody, paid));
+            }
+
+            debt.Forget();
         }
     }
 

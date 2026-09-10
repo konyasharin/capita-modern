@@ -44,6 +44,10 @@ public sealed class CreditMarket
     /// <summary>Хуже этого отношения не дают вовсе, ни под какой процент.</summary>
     public const int Hostile = -50;
 
+    /// <summary>Ставку округляют до четверти процента, как и котируют в жизни. Заодно
+    /// займы на одинаковых условиях сливаются в один, а не плодятся по штуке за тик.</summary>
+    public const int RateStep = 25;
+
     /// <summary>Надбавка за риск: чем больше должен и чем свежее отказ, тем дороже.</summary>
     /// <param name="burden">Внешний долг к годовому экспорту, в процентах.</param>
     public static int PremiumFor(int burden, bool recentlyDefaulted)
@@ -101,6 +105,7 @@ public sealed class CreditMarket
 
                 // Ставка не опускается ниже безрисковой, как бы ни дружили.
                 var rate = Math.Max(BaseRate, BaseRate + lenders[i].KeyRate + borrower.Premium + politics.Value);
+                rate = (rate + RateStep - 1) / RateStep * RateStep;
                 if (rate > borrower.MaxRate || rate > Ceiling) continue;
 
                 var lent = free[i] < left ? free[i] : left;

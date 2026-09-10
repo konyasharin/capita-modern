@@ -385,3 +385,38 @@ foreach (var (a, b) in new[] { ("JPN", "RUS"), ("CHN", "RUS"), ("USA", "CHN"), (
                           ? "не даст вовсе"
                           : $"надбавка {politics.Value / 100.0,6:F2}%, итого {(CreditMarket.BaseRate + from.KeyRate + politics.Value) / 100.0:F2}%"));
 }
+
+// --- И. Сверка кредита с жизнью ----------------------------------------------------
+Console.WriteLine();
+Console.WriteLine("=== И. Ставки и нагрузка против настоящих ===");
+Console.WriteLine("страна   ставка у нас   в жизни 2020   нагрузка у нас   в жизни");
+
+// Доходность десятилетних гособлигаций и внешний долг к годовому экспорту, 2020.
+(string Iso, double Yield, int Burden)[] realDebt =
+[
+    ("USA", 0.9, 1400), ("DEU", -0.5, 380), ("JPN", 0.0, 480), ("GBR", 0.3, 900),
+    ("CHN", 3.2, 90), ("IND", 5.9, 104), ("BRA", 7.0, 260), ("RUS", 6.0, 145),
+    ("TUR", 12.9, 256), ("ZAF", 9.0, 190), ("PAK", 10.0, 350), ("ETH", 12.0, 270),
+];
+
+foreach (var (iso, yield, realBurden) in realDebt)
+{
+    var country = world.Countries.First(c => c.Iso == iso);
+    var loans = country.State.Treasury.Debt.Loans;
+    var ours = loans.Count == 0
+        ? double.NaN
+        : loans.Sum(l => l.Principal.Exact * l.RateAt(l.Lender is { } id ? world.CountryById(id).KeyRate : 0))
+          / Math.Max(loans.Sum(l => l.Principal.Exact), 1) / 100;
+    var burden = country.State.Treasury.Debt.BurdenToExports(country.ExportsPerDay * 365);
+
+    Console.WriteLine($"{iso}   {(double.IsNaN(ours) ? "не занимает" : ours.ToString("F2") + "%"),12} " +
+                      $"{yield,12:F1}% {(burden == int.MaxValue ? "без вывоза" : burden + "%"),16} {realBurden,8}%");
+}
+
+var withDebt = world.Countries.Where(c => c.State.Treasury.Debt.Owed().Raw > 0).ToArray();
+var allLoans = withDebt.SelectMany(c => c.State.Treasury.Debt.Loans).ToArray();
+Console.WriteLine();
+Console.WriteLine($"Стран с внешним долгом: {withDebt.Length} из {world.Countries.Count}");
+Console.WriteLine($"Займов всего: {allLoans.Length}, средний размер {allLoans.Average(l => l.Principal.Exact) / 1e6:F0} млн $");
+Console.WriteLine($"Отказались платить хоть раз: {world.Countries.Count(c => c.DefaultedOnDay > 0)}");
+Console.WriteLine($"Плавающих займов: {allLoans.Count(l => l.RateKind == RateKind.Floating)} из {allLoans.Length}");

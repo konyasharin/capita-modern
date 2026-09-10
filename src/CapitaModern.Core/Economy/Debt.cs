@@ -9,8 +9,21 @@ public sealed class Debt
 
     public IReadOnlyList<Loan> Loans => _loans;
 
+    /// <summary>Занимает. Заём на тех же условиях у того же кредитора доливается в
+    /// прежний, а не заводит новый: иначе за год их набегают десятки тысяч, и ни
+    /// показать игроку, ни перебрать.</summary>
     public Loan Take(LoanSource source, byte? lender, Money principal, RateKind rateKind, int rate)
     {
+        foreach (var same in _loans)
+        {
+            if (same.Source != source || same.Lender != lender) continue;
+            if (same.RateKind != rateKind || same.Rate != rate) continue;
+
+            same.Capitalise(principal);
+
+            return same;
+        }
+
         var loan = new Loan(_nextId++, source, lender, principal, rateKind, rate);
         _loans.Add(loan);
 
