@@ -17,7 +17,8 @@ GameWorld Load() => WorldDataLoader.LoadWorld(
     Data("key-rates.json"),
     File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "politics", "blocs.json")),
     Data("efficiency.json"),
-    Data("money-supply.json"));
+    Data("money-supply.json"),
+    Data("trade-costs.json"));
 
 var goods = Enum.GetValues<GoodType>();
 
@@ -524,3 +525,23 @@ foreach (var country in printers)
     var share = 100.0 * country.Bank.Printed.Exact / Math.Max(1, country.Bank.Supply.Exact);
     Console.WriteLine($"  {country.Iso}: напечатано {share,6:F1}% массы, курс x{country.ExchangeRate.Exact:F2}");
 }
+
+// --- П. Перевозка ------------------------------------------------------------------
+Console.WriteLine();
+Console.WriteLine("=== П. Перевозка и пошлины ===");
+var burned = world.Countries.Sum(c => simulation.FuelBurnedIn(c.Id).Exact);
+var fuelMade = simulation.WorldOutputOf(GoodType.Fuel).Exact;
+Console.WriteLine($"Топлива на перевозку: {burned:F0} из {fuelMade:F0} в сутки — {burned / Math.Max(fuelMade, 1),5:P0} " +
+                  "(в жизни на транспорт около четверти нефти)");
+
+Console.WriteLine("товар             доля перевозки   ввоз в сутки");
+foreach (var good in new[] { GoodType.Materials, GoodType.Coal, GoodType.IronOre, GoodType.Food,
+             GoodType.Metals, GoodType.Electronics, GoodType.Microelectronics })
+{
+    var brought = world.Countries.Sum(c => simulation.ImportsOf(c.Id).Exact) > 0 ? 0.0 : 0.0;
+    Console.WriteLine($"{good,-18} {world.TradeCosts.FreightOf(good) / 100.0,10:F1}%");
+}
+
+var locked = world.Countries.Count(c => world.TradeCosts.Landlocked(c.Id));
+Console.WriteLine($"Стран без выхода к морю: {locked}, им перевозка дороже в " +
+                  $"{world.TradeCosts.LandlockedFactor / 100.0:F1} раза");

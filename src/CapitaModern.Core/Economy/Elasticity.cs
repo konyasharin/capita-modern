@@ -30,7 +30,7 @@ public sealed class Elasticity
     /// <remarks>На запасе в четыре дня вместо сорока завод просто встанет, а цена от
     /// низкого покрытия полезет вверх и уронит норму ещё сильнее. Это раскручивается,
     /// а не сходится, поэтому здесь коридор куда уже обычного.</remarks>
-    public const int MinStockFactor = 50;
+    public const int MinStockFactor = 20;
     public const int MaxStockFactor = 150;
 
     private readonly Dictionary<GoodType, int> _demand = new();

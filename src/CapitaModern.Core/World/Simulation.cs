@@ -92,6 +92,10 @@ public sealed class Simulation
     /// поэтому дробная часть копится.</summary>
     private readonly Dictionary<int, int> _decay = new();
 
+    /// <summary>Топливо, сожжённое перевозкой. Отдельно от прочего расхода: это не
+    /// сырьё для завода, а плата за расстояние.</summary>
+    private readonly Tally<GoodType, GoodAmount> _burnedFuel = new();
+
     /// <summary>Спрос стройки отдельно от заводского. Заводы держат сорокадневный запас
     /// сырья, а стройка съедает своё в тот же тик: цемент впрок не закупают.</summary>
     private readonly Tally<GoodType, GoodAmount> _build = new();
@@ -186,6 +190,7 @@ public sealed class Simulation
         _sales.Clear();
         _build.Clear();
         _plan.Clear();
+        _burnedFuel.Clear();
         _capitalIn.Clear();
         _capitalOut.Clear();
         _imported.Clear();
@@ -276,6 +281,11 @@ public sealed class Simulation
                     _world.Market.Prices.Of(good).Raw * country.ExchangeRate.Raw / Money.Scale);
                 var usual = _world.Market.Prices.StartOf(good);
 
+                // Ввоз обходится дороже самой цены: перевозка и пошлина. Отсюда и берётся
+                // то, что цемент через океан не возят, а микросхемы возят через полмира.
+                var markup = _world.TradeCosts.ImportMarkup(country.Id, good);
+                var landed = new Money(local.Raw * (TradeCosts.Scale + markup) / TradeCosts.Scale);
+
                 // Норма запаса сама зависит от цены: дёшево — держат больше, дорого —
                 // живут с колёс. Без этого страна с полными складами не купит ничего
                 // ни при какой дешевизне, и курс уезжает до упора вместо равновесия.
@@ -286,7 +296,7 @@ public sealed class Simulation
                 var target = Elasticity.Adjust(
                     _world.Elasticity.Demand(good),
                     new GoodAmount(Prices.TargetCoverDays * flow.Raw + forBuilding.Raw),
-                    local,
+                    landed,
                     usual,
                     Elasticity.MinStockFactor,
                     Elasticity.MaxStockFactor);
@@ -319,7 +329,12 @@ public sealed class Simulation
             for (var i = 0; i < _orders.Count; i++)
             {
                 var now = _orders[i].Trader.Stock.Of(good);
-                if (now > _stockBefore[i]) _imported.Add(_byOrder[i], good, now - _stockBefore[i]);
+                if (now > _stockBefore[i])
+                {
+                    var brought = now - _stockBefore[i];
+                    _imported.Add(_byOrder[i], good, brought);
+                    BurnFuel(_byOrder[i], good, brought);
+                }
                 else if (_stockBefore[i] > now) _exported.Add(_byOrder[i], good, _stockBefore[i] - now);
             }
         }
@@ -516,6 +531,32 @@ public sealed class Simulation
                 country.ExchangeRate.Raw, outflow.Raw - inflow.Raw, outflow.Raw + inflow.Raw, Prices.StepPercent)));
         }
     }
+
+    /// <summary>Перевозка сжигает топливо. Это не наценка, а настоящий расход, и по нему
+    /// на транспорт уходит четверть мировой нефти — как и в жизни.</summary>
+    private void BurnFuel(byte country, GoodType good, GoodAmount brought)
+    {
+        if (good == GoodType.Fuel) return; // топливо везёт само себя, второй раз не считаем
+
+        var freight = _world.TradeCosts.FreightOf(good);
+        if (Landlocked(country)) freight = freight * _world.TradeCosts.LandlockedFactor / 100;
+        if (freight == 0) return;
+
+        // Стоимость перевозки в деньгах, переведённая в топливо по его же цене.
+        var state = _world.CountryById(country).State;
+        var spent = new Money(state.Prices.CostOf(good, brought).Raw * freight / TradeCosts.Scale);
+        var fuelPrice = state.Prices.Of(GoodType.Fuel).Raw;
+        if (fuelPrice <= 0) return;
+
+        var burned = new GoodAmount((long)((Int128)spent.Raw * GoodAmount.Scale / fuelPrice));
+        _burnedFuel.Add(country, GoodType.Fuel, state.Stock.TakeUpTo(GoodType.Fuel, burned));
+    }
+
+    private bool Landlocked(byte country) => _world.TradeCosts.Landlocked(country);
+
+    /// <summary>Сколько топлива сожгла перевозка за тик. Показывать это стоит: в жизни на
+    /// транспорт уходит около четверти нефти.</summary>
+    public GoodAmount FuelBurnedIn(byte country) => _burnedFuel.Get(country, GoodType.Fuel);
 
     /// <summary>Сколько страна ввезла за прошедший тик, в деньгах по ценам рынка.</summary>
     public Money ImportsOf(byte country) => Valued(_imported, country);

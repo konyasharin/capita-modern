@@ -16,6 +16,9 @@ public sealed class GameWorld
     /// а не страны.</summary>
     public Elasticity Elasticity { get; }
 
+    /// <summary>Что удорожает ввоз сверх цены товара: перевозка и пошлины.</summary>
+    public TradeCosts TradeCosts { get; }
+
     /// <summary>Кто кому даёт в долг. Один на партию, как и товарный рынок.</summary>
     public CreditMarket Credit { get; } = new();
 
@@ -46,13 +49,15 @@ public sealed class GameWorld
         WorldMarket market,
         Elasticity elasticity,
         Relations? relations = null,
-        Efficiency? efficiency = null
+        Efficiency? efficiency = null,
+        TradeCosts? tradeCosts = null
     ) {
         Buildings = buildings;
         Market = market;
         Elasticity = elasticity;
         Relations = relations ?? new Relations();
         Efficiency = efficiency ?? new Efficiency();
+        TradeCosts = tradeCosts ?? new TradeCosts();
         Needs = needs;
         _regions = regions;
         _countries = countries;

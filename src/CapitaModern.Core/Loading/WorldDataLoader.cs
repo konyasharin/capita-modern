@@ -22,7 +22,8 @@ public static class WorldDataLoader
         string keyRatesJson,
         string blocsJson,
         string efficiencyJson,
-        string moneySupplyJson)
+        string moneySupplyJson,
+        string tradeCostsJson)
     {
         var consumptionFile = LoadConsumptionFile(consumptionJson);
         var needs = new Needs(consumptionFile.UnitPerMillionPeople, consumptionFile.IncomeElasticity);
@@ -32,6 +33,7 @@ public static class WorldDataLoader
         var blocs = JsonReader.Read<BlocsFile>(blocsJson);
         var efficiencyFile = JsonReader.Read<EfficiencyFile>(efficiencyJson);
         var moneySupply = JsonReader.Read<MoneySupplyFile>(moneySupplyJson);
+        var tradeCostsFile = JsonReader.Read<TradeCostsFile>(tradeCostsJson);
         var goodDtos = JsonReader.Read<GoodDto[]>(goodsJson);
         var elasticity = new Elasticity(
             goodDtos.ToDictionary(dto => dto.Id, dto => dto.DemandElasticity),
@@ -85,12 +87,21 @@ public static class WorldDataLoader
                         : default),
             efficiencyFile.Sensitivity);
 
+        var landlocked = tradeCostsFile.Landlocked.ToHashSet();
+        var tradeCosts = new TradeCosts(
+            goodDtos.ToDictionary(dto => dto.Id, dto => dto.FreightShare),
+            countries.Where(country => landlocked.Contains(country.Iso)).Select(country => country.Id).ToHashSet(),
+            countries.ToDictionary(
+                country => country.Id,
+                country => tradeCostsFile.TariffByIso.GetValueOrDefault(country.Iso, tradeCostsFile.DefaultTariff)),
+            tradeCostsFile.LandlockedFactor);
+
         var relations = new Relations(countries.ToDictionary(
             country => country.Id,
             country => blocs.ByIso.GetValueOrDefault(country.Iso, Bloc.NonAligned)));
 
         return new GameWorld(regions, countries, buildingCatalog, needs,
-            new WorldMarket(new Prices(startPrices)), elasticity, relations, efficiency);
+            new WorldMarket(new Prices(startPrices)), elasticity, relations, efficiency, tradeCosts);
     }
 
     private static CountriesFile LoadCountriesFile(string json) => JsonReader.Read<CountriesFile>(json);
