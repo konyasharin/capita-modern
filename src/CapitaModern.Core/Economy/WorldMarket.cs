@@ -185,9 +185,11 @@ public sealed class WorldMarket
             if (orders[i].Trader.Stock.TakeUpTo(good, new GoodAmount(sold[i])).Raw != sold[i])
                 throw new InvalidOperationException("У продавца не оказалось товара, ошибка в расчёте доли");
 
-            // Выручка приходит в валюте покупателей. Чьей именно — станет важно, когда
-            // валюты начнут расходиться в цене; пока весь мир считает в одной мере.
-            orders[i].Trader.Treasury.Reserves.Add(ReserveKind.ForeignCurrency, WorldIssuer, new Money(earned[i]));
+            // Выручка ложится туда, где продавец решил держать резервы. Там её и
+            // заморозят, если дойдёт до санкций.
+            var trader = orders[i].Trader;
+            trader.Treasury.Reserves.Add(
+                Reserves.Incoming((byte)trader.Id, trader.Custody, new Money(earned[i])));
         }
     }
 }

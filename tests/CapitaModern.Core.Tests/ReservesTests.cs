@@ -11,8 +11,10 @@ public class ReservesTests
 
     private static Money Whole(long n) => Money.FromWhole(n);
 
+    /// <summary>Хранитель по умолчанию совпадает с эмитентом: валюту держат в банках
+    /// того, кто её печатает.</summary>
     private static Reserves With(params (ReserveKind Kind, byte Issuer, long Amount)[] parts) =>
-        new(parts.Select(p => new Reserve(p.Kind, p.Issuer, Whole(p.Amount))));
+        new(parts.Select(p => new Reserve(p.Kind, p.Issuer, p.Issuer, Whole(p.Amount))));
 
     [Fact]
     public void EmptyReservesBuyNothing()
@@ -72,17 +74,38 @@ public class ReservesTests
         Assert.True(reserves.TrySpend(Whole(40)));
     }
 
-    /// <summary>Ради этого золото и держат: оно лежит дома, отнять его нельзя.</summary>
+    /// <summary>Ради этого золото и держат дома. Но золото в чужом хранилище отнимут
+    /// точно так же — так забрали венесуэльское в Банке Англии.</summary>
     [Fact]
-    public void MetalAndCryptoSurviveAFreeze()
+    public void OnlyTheCustodianCanFreeze()
     {
-        var reserves = With(
-            (ReserveKind.ForeignCurrency, Usa, 100),
-            (ReserveKind.Metal, Usa, 30),
-            (ReserveKind.Crypto, Usa, 10));
+        var owner = (byte)7;
+        var reserves = new Reserves([
+            new Reserve(ReserveKind.ForeignCurrency, Usa, Usa, Whole(100)),
+            new Reserve(ReserveKind.Metal, owner, Usa, Whole(30)),
+            new Reserve(ReserveKind.Metal, owner, owner, Whole(50)),
+            new Reserve(ReserveKind.ForeignCurrency, Germany, Germany, Whole(20)),
+        ]);
         reserves.Freeze(Usa);
 
-        Assert.Equal(Whole(40), reserves.Liquid);
+        // Отняли и валюту, и золото в их хранилище; своё золото и чужая валюта целы.
+        Assert.Equal(Whole(130), reserves.Frozen);
+        Assert.Equal(Whole(70), reserves.Liquid);
+        Assert.Equal(Whole(200), reserves.Value);
+    }
+
+    /// <summary>Кто заранее увёл резервы к другому хранителю, тот их и сохранил.</summary>
+    [Fact]
+    public void MovingCustodyBeforehandSavesTheMoney()
+    {
+        var stayed = With((ReserveKind.ForeignCurrency, Usa, 100));
+        var moved = With((ReserveKind.ForeignCurrency, Germany, 100));
+
+        stayed.Freeze(Usa);
+        moved.Freeze(Usa);
+
+        Assert.Equal(default, stayed.Liquid);
+        Assert.Equal(Whole(100), moved.Liquid);
     }
 
     [Fact]
@@ -99,7 +122,7 @@ public class ReservesTests
     public void NegativeAmountIsRejected()
     {
         Assert.Throws<ArgumentOutOfRangeException>(
-            () => new Reserves().Add(ReserveKind.ForeignCurrency, Usa, new Money(-1)));
+            () => new Reserves().Add(ReserveKind.ForeignCurrency, Usa, Usa, new Money(-1)));
         Assert.Throws<ArgumentOutOfRangeException>(() => new Reserves().TrySpend(new Money(-1)));
     }
 

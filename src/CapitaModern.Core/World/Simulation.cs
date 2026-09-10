@@ -281,6 +281,7 @@ public sealed class Simulation
             _credit.Add(new CreditOrder(
                 country.Id,
                 country.State.Treasury,
+                country.State.Custody,
                 need > have ? need - have : default,
                 have > need ? have - need : default,
                 country.KeyRate,
@@ -288,7 +289,7 @@ public sealed class Simulation
                 country.MaxBorrowRate));
         }
 
-        _world.Credit.Settle(CollectionsMarshal.AsSpan(_credit));
+        _world.Credit.Settle(CollectionsMarshal.AsSpan(_credit), _world.Relations.Between);
     }
 
     /// <summary>Проценты за сутки. Нечем платить — они уходят в тело долга, и нагрузка
@@ -307,8 +308,8 @@ public sealed class Simulation
 
                 if (loan.Lender is { } lender && country.State.Treasury.Reserves.TrySpend(due))
                 {
-                    _world.CountryById(lender).State.Treasury.Reserves
-                        .Add(ReserveKind.ForeignCurrency, WorldMarket.WorldIssuer, due);
+                    var payee = _world.CountryById(lender).State;
+                    payee.Treasury.Reserves.Add(Reserves.Incoming((byte)payee.Id, payee.Custody, due));
                 }
                 else
                 {

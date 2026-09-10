@@ -1,5 +1,6 @@
 using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
+using CapitaModern.Core.Politics;
 using CapitaModern.Core.World;
 using Xunit;
 
@@ -16,11 +17,14 @@ public class CreditTests
 
     private static Treasury Rich(long money) => new(Build.Cash(money));
 
+    /// <summary>Хранитель у всех ничейный: тестам про кредит место хранения не важно.</summary>
+    private const byte Nowhere = WorldMarket.WorldIssuer;
+
     private static CreditOrder Wants(byte id, Treasury treasury, long money, int premium = 0, int maxRate = 5000) =>
-        new(id, treasury, Whole(money), default, 0, premium, maxRate);
+        new(id, treasury, Nowhere, Whole(money), default, 0, premium, maxRate);
 
     private static CreditOrder Offers(byte id, Treasury treasury, long money, int keyRate = 0) =>
-        new(id, treasury, default, Whole(money), keyRate, 0, 5000);
+        new(id, treasury, Nowhere, default, Whole(money), keyRate, 0, 5000);
 
     [Fact]
     public void LenderLosesExactlyWhatBorrowerGains()
@@ -88,7 +92,7 @@ public class CreditTests
     {
         var alone = Rich(1000);
 
-        Assert.Equal(default, new CreditMarket().Settle([new CreditOrder(1, alone, Whole(100), Whole(500), 0, 0, 5000)]));
+        Assert.Equal(default, new CreditMarket().Settle([new CreditOrder(1, alone, Nowhere, Whole(100), Whole(500), 0, 0, 5000)]));
     }
 
     /// <summary>При нехватке денег первым получает самый надёжный.</summary>
@@ -233,6 +237,59 @@ public class CreditTests
 
         Assert.Equal(2, lost.Count);
         Assert.Equal(Whole(300), lost.Aggregate(default(Money), (sum, x) => sum + x.Lost));
+    }
+
+    [Fact]
+    public void HostileLenderRefusesAtAnyRate()
+    {
+        Assert.Null(CreditMarket.PoliticsOn(CreditMarket.Hostile));
+        Assert.Null(CreditMarket.PoliticsOn(-70));
+        Assert.NotNull(CreditMarket.PoliticsOn(0));
+    }
+
+    [Fact]
+    public void FriendsLendCheaperThanStrangers()
+    {
+        Assert.True(CreditMarket.PoliticsOn(Relations.Friendly) < CreditMarket.PoliticsOn(Relations.Neutral));
+    }
+
+    /// <summary>Тот самый пример: Япония не даст враждебной стране ни под какой процент,
+    /// а Китаю она нейтральна, и он туда зайдёт.</summary>
+    [Fact]
+    public void UnfriendlyLenderIsSkippedAndAFriendlyOneStepsIn()
+    {
+        var japan = Rich(1000);
+        var china = Rich(1000);
+        var borrower = Rich(0);
+
+        var relations = new Relations(new Dictionary<byte, Bloc>
+        {
+            [1] = Bloc.West,
+            [2] = Bloc.China,
+            [3] = Bloc.Russia,
+        });
+
+        new CreditMarket().Settle(
+            [Offers(1, japan, 1000), Offers(2, china, 1000), Wants(3, borrower, 500)],
+            relations.Between);
+
+        Assert.Equal(Whole(1000), japan.Reserves.Value);
+        Assert.Equal(Whole(500), china.Reserves.Value);
+        Assert.Equal(Whole(500), borrower.Debt.Owed());
+        Assert.Equal((byte)2, borrower.Debt.Loans.Single().Lender);
+    }
+
+    [Fact]
+    public void FriendlyLendingIsNeverBelowTheRiskFreeRate()
+    {
+        var friend = Rich(1000);
+        var borrower = Rich(0);
+
+        var relations = new Relations(new Dictionary<byte, Bloc> { [1] = Bloc.West, [2] = Bloc.West });
+
+        new CreditMarket().Settle([Offers(1, friend, 1000), Wants(2, borrower, 500)], relations.Between);
+
+        Assert.Equal(CreditMarket.BaseRate, borrower.Debt.Loans.Single().Rate);
     }
 
     /// <summary>Тик целиком: у кого валюта кончилась, тот занимает и продолжает ввозить.</summary>

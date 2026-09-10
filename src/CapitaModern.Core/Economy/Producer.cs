@@ -24,6 +24,10 @@ public sealed class Producer
     /// торговать друг с другом.</summary>
     public Prices Prices { get; }
 
+    /// <summary>Где держать приходящую валюту. Отсюда и вся заморозка: кто вовремя увёл
+    /// резервы к дружественному хранителю или в своё золото, тот их и сохранил.</summary>
+    public byte Custody { get; set; }
+
     public Producer(int id, Stock stock, Treasury treasury, Prices prices, int? regionId = null)
     {
         Id = id;

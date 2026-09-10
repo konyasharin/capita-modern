@@ -14,7 +14,8 @@ GameWorld Load() => WorldDataLoader.LoadWorld(
     Data("prices.json"),
     Data("reserves.json"),
     Data("goods.json"),
-    Data("key-rates.json"));
+    Data("key-rates.json"),
+    File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "politics", "blocs.json")));
 
 var goods = Enum.GetValues<GoodType>();
 
@@ -312,7 +313,7 @@ var rich = Load();
 foreach (var country in rich.Countries)
 {
     country.State.Treasury.Reserves.Add(ReserveKind.ForeignCurrency, WorldMarket.WorldIssuer,
-        Money.FromWhole(1_000_000_000));
+        WorldMarket.WorldIssuer, Money.FromWhole(1_000_000_000));
 }
 
 var richSim = new Simulation(rich);
@@ -344,4 +345,43 @@ Console.WriteLine("  покрытие конечных товаров:");
 foreach (var good in new[] { GoodType.ConsumerGoods, GoodType.Food, GoodType.Medicine, GoodType.Components, GoodType.Electronics })
 {
     Console.WriteLine($"    {good,-16} {richSim.WorldOutputOf(good).Exact / richSim.WorldDemandOf(good).Exact,6:P0}");
+}
+
+// --- З. Заморозка резервов: сколько уцелеет ---------------------------------------
+Console.WriteLine();
+Console.WriteLine("=== З. Если Запад заморозит резервы ===");
+
+// На свежем мире: за пять лет резервы почти проедены, мерить нечего.
+var fresh = Load();
+var west = fresh.Countries
+    .Where(c => fresh.Relations.BlocOf(c.Id) == CapitaModern.Core.Politics.Bloc.West)
+    .Select(c => c.Id)
+    .ToArray();
+
+foreach (var iso in new[] { "RUS", "CHN", "IND", "BRA", "SAU" })
+{
+    var country = fresh.Countries.First(c => c.Iso == iso);
+    var reserves = country.State.Treasury.Reserves;
+    var before = reserves.Liquid.Exact;
+    foreach (var freezer in west) reserves.Freeze(freezer);
+    var after = reserves.Liquid.Exact;
+    foreach (var freezer in west) reserves.Unfreeze(freezer);
+
+    Console.WriteLine($"  {iso}: уцелело {(before > 0 ? after / before : 0),6:P0} " +
+                      $"({after / 1e9:F1} из {before / 1e9:F1} трлн $)");
+}
+
+Console.WriteLine();
+Console.WriteLine("Кто кому не даст в долг:");
+foreach (var (a, b) in new[] { ("JPN", "RUS"), ("CHN", "RUS"), ("USA", "CHN"), ("CHN", "ETH"), ("JPN", "ETH") })
+{
+    var from = world.Countries.First(c => c.Iso == a);
+    var to = world.Countries.First(c => c.Iso == b);
+    var attitude = world.Relations.Between(from.Id, to.Id);
+    var politics = CreditMarket.PoliticsOn(attitude);
+
+    Console.WriteLine($"  {a} -> {b}: отношение {attitude,4}, " +
+                      (politics is null
+                          ? "не даст вовсе"
+                          : $"надбавка {politics.Value / 100.0,6:F2}%, итого {(CreditMarket.BaseRate + from.KeyRate + politics.Value) / 100.0:F2}%"));
 }

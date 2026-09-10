@@ -48,7 +48,8 @@ internal static class Build
 
     /// <summary>Резервы одной кучей у ничейного эмитента: тестам эмитент не важен.</summary>
     public static Reserve[] Cash(long money) =>
-        [new Reserve(ReserveKind.ForeignCurrency, WorldMarket.WorldIssuer, Money.FromWhole(money))];
+        [new Reserve(ReserveKind.ForeignCurrency, WorldMarket.WorldIssuer, WorldMarket.WorldIssuer,
+            Money.FromWhole(money))];
 
     /// <summary>Рынок со стартовыми ценами. Одна страна на нём торговать не с кем.</summary>
     public static WorldMarket Market(Dictionary<GoodType, Money>? prices = null) => new(new Prices(prices));

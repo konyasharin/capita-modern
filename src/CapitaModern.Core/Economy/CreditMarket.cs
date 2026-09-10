@@ -8,6 +8,7 @@ namespace CapitaModern.Core.Economy;
 public readonly record struct CreditOrder(
     byte Id,
     Treasury Treasury,
+    byte Custody,
     Money Want,
     Money Free,
     int KeyRate,
@@ -36,6 +37,13 @@ public sealed class CreditMarket
     /// <summary>Выше не даёт никто и никому.</summary>
     public const int Ceiling = 8000;
 
+    /// <summary>Во что превращается отношение: неприязнь в −70 добавляет 560 к ставке,
+    /// дружба в 60 сбавляет 480. Ниже безрисковой ставка при этом не падает.</summary>
+    public const int PoliticsFactor = 8;
+
+    /// <summary>Хуже этого отношения не дают вовсе, ни под какой процент.</summary>
+    public const int Hostile = -50;
+
     /// <summary>Надбавка за риск: чем больше должен и чем свежее отказ, тем дороже.</summary>
     /// <param name="burden">Внешний долг к годовому экспорту, в процентах.</param>
     public static int PremiumFor(int burden, bool recentlyDefaulted)
@@ -48,7 +56,19 @@ public sealed class CreditMarket
     /// <summary>Сводит заявки. Заёмщики идут от самых надёжных, кредиторы — от самых
     /// дешёвых; кончились согласные раньше суммы, значит аукцион не состоялся.</summary>
     /// <returns>Сколько денег роздано.</returns>
-    public Money Settle(Span<CreditOrder> orders)
+    /// <summary>Что политика делает со ставкой. Враждебным не дают вообще, своим дают
+    /// дешевле — так Китай и заходит на рынки, куда Япония не пойдёт ни под какой
+    /// процент.</summary>
+    /// <returns>Надбавка к ставке, либо <c>null</c>, если давать не станут.</returns>
+    public static int? PoliticsOn(int attitude)
+    {
+        if (attitude <= Hostile) return null;
+
+        return -attitude * PoliticsFactor;
+    }
+
+    /// <param name="attitude">Как кредитор относится к заёмщику, от −100 до 100.</param>
+    public Money Settle(Span<CreditOrder> orders, Func<byte, byte, int>? attitude = null)
     {
         var borrowers = new List<CreditOrder>();
         var lenders = new List<CreditOrder>();
@@ -76,13 +96,17 @@ public sealed class CreditMarket
             {
                 if (free[i].Raw <= 0 || lenders[i].Id == borrower.Id) continue;
 
-                var rate = BaseRate + lenders[i].KeyRate + borrower.Premium;
-                if (rate > borrower.MaxRate || rate > Ceiling) break; // дальше только дороже
+                var politics = PoliticsOn(attitude?.Invoke(lenders[i].Id, borrower.Id) ?? 0);
+                if (politics is null) continue; // враждебным не дают ни под какой процент
+
+                // Ставка не опускается ниже безрисковой, как бы ни дружили.
+                var rate = Math.Max(BaseRate, BaseRate + lenders[i].KeyRate + borrower.Premium + politics.Value);
+                if (rate > borrower.MaxRate || rate > Ceiling) continue;
 
                 var lent = free[i] < left ? free[i] : left;
                 if (!lenders[i].Treasury.Reserves.TrySpend(lent)) continue;
 
-                borrower.Treasury.Reserves.Add(ReserveKind.ForeignCurrency, WorldMarket.WorldIssuer, lent);
+                borrower.Treasury.Reserves.Add(Reserves.Incoming(borrower.Id, borrower.Custody, lent));
                 // Заём плавающий: в валюте кредитора, значит и ставка идёт за его
                 // ключевой. Фиксированная останется облигациям, когда они появятся.
                 borrower.Treasury.Debt.Take(

@@ -1,5 +1,6 @@
 ﻿using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
+using CapitaModern.Core.Politics;
 
 namespace CapitaModern.Core.World;
 
@@ -17,6 +18,9 @@ public sealed class GameWorld
 
     /// <summary>Кто кому даёт в долг. Один на партию, как и товарный рынок.</summary>
     public CreditMarket Credit { get; } = new();
+
+    /// <summary>Кто кому друг. Пока влияет на кредит, дальше — на санкции и войну.</summary>
+    public Relations Relations { get; }
     /// <summary>Сколько товара население съедает за сутки на миллион человек.</summary>
     public readonly IReadOnlyDictionary<GoodType, GoodAmount> Consumption;
 
@@ -32,11 +36,13 @@ public sealed class GameWorld
         BuildingCatalog buildings,
         IReadOnlyDictionary<GoodType, GoodAmount> consumption,
         WorldMarket market,
-        Elasticity elasticity
+        Elasticity elasticity,
+        Relations? relations = null
     ) {
         Buildings = buildings;
         Market = market;
         Elasticity = elasticity;
+        Relations = relations ?? new Relations();
         Consumption = consumption;
         _regions = regions;
         _countries = countries;

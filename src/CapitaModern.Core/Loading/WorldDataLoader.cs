@@ -19,12 +19,14 @@ public static class WorldDataLoader
         string pricesJson,
         string reservesJson,
         string goodsJson,
-        string keyRatesJson)
+        string keyRatesJson,
+        string blocsJson)
     {
         var consumption = LoadConsumptionFile(consumptionJson).UnitPerMillionPeople;
         var startPrices = LoadPricesFile(pricesJson).Prices;
         var reserves = LoadReservesFile(reservesJson);
         var keyRates = JsonReader.Read<KeyRatesFile>(keyRatesJson);
+        var blocs = JsonReader.Read<BlocsFile>(blocsJson);
         var goodDtos = JsonReader.Read<GoodDto[]>(goodsJson);
         var elasticity = new Elasticity(
             goodDtos.ToDictionary(dto => dto.Id, dto => dto.DemandElasticity),
@@ -52,14 +54,27 @@ public static class WorldDataLoader
             .Select(dto => ToCountry(dto, startPrices, reserves, idByIso, populations.GetValueOrDefault(dto.Id)))
             .ToArray();
 
+        // Приходящую валюту по умолчанию кладут туда же, где лежит основная часть
+        // резервов. Увести её в другое место — решение игрока.
+        var mainCustodian = reserves.Composition
+            .Where(pair => idByIso.ContainsKey(pair.Key))
+            .OrderByDescending(pair => pair.Value)
+            .Select(pair => idByIso[pair.Key])
+            .FirstOrDefault();
+
         foreach (var country in countries)
         {
             country.KeyRate = keyRates.ByIso.GetValueOrDefault(country.Iso, keyRates.DefaultRate);
+            country.State.Custody = mainCustodian;
         }
         BuildingCatalog buildingCatalog = BuildingCatalog.FromJson(buildingsJson);
 
+        var relations = new Relations(countries.ToDictionary(
+            country => country.Id,
+            country => blocs.ByIso.GetValueOrDefault(country.Iso, Bloc.NonAligned)));
+
         return new GameWorld(regions, countries, buildingCatalog, consumption,
-            new WorldMarket(new Prices(startPrices)), elasticity);
+            new WorldMarket(new Prices(startPrices)), elasticity, relations);
     }
 
     private static CountriesFile LoadCountriesFile(string json) => JsonReader.Read<CountriesFile>(json);
@@ -88,25 +103,37 @@ public static class WorldDataLoader
     /// мировых резервов лежит в валютах, которых у нас нет.</summary>
     /// <remarks>Остаток от деления уходит эмитенту с наибольшей долей, иначе на двухстах
     /// странах наберётся заметная недостача.</remarks>
-    private static Reserve[] Split(Money total, ReservesFile reserves, IReadOnlyDictionary<string, byte> idByIso)
+    private static Reserve[] Split(
+        CountryDto dto,
+        Money total,
+        ReservesFile reserves,
+        IReadOnlyDictionary<string, byte> idByIso)
     {
+        // Золото лежит в своих хранилищах: его и не отнять, ради того и держат.
+        var gold = new Money(total.Raw * reserves.GoldShare / 100);
+        total -= gold;
+
         var shares = reserves.Composition
             .Where(pair => idByIso.ContainsKey(pair.Key))
             .OrderByDescending(pair => pair.Value)
             .ToArray();
         var sum = shares.Sum(pair => pair.Value);
-        if (sum <= 0) return [];
+        if (sum <= 0) return [new Reserve(ReserveKind.Metal, dto.Id, dto.Id, gold + total)];
 
         var left = total;
-        var held = new Reserve[shares.Length];
+        var held = new Reserve[shares.Length + 1];
+        held[^1] = new Reserve(ReserveKind.Metal, dto.Id, dto.Id, gold);
         for (var i = 1; i < shares.Length; i++)
         {
             var part = new Money(total.Raw * shares[i].Value / sum);
-            held[i] = new Reserve(ReserveKind.ForeignCurrency, idByIso[shares[i].Key], part);
+            // Валюту держат в банках эмитента: он же её и заморозит, если дойдёт до дела.
+            held[i] = new Reserve(
+                ReserveKind.ForeignCurrency, idByIso[shares[i].Key], idByIso[shares[i].Key], part);
             left -= part;
         }
 
-        held[0] = new Reserve(ReserveKind.ForeignCurrency, idByIso[shares[0].Key], left);
+        held[0] = new Reserve(
+            ReserveKind.ForeignCurrency, idByIso[shares[0].Key], idByIso[shares[0].Key], left);
 
         return held;
     }
@@ -125,7 +152,7 @@ public static class WorldDataLoader
         new Producer(
             dto.Id,
             new Stock(new Dictionary<GoodType, GoodAmount>()),
-            new Treasury(Split(ReservesOf(dto, reserves, population), reserves, idByIso)),
+            new Treasury(Split(dto, ReservesOf(dto, reserves, population), reserves, idByIso)),
             new Prices(startPrices)),
         new Priorities()
     ); // баланс и склад - заглушки
