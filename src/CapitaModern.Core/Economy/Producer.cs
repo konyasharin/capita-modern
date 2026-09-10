@@ -20,11 +20,16 @@ public sealed class Producer
     public Stock Stock { get; }
     public Treasury Treasury { get; }
 
-    public Producer(int id, Stock stock, Treasury treasury, int? regionId = null)
+    /// <summary>Свои цены. У каждого продавца отдельные — иначе компании не смогут
+    /// торговать друг с другом.</summary>
+    public Prices Prices { get; }
+
+    public Producer(int id, Stock stock, Treasury treasury, Prices prices, int? regionId = null)
     {
         Id = id;
         RegionId = regionId;
         Stock = stock;
         Treasury = treasury;
+        Prices = prices;
     }
 }

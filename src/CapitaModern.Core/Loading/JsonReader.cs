@@ -13,8 +13,13 @@ public static class JsonReader
         PropertyNameCaseInsensitive = true,
 
         // Первый разбирает enum ("OilRig") и ключи словарей ({"Oil": 10}),
-        // второй переводит количества из единиц в сотые.
-        Converters = { new JsonStringEnumConverter(), new FixedJsonConverter<Goods>() },
+        // остальные переводят числа из целых единиц в доли.
+        Converters =
+        {
+            new JsonStringEnumConverter(),
+            new FixedJsonConverter<Goods>(),
+            new FixedJsonConverter<Money>(),
+        },
 
         // Файлы правятся руками: лишняя запятая и комментарий не должны ронять загрузку.
         AllowTrailingCommas = true,

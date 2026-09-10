@@ -21,7 +21,8 @@ public class WorldDataTests
             Read("data", "map", "regions.json"),
             Read("data", "economy", "buildings.json"),
             Read("data", "economy", "start-industry.json"),
-            Read("data", "economy", "consumption.json"));
+            Read("data", "economy", "consumption.json"),
+            Read("data", "economy", "prices.json"));
     }
 
     [Fact]
@@ -113,6 +114,42 @@ public class WorldDataTests
 
         Assert.Equal(0, minedWithoutDeposit);
         Assert.True(mining > 0, "в данных вообще нет добывающих предприятий");
+    }
+
+    /// <summary>Товар без стартовой цены молча получил бы единицу, и перекос по нему
+    /// поехал бы с первого тика.</summary>
+    [Fact]
+    public void EveryGoodHasAStartPrice()
+    {
+        var inFile = JsonDocument
+            .Parse(File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "economy", "prices.json")))
+            .RootElement.GetProperty("prices");
+
+        foreach (var good in Enum.GetValues<GoodType>())
+        {
+            Assert.True(inFile.TryGetProperty(good.ToString(), out var price), $"нет цены на {good}");
+            Assert.True(price.GetInt32() > 0, $"цена {good} должна быть больше нуля");
+        }
+    }
+
+    /// <summary>За год цена не должна ни улететь на порядки, ни лечь на пол: и то и
+    /// другое означало бы, что шаг подобран неверно.</summary>
+    [Fact]
+    public void YearOfTicksKeepsPricesSane()
+    {
+        var world = Load();
+        var russia = world.Countries.First(country => country.Iso == "RUS");
+        var start = Enum.GetValues<GoodType>().ToDictionary(good => good, russia.State.Prices.Of);
+
+        var simulation = new Simulation(world);
+        for (var tick = 0; tick < 365; tick++) simulation.Tick();
+
+        foreach (var good in Enum.GetValues<GoodType>())
+        {
+            var now = russia.State.Prices.Of(good);
+            Assert.True(now.Raw >= start[good].Raw / Prices.MaxSwingTimes, $"{good} упал ниже коридора");
+            Assert.True(now.Raw <= start[good].Raw * Prices.MaxSwingTimes, $"{good} вырос выше коридора");
+        }
     }
 
     [Fact]

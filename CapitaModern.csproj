@@ -10,6 +10,8 @@
     <!-- Godot-проект живёт в корне репо: ядро приходит только через ProjectReference,
          иначе его исходники попадут в глоб дважды -->
     <Compile Remove="src\**" />
+    <!-- Тесты собирает свой проект: без этого они попадают в глоб без ссылки на xunit -->
+    <Compile Remove="tests\**" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="src\CapitaModern.Core\CapitaModern.Core.csproj" />

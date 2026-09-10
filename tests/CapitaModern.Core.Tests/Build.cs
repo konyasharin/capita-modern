@@ -1,4 +1,4 @@
-using CapitaModern.Core.Buildings;
+﻿using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
 using CapitaModern.Core.Politics;
 using CapitaModern.Core.World;
@@ -53,8 +53,9 @@ internal static class Build
     public static Country Country(
         byte id,
         Dictionary<GoodType, GoodAmount>? stock = null,
-        Dictionary<Sector, int>? weights = null) =>
+        Dictionary<Sector, int>? weights = null,
+        Dictionary<GoodType, Price>? prices = null) =>
         new(id, $"country {id}", $"C{id:00}",
-            new Producer(id, new Stock(stock ?? []), new Treasury(0)),
+            new Producer(id, new Stock(stock ?? []), new Treasury(0), new Prices(prices)),
             new Priorities(weights));
 }

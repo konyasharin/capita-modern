@@ -31,9 +31,17 @@ public sealed class Simulation
     /// чтобы во втором не повторять формулу и не разойтись с дележом.</summary>
     private readonly Tally<GoodType, GoodAmount> _peopleWants = new();
 
+    /// <summary>Что предприятия израсходовали на самом деле. От заказа отличается тем,
+    /// что заказ мог не сбыться, а ещё в нём сидит население. По нему считается ВВП.</summary>
+    private readonly Tally<GoodType, GoodAmount> _consumed = new();
+
     /// <summary>Работоспособные предприятия по стране и типу. Считаются вместе, где бы
     /// ни стояли: склад у страны общий.</summary>
     private readonly Tally<BuildingType, int> _working = new();
+
+    /// <summary>Список товаров нужен каждый тик, а Enum.GetValues каждый раз выделяет
+    /// новый массив.</summary>
+    private static readonly GoodType[] AllGoods = Enum.GetValues<GoodType>();
 
     public Simulation(GameWorld world)
     {
@@ -48,6 +56,7 @@ public sealed class Simulation
         CollectOutputs();
         FeedPeople();
         Store();
+        MovePrices();
         UpdateDemographics();
     }
 
@@ -60,6 +69,7 @@ public sealed class Simulation
         _available.Clear();
         _claims.Clear();
         _working.Clear();
+        _consumed.Clear();
         _peopleWants.Clear();
         _deficit.Clear();
     }
@@ -109,11 +119,16 @@ public sealed class Simulation
         }
     }
 
+    /// <summary>Склады на начало тика. Берём все товары, а не только заказанные: цена
+    /// того, что никому не нужно, тоже должна двигаться — вниз.</summary>
     private void CollectAvailable()
     {
-        foreach (var (country, good, _) in _inputs)
+        foreach (var country in _world.Countries)
         {
-            _available.Set(country, good, _world.CountryById(country).State.Stock.Of(good));
+            foreach (var good in AllGoods)
+            {
+                _available.Set(country.Id, good, country.State.Stock.Of(good));
+            }
         }
     }
 
@@ -154,6 +169,12 @@ public sealed class Simulation
             if (!consumed) throw new InvalidOperationException("Не получилось потратить предметы " +
                                                                "со склада, ошибка в расчетах в коде");
 
+            foreach (var (good, amount) in recipe.Inputs)
+            {
+                // То же выражение, что внутри TryConsume: расход должен совпасть до доли.
+                _consumed.Add(country, good, amount * runs / Load.Full);
+            }
+
             foreach (var (good, amount) in recipe.Outputs)
             {
                 _outputs.Add(country, good, amount * runs / Load.Full);
@@ -179,6 +200,33 @@ public sealed class Simulation
         {
             _world.CountryById(country).State.Stock.Store(good, amount);
         }
+    }
+
+    /// <summary>Цены двигаются в конце тика: спрос за тик против того запаса, что был
+    /// на его начало.</summary>
+    private void MovePrices()
+    {
+        foreach (var (country, good, available) in _available)
+        {
+            _world.CountryById(country).State.Prices.Move(good, _inputs.Get(country, good), available);
+        }
+    }
+
+    /// <summary>Добавленная стоимость страны за прошедший тик: что выпущено минус то,
+    /// что на это ушло. Сумма по всем странам — мировой ВВП за сутки.</summary>
+    /// <remarks>Может быть отрицательной: значит, сырьё стоит дороже продукции.</remarks>
+    public Price ValueAddedOf(byte country)
+    {
+        var prices = _world.CountryById(country).State.Prices;
+        var total = default(Price);
+
+        foreach (var good in AllGoods)
+        {
+            total += prices.CostOf(good, _outputs.Get(country, good));
+            total -= prices.CostOf(good, _consumed.Get(country, good));
+        }
+
+        return total;
     }
 
     private void UpdateDemographics()

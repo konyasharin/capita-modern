@@ -20,6 +20,13 @@ public readonly struct People : IUnitScale
     public static int Scale => 1000;
 }
 
+/// <summary>Деньги: единица — тысяча долларов, доли до сотых. Мельче цене не нужно,
+/// крупнее — потолок шага в 2% перестал бы двигать дешёвые товары.</summary>
+public readonly struct Money : IUnitScale
+{
+    public static int Scale => 100;
+}
+
 /// <summary>
 /// Дробная величина в целых числах: хранится долями единицы, считается точно.
 /// </summary>

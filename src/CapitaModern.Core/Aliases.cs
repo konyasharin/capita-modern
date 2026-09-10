@@ -3,3 +3,4 @@
 
 global using GoodAmount = CapitaModern.Core.Economy.Fixed<CapitaModern.Core.Economy.Goods>;
 global using Population = CapitaModern.Core.Economy.Fixed<CapitaModern.Core.Economy.People>;
+global using Price = CapitaModern.Core.Economy.Fixed<CapitaModern.Core.Economy.Money>;
