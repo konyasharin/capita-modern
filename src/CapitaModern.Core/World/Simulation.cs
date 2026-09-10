@@ -330,26 +330,29 @@ public sealed class Simulation
                 // Торгуются в мировой мере: у каждого своя валюта и свой курс.
                 var inWorld = new Money(local.Raw * Money.Scale / Math.Max(1, country.ExchangeRate.Raw));
 
-                if (target > stock)
-                {
-                    var bid = target - stock;
-                    _bid.Add(country.Id, good, bid);
-                    _market.Add(new MarketOrder(country.Id, country.State, default, bid, default, inWorld));
-                    wanted += bid;
-                }
-                else if (stock > target)
+                // Страна разом и покупатель, и продавец. Просит она не только нехватку,
+                // но и дневной расход: часть его закроет своим товаром, часть чужим, и
+                // ровно отсюда берётся встречная торговля одним и тем же товаром.
+                var shortfall = target > stock ? target - stock : default;
+                var bid = shortfall + flow;
+
+                var offer = default(GoodAmount);
+                if (stock > target)
                 {
                     // Дорого — продают и часть своего запаса, но не больше, чем есть.
-                    var offer = Elasticity.Adjust(
+                    offer = Elasticity.Adjust(
                         _world.Elasticity.Supply(good), stock - target, local, usual,
                         Elasticity.MinFactor, Elasticity.MaxSupplyFactor);
 
                     if (offer > stock) offer = stock;
-                    if (offer.Raw == 0) continue;
-
-                    _market.Add(new MarketOrder(country.Id, country.State, offer, default, inWorld, default));
-                    offered += offer;
                 }
+
+                if (bid.Raw == 0 && offer.Raw == 0) continue;
+
+                _bid.Add(country.Id, good, bid);
+                _market.Add(new MarketOrder(country.Id, country.State, offer, bid, inWorld, inWorld));
+                wanted += bid;
+                offered += offer;
             }
 
             _dealValue = default;
@@ -719,11 +722,11 @@ public sealed class Simulation
     /// берётся, зачем держать пролив или дорогу — и зачем их перекрывать.</remarks>
     private void PayTransit(byte country, byte from, Money value)
     {
-        _world.Routes.TollsBetween(from, country, _exchange.TollBuffer);
-        if (_exchange.TollBuffer.Count == 0) return;
+        var takers = _world.Routes.TollsBetween(from, country);
+        if (takers.Count == 0) return;
 
         var payer = _world.CountryById(country);
-        foreach (var through in _exchange.TollBuffer)
+        foreach (var through in takers)
         {
             var fee = new Money(value.Raw * TradeCosts.TransitFee / TradeCosts.Scale);
             if (fee.Raw == 0 || !payer.State.Treasury.Reserves.TrySpend(fee)) break;

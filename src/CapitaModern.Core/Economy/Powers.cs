@@ -19,6 +19,37 @@ public static class Powers
 
     /// <summary>Возводит в степень <paramref name="exponent"/>, заданную в сотых:
     /// 140 означает 1.4.</summary>
+    /// <summary>Уже посчитанные степени. За тик их запрашивают десятки тысяч раз, а
+    /// разных пар «основание и показатель» среди них считанные сотни: считать заново —
+    /// половина времени торговли. Своя память у каждого потока: тесты идут параллельно,
+    /// а общий словарь не выдержал бы двух миров разом.</summary>
+    [ThreadStatic]
+    private static Dictionary<long, long>? _known;
+
+    /// <summary>Дальше память чистится: ключей может набежать сколько угодно.</summary>
+    private const int Remembered = 200_000;
+
+    /// <summary>То же, что <see cref="Pow"/>, но помнит посчитанное.</summary>
+    /// <remarks>Основание округляется до сотых доли: точнее незачем, а попаданий в
+    /// память становится на порядок больше.</remarks>
+    public static long PowCached(long value, int exponent)
+    {
+        if (value < 0 || exponent < 0 || exponent > 0xFFFF) return Pow(value, exponent);
+
+        var rounded = value / 100 * 100;
+        var key = rounded << 16 | (uint)exponent;
+
+        var known = _known ??= new Dictionary<long, long>();
+        if (known.TryGetValue(key, out var ready)) return ready;
+
+        if (known.Count >= Remembered) known.Clear();
+
+        var result = Pow(rounded, exponent);
+        known[key] = result;
+
+        return result;
+    }
+
     public static long Pow(long value, int exponent)
     {
         if (value <= 0) return 0;

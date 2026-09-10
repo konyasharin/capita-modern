@@ -27,6 +27,11 @@ public class TradeTests
     /// <summary>Дорога ничего не стоит: остаётся чистая цена продавца.</summary>
     private static Money AtSellerPrice(MarketOrder seller, MarketOrder buyer) => seller.Ask;
 
+    /// <summary>Сколько всего куплено у этой страны.</summary>
+    private static GoodAmount From(List<Deal> deals, byte seller) =>
+        deals.Where(deal => deal.Seller == seller)
+            .Aggregate(default(GoodAmount), (sum, deal) => sum + deal.Amount);
+
     private static List<Deal> Run(
         MarketOrder[] orders, Func<MarketOrder, MarketOrder, Money>? delivered = null)
     {
@@ -49,7 +54,8 @@ public class TradeTests
         Assert.Equal(Money.FromWhole(1000), deal.Paid);
     }
 
-    /// <summary>Главное, чего не мог общий котёл: дальний дешёвый проигрывает ближнему.</summary>
+    /// <summary>Главное, чего не мог общий котёл: дальний дешёвый проигрывает ближнему.
+    /// Проигрывает не всухую — берут у обоих, но у ближнего больше.</summary>
     [Fact]
     public void NearSellerBeatsTheCheapDistantOne()
     {
@@ -58,7 +64,24 @@ public class TradeTests
         // У первого уголь вдвое дешевле, но дорога от него дороже втрое.
         var deals = Run(orders, (seller, _) => new Money(seller.Ask.Raw * (seller.Country == 1 ? 3 : 1)));
 
-        Assert.Equal(2, Assert.Single(deals).Seller);
+        Assert.True(From(deals, 2) > From(deals, 1), "ближний продавец не взял большую долю");
+    }
+
+    /// <summary>Берут у всех, но доля падает с ценой.</summary>
+    [Fact]
+    public void EveryoneSellsSomething()
+    {
+        MarketOrder[] orders =
+        [
+            Sells(1, coal: 100, price: 100), Sells(2, coal: 100, price: 150),
+            Buys(3, coal: 30, upTo: 300),
+        ];
+
+        var deals = Run(orders);
+
+        Assert.True(From(deals, 1).Raw > 0, "дешёвый продавец ничего не продал");
+        Assert.True(From(deals, 2).Raw > 0, "дорогой продавец ничего не продал");
+        Assert.True(From(deals, 1) > From(deals, 2), "дорогой продал не меньше дешёвого");
     }
 
     [Fact]
@@ -99,9 +122,8 @@ public class TradeTests
 
         var deals = Run(orders);
 
-        Assert.Equal(2, deals.Count);
-        Assert.Equal(1, deals[0].Seller);
-        Assert.Equal(Build.Whole(10), deals[0].Amount + deals[1].Amount);
+        Assert.Equal(Build.Whole(4), From(deals, 1));
+        Assert.Equal(Build.Whole(6), From(deals, 2));
     }
 
     [Fact]
@@ -139,8 +161,9 @@ public class TradeTests
 
         var buyer = world.CountryById(2);
 
-        // Завод просит 10 в сутки, норма — сорок суток, минус то, что он съел за тик.
-        Assert.Equal(Build.Whole(10 * Prices.TargetCoverDays - 10), buyer.State.Stock.Of(Coal));
+        // Завод просит 10 в сутки, норма — сорок суток. Съеденное за тик страна докупает
+        // тем же тиком: заявка это нехватка плюс дневной расход.
+        Assert.Equal(Build.Whole(10 * Prices.TargetCoverDays), buyer.State.Stock.Of(Coal));
         Assert.True(buyer.State.Stock.Of(GoodType.Metals) > default(GoodAmount), "завод так и не заработал");
     }
 

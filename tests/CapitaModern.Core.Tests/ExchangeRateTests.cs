@@ -1,4 +1,4 @@
-using CapitaModern.Core.Buildings;
+﻿using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
 using CapitaModern.Core.World;
 using Xunit;
@@ -67,22 +67,22 @@ public class ExchangeRateTests
         Assert.Equal(Money.FromWhole(1), world.CountryById(1).ExchangeRate);
     }
 
-    /// <summary>Ради чего всё и делалось: слабеющая валюта сама срезает ввоз.</summary>
+    /// <summary>Курс идёт не только за сальдо, но и за уровнем цен: у кого всё
+    /// подорожало вдвое против соседа, у того валюта дешевеет.</summary>
     [Fact]
-    public void WeakCurrencyCutsImports()
+    public void RateFollowsThePriceLevel()
     {
         var world = TwoCountries();
         var simulation = new Simulation(world);
-
         simulation.Tick();
-        simulation.Tick();
-        var early = simulation.ImportsOf(2);
 
-        for (var tick = 0; tick < 200; tick++) simulation.Tick();
-        var late = simulation.ImportsOf(2);
+        var before = world.CountryById(2).ExchangeRate;
+        world.CountryById(2).State.Prices.Rescale(2, 1);
 
-        Assert.True(world.CountryById(2).ExchangeRate > Money.FromWhole(2), "курс почти не сдвинулся");
-        Assert.True(late < early, "ослабевшая валюта не срезала ввоз");
+        for (var tick = 0; tick < 100; tick++) simulation.Tick();
+
+        Assert.True(world.CountryById(2).ExchangeRate > before,
+            "цены выросли вдвое, а валюта не подешевела");
     }
 
     [Fact]

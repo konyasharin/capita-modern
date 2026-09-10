@@ -46,6 +46,11 @@ public sealed class Routes
     private readonly int[][] _pairCost;
     private readonly short[][] _pairFrom;
 
+    /// <summary>Кому платят за проход между каждой парой стран. Считается вместе с
+    /// путями: сделок за тик десятки тысяч, и обходить путь заново на каждой — дороже
+    /// всего остального тика вместе взятого.</summary>
+    private readonly byte[][][] _pairTolls;
+
     /// <summary>Кто выходит в этот бассейн. Обратный указатель к портам: без него обход
     /// перебирал бы все двести стран на каждом бассейне.</summary>
     private readonly List<byte>[] _atBasin;
@@ -70,6 +75,7 @@ public sealed class Routes
         _tolls = new List<byte>[countries];
         _pairCost = new int[countries][];
         _pairFrom = new short[countries][];
+        _pairTolls = new byte[countries][][];
         _atBasin = new List<byte>[basins];
 
         for (var i = 0; i < countries; i++)
@@ -86,6 +92,7 @@ public sealed class Routes
         {
             _pairCost[i] = new int[nodes];
             _pairFrom[i] = new short[nodes];
+            _pairTolls[i] = new byte[countries][];
         }
 
         var known = neighbours is not null || basinsOf is not null;
@@ -159,9 +166,16 @@ public sealed class Routes
 
         for (var country = 0; country < _countries; country++) CollectTolls((byte)country);
 
+        var found = new List<byte>();
         for (var source = 0; source < _countries; source++)
         {
             Spread((byte)source, attitude, blocked);
+
+            for (var to = 0; to < _countries; to++)
+            {
+                Walk((byte)source, (byte)to, found);
+                _pairTolls[source][to] = found.Count == 0 ? [] : found.ToArray();
+            }
         }
     }
 
@@ -171,9 +185,10 @@ public sealed class Routes
     public bool CanReach(byte from, byte to) => _pairCost[from][to] < Unreachable;
 
     /// <summary>Кому платят за проход по пути между двумя странами.</summary>
-    /// <remarks>Отдаётся в переданный список, чтобы не сорить мусором на каждой сделке:
-    /// сделок за тик тысячи.</remarks>
-    public void TollsBetween(byte from, byte to, List<byte> into)
+    public IReadOnlyList<byte> TollsBetween(byte from, byte to) => _pairTolls[from][to];
+
+    /// <summary>Идёт по пути назад и собирает хозяев звеньев.</summary>
+    private void Walk(byte from, byte to, List<byte> into)
     {
         into.Clear();
         if (!CanReach(from, to)) return;

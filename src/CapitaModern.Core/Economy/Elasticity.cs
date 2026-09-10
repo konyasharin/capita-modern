@@ -75,7 +75,7 @@ public sealed class Elasticity
         if (usual.Raw <= 0 || amount.Raw <= 0 || price.Raw <= 0 || elasticity == 0) return amount;
 
         var ratio = (long)((Int128)price.Raw * Powers.Scale / usual.Raw);
-        var raised = Math.Max(1, Powers.Pow(ratio, Math.Abs(elasticity)));
+        var raised = Math.Max(1, Powers.PowCached(ratio, Math.Abs(elasticity)));
 
         // Отрицательный показатель — это единица, делённая на положительный.
         var factor = elasticity > 0 ? raised : Powers.Scale * Powers.Scale / raised;
