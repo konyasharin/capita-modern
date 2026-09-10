@@ -15,13 +15,15 @@ internal static class Build
         Dictionary<GoodType, GoodAmount>? inputs = null,
         Dictionary<GoodType, GoodAmount>? outputs = null,
         GoodType? deposit = null,
-        Sector sector = Sector.Heavy) => new()
+        Sector sector = Sector.Heavy,
+        int workers = 0) => new()
     {
         Type = type,
         Sector = sector,
         Inputs = inputs ?? [],
         Outputs = outputs ?? [],
         RequiresDeposit = deposit,
+        OptimalWorkers = workers,
     };
 
     /// <summary>Каталог требует все типы построек, поэтому недостающие добираются пустыми.</summary>

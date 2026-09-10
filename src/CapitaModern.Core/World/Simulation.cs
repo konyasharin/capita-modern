@@ -36,6 +36,13 @@ public sealed class Simulation
     /// что заказ мог не сбыться, а ещё в нём сидит население. По нему считается ВВП.</summary>
     private readonly Tally<GoodType, GoodAmount> _consumed = new();
 
+    /// <summary>Сколько людей просят предприятия страны. С поправкой на эффективность:
+    /// один и тот же завод в отстающей стране обслуживает куда больше народу.</summary>
+    private readonly Dictionary<byte, long> _jobs = new();
+
+    /// <summary>Во сколько урезана загрузка нехваткой людей, в долях Load.Full.</summary>
+    private readonly Dictionary<byte, long> _hands = new();
+
     /// <summary>Работоспособные предприятия по стране и типу. Считаются вместе, где бы
     /// ни стояли: склад у страны общий.</summary>
     private readonly Tally<BuildingType, int> _working = new();
@@ -95,6 +102,7 @@ public sealed class Simulation
         _day++;
         Prepare();
         CollectInputs();
+        CountHands();
         Trade();
         NoteTrade();
         Borrow();
@@ -120,6 +128,8 @@ public sealed class Simulation
         _claims.Clear();
         _working.Clear();
         _consumed.Clear();
+        _jobs.Clear();
+        _hands.Clear();
         _imported.Clear();
         _exported.Clear();
         _bid.Clear();
@@ -154,6 +164,12 @@ public sealed class Simulation
                     _claims.Add(owner, input.Key, demand * weight / Priorities.NormalWeight);
                 }
                 _working.Add(owner, building.Key, building.Value);
+
+                // Отстающей стране тот же завод обходится в большее число рук: комбайн
+                // против полусотни человек с мотыгами.
+                _jobs[owner] = _jobs.GetValueOrDefault(owner) +
+                    (long)info.OptimalWorkers * building.Value * Efficiency.Scale /
+                    _world.Efficiency.Of(owner, info.Sector);
             }
         }
 
@@ -237,6 +253,13 @@ public sealed class Simulation
             }
         }
     }
+
+    /// <summary>Сколько людей заняты на производстве в стране прямо сейчас.</summary>
+    public long EmployedIn(byte country) =>
+        Math.Min(_jobs.GetValueOrDefault(country), _world.WorkersOf(country));
+
+    /// <summary>Сколько людей просят предприятия. Больше занятых — значит рук не хватает.</summary>
+    public long JobsIn(byte country) => _jobs.GetValueOrDefault(country);
 
     /// <summary>Что мир выпустил за прошедший тик.</summary>
     public GoodAmount WorldOutputOf(GoodType good) => WorldSum(_outputs, good);
@@ -417,6 +440,21 @@ public sealed class Simulation
         return total;
     }
 
+    /// <summary>Людей на всех не хватает — загрузка режется всем поровну.</summary>
+    /// <remarks>Здесь эффективность и начинает работать: она не добавляет выпуска, она
+    /// освобождает руки. Страна, которой тот же завод стоит вдесятеро больше людей,
+    /// просто не может запустить их все.</remarks>
+    private void CountHands()
+    {
+        foreach (var country in _world.Countries)
+        {
+            var wanted = _jobs.GetValueOrDefault(country.Id);
+            var have = _world.WorkersOf(country.Id);
+
+            _hands[country.Id] = wanted <= have ? Load.Full : have * Load.Full / wanted;
+        }
+    }
+
     private void CollectAvailable()
     {
         foreach (var country in _world.Countries)
@@ -437,7 +475,7 @@ public sealed class Simulation
 
             // Доля общая на всех, поэтому расход рецепта в ней сокращается.
             // Умножаем до деления, иначе целые числа дадут ноль.
-            long runs = count * Load.Full;
+            long runs = count * _hands.GetValueOrDefault(country, Load.Full);
             foreach (var (good, _) in recipe.Inputs)
             {
                 GoodAmount available = _available.Get(country, good);

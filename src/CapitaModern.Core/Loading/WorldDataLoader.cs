@@ -20,13 +20,15 @@ public static class WorldDataLoader
         string reservesJson,
         string goodsJson,
         string keyRatesJson,
-        string blocsJson)
+        string blocsJson,
+        string efficiencyJson)
     {
         var consumption = LoadConsumptionFile(consumptionJson).UnitPerMillionPeople;
         var startPrices = LoadPricesFile(pricesJson).Prices;
         var reserves = LoadReservesFile(reservesJson);
         var keyRates = JsonReader.Read<KeyRatesFile>(keyRatesJson);
         var blocs = JsonReader.Read<BlocsFile>(blocsJson);
+        var efficiencyFile = JsonReader.Read<EfficiencyFile>(efficiencyJson);
         var goodDtos = JsonReader.Read<GoodDto[]>(goodsJson);
         var elasticity = new Elasticity(
             goodDtos.ToDictionary(dto => dto.Id, dto => dto.DemandElasticity),
@@ -69,12 +71,22 @@ public static class WorldDataLoader
         }
         BuildingCatalog buildingCatalog = BuildingCatalog.FromJson(buildingsJson);
 
+        var efficiency = new Efficiency(
+            countries
+                .Where(country => efficiencyFile.ByIso.ContainsKey(country.Iso))
+                .ToDictionary(
+                    country => country.Id,
+                    country => efficiencyFile.ByIso[country.Iso] is var dto
+                        ? (dto.Skill, dto.Tech, dto.Condition)
+                        : default),
+            efficiencyFile.Sensitivity);
+
         var relations = new Relations(countries.ToDictionary(
             country => country.Id,
             country => blocs.ByIso.GetValueOrDefault(country.Iso, Bloc.NonAligned)));
 
         return new GameWorld(regions, countries, buildingCatalog, consumption,
-            new WorldMarket(new Prices(startPrices)), elasticity, relations);
+            new WorldMarket(new Prices(startPrices)), elasticity, relations, efficiency);
     }
 
     private static CountriesFile LoadCountriesFile(string json) => JsonReader.Read<CountriesFile>(json);

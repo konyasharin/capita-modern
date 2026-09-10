@@ -21,6 +21,10 @@ public sealed class GameWorld
 
     /// <summary>Кто кому друг. Пока влияет на кредит, дальше — на санкции и войну.</summary>
     public Relations Relations { get; }
+
+    /// <summary>Насколько хорошо страна умеет производить. Вся разница в
+    /// производительности между странами лежит здесь: завод везде одинаковый.</summary>
+    public Efficiency Efficiency { get; }
     /// <summary>Сколько товара население съедает за сутки на миллион человек.</summary>
     public readonly IReadOnlyDictionary<GoodType, GoodAmount> Consumption;
 
@@ -37,12 +41,14 @@ public sealed class GameWorld
         IReadOnlyDictionary<GoodType, GoodAmount> consumption,
         WorldMarket market,
         Elasticity elasticity,
-        Relations? relations = null
+        Relations? relations = null,
+        Efficiency? efficiency = null
     ) {
         Buildings = buildings;
         Market = market;
         Elasticity = elasticity;
         Relations = relations ?? new Relations();
+        Efficiency = efficiency ?? new Efficiency();
         Consumption = consumption;
         _regions = regions;
         _countries = countries;
@@ -73,6 +79,14 @@ public sealed class GameWorld
         country < _populationsByCountry.Length ?
             _populationsByCountry[country] :
             throw new ArgumentOutOfRangeException(nameof(country), country, "Страны не найдено");
+
+    /// <summary>Сколько людей страна может поставить на производство.</summary>
+    /// <remarks>Не всё население: дети, старики и те, кто занят вне нашей модели —
+    /// в услугах и на стройке. В жизни рабочая сила примерно 44% населения.</remarks>
+    public long WorkersOf(byte country) => PopulationOf(country).Whole * WorkingShare / 100;
+
+    /// <summary>Доля населения в рабочей силе, в процентах.</summary>
+    public const int WorkingShare = 44;
 
     public void UpdatePopulations()
     {

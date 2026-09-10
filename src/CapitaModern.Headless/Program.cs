@@ -15,7 +15,8 @@ GameWorld Load() => WorldDataLoader.LoadWorld(
     Data("reserves.json"),
     Data("goods.json"),
     Data("key-rates.json"),
-    File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "politics", "blocs.json")));
+    File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "politics", "blocs.json")),
+    Data("efficiency.json"));
 
 var goods = Enum.GetValues<GoodType>();
 
@@ -420,3 +421,34 @@ Console.WriteLine($"Стран с внешним долгом: {withDebt.Length}
 Console.WriteLine($"Займов всего: {allLoans.Length}, средний размер {allLoans.Average(l => l.Principal.Exact) / 1e6:F0} млн $");
 Console.WriteLine($"Отказались платить хоть раз: {world.Countries.Count(c => c.DefaultedOnDay > 0)}");
 Console.WriteLine($"Плавающих займов: {allLoans.Count(l => l.RateKind == RateKind.Floating)} из {allLoans.Length}");
+
+// --- К. Производительность: главный замер этого шага ------------------------------
+Console.WriteLine();
+Console.WriteLine("=== К. Выработка на работника ===");
+Console.WriteLine("страна   у нас   в жизни   отстаёт у нас   в жизни   занято млн   рук не хватает");
+
+(string Iso, int Real)[] realOutput =
+    [("USA", 190), ("DEU", 100), ("JPN", 100), ("TWN", 95), ("CHN", 35),
+     ("RUS", 20), ("BRA", 15), ("NGA", 10), ("IND", 7)];
+
+var perWorker = new Dictionary<string, double>();
+foreach (var (iso, _) in realOutput)
+{
+    var id = world.Countries.First(c => c.Iso == iso).Id;
+    var employed = simulation.EmployedIn(id);
+    perWorker[iso] = employed > 0 ? realGdp[id].Exact / 5 / employed : 0;
+}
+
+foreach (var (iso, realValue) in realOutput)
+{
+    var id = world.Countries.First(c => c.Iso == iso).Id;
+    Console.WriteLine($"{iso}   {perWorker[iso],7:F1} {realValue,8} " +
+                      $"{(perWorker["USA"] / Math.Max(perWorker[iso], 1e-9)),14:F1}x " +
+                      $"{(190.0 / realValue),8:F1}x {simulation.EmployedIn(id) / 1e6,11:F0} " +
+                      $"{(simulation.JobsIn(id) > simulation.EmployedIn(id) ? "да" : "нет"),15}");
+}
+
+Console.WriteLine();
+Console.WriteLine($"Занято в мире: {world.Countries.Sum(c => simulation.EmployedIn(c.Id)) / 1e6:F0} млн " +
+                  $"(рабочая сила {world.Countries.Sum(c => world.WorkersOf(c.Id)) / 1e6:F0} млн, в жизни занято 1096)");
+Console.WriteLine($"Стран, где не хватает рук: {world.Countries.Count(c => simulation.JobsIn(c.Id) > simulation.EmployedIn(c.Id))}");
