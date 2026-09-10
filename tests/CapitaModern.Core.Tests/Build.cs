@@ -16,7 +16,9 @@ internal static class Build
         Dictionary<GoodType, GoodAmount>? outputs = null,
         GoodType? deposit = null,
         Sector sector = Sector.Heavy,
-        int workers = 0) => new()
+        int workers = 0,
+        Dictionary<GoodType, GoodAmount>? buildCost = null,
+        int buildWorkers = 0) => new()
     {
         Type = type,
         Sector = sector,
@@ -24,6 +26,8 @@ internal static class Build
         Outputs = outputs ?? [],
         RequiresDeposit = deposit,
         OptimalWorkers = workers,
+        BuildCost = buildCost ?? [],
+        BuildWorkers = buildWorkers,
     };
 
     /// <summary>Каталог требует все типы построек, поэтому недостающие добираются пустыми.</summary>

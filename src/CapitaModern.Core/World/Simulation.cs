@@ -105,6 +105,13 @@ public sealed class Simulation
     /// сказать, во сколько раз выпуск вырос с начала партии.</summary>
     private readonly Dictionary<byte, Money> _baseReal = new();
 
+    /// <summary>Рабочие места в услугах и на стройке за прошедший тик.</summary>
+    private long _serviceJobs;
+    private long _buildJobs;
+
+    /// <summary>Сколько рук ушло на стройку в каждой стране в прошлом тике.</summary>
+    private readonly Dictionary<byte, long> _builders = new();
+
     /// <summary>Уровень цен страны и мира с прошлого тика. Курс считается до выпуска,
     /// поэтому берёт вчерашние: сутки задержки здесь ничего не решают.</summary>
     private readonly Dictionary<byte, int> _level = new();
@@ -198,6 +205,8 @@ public sealed class Simulation
         _available.Clear();
         _claims.Clear();
         _working.Clear();
+        _serviceJobs = 0;
+        _buildJobs = 0;
         _consumed.Clear();
         _jobs.Clear();
         _hands.Clear();
@@ -247,9 +256,11 @@ public sealed class Simulation
 
                 // Отстающей стране тот же завод обходится в большее число рук: комбайн
                 // против полусотни человек с мотыгами.
-                _jobs[owner] = _jobs.GetValueOrDefault(owner) +
-                    (long)info.OptimalWorkers * building.Value * Efficiency.Scale /
+                var hands = (long)info.OptimalWorkers * building.Value * Efficiency.Scale /
                     _world.Efficiency.Of(owner, info.Sector);
+
+                _jobs[owner] = _jobs.GetValueOrDefault(owner) + hands;
+                if (info.Sector == Sector.Services) _serviceJobs += hands;
             }
         }
 
@@ -462,6 +473,13 @@ public sealed class Simulation
 
         return (nominal, real);
     }
+
+    /// <summary>Сколько рабочих мест в услугах. Считается отдельно: настоящая занятость
+    /// в услугах вдвое больше промышленной, и складывать их в один замер нечестно.</summary>
+    public long ServiceJobs => _serviceJobs;
+
+    /// <summary>Сколько рук занято на стройке.</summary>
+    public long BuildJobs => _buildJobs;
 
     /// <summary>Сколько людей заняты на производстве в стране прямо сейчас.</summary>
     public long EmployedIn(byte country) =>
@@ -684,9 +702,11 @@ public sealed class Simulation
 
         if (freight == 0) return;
 
-        // Стоимость перевозки в деньгах, переведённая в топливо по его же цене.
+        // Стоимость перевозки в деньгах, переведённая в топливо по его же цене. Топливо —
+        // только часть этой цены: остальное судно, команда и порт.
         var state = _world.CountryById(country).State;
-        var spent = new Money(state.Prices.CostOf(good, brought).Raw * freight / TradeCosts.Scale);
+        var spent = new Money(state.Prices.CostOf(good, brought).Raw * freight / TradeCosts.Scale
+            * TradeCosts.FuelInFreight / 100);
         var fuelPrice = state.Prices.Of(GoodType.Fuel).Raw;
         if (fuelPrice <= 0) return;
 
@@ -795,6 +815,18 @@ public sealed class Simulation
             if (purse > ceiling) _investment[country.Id] = purse = ceiling;
 
             var count = (int)(purse.Raw / price.Raw);
+
+            // Стройке нужны руки, и берёт она их у заводов: больше, чем свободно, не
+            // построишь ни за какие деньги.
+            var perUnit = (long)info.BuildWorkers * Efficiency.Scale /
+                _world.Efficiency.Of(country.Id, info.Sector);
+
+            if (perUnit > 0)
+            {
+                var free = _world.WorkersOf(country.Id) - _jobs.GetValueOrDefault(country.Id);
+                count = (int)Math.Min(count, Math.Max(0, free / perUnit));
+            }
+
             if (count <= 0) continue;
 
             _plan[country.Id] = (best.Value.Type, best.Value.Where, count);
@@ -808,10 +840,13 @@ public sealed class Simulation
                 _claims.Add(country.Id, good, wanted * weight / Priorities.NormalWeight);
             }
 
-            // Строители — такие же рабочие руки и конкурируют с заводами за людей.
-            _jobs[country.Id] = _jobs.GetValueOrDefault(country.Id) +
-                (long)info.BuildWorkers * count * Efficiency.Scale /
-                _world.Efficiency.Of(country.Id, info.Sector);
+            // Строители — такие же рабочие руки и конкурируют с заводами за людей. Берём
+            // вчерашних: нанимают под то, что и правда строится, а сколько построится,
+            // выяснится только в конце тика, когда приедут материалы.
+            var builders = _builders.GetValueOrDefault(country.Id);
+
+            _jobs[country.Id] = _jobs.GetValueOrDefault(country.Id) + builders;
+            _buildJobs += builders;
         }
     }
 
@@ -1131,6 +1166,7 @@ public sealed class Simulation
             var info = _world.Buildings[plan.Type];
             var wages = WagesFor(country, info);
             var price = Construction.CostOf(info.BuildCost, country.State.Prices) + wages;
+            var done = 0;
 
             for (var built = 0; built < plan.Count; built++)
             {
@@ -1147,7 +1183,11 @@ public sealed class Simulation
 
                 // Строителям платят, и деньги уходят в те же кошельки, что и зарплата.
                 if (country.State.Treasury.TrySpend(wages)) country.Households.Earn(wages);
+                done++;
             }
+
+            _builders[country.Id] = (long)info.BuildWorkers * done * Efficiency.Scale /
+                _world.Efficiency.Of(country.Id, info.Sector);
         }
     }
 

@@ -129,6 +129,8 @@ var startPrices = watched.ToDictionary(
     country => country.Iso,
     country => goods.ToDictionary(good => good, country.State.Prices.Of));
 
+var startPlants = world.Regions.SelectMany(r => r.BuildingsCount).Sum(p => p.Value);
+
 var realGdp = world.Countries.ToDictionary(country => country.Id, _ => default(Money));
 // Зарплата копится в местных деньгах, поэтому складываем сразу в мировой мере: курс
 // за год уезжает, и делить в конце на конечный было бы неверно.
@@ -466,8 +468,14 @@ foreach (var (iso, realValue) in realOutput)
 }
 
 Console.WriteLine();
-Console.WriteLine($"Занято в мире: {world.Countries.Sum(c => simulation.EmployedIn(c.Id)) / 1e6:F0} млн " +
-                  $"(рабочая сила {world.Countries.Sum(c => world.WorkersOf(c.Id)) / 1e6:F0} млн, в жизни занято 1096)");
+var employedWorld = world.Countries.Sum(c => simulation.EmployedIn(c.Id));
+Console.WriteLine($"Занято в мире: {employedWorld / 1e6:F0} млн, из них в услугах " +
+                  $"{simulation.ServiceJobs / 1e6:F0} млн (рабочая сила " +
+                  $"{world.Countries.Sum(c => world.WorkersOf(c.Id)) / 1e6:F0} млн, в жизни занято 3240, " +
+                  $"из них в услугах около 1600)");
+Console.WriteLine($"Вне услуг: {(employedWorld - simulation.ServiceJobs) / 1e6:F0} млн, " +
+                  $"из них на стройке {simulation.BuildJobs / 1e6:F0} млн " +
+                  "(в наших данных о занятости 1096, в жизни на стройке около 220)");
 Console.WriteLine($"Стран, где не хватает рук: {world.Countries.Count(c => simulation.JobsIn(c.Id) > simulation.EmployedIn(c.Id))}");
 
 // --- Л. Зарплаты и внутренний оборот ----------------------------------------------
@@ -514,7 +522,7 @@ Console.WriteLine($"Курс на полу коридора: {world.Countries.Co
 Console.WriteLine();
 Console.WriteLine("=== Н. Стройка ===");
 var plants = world.Regions.SelectMany(r => r.BuildingsCount).Sum(p => p.Value);
-Console.WriteLine($"Предприятий в мире: {plants} (на старте 13787)");
+Console.WriteLine($"Предприятий в мире: {plants} (на старте {startPlants})");
 foreach (var group in world.Regions.SelectMany(r => r.BuildingsCount)
              .GroupBy(p => p.Key).Select(g => (g.Key, Count: g.Sum(p => p.Value)))
              .OrderByDescending(g => g.Count).Take(6))
