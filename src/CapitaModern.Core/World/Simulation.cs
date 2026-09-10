@@ -159,7 +159,19 @@ public sealed class Simulation
                 var target = new GoodAmount(Prices.TargetCoverDays * _inputs.Get(country.Id, good).Raw);
                 var stock = country.State.Stock.Of(good);
 
-                if (target > stock) _orders.Add(new TradeOrder(country.State, target - stock, default));
+                // Заявка смотрит на цену: подорожало — берём меньше. Без этого курс
+                // валют будет двигаться и ни на что не влиять.
+                if (target > stock)
+                {
+                    var bid = _world.Elasticity.Adjust(
+                        good,
+                        target - stock,
+                        _world.Market.Prices.Of(good),
+                        _world.Market.Prices.StartOf(good));
+
+                    if (bid.Raw == 0) continue;
+                    _orders.Add(new TradeOrder(country.State, bid, default));
+                }
                 else if (stock > target) _orders.Add(new TradeOrder(country.State, default, stock - target));
                 else continue;
 

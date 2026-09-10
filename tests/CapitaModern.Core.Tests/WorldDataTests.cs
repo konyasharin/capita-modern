@@ -9,7 +9,8 @@ namespace CapitaModern.Core.Tests;
 /// <summary>Проверки на настоящих файлах из data: ловят рассинхрон кода и данных.</summary>
 public class WorldDataTests
 {
-    private static readonly Lazy<GameWorld> Shared = new(Load);
+    /// <summary>Настоящий мир грузится один раз на все тесты: это секунды.</summary>
+    internal static readonly Lazy<GameWorld> Shared = new(Load);
 
     private static GameWorld Load()
     {
@@ -23,7 +24,8 @@ public class WorldDataTests
             Read("data", "economy", "start-industry.json"),
             Read("data", "economy", "consumption.json"),
             Read("data", "economy", "prices.json"),
-            Read("data", "economy", "reserves.json"));
+            Read("data", "economy", "reserves.json"),
+            Read("data", "economy", "goods.json"));
     }
 
     [Fact]

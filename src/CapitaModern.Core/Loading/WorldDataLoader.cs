@@ -17,11 +17,14 @@ public static class WorldDataLoader
         string startBuildingsJson,
         string consumptionJson,
         string pricesJson,
-        string reservesJson)
+        string reservesJson,
+        string goodsJson)
     {
         var consumption = LoadConsumptionFile(consumptionJson).UnitPerMillionPeople;
         var startPrices = LoadPricesFile(pricesJson).Prices;
         var reserves = LoadReservesFile(reservesJson);
+        var elasticity = new Elasticity(
+            JsonReader.Read<GoodDto[]>(goodsJson).ToDictionary(dto => dto.Id, dto => dto.Elasticity));
         var startBuildings = LoadStartBuildingsFile(startBuildingsJson).StartBuildings;
         var countriesFile = LoadCountriesFile(countriesJson);
         var regionsFile = LoadRegionsFile(regionsJson);
@@ -46,7 +49,7 @@ public static class WorldDataLoader
         BuildingCatalog buildingCatalog = BuildingCatalog.FromJson(buildingsJson);
 
         return new GameWorld(regions, countries, buildingCatalog, consumption,
-            new WorldMarket(new Prices(startPrices)));
+            new WorldMarket(new Prices(startPrices)), elasticity);
     }
 
     private static CountriesFile LoadCountriesFile(string json) => JsonReader.Read<CountriesFile>(json);

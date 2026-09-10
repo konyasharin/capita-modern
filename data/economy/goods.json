@@ -5,7 +5,8 @@
 		"category": "resource",
 		"icon": "coal",
 		"unit": "1000 т",
-		"worldOutput2019": 8100000
+		"worldOutput2019": 8100000,
+		"elasticity": -25
 	},
 	{
 		"id": "Oil",
@@ -13,7 +14,8 @@
 		"category": "resource",
 		"icon": "oil",
 		"unit": "1000 т",
-		"worldOutput2019": 4485000
+		"worldOutput2019": 4485000,
+		"elasticity": -25
 	},
 	{
 		"id": "Gas",
@@ -21,7 +23,8 @@
 		"category": "resource",
 		"icon": "gas",
 		"unit": "млн м3",
-		"worldOutput2019": 4088000
+		"worldOutput2019": 4088000,
+		"elasticity": -25
 	},
 	{
 		"id": "IronOre",
@@ -29,7 +32,8 @@
 		"category": "resource",
 		"icon": "iron-ore",
 		"unit": "1000 т",
-		"worldOutput2019": 2500000
+		"worldOutput2019": 2500000,
+		"elasticity": -50
 	},
 	{
 		"id": "CopperOre",
@@ -37,7 +41,8 @@
 		"category": "resource",
 		"icon": "copper-ore",
 		"unit": "25 т меди",
-		"worldOutput2019": 816000
+		"worldOutput2019": 816000,
+		"elasticity": -50
 	},
 	{
 		"id": "Bauxite",
@@ -45,7 +50,8 @@
 		"category": "resource",
 		"icon": "bauxite",
 		"unit": "1000 т",
-		"worldOutput2019": 370000
+		"worldOutput2019": 370000,
+		"elasticity": -50
 	},
 	{
 		"id": "Uranium",
@@ -53,7 +59,8 @@
 		"category": "resource",
 		"icon": "uranium",
 		"unit": "т",
-		"worldOutput2019": 54000
+		"worldOutput2019": 54000,
+		"elasticity": -20
 	},
 	{
 		"id": "RareEarth",
@@ -61,7 +68,8 @@
 		"category": "resource",
 		"icon": "rare-earth",
 		"unit": "2 т",
-		"worldOutput2019": 146000
+		"worldOutput2019": 146000,
+		"elasticity": -40
 	},
 	{
 		"id": "Timber",
@@ -69,7 +77,8 @@
 		"category": "resource",
 		"icon": "timber",
 		"unit": "1000 м3",
-		"worldOutput2019": 3970000
+		"worldOutput2019": 3970000,
+		"elasticity": -50
 	},
 	{
 		"id": "Agriculture",
@@ -77,7 +86,8 @@
 		"category": "resource",
 		"icon": "agriculture",
 		"unit": "1000 т",
-		"worldOutput2019": 8000000
+		"worldOutput2019": 8000000,
+		"elasticity": -40
 	},
 	{
 		"id": "Electricity",
@@ -85,7 +95,8 @@
 		"category": "intermediate",
 		"icon": "electricity",
 		"unit": "2 ГВт*ч",
-		"worldOutput2019": 13500000
+		"worldOutput2019": 13500000,
+		"elasticity": -20
 	},
 	{
 		"id": "Fuel",
@@ -93,7 +104,8 @@
 		"category": "intermediate",
 		"icon": "fuel",
 		"unit": "1000 т",
-		"worldOutput2019": 4300000
+		"worldOutput2019": 4300000,
+		"elasticity": -25
 	},
 	{
 		"id": "Metals",
@@ -101,7 +113,8 @@
 		"category": "intermediate",
 		"icon": "metals",
 		"unit": "1000 т",
-		"worldOutput2019": 1963000
+		"worldOutput2019": 1963000,
+		"elasticity": -50
 	},
 	{
 		"id": "Chemicals",
@@ -109,7 +122,8 @@
 		"category": "intermediate",
 		"icon": "chemicals",
 		"unit": "1000 т",
-		"worldOutput2019": 2828750
+		"worldOutput2019": 2828750,
+		"elasticity": -50
 	},
 	{
 		"id": "Materials",
@@ -117,7 +131,8 @@
 		"category": "intermediate",
 		"icon": "materials",
 		"unit": "1000 т",
-		"worldOutput2019": 4100000
+		"worldOutput2019": 4100000,
+		"elasticity": -60
 	},
 	{
 		"id": "Components",
@@ -125,7 +140,8 @@
 		"category": "intermediate",
 		"icon": "components",
 		"unit": "условная",
-		"worldOutput2019": 3361650
+		"worldOutput2019": 3361650,
+		"elasticity": -60
 	},
 	{
 		"id": "Electronics",
@@ -133,7 +149,8 @@
 		"category": "intermediate",
 		"icon": "electronics",
 		"unit": "условная",
-		"worldOutput2019": 3465310
+		"worldOutput2019": 3465310,
+		"elasticity": -60
 	},
 	{
 		"id": "Microelectronics",
@@ -141,7 +158,8 @@
 		"category": "intermediate",
 		"icon": "microelectronics",
 		"unit": "условная",
-		"worldOutput2019": 584000
+		"worldOutput2019": 584000,
+		"elasticity": -60
 	},
 	{
 		"id": "Food",
@@ -149,7 +167,8 @@
 		"category": "final",
 		"icon": "food",
 		"unit": "1000 т",
-		"worldOutput2019": 3000000
+		"worldOutput2019": 3000000,
+		"elasticity": -30
 	},
 	{
 		"id": "ConsumerGoods",
@@ -157,7 +176,8 @@
 		"category": "final",
 		"icon": "consumer-goods",
 		"unit": "условная",
-		"worldOutput2019": 2044000
+		"worldOutput2019": 2044000,
+		"elasticity": -120
 	},
 	{
 		"id": "Medicine",
@@ -165,7 +185,8 @@
 		"category": "final",
 		"icon": "medicine",
 		"unit": "условная",
-		"worldOutput2019": 365000
+		"worldOutput2019": 365000,
+		"elasticity": -20
 	},
 	{
 		"id": "Armour",
@@ -174,7 +195,8 @@
 		"icon": "armour",
 		"unit": "1 машина",
 		"consumable": false,
-		"worldOutput2019": 5840
+		"worldOutput2019": 5840,
+		"elasticity": -30
 	},
 	{
 		"id": "Artillery",
@@ -183,7 +205,8 @@
 		"icon": "artillery",
 		"unit": "1 орудие",
 		"consumable": false,
-		"worldOutput2019": 2190
+		"worldOutput2019": 2190,
+		"elasticity": -30
 	},
 	{
 		"id": "SmallArms",
@@ -192,7 +215,8 @@
 		"icon": "small-arms",
 		"unit": "100 комплектов",
 		"consumable": false,
-		"worldOutput2019": 10585
+		"worldOutput2019": 10585,
+		"elasticity": -30
 	},
 	{
 		"id": "Ammunition",
@@ -201,7 +225,8 @@
 		"icon": "ammunition",
 		"unit": "1000 выстрелов",
 		"consumable": true,
-		"worldOutput2019": 6570
+		"worldOutput2019": 6570,
+		"elasticity": -30
 	},
 	{
 		"id": "TacticalDrones",
@@ -210,7 +235,8 @@
 		"icon": "tactical-drones",
 		"unit": "10 аппаратов",
 		"consumable": true,
-		"worldOutput2019": 1460
+		"worldOutput2019": 1460,
+		"elasticity": -30
 	},
 	{
 		"id": "StrikeDrones",
@@ -219,7 +245,8 @@
 		"icon": "strike-drones",
 		"unit": "1 аппарат",
 		"consumable": false,
-		"worldOutput2019": 1825
+		"worldOutput2019": 1825,
+		"elasticity": -30
 	},
 	{
 		"id": "Missiles",
@@ -228,7 +255,8 @@
 		"icon": "missiles",
 		"unit": "10 ракет",
 		"consumable": true,
-		"worldOutput2019": 5110
+		"worldOutput2019": 5110,
+		"elasticity": -30
 	},
 	{
 		"id": "Aircraft",
@@ -237,7 +265,8 @@
 		"icon": "aircraft",
 		"unit": "1 самолёт",
 		"consumable": false,
-		"worldOutput2019": 2190
+		"worldOutput2019": 2190,
+		"elasticity": -30
 	},
 	{
 		"id": "AirDefence",
@@ -246,7 +275,8 @@
 		"icon": "air-defence",
 		"unit": "1 пусковая",
 		"consumable": false,
-		"worldOutput2019": 1825
+		"worldOutput2019": 1825,
+		"elasticity": -30
 	},
 	{
 		"id": "ElectronicWarfare",
@@ -255,6 +285,7 @@
 		"icon": "electronic-warfare",
 		"unit": "1 комплекс",
 		"consumable": false,
-		"worldOutput2019": 1460
+		"worldOutput2019": 1460,
+		"elasticity": -30
 	}
 ]

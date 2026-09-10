@@ -12,7 +12,8 @@ GameWorld Load() => WorldDataLoader.LoadWorld(
     Data("start-industry.json"),
     Data("consumption.json"),
     Data("prices.json"),
-    Data("reserves.json"));
+    Data("reserves.json"),
+    Data("goods.json"));
 
 var goods = Enum.GetValues<GoodType>();
 

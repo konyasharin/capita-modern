@@ -10,6 +10,10 @@ public sealed class GameWorld
 
     /// <summary>Мировой рынок: один на партию, цены на нём свои.</summary>
     public WorldMarket Market { get; }
+
+    /// <summary>Насколько спрос отзывается на цену. Одна на мир: свойство товара,
+    /// а не страны.</summary>
+    public Elasticity Elasticity { get; }
     /// <summary>Сколько товара население съедает за сутки на миллион человек.</summary>
     public readonly IReadOnlyDictionary<GoodType, GoodAmount> Consumption;
 
@@ -24,10 +28,12 @@ public sealed class GameWorld
         Country[] countries,
         BuildingCatalog buildings,
         IReadOnlyDictionary<GoodType, GoodAmount> consumption,
-        WorldMarket market
+        WorldMarket market,
+        Elasticity elasticity
     ) {
         Buildings = buildings;
         Market = market;
+        Elasticity = elasticity;
         Consumption = consumption;
         _regions = regions;
         _countries = countries;
