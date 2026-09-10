@@ -7,13 +7,15 @@
 		"requiresDeposit": "Coal",
 		"inputs": {},
 		"outputs": {
-			"Coal": 20
+			"Coal": 0.2
 		},
-		"optimalWorkers": 5039,
+		"optimalWorkers": 40,
 		"buildCost": {
-			"Materials": 7008,
-			"Metals": 375
-		}
+			"Materials": 70.08,
+			"Metals": 3.75
+		},
+		"lifeYears": 25,
+		"buildWorkers": 145821
 	},
 	{
 		"type": "OilRig",
@@ -23,13 +25,15 @@
 		"requiresDeposit": "Oil",
 		"inputs": {},
 		"outputs": {
-			"Oil": 15
+			"Oil": 0.15
 		},
-		"optimalWorkers": 1754,
+		"optimalWorkers": 13,
 		"buildCost": {
-			"Materials": 26981,
-			"Metals": 1445
-		}
+			"Materials": 269.81,
+			"Metals": 14.45
+		},
+		"lifeYears": 25,
+		"buildWorkers": 561510
 	},
 	{
 		"type": "GasField",
@@ -39,13 +43,15 @@
 		"requiresDeposit": "Gas",
 		"inputs": {},
 		"outputs": {
-			"Gas": 18
+			"Gas": 0.18
 		},
-		"optimalWorkers": 1382,
+		"optimalWorkers": 13,
 		"buildCost": {
-			"Materials": 10512,
-			"Metals": 563
-		}
+			"Materials": 105.12,
+			"Metals": 5.63
+		},
+		"lifeYears": 25,
+		"buildWorkers": 218770
 	},
 	{
 		"type": "IronMine",
@@ -55,13 +61,15 @@
 		"requiresDeposit": "IronOre",
 		"inputs": {},
 		"outputs": {
-			"IronOre": 20
+			"IronOre": 0.2
 		},
-		"optimalWorkers": 1482,
+		"optimalWorkers": 12,
 		"buildCost": {
-			"Materials": 12848,
-			"Metals": 688
-		}
+			"Materials": 128.48,
+			"Metals": 6.88
+		},
+		"lifeYears": 25,
+		"buildWorkers": 267377
 	},
 	{
 		"type": "CopperMine",
@@ -71,13 +79,15 @@
 		"requiresDeposit": "CopperOre",
 		"inputs": {},
 		"outputs": {
-			"CopperOre": 8
+			"CopperOre": 0.08
 		},
-		"optimalWorkers": 3584,
+		"optimalWorkers": 36,
 		"buildCost": {
-			"Materials": 7242,
-			"Metals": 388
-		}
+			"Materials": 72.42,
+			"Metals": 3.88
+		},
+		"lifeYears": 25,
+		"buildWorkers": 150727
 	},
 	{
 		"type": "BauxiteMine",
@@ -87,13 +97,15 @@
 		"requiresDeposit": "Bauxite",
 		"inputs": {},
 		"outputs": {
-			"Bauxite": 12
+			"Bauxite": 0.12
 		},
-		"optimalWorkers": 1419,
+		"optimalWorkers": 11,
 		"buildCost": {
-			"Materials": 2102,
-			"Metals": 113
-		}
+			"Materials": 21.02,
+			"Metals": 1.13
+		},
+		"lifeYears": 25,
+		"buildWorkers": 43778
 	},
 	{
 		"type": "UraniumMine",
@@ -103,13 +115,15 @@
 		"requiresDeposit": "Uranium",
 		"inputs": {},
 		"outputs": {
-			"Uranium": 2
+			"Uranium": 0.02
 		},
-		"optimalWorkers": 410,
+		"optimalWorkers": 3,
 		"buildCost": {
-			"Materials": 771,
-			"Metals": 41
-		}
+			"Materials": 7.71,
+			"Metals": 0.41
+		},
+		"lifeYears": 25,
+		"buildWorkers": 16023
 	},
 	{
 		"type": "RareEarthMine",
@@ -119,13 +133,15 @@
 		"requiresDeposit": "RareEarth",
 		"inputs": {},
 		"outputs": {
-			"RareEarth": 3
+			"RareEarth": 0.03
 		},
-		"optimalWorkers": 613,
+		"optimalWorkers": 4,
 		"buildCost": {
-			"Materials": 280,
-			"Metals": 15
-		}
+			"Materials": 2.8,
+			"Metals": 0.15
+		},
+		"lifeYears": 25,
+		"buildWorkers": 5828
 	},
 	{
 		"type": "LoggingCamp",
@@ -135,13 +151,15 @@
 		"requiresDeposit": null,
 		"inputs": {},
 		"outputs": {
-			"Timber": 15
+			"Timber": 0.15
 		},
-		"optimalWorkers": 7458,
+		"optimalWorkers": 50,
 		"buildCost": {
-			"Materials": 8760,
-			"Metals": 469
-		}
+			"Materials": 87.6,
+			"Metals": 4.69
+		},
+		"lifeYears": 25,
+		"buildWorkers": 182295
 	},
 	{
 		"type": "Farm",
@@ -151,13 +169,15 @@
 		"requiresDeposit": null,
 		"inputs": {},
 		"outputs": {
-			"Agriculture": 25
+			"Agriculture": 0.25
 		},
-		"optimalWorkers": 992018,
+		"optimalWorkers": 9920,
 		"buildCost": {
-			"Materials": 36500,
-			"Metals": 1955
-		}
+			"Materials": 365,
+			"Metals": 19.55
+		},
+		"lifeYears": 25,
+		"buildWorkers": 759629
 	},
 	{
 		"type": "CoalPlant",
@@ -166,16 +186,18 @@
 		"sector": "Power",
 		"requiresDeposit": null,
 		"inputs": {
-			"Coal": 17
+			"Coal": 0.17
 		},
 		"outputs": {
-			"Electricity": 20
+			"Electricity": 0.2
 		},
-		"optimalWorkers": 5690,
+		"optimalWorkers": 45,
 		"buildCost": {
-			"Materials": 5723,
-			"Metals": 307
-		}
+			"Materials": 57.23,
+			"Metals": 3.07
+		},
+		"lifeYears": 35,
+		"buildWorkers": 119142
 	},
 	{
 		"type": "GasPlant",
@@ -184,16 +206,18 @@
 		"sector": "Power",
 		"requiresDeposit": null,
 		"inputs": {
-			"Gas": 8
+			"Gas": 0.08
 		},
 		"outputs": {
-			"Electricity": 20
+			"Electricity": 0.2
 		},
-		"optimalWorkers": 4386,
+		"optimalWorkers": 35,
 		"buildCost": {
-			"Materials": 7008,
-			"Metals": 375
-		}
+			"Materials": 70.08,
+			"Metals": 3.75
+		},
+		"lifeYears": 30,
+		"buildWorkers": 145821
 	},
 	{
 		"type": "NuclearPlant",
@@ -202,16 +226,18 @@
 		"sector": "Power",
 		"requiresDeposit": null,
 		"inputs": {
-			"Uranium": 2
+			"Uranium": 0.02
 		},
 		"outputs": {
-			"Electricity": 40
+			"Electricity": 0.4
 		},
-		"optimalWorkers": 8421,
+		"optimalWorkers": 67,
 		"buildCost": {
-			"Materials": 22589,
-			"Metals": 1210
-		}
+			"Materials": 225.89,
+			"Metals": 12.1
+		},
+		"lifeYears": 45,
+		"buildWorkers": 470124
 	},
 	{
 		"type": "HydroPlant",
@@ -221,13 +247,15 @@
 		"requiresDeposit": null,
 		"inputs": {},
 		"outputs": {
-			"Electricity": 25
+			"Electricity": 0.25
 		},
-		"optimalWorkers": 2721,
+		"optimalWorkers": 22,
 		"buildCost": {
-			"Materials": 14600,
-			"Metals": 782
-		}
+			"Materials": 146,
+			"Metals": 7.82
+		},
+		"lifeYears": 50,
+		"buildWorkers": 303851
 	},
 	{
 		"type": "Refinery",
@@ -236,17 +264,19 @@
 		"sector": "Heavy",
 		"requiresDeposit": null,
 		"inputs": {
-			"Oil": 10,
-			"Electricity": 2
+			"Oil": 0.1,
+			"Electricity": 0.02
 		},
 		"outputs": {
-			"Fuel": 10
+			"Fuel": 0.1
 		},
-		"optimalWorkers": 1000,
+		"optimalWorkers": 8,
 		"buildCost": {
-			"Materials": 7125,
-			"Metals": 382
-		}
+			"Materials": 71.25,
+			"Metals": 3.82
+		},
+		"lifeYears": 18,
+		"buildWorkers": 148313
 	},
 	{
 		"type": "SteelMill",
@@ -255,18 +285,20 @@
 		"sector": "Heavy",
 		"requiresDeposit": null,
 		"inputs": {
-			"IronOre": 13,
-			"Coal": 8,
-			"Electricity": 3
+			"IronOre": 0.13,
+			"Coal": 0.08,
+			"Electricity": 0.03
 		},
 		"outputs": {
-			"Metals": 10
+			"Metals": 0.1
 		},
-		"optimalWorkers": 4942,
+		"optimalWorkers": 40,
 		"buildCost": {
-			"Materials": 27974,
-			"Metals": 1499
-		}
+			"Materials": 279.74,
+			"Metals": 14.99
+		},
+		"lifeYears": 18,
+		"buildWorkers": 582239
 	},
 	{
 		"type": "Smelter",
@@ -275,18 +307,20 @@
 		"sector": "Heavy",
 		"requiresDeposit": null,
 		"inputs": {
-			"Bauxite": 16,
-			"CopperOre": 4.3,
-			"Electricity": 27
+			"Bauxite": 0.16,
+			"CopperOre": 0.04,
+			"Electricity": 0.27
 		},
 		"outputs": {
-			"Metals": 8
+			"Metals": 0.08
 		},
-		"optimalWorkers": 12195,
+		"optimalWorkers": 97,
 		"buildCost": {
-			"Materials": 10240,
-			"Metals": 549
-		}
+			"Materials": 102.4,
+			"Metals": 5.49
+		},
+		"lifeYears": 18,
+		"buildWorkers": 213153
 	},
 	{
 		"type": "ChemicalPlant",
@@ -295,18 +329,20 @@
 		"sector": "Heavy",
 		"requiresDeposit": null,
 		"inputs": {
-			"Fuel": 4,
-			"Gas": 6,
-			"Electricity": 5
+			"Fuel": 0.04,
+			"Gas": 0.06,
+			"Electricity": 0.05
 		},
 		"outputs": {
-			"Chemicals": 10
+			"Chemicals": 0.1
 		},
-		"optimalWorkers": 18450,
+		"optimalWorkers": 184,
 		"buildCost": {
-			"Materials": 41464,
-			"Metals": 2221
-		}
+			"Materials": 414.64,
+			"Metals": 22.21
+		},
+		"lifeYears": 18,
+		"buildWorkers": 862947
 	},
 	{
 		"type": "MaterialsPlant",
@@ -315,18 +351,20 @@
 		"sector": "Heavy",
 		"requiresDeposit": null,
 		"inputs": {
-			"Timber": 2,
-			"Electricity": 1,
-			"Fuel": 1
+			"Timber": 0.02,
+			"Electricity": 0.01,
+			"Fuel": 0.01
 		},
 		"outputs": {
-			"Materials": 12
+			"Materials": 0.12
 		},
-		"optimalWorkers": 1471,
+		"optimalWorkers": 10,
 		"buildCost": {
-			"Materials": 6132,
-			"Metals": 329
-		}
+			"Materials": 61.32,
+			"Metals": 3.29
+		},
+		"lifeYears": 18,
+		"buildWorkers": 127661
 	},
 	{
 		"type": "ComponentsPlant",
@@ -335,18 +373,20 @@
 		"sector": "Heavy",
 		"requiresDeposit": null,
 		"inputs": {
-			"Metals": 2.4,
-			"Chemicals": 1.2,
-			"Electricity": 1.6
+			"Metals": 0.02,
+			"Chemicals": 0.01,
+			"Electricity": 0.02
 		},
 		"outputs": {
-			"Components": 30
+			"Components": 0.3
 		},
-		"optimalWorkers": 11111,
+		"optimalWorkers": 111,
 		"buildCost": {
-			"Materials": 8351,
-			"Metals": 447
-		}
+			"Materials": 83.51,
+			"Metals": 4.47
+		},
+		"lifeYears": 18,
+		"buildWorkers": 173776
 	},
 	{
 		"type": "ElectronicsPlant",
@@ -355,20 +395,22 @@
 		"sector": "Heavy",
 		"requiresDeposit": null,
 		"inputs": {
-			"Components": 5,
-			"RareEarth": 0.63,
-			"CopperOre": 1.9,
-			"Chemicals": 2.5,
-			"Electricity": 5
+			"Components": 0.05,
+			"RareEarth": 0.01,
+			"CopperOre": 0.02,
+			"Chemicals": 0.03,
+			"Electricity": 0.05
 		},
 		"outputs": {
-			"Electronics": 47
+			"Electronics": 0.47
 		},
-		"optimalWorkers": 9646,
+		"optimalWorkers": 96,
 		"buildCost": {
-			"Materials": 11209,
-			"Metals": 601
-		}
+			"Materials": 112.09,
+			"Metals": 6.01
+		},
+		"lifeYears": 18,
+		"buildWorkers": 233328
 	},
 	{
 		"type": "MicroelectronicsPlant",
@@ -377,19 +419,21 @@
 		"sector": "Heavy",
 		"requiresDeposit": null,
 		"inputs": {
-			"Electronics": 4.4,
-			"RareEarth": 1.5,
-			"Chemicals": 2.2,
-			"Electricity": 7.3
+			"Electronics": 0.04,
+			"RareEarth": 0.02,
+			"Chemicals": 0.02,
+			"Electricity": 0.07
 		},
 		"outputs": {
-			"Microelectronics": 20
+			"Microelectronics": 0.2
 		},
-		"optimalWorkers": 4878,
+		"optimalWorkers": 49,
 		"buildCost": {
-			"Materials": 9503,
-			"Metals": 509
-		}
+			"Materials": 95.03,
+			"Metals": 5.09
+		},
+		"lifeYears": 18,
+		"buildWorkers": 197774
 	},
 	{
 		"type": "FoodPlant",
@@ -398,18 +442,20 @@
 		"sector": "Civil",
 		"requiresDeposit": null,
 		"inputs": {
-			"Agriculture": 20,
-			"Chemicals": 3,
-			"Fuel": 2
+			"Agriculture": 0.2,
+			"Chemicals": 0.03,
+			"Fuel": 0.02
 		},
 		"outputs": {
-			"Food": 20
+			"Food": 0.2
 		},
-		"optimalWorkers": 47438,
+		"optimalWorkers": 474,
 		"buildCost": {
-			"Materials": 41464,
-			"Metals": 2221
-		}
+			"Materials": 414.64,
+			"Metals": 22.21
+		},
+		"lifeYears": 18,
+		"buildWorkers": 862947
 	},
 	{
 		"type": "ConsumerGoodsPlant",
@@ -418,20 +464,22 @@
 		"sector": "Civil",
 		"requiresDeposit": null,
 		"inputs": {
-			"Chemicals": 4,
-			"Metals": 4,
-			"Components": 10,
-			"Electronics": 12,
-			"Microelectronics": 2
+			"Chemicals": 0.04,
+			"Metals": 0.04,
+			"Components": 0.1,
+			"Electronics": 0.12,
+			"Microelectronics": 0.02
 		},
 		"outputs": {
-			"ConsumerGoods": 8
+			"ConsumerGoods": 0.08
 		},
-		"optimalWorkers": 111732,
+		"optimalWorkers": 1117,
 		"buildCost": {
-			"Materials": 76808,
-			"Metals": 4115
-		}
+			"Materials": 768.08,
+			"Metals": 41.15
+		},
+		"lifeYears": 18,
+		"buildWorkers": 1598589
 	},
 	{
 		"type": "PharmaPlant",
@@ -440,17 +488,19 @@
 		"sector": "Civil",
 		"requiresDeposit": null,
 		"inputs": {
-			"Chemicals": 5,
-			"Electricity": 3
+			"Chemicals": 0.05,
+			"Electricity": 0.03
 		},
 		"outputs": {
-			"Medicine": 4
+			"Medicine": 0.04
 		},
-		"optimalWorkers": 15432,
+		"optimalWorkers": 154,
 		"buildCost": {
-			"Materials": 52256,
-			"Metals": 2799
-		}
+			"Materials": 522.56,
+			"Metals": 27.99
+		},
+		"lifeYears": 18,
+		"buildWorkers": 1087545
 	},
 	{
 		"type": "ArmourPlant",
@@ -459,18 +509,20 @@
 		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
-			"Metals": 3.3,
-			"Chemicals": 0.55,
-			"Components": 1.1
+			"Metals": 0.03,
+			"Chemicals": 0.01,
+			"Components": 0.01
 		},
 		"outputs": {
-			"Armour": 1
+			"Armour": 0.01
 		},
-		"optimalWorkers": 75000,
+		"optimalWorkers": 750,
 		"buildCost": {
-			"Materials": 11540,
-			"Metals": 618
-		}
+			"Materials": 115.4,
+			"Metals": 6.18
+		},
+		"lifeYears": 18,
+		"buildWorkers": 240160
 	},
 	{
 		"type": "ArtilleryPlant",
@@ -479,18 +531,20 @@
 		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
-			"Metals": 2.1,
-			"Chemicals": 0.21,
-			"Components": 0.64
+			"Metals": 0.02,
+			"Chemicals": 0,
+			"Components": 0.01
 		},
 		"outputs": {
-			"Artillery": 1
+			"Artillery": 0.01
 		},
-		"optimalWorkers": 66667,
+		"optimalWorkers": 667,
 		"buildCost": {
-			"Materials": 7152,
-			"Metals": 383
-		}
+			"Materials": 71.52,
+			"Metals": 3.83
+		},
+		"lifeYears": 18,
+		"buildWorkers": 148840
 	},
 	{
 		"type": "SmallArmsPlant",
@@ -499,18 +553,20 @@
 		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
-			"Metals": 0.053,
-			"Chemicals": 0.021,
-			"Components": 0.011
+			"Metals": 0,
+			"Chemicals": 0,
+			"Components": 0
 		},
 		"outputs": {
-			"SmallArms": 1
+			"SmallArms": 0.01
 		},
-		"optimalWorkers": 20690,
+		"optimalWorkers": 207,
 		"buildCost": {
-			"Materials": 235,
-			"Metals": 13
-		}
+			"Materials": 2.35,
+			"Metals": 0.13
+		},
+		"lifeYears": 18,
+		"buildWorkers": 4923
 	},
 	{
 		"type": "AmmunitionPlant",
@@ -519,18 +575,20 @@
 		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
-			"Metals": 0.23,
-			"Chemicals": 0.31,
-			"Components": 0.077
+			"Metals": 0,
+			"Chemicals": 0,
+			"Components": 0
 		},
 		"outputs": {
-			"Ammunition": 1
+			"Ammunition": 0.01
 		},
-		"optimalWorkers": 50000,
+		"optimalWorkers": 500,
 		"buildCost": {
-			"Materials": 1854,
-			"Metals": 99
-		}
+			"Materials": 18.54,
+			"Metals": 0.99
+		},
+		"lifeYears": 18,
+		"buildWorkers": 38561
 	},
 	{
 		"type": "TacticalDronePlant",
@@ -539,18 +597,20 @@
 		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
-			"Chemicals": 0.069,
-			"Metals": 0.035,
-			"Electronics": 0.21
+			"Chemicals": 0,
+			"Metals": 0,
+			"Electronics": 0
 		},
 		"outputs": {
-			"TacticalDrones": 1
+			"TacticalDrones": 0.01
 		},
-		"optimalWorkers": 37500,
+		"optimalWorkers": 375,
 		"buildCost": {
-			"Materials": 466,
-			"Metals": 25
-		}
+			"Materials": 4.66,
+			"Metals": 0.25
+		},
+		"lifeYears": 18,
+		"buildWorkers": 9701
 	},
 	{
 		"type": "StrikeDronePlant",
@@ -559,20 +619,22 @@
 		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
-			"Metals": 1.5,
-			"Chemicals": 0.99,
-			"Fuel": 0.49,
-			"Electronics": 2,
-			"Microelectronics": 2
+			"Metals": 0.02,
+			"Chemicals": 0.01,
+			"Fuel": 0,
+			"Electronics": 0.02,
+			"Microelectronics": 0.02
 		},
 		"outputs": {
-			"StrikeDrones": 1
+			"StrikeDrones": 0.01
 		},
-		"optimalWorkers": 40000,
+		"optimalWorkers": 400,
 		"buildCost": {
-			"Materials": 11514,
-			"Metals": 617
-		}
+			"Materials": 115.14,
+			"Metals": 6.17
+		},
+		"lifeYears": 18,
+		"buildWorkers": 239649
 	},
 	{
 		"type": "MissilePlant",
@@ -581,19 +643,21 @@
 		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
-			"Metals": 2.7,
-			"Chemicals": 3.4,
-			"Electronics": 2.7,
-			"Microelectronics": 1.4
+			"Metals": 0.03,
+			"Chemicals": 0.03,
+			"Electronics": 0.03,
+			"Microelectronics": 0.01
 		},
 		"outputs": {
-			"Missiles": 1
+			"Missiles": 0.01
 		},
-		"optimalWorkers": 107143,
+		"optimalWorkers": 1071,
 		"buildCost": {
-			"Materials": 23403,
-			"Metals": 1254
-		}
+			"Materials": 234.03,
+			"Metals": 12.54
+		},
+		"lifeYears": 18,
+		"buildWorkers": 487096
 	},
 	{
 		"type": "AircraftPlant",
@@ -602,19 +666,21 @@
 		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
-			"Metals": 8,
-			"Fuel": 2,
-			"Electronics": 4,
-			"Microelectronics": 6
+			"Metals": 0.08,
+			"Fuel": 0.02,
+			"Electronics": 0.04,
+			"Microelectronics": 0.06
 		},
 		"outputs": {
-			"Aircraft": 1
+			"Aircraft": 0.01
 		},
-		"optimalWorkers": 416667,
+		"optimalWorkers": 4167,
 		"buildCost": {
-			"Materials": 417268,
-			"Metals": 22354
-		}
+			"Materials": 4172.68,
+			"Metals": 223.54
+		},
+		"lifeYears": 18,
+		"buildWorkers": 8684418
 	},
 	{
 		"type": "AirDefencePlant",
@@ -623,19 +689,21 @@
 		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
-			"Metals": 6,
-			"Chemicals": 2,
-			"Electronics": 3,
-			"Microelectronics": 5
+			"Metals": 0.06,
+			"Chemicals": 0.02,
+			"Electronics": 0.03,
+			"Microelectronics": 0.05
 		},
 		"outputs": {
-			"AirDefence": 1
+			"AirDefence": 0.01
 		},
-		"optimalWorkers": 160000,
+		"optimalWorkers": 1600,
 		"buildCost": {
-			"Materials": 41663,
-			"Metals": 2232
-		}
+			"Materials": 416.63,
+			"Metals": 22.32
+		},
+		"lifeYears": 18,
+		"buildWorkers": 867115
 	},
 	{
 		"type": "ElectronicWarfarePlant",
@@ -644,18 +712,20 @@
 		"sector": "Military",
 		"requiresDeposit": null,
 		"inputs": {
-			"Metals": 3,
-			"Electronics": 3,
-			"Microelectronics": 6
+			"Metals": 0.03,
+			"Electronics": 0.03,
+			"Microelectronics": 0.06
 		},
 		"outputs": {
-			"ElectronicWarfare": 1
+			"ElectronicWarfare": 0.01
 		},
-		"optimalWorkers": 100000,
+		"optimalWorkers": 1000,
 		"buildCost": {
-			"Materials": 34906,
-			"Metals": 1870
-		}
+			"Materials": 349.06,
+			"Metals": 18.7
+		},
+		"lifeYears": 18,
+		"buildWorkers": 726484
 	},
 	{
 		"type": "ServiceFirm",
@@ -664,12 +734,14 @@
 		"sector": "Services",
 		"inputs": {},
 		"outputs": {
-			"Services": 293
+			"Services": 2.93
 		},
-		"optimalWorkers": 465200,
+		"optimalWorkers": 3628,
 		"buildCost": {
-			"Materials": 21400,
-			"Metals": 1150
-		}
+			"Materials": 1711.12,
+			"Metals": 91.67
+		},
+		"lifeYears": 40,
+		"buildWorkers": 3561291
 	}
 ]

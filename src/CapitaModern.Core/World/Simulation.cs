@@ -111,6 +111,10 @@ public sealed class Simulation
     /// от смысла: обычно упираются в отложенное или в материалы куда раньше.</summary>
     private const int MaxBuildsPerTick = 8;
 
+    /// <summary>Во сколько долей считается износ. Целыми заводами он осыпается редко,
+    /// а сроки службы у типов разные — без общей доли их не сложить.</summary>
+    private const int WearScale = 1000;
+
     public Simulation(GameWorld world)
     {
         _world = world;
@@ -805,15 +809,21 @@ public sealed class Simulation
     {
         foreach (var region in _world.Regions)
         {
-            var total = 0;
-            foreach (var (_, count) in region.BuildingsCount) total += count;
-            if (total == 0) continue;
+            // Каждый тип осыпается со своей скоростью: здания стоят вдвое дольше заводов.
+            var wear = 0;
+            foreach (var (type, count) in region.BuildingsCount)
+            {
+                wear += count * WearScale / _world.Buildings[type].LifeYears;
+            }
 
-            _decay[region.Id] = _decay.GetValueOrDefault(region.Id) + total;
-            var due = _decay[region.Id] / (Construction.LifeYears * DaysInYear);
+            if (wear == 0) continue;
+
+            _decay[region.Id] = _decay.GetValueOrDefault(region.Id) + wear;
+            var span = WearScale * DaysInYear;
+            var due = _decay[region.Id] / span;
             if (due == 0) continue;
 
-            _decay[region.Id] -= due * Construction.LifeYears * DaysInYear;
+            _decay[region.Id] -= due * span;
 
             // Осыпается самое многочисленное: так износ не выбивает единственный завод.
             var worst = default(BuildingType);

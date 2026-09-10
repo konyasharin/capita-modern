@@ -54,9 +54,6 @@ const counts = Object.fromEntries(
 	Object.entries(production.types).map(([type, info]) => [type, info.world])
 )
 
-/** Капитал стоит три годовых выпуска, вкладывают четверть — значит служит двенадцать лет. */
-const CAPITAL_LIFE_YEARS = 12
-
 function balance() {
 	const made = {}
 	const used = {}
@@ -66,7 +63,7 @@ function balance() {
 		for (const [good, amount] of Object.entries(b.inputs)) used[good] = (used[good] ?? 0) + n * amount
 
 		// Стройка — такой же потребитель: мир ежегодно заменяет капитал за срок службы.
-		const rebuilt = n / (CAPITAL_LIFE_YEARS * 365)
+		const rebuilt = n / ((b.lifeYears ?? 20) * 365)
 		for (const [good, amount] of Object.entries(b.buildCost ?? {})) {
 			used[good] = (used[good] ?? 0) + rebuilt * amount
 		}

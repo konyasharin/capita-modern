@@ -39,9 +39,8 @@ for (const b of buildings) {
 // Стройка — такой же потребитель, и немаленький. В установившемся состоянии мир
 // ежегодно заменяет капитал целиком за срок его службы: капитал стоит три годовых
 // выпуска, вкладывают четверть выпуска, значит служит он двенадцать лет.
-const CAPITAL_LIFE_YEARS = 12
 for (const b of buildings) {
-	const perYear = world[b.type].world / CAPITAL_LIFE_YEARS
+	const perYear = world[b.type].world / (b.lifeYears ?? 20)
 	for (const [good, amount] of Object.entries(b.buildCost ?? {})) {
 		used[good] = (used[good] ?? 0) + perYear * amount
 	}

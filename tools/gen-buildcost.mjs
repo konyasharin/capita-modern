@@ -25,6 +25,14 @@ const CAPITAL_TO_OUTPUT = 3
 /** Из чего складывается стоимость стройки, доли. Сталь в жизни около шестой части. */
 const MIX = { Materials: 0.8, Metals: 0.2 }
 
+/** Человеко-дней на тысячу долларов стройки.
+ *
+ *  В стройке занято около 7% мировой рабочей силы — 240 млн человек, — и строят они весь
+ *  капитал за срок его службы. Работа не входит в buildCost: то мешок цемента, а это
+ *  люди. Их цена — местная зарплата, поэтому в бедной стране та же стройка обходится
+ *  дешевле, и это настоящее преимущество. */
+const MAN_DAYS_PER_THOUSAND = 11.1
+
 const apply = process.argv.includes('--apply')
 const buildings = read('data', 'economy', 'buildings.json')
 const prices = read('data', 'economy', 'prices.json').prices
@@ -54,6 +62,8 @@ for (const building of buildings) {
 		building.buildCost[good] = Math.max(1, Math.round((target * share) / prices[good]))
 	}
 
+	building.buildWorkers = Math.max(1, Math.round(worth(building.buildCost) * MAN_DAYS_PER_THOUSAND))
+
 	const now = worth(building.buildCost)
 	capital += now * world[building.type].world
 	output += yearly * world[building.type].world
@@ -64,6 +74,12 @@ for (const building of buildings) {
 
 console.log(`\nкапитал мира ${(capital / 1e9).toFixed(2)} трлн, выпуск ${(output / 1e9).toFixed(2)} трлн/год`)
 console.log(`отношение ${(capital / output).toFixed(2)} при цели ${CAPITAL_TO_OUTPUT}`)
+
+const builders = buildings.reduce(
+	(sum, b) => sum + (b.buildWorkers ?? 0) * world[b.type].world / ((b.lifeYears ?? 20) * 365), 0)
+const yearly = buildings.reduce(
+	(sum, b) => sum + worth(b.buildCost) * world[b.type].world / ((b.lifeYears ?? 20)), 0)
+console.log(`стройки на ${(yearly / 1e9).toFixed(1)} трлн в год, занято ${(builders / 1e6).toFixed(0)} млн при реальных 240`)
 
 if (!apply) {
 	console.log('\nничего не записано, для записи запусти с --apply')
