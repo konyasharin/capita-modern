@@ -61,20 +61,9 @@ public sealed class Simulation
     /// ни стояли: склад у страны общий.</summary>
     private readonly Tally<BuildingType, int> _working = new();
 
-    /// <summary>Заявки на рынок по одному товару. Переиспользуется: тик их создаёт по
-    /// штуке на товар, а мусора за год набежало бы много.</summary>
-    private readonly List<TradeOrder> _orders = new();
-
-    /// <summary>Склады участников до сведения сделок: по разнице видно, кто сколько
-    /// купил и продал.</summary>
-    private readonly List<GoodAmount> _stockBefore = new();
-
     /// <summary>Что страна ввезла и вывезла за тик. Из них считается сальдо.</summary>
     private readonly Tally<GoodType, GoodAmount> _imported = new();
     private readonly Tally<GoodType, GoodAmount> _exported = new();
-
-    /// <summary>Чья заявка стоит на этом месте в списке.</summary>
-    private readonly List<byte> _byOrder = new();
 
     /// <summary>Заявки на кредитный рынок. Переиспользуется, как и товарные.</summary>
     private readonly List<CreditOrder> _credit = new();
@@ -98,6 +87,19 @@ public sealed class Simulation
 
     /// <summary>Кто сколько получил за проход чужих грузов.</summary>
     private readonly Dictionary<byte, Money> _transit = new();
+
+    /// <summary>Заявки на парную торговлю по одному товару. Переиспользуются.</summary>
+    private readonly List<MarketOrder> _market = new();
+
+    private readonly Exchange _exchange = new();
+
+    /// <summary>Какой товар сводится прямо сейчас. Сделка о товаре не знает, а списывать
+    /// со склада надо именно его.</summary>
+    private GoodType _trading;
+
+    /// <summary>Сколько денег и товара прошло по сделкам: из них выходит цена рынка.</summary>
+    private Money _dealValue;
+    private GoodAmount _dealVolume;
 
     /// <summary>Спрос стройки отдельно от заводского. Заводы держат сорокадневный запас
     /// сырья, а стройка съедает своё в тот же тик: цемент впрок не закупают.</summary>
@@ -270,32 +272,26 @@ public sealed class Simulation
     {
         foreach (var good in AllGoods)
         {
-            // Услуги через границу не возят: стрижку и лечение покупают там же, где живут.
+            // Услуги через границу не возят: стрижку покупают там же, где живут.
             if (good == GoodType.Services) continue;
 
-            _orders.Clear();
-            _stockBefore.Clear();
-            _byOrder.Clear();
+            _trading = good;
+            _market.Clear();
+
+            var wanted = default(GoodAmount);
+            var offered = default(GoodAmount);
+
             foreach (var country in _world.Countries)
             {
                 if (!country.TradeAccess.CanTrade(good)) continue;
 
-                // Отрезанному от рынка везти нечем и некуда: все пути перекрыты соседями.
-                if (!_world.Routes.CanReachMarket(country.Id)) continue;
-
-                // Цену страна видит в своих деньгах: мировая на курс.
-                var local = new Money(
-                    _world.Market.Prices.Of(good).Raw * country.ExchangeRate.Raw / Money.Scale);
-                var usual = _world.Market.Prices.StartOf(good);
-
-                // Ввоз обходится дороже самой цены: перевозка и пошлина. Отсюда и берётся
-                // то, что цемент через океан не возят, а микросхемы возят через полмира.
-                var markup = _world.TradeCosts.ImportMarkup(country.Id, good, _world.Routes.CostTo(country.Id));
-                var landed = new Money(local.Raw * (TradeCosts.Scale + markup) / TradeCosts.Scale);
+                // Своя цена, а не мировая: из разницы между странами и берётся торговля.
+                var local = country.State.Prices.Of(good);
+                var usual = country.State.Prices.StartOf(good);
 
                 // Норма запаса сама зависит от цены: дёшево — держат больше, дорого —
-                // живут с колёс. Без этого страна с полными складами не купит ничего
-                // ни при какой дешевизне, и курс уезжает до упора вместо равновесия.
+                // живут с колёс. Без этого страна с полными складами не купит ничего ни
+                // при какой дешевизне, и курс уезжает до упора вместо равновесия.
                 // Запас держат под заводы и людей; стройке нужно ровно на сегодня.
                 var forBuilding = _build.Get(country.Id, good);
                 var flow = _inputs.Get(country.Id, good) - forBuilding;
@@ -303,17 +299,22 @@ public sealed class Simulation
                 var target = Elasticity.Adjust(
                     _world.Elasticity.Demand(good),
                     new GoodAmount(Prices.TargetCoverDays * flow.Raw + forBuilding.Raw),
-                    landed,
+                    local,
                     usual,
                     Elasticity.MinStockFactor,
                     Elasticity.MaxStockFactor);
 
                 var stock = country.State.Stock.Of(good);
 
+                // Торгуются в мировой мере: у каждого своя валюта и свой курс.
+                var inWorld = new Money(local.Raw * Money.Scale / Math.Max(1, country.ExchangeRate.Raw));
+
                 if (target > stock)
                 {
-                    _bid.Add(country.Id, good, target - stock);
-                    _orders.Add(new TradeOrder(country.State, target - stock, default));
+                    var bid = target - stock;
+                    _bid.Add(country.Id, good, bid);
+                    _market.Add(new MarketOrder(country.Id, country.State, default, bid, default, inWorld));
+                    wanted += bid;
                 }
                 else if (stock > target)
                 {
@@ -321,31 +322,71 @@ public sealed class Simulation
                     var offer = Elasticity.Adjust(
                         _world.Elasticity.Supply(good), stock - target, local, usual,
                         Elasticity.MinFactor, Elasticity.MaxSupplyFactor);
+
                     if (offer > stock) offer = stock;
+                    if (offer.Raw == 0) continue;
 
-                    _orders.Add(new TradeOrder(country.State, default, offer));
+                    _market.Add(new MarketOrder(country.Id, country.State, offer, default, inWorld, default));
+                    offered += offer;
                 }
-                else continue;
-
-                _stockBefore.Add(stock);
-                _byOrder.Add(country.Id);
             }
 
-            _world.Market.Settle(good, CollectionsMarshal.AsSpan(_orders));
+            _dealValue = default;
+            _dealVolume = default;
 
-            for (var i = 0; i < _orders.Count; i++)
+            _exchange.Settle(CollectionsMarshal.AsSpan(_market), Delivered, Close);
+
+            // Цена рынка — средняя из настоящих сделок, а не выдуманная одна на всех.
+            // Не сошлось ни одной — двигаем прежним правилом, по перекосу заявок.
+            var average = _dealVolume.Raw > 0
+                ? new Money((long)((Int128)_dealValue.Raw * GoodAmount.Scale / _dealVolume.Raw))
+                : default;
+
+            if (average >= Prices.Floor)
             {
-                var now = _orders[i].Trader.Stock.Of(good);
-                if (now > _stockBefore[i])
-                {
-                    var brought = now - _stockBefore[i];
-                    _imported.Add(_byOrder[i], good, brought);
-                    BurnFuel(_byOrder[i], good, brought);
-                    PayTransit(_byOrder[i], good, brought);
-                }
-                else if (_stockBefore[i] > now) _exported.Add(_byOrder[i], good, _stockBefore[i] - now);
+                _world.Market.Prices.Set(good, average);
+            }
+            else
+            {
+                _world.Market.Prices.MoveFromBalance(good, wanted, offered);
             }
         }
+    }
+
+    /// <summary>Во что обойдётся покупателю единица товара у этого продавца.</summary>
+    /// <remarks>Цена продавца плюс дорога от него до покупателя плюс пошлина покупателя.
+    /// Отсюда и берётся то, чего в общем котле быть не могло: дальний дешёвый товар
+    /// проигрывает ближнему дорогому.</remarks>
+    private Money Delivered(MarketOrder seller, MarketOrder buyer)
+    {
+        var route = _world.Routes.CostBetween(seller.Country, buyer.Country);
+        if (route >= Politics.Routes.Unreachable) return default;
+
+        var markup = _world.TradeCosts.ImportMarkup(buyer.Country, _trading, route);
+
+        return new Money(seller.Ask.Raw * (TradeCosts.Scale + markup) / TradeCosts.Scale);
+    }
+
+    /// <summary>Проводит сделку: деньги, товар, топливо и плата за проход.</summary>
+    private void Close(Deal deal)
+    {
+        var buyer = _world.CountryById(deal.Buyer);
+        var seller = _world.CountryById(deal.Seller);
+
+        if (!buyer.State.Treasury.Reserves.TrySpend(deal.Paid)) return;
+        if (seller.State.Stock.TakeUpTo(_trading, deal.Amount).Raw != deal.Amount.Raw) return;
+
+        buyer.State.Stock.Store(_trading, deal.Amount);
+        seller.State.Treasury.Reserves.Add(
+            Reserves.Incoming((byte)seller.State.Id, seller.State.Custody, deal.Paid));
+
+        _imported.Add(deal.Buyer, _trading, deal.Amount);
+        _exported.Add(deal.Seller, _trading, deal.Amount);
+        _dealValue += deal.Paid;
+        _dealVolume += deal.Amount;
+
+        BurnFuel(deal.Buyer, deal.Seller, _trading, deal.Amount);
+        PayTransit(deal.Buyer, deal.Seller, deal.Paid);
     }
 
     /// <summary>Сколько людей заняты на производстве в стране прямо сейчас.</summary>
@@ -542,12 +583,12 @@ public sealed class Simulation
 
     /// <summary>Перевозка сжигает топливо. Это не наценка, а настоящий расход, и по нему
     /// на транспорт уходит четверть мировой нефти — как и в жизни.</summary>
-    private void BurnFuel(byte country, GoodType good, GoodAmount brought)
+    private void BurnFuel(byte country, byte from, GoodType good, GoodAmount brought)
     {
         if (good == GoodType.Fuel) return; // топливо везёт само себя, второй раз не считаем
 
         var freight = _world.TradeCosts.FreightOf(good) *
-            (100 + _world.Routes.CostTo(country)) / 100;
+            (100 + _world.Routes.CostBetween(from, country)) / 100;
 
         if (freight == 0) return;
 
@@ -561,20 +602,19 @@ public sealed class Simulation
         _burnedFuel.Add(country, GoodType.Fuel, state.Stock.TakeUpTo(GoodType.Fuel, burned));
     }
 
-    /// <summary>Платит соседям за проход по их земле.</summary>
-    /// <remarks>Это не пошлина: деньги уходят не себе в казну, а чужой стране. Отсюда и
-    /// берётся, зачем кому-то держать пролив или дорогу — и зачем их перекрывать.</remarks>
-    private void PayTransit(byte country, GoodType good, GoodAmount brought)
+    /// <summary>Платит хозяевам звеньев на пути от продавца к покупателю.</summary>
+    /// <remarks>Это не пошлина: деньги уходят не себе в казну, а третьей стране. Отсюда и
+    /// берётся, зачем держать пролив или дорогу — и зачем их перекрывать.</remarks>
+    private void PayTransit(byte country, byte from, Money value)
     {
+        _world.Routes.TollsBetween(from, country, _exchange.TollBuffer);
+        if (_exchange.TollBuffer.Count == 0) return;
+
         var payer = _world.CountryById(country);
-        var value = payer.State.Prices.CostOf(good, brought);
-
-        foreach (var through in _world.Routes.TollTakers(country))
+        foreach (var through in _exchange.TollBuffer)
         {
-            if (through == country) continue;
-
             var fee = new Money(value.Raw * TradeCosts.TransitFee / TradeCosts.Scale);
-            if (!payer.State.Treasury.Reserves.TrySpend(fee)) break;
+            if (fee.Raw == 0 || !payer.State.Treasury.Reserves.TrySpend(fee)) break;
 
             var host = _world.CountryById(through).State;
             host.Treasury.Reserves.Add(Reserves.Incoming((byte)host.Id, host.Custody, fee));

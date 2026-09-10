@@ -1,4 +1,4 @@
-using CapitaModern.Core.Buildings;
+﻿using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
 using CapitaModern.Core.World;
 using Xunit;
@@ -110,7 +110,10 @@ public class ElasticityTests
                 new Dictionary<GoodType, int> { [Coal] = -50 },
                 new Dictionary<GoodType, int> { [Coal] = 30 });
 
-            world.Market.Prices.Shock(Coal, percent);
+            // Ставки идут от своих цен: у продавца уголь дёшев, у покупателя дорог, иначе
+            // разницы не хватит даже на дорогу и никто ничего не купит.
+            world.CountryById(1).State.Prices.Shock(Coal, -90);
+            world.CountryById(2).State.Prices.Shock(Coal, percent);
 
             // Два тика: на первом шахты только наполняют склад, торговать нечем.
             var simulation = new Simulation(world);

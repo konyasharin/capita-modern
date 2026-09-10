@@ -1,19 +1,16 @@
-using CapitaModern.Core.Buildings;
+﻿using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
 using CapitaModern.Core.World;
 using Xunit;
 
 namespace CapitaModern.Core.Tests;
 
-/// <summary>Мировой рынок. Главное, что проверяется, — товар и деньги не исчезают.</summary>
+/// <summary>Парная торговля: кто у кого покупает и почему не у самого дешёвого.</summary>
 public class TradeTests
 {
     private const GoodType Coal = GoodType.Coal;
     private const BuildingType Mine = BuildingType.CoalMine;
     private const BuildingType Mill = BuildingType.SteelMill;
-
-    /// <summary>Цена угля 100, чтобы стоимость партии считалась в уме.</summary>
-    private static WorldMarket Market() => Build.Market(new() { [Coal] = Money.FromWhole(100) });
 
     private static Producer Trader(int id, long coal = 0, long money = 0) => new(
         id,
@@ -21,147 +18,104 @@ public class TradeTests
         new Treasury(Build.Cash(money)),
         new Prices());
 
-    private static TradeOrder Buys(Producer trader, long coal) =>
-        new(trader, Build.Whole(coal), default);
+    private static MarketOrder Buys(byte country, long coal, long upTo) =>
+        new(country, Trader(country), default, Build.Whole(coal), default, Money.FromWhole(upTo));
 
-    private static TradeOrder Sells(Producer trader, long coal) =>
-        new(trader, default, Build.Whole(coal));
+    private static MarketOrder Sells(byte country, long coal, long price) =>
+        new(country, Trader(country, coal: coal), Build.Whole(coal), default, Money.FromWhole(price), default);
 
-    private static long Coals(Producer trader) => trader.Stock.Of(Coal).Raw;
-    private static long Cash(Producer trader) => trader.Treasury.Reserves.Value.Raw;
+    /// <summary>Дорога ничего не стоит: остаётся чистая цена продавца.</summary>
+    private static Money AtSellerPrice(MarketOrder seller, MarketOrder buyer) => seller.Ask;
+
+    private static List<Deal> Run(
+        MarketOrder[] orders, Func<MarketOrder, MarketOrder, Money>? delivered = null)
+    {
+        var deals = new List<Deal>();
+        new Exchange().Settle(orders, delivered ?? AtSellerPrice, deals.Add);
+
+        return deals;
+    }
 
     [Fact]
     public void SurplusFlowsToShortage()
     {
-        var seller = Trader(1, coal: 10);
-        var buyer = Trader(2, money: 2000);
-        TradeOrder[] orders = [Sells(seller, 10), Buys(buyer, 10)];
+        var deals = Run([Sells(1, coal: 10, price: 100), Buys(2, coal: 10, upTo: 100)]);
 
-        var traded = Market().Settle(Coal, orders);
-
-        Assert.Equal(Build.Whole(10), traded);
-        Assert.Equal(default, seller.Stock.Of(Coal));
-        Assert.Equal(Build.Whole(10), buyer.Stock.Of(Coal));
-        // Десять единиц по сотне: покупатель отдал тысячу, продавец её получил.
-        Assert.Equal(Money.FromWhole(1000), seller.Treasury.Reserves.Value);
-        Assert.Equal(Money.FromWhole(1000), buyer.Treasury.Reserves.Value);
+        var deal = Assert.Single(deals);
+        Assert.Equal(2, deal.Buyer);
+        Assert.Equal(1, deal.Seller);
+        Assert.Equal(Build.Whole(10), deal.Amount);
+        // Десять единиц по сотне — тысяча, и ни копейки сверх цены продавца.
+        Assert.Equal(Money.FromWhole(1000), deal.Paid);
     }
 
-    /// <summary>Числа нарочно неровные: на них и вылезают потери от целочисленного
-    /// деления.</summary>
+    /// <summary>Главное, чего не мог общий котёл: дальний дешёвый проигрывает ближнему.</summary>
     [Fact]
-    public void MoneyAndGoodsAreConserved()
+    public void NearSellerBeatsTheCheapDistantOne()
     {
-        Producer[] traders =
-        [
-            Trader(1, coal: 7), Trader(2, coal: 13), Trader(3, coal: 3),
-            Trader(4, money: 999), Trader(5, money: 12_345), Trader(6, money: 71),
-        ];
-        TradeOrder[] orders =
-        [
-            Sells(traders[0], 7), Sells(traders[1], 13), Sells(traders[2], 3),
-            Buys(traders[3], 11), Buys(traders[4], 4), Buys(traders[5], 9),
-        ];
+        MarketOrder[] orders = [Sells(1, coal: 10, price: 50), Sells(2, coal: 10, price: 90), Buys(3, coal: 10, upTo: 200)];
 
-        var coalBefore = traders.Sum(Coals);
-        var cashBefore = traders.Sum(Cash);
+        // У первого уголь вдвое дешевле, но дорога от него дороже втрое.
+        var deals = Run(orders, (seller, _) => new Money(seller.Ask.Raw * (seller.Country == 1 ? 3 : 1)));
 
-        Market().Settle(Coal, orders);
-
-        Assert.Equal(coalBefore, traders.Sum(Coals));
-        Assert.Equal(cashBefore, traders.Sum(Cash));
+        Assert.Equal(2, Assert.Single(deals).Seller);
     }
 
     [Fact]
-    public void PoorCountryBuysOnlyWhatItCanPay()
+    public void BuyerRefusesWhatCostsMoreThanItsPrice()
     {
-        var seller = Trader(1, coal: 10);
-        var buyer = Trader(2, money: 350);
-        TradeOrder[] orders = [Sells(seller, 10), Buys(buyer, 10)];
+        var deals = Run([Sells(1, coal: 10, price: 100), Buys(2, coal: 10, upTo: 99)]);
 
-        Market().Settle(Coal, orders);
-
-        // На 350 при цене 100 берётся три с половиной единицы, и казна в ноль.
-        Assert.Equal(Build.Whole(7) / 2, buyer.Stock.Of(Coal));
-        Assert.Equal(default, buyer.Treasury.Reserves.Value);
-        Assert.Equal(Build.Whole(13) / 2, seller.Stock.Of(Coal));
+        Assert.Empty(deals);
     }
 
+    /// <summary>Нулевая цена доставки — знак, что пути нет вовсе.</summary>
     [Fact]
-    public void BidsAreRationedProportionally()
+    public void UnreachableSellerIsSkipped()
     {
-        var seller = Trader(1, coal: 20);
-        var big = Trader(2, money: 100_000);
-        var small = Trader(3, money: 100_000);
-        TradeOrder[] orders = [Sells(seller, 20), Buys(big, 30), Buys(small, 10)];
+        MarketOrder[] orders = [Sells(1, coal: 10, price: 100), Sells(2, coal: 10, price: 150), Buys(3, coal: 10, upTo: 200)];
 
-        Market().Settle(Coal, orders);
+        var deals = Run(orders, (seller, _) => seller.Country == 1 ? default : seller.Ask);
 
-        // Двадцать на сорок заказанных: три четверти и одна четверть.
-        Assert.Equal(Build.Whole(15), big.Stock.Of(Coal));
-        Assert.Equal(Build.Whole(5), small.Stock.Of(Coal));
+        Assert.Equal(2, Assert.Single(deals).Seller);
     }
 
-    /// <summary>Кому не хватило денег, того доля уходит остальным, а не пропадает.</summary>
+    /// <summary>Товара на одного: достанется тому, кто больше даёт.</summary>
     [Fact]
-    public void MoneyLeftoverGoesToTheOthers()
+    public void HighestBidderBuysFirst()
     {
-        var seller = Trader(1, coal: 10);
-        var poor = Trader(2, money: 200);
-        var rich = Trader(3, money: 100_000);
-        TradeOrder[] orders = [Sells(seller, 10), Buys(poor, 10), Buys(rich, 10)];
+        MarketOrder[] orders = [Sells(1, coal: 10, price: 100), Buys(2, coal: 10, upTo: 120), Buys(3, coal: 10, upTo: 300)];
 
-        var traded = Market().Settle(Coal, orders);
+        var deals = Run(orders);
 
-        Assert.Equal(Build.Whole(10), traded);
-        Assert.Equal(default, seller.Stock.Of(Coal));
-        // По заявке богатому причиталась половина, но бедный своё не выбрал.
-        Assert.True(rich.Stock.Of(Coal) > Build.Whole(5), "остаток не достался тому, у кого есть деньги");
+        Assert.Equal(3, Assert.Single(deals).Buyer);
     }
 
+    /// <summary>Не хватило у одного — покупатель добирает у следующего, пока по карману.</summary>
     [Fact]
-    public void WorldPriceRisesWhenBidsExceedOffers()
+    public void BuyerMovesOnToTheNextSeller()
     {
-        var market = Market();
-        var seller = Trader(1, coal: 1);
-        var buyer = Trader(2, money: 100_000);
+        MarketOrder[] orders = [Sells(1, coal: 4, price: 100), Sells(2, coal: 6, price: 150), Buys(3, coal: 10, upTo: 200)];
 
-        market.Settle(Coal, [Sells(seller, 1), Buys(buyer, 100)]);
+        var deals = Run(orders);
 
-        Assert.True(market.Prices.Of(Coal) > Money.FromWhole(100), "цена рынка не выросла при нехватке");
-    }
-
-    [Fact]
-    public void WorldPriceFallsWhenNobodyBuys()
-    {
-        var market = Market();
-
-        market.Settle(Coal, [Sells(Trader(1, coal: 10), 10)]);
-
-        Assert.True(market.Prices.Of(Coal) < Money.FromWhole(100), "цена рынка не упала без спроса");
+        Assert.Equal(2, deals.Count);
+        Assert.Equal(1, deals[0].Seller);
+        Assert.Equal(Build.Whole(10), deals[0].Amount + deals[1].Amount);
     }
 
     [Fact]
     public void NobodyTradesWithoutOrders()
     {
-        var market = Market();
-
-        Assert.Equal(default, market.Settle(Coal, []));
-        Assert.Equal(Money.FromWhole(100), market.Prices.Of(Coal));
-    }
-
-    /// <summary>Один продавец без покупателей ничего не теряет.</summary>
-    [Fact]
-    public void OneSidedMarketMovesNoGoods()
-    {
-        var seller = Trader(1, coal: 10);
-
-        Assert.Equal(default, Market().Settle(Coal, [Sells(seller, 10)]));
-        Assert.Equal(Build.Whole(10), seller.Stock.Of(Coal));
+        Assert.Empty(Run([]));
+        Assert.Empty(Run([Sells(1, coal: 10, price: 100)]));
+        Assert.Empty(Run([Buys(1, coal: 10, upTo: 100)]));
     }
 
     /// <summary>Тик целиком: у кого уголь лишний, тот продаёт, у кого нет — покупает,
     /// и закупается ровно до нормы запаса.</summary>
+    /// <remarks>Тиков с запасом: первые уходят на то, чтобы цены разошлись. Пока разрыв
+    /// между продавцом и покупателем не покрыл дорогу, возить невыгодно и никто не возит.</remarks>
     [Fact]
     public void TickFillsTheBuyerUpToTheTargetCover()
     {
@@ -181,7 +135,7 @@ public class TradeTests
             new Dictionary<GoodType, Money> { [Coal] = Money.FromWhole(1) });
 
         var simulation = new Simulation(world);
-        for (var tick = 0; tick < 10; tick++) simulation.Tick();
+        for (var tick = 0; tick < 20; tick++) simulation.Tick();
 
         var buyer = world.CountryById(2);
 

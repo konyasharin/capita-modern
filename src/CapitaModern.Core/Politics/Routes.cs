@@ -39,6 +39,17 @@ public sealed class Routes
     private readonly int[] _from;
     private readonly List<byte>[] _tolls;
 
+    /// <summary>Путь между парами стран: во что обходится и через кого идёт.</summary>
+    /// <remarks>Двести источников по шесть с половиной сотен узлов — считается один раз
+    /// при смене отношений, а не каждый тик. Предшественники нужны, чтобы знать, кому
+    /// платить за проход: сумму пути мало, нужны сами хозяева звеньев.</remarks>
+    private readonly int[][] _pairCost;
+    private readonly short[][] _pairFrom;
+
+    /// <summary>Кто выходит в этот бассейн. Обратный указатель к портам: без него обход
+    /// перебирал бы все двести стран на каждом бассейне.</summary>
+    private readonly List<byte>[] _atBasin;
+
     /// <param name="basinsOf">Каких морских бассейнов касается берег страны.</param>
     /// <param name="straits">Что какой бассейн с каким соединяет и кто этим владеет.</param>
     public Routes(
@@ -57,6 +68,9 @@ public sealed class Routes
         _cost = new int[nodes];
         _from = new int[nodes];
         _tolls = new List<byte>[countries];
+        _pairCost = new int[countries][];
+        _pairFrom = new short[countries][];
+        _atBasin = new List<byte>[basins];
 
         for (var i = 0; i < countries; i++)
         {
@@ -66,6 +80,13 @@ public sealed class Routes
         }
 
         for (var i = 0; i < nodes; i++) _straits[i] = [];
+        for (var i = 0; i < basins; i++) _atBasin[i] = [];
+
+        for (var i = 0; i < countries; i++)
+        {
+            _pairCost[i] = new int[nodes];
+            _pairFrom[i] = new short[nodes];
+        }
 
         var known = neighbours is not null || basinsOf is not null;
         foreach (var (country, list) in neighbours ?? new Dictionary<byte, byte[]>()) _neighbours[country].AddRange(list);
@@ -81,6 +102,14 @@ public sealed class Routes
         if (!known)
         {
             for (var i = 0; i < countries; i++) _ports[i].Add(OpenSea);
+        }
+
+        for (var country = 0; country < countries; country++)
+        {
+            foreach (var basin in _ports[country])
+            {
+                if (basin >= 0 && basin < basins) _atBasin[basin].Add((byte)country);
+            }
         }
 
         Recompute(null, null);
@@ -129,6 +158,74 @@ public sealed class Routes
         }
 
         for (var country = 0; country < _countries; country++) CollectTolls((byte)country);
+
+        for (var source = 0; source < _countries; source++)
+        {
+            Spread((byte)source, attitude, blocked);
+        }
+    }
+
+    /// <summary>Во что обходится путь из одной страны в другую, в сотых.</summary>
+    public int CostBetween(byte from, byte to) => _pairCost[from][to];
+
+    public bool CanReach(byte from, byte to) => _pairCost[from][to] < Unreachable;
+
+    /// <summary>Кому платят за проход по пути между двумя странами.</summary>
+    /// <remarks>Отдаётся в переданный список, чтобы не сорить мусором на каждой сделке:
+    /// сделок за тик тысячи.</remarks>
+    public void TollsBetween(byte from, byte to, List<byte> into)
+    {
+        into.Clear();
+        if (!CanReach(from, to)) return;
+
+        var at = (int)to;
+        for (var step = 0; step < 24; step++)
+        {
+            var previous = _pairFrom[from][at];
+            if (previous < 0) break;
+
+            if (previous < _countries && previous != from && previous != to) into.Add((byte)previous);
+            else if (previous >= _countries && at >= _countries)
+            {
+                foreach (var (other, owner) in _straits[at])
+                {
+                    if (other == previous && owner != from && owner != to) into.Add(owner);
+                }
+            }
+
+            at = previous;
+        }
+    }
+
+    /// <summary>Дейкстра из одной страны во все. Та же, что до рынка, только начало другое.</summary>
+    private void Spread(byte source, Func<byte, byte, int>? attitude, Func<byte, bool>? blocked)
+    {
+        var cost = _pairCost[source];
+        var from = _pairFrom[source];
+        Array.Fill(cost, Unreachable);
+        Array.Fill(from, (short)-1);
+
+        var queue = new PriorityQueue<int, int>();
+        cost[source] = 0;
+        queue.Enqueue(source, 0);
+
+        while (queue.TryDequeue(out var at, out var spent))
+        {
+            if (spent > cost[at]) continue;
+
+            foreach (var (next, step, owner) in StepsFrom(at))
+            {
+                if (owner is { } who && (blocked?.Invoke(who) == true)) continue;
+
+                var total = spent + step;
+                if (total >= cost[next]) continue;
+                if (owner is { } keeper && attitude?.Invoke(keeper, source) <= CreditMarket.Hostile) continue;
+
+                cost[next] = total;
+                from[next] = (short)at;
+                queue.Enqueue(next, total);
+            }
+        }
     }
 
     /// <summary>Куда можно шагнуть и почём. Владелец пусто у своего порта.</summary>
@@ -138,11 +235,7 @@ public sealed class Routes
         {
             var basin = at - _countries;
             foreach (var (other, owner) in _straits[at]) yield return (other, StraitHop, owner);
-
-            for (var country = 0; country < _countries; country++)
-            {
-                if (_ports[country].Contains(basin)) yield return (country, 0, null);
-            }
+            foreach (var country in _atBasin[basin]) yield return (country, 0, null);
 
             yield break;
         }
