@@ -11,10 +11,13 @@ public sealed class Elasticity
     /// <summary>Значения хранятся в сотых: −40 означает «цена вдвое — берут на 40% меньше».</summary>
     public const int Scale = 100;
 
-    /// <summary>Количество не может ни исчезнуть совсем, ни вырасти больше чем вдвое:
-    /// формула прямая, а вдали от обычной цены прямая врёт.</summary>
-    public const int MinFactor = 10;
-    public const int MaxFactor = 200;
+    /// <summary>Страховка от нуля и бесконечности, а не рабочее ограничение.</summary>
+    /// <remarks>Раньше здесь стояли 10 и 200, потому что отклик считался по прямой, а она
+    /// врёт вдали от обычной цены. Со степенной формой пределы можно расширить: чем
+    /// дальше от равновесия, тем сильнее возврат, и именно это позволяет курсу найти
+    /// равновесие вместо того, чтобы упираться в коридор.</remarks>
+    public const int MinFactor = 1;
+    public const int MaxFactor = 2000;
 
     /// <summary>Норму запаса можно двигать только в полтора раза в обе стороны.</summary>
     /// <remarks>На запасе в четыре дня вместо сорока завод просто встанет, а цена от
@@ -46,6 +49,12 @@ public sealed class Elasticity
     public int Supply(GoodType good) => _supply[good];
 
     /// <summary>Сколько на самом деле закажут или предложат при такой цене.</summary>
+    /// <remarks>
+    /// Постоянная эластичность: <c>(цена / обычная) ^ показатель</c>. Учебниковая форма, и
+    /// взята она не для красоты — она верна на широком диапазоне, а прямая только рядом с
+    /// обычной ценой. При курсе в сотую долю прямая упиралась в свой предел, дисбаланс не
+    /// покрывался, и курс уезжал дальше.
+    /// </remarks>
     /// <param name="elasticity">Из <see cref="Demand"/> или <see cref="Supply"/>.</param>
     /// <param name="usual">С чем сравнивать — обычная цена товара.</param>
     public static GoodAmount Adjust(
@@ -56,12 +65,19 @@ public sealed class Elasticity
         int minFactor = MinFactor,
         int maxFactor = MaxFactor)
     {
-        if (usual.Raw <= 0 || amount.Raw <= 0) return amount;
+        if (usual.Raw <= 0 || amount.Raw <= 0 || price.Raw <= 0 || elasticity == 0) return amount;
 
-        // Отклонение цены от обычной, в сотых: 100 означает «вдвое дороже».
-        long off = price.Raw * Scale / usual.Raw - Scale;
-        long factor = Math.Clamp(Scale + elasticity * off / Scale, minFactor, maxFactor);
+        var ratio = (long)((Int128)price.Raw * Powers.Scale / usual.Raw);
+        var raised = Math.Max(1, Powers.Pow(ratio, Math.Abs(elasticity)));
 
-        return new GoodAmount(amount.Raw * factor / Scale);
+        // Отрицательный показатель — это единица, делённая на положительный.
+        var factor = elasticity > 0 ? raised : Powers.Scale * Powers.Scale / raised;
+
+        factor = Math.Clamp(
+            factor,
+            (long)minFactor * Powers.Scale / Scale,
+            (long)maxFactor * Powers.Scale / Scale);
+
+        return new GoodAmount((long)((Int128)amount.Raw * factor / Powers.Scale));
     }
 }

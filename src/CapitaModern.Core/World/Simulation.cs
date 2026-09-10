@@ -24,6 +24,11 @@ public sealed class Simulation
 
     /// <summary>Тот же заказ, но умноженный на вес отрасли. По нему делится нехватка.</summary>
     private readonly Tally<GoodType, GoodAmount> _claims = new();
+    /// <summary>Что население на самом деле купило. По желаемому судить нельзя: бедные
+    /// хотят не меньше богатых, у них просто не хватает денег, и вся разница в уровне
+    /// жизни именно здесь.</summary>
+    private readonly Tally<GoodType, GoodAmount> _bought = new();
+
     /// <summary>Чего не хватило населению. Пока только копится: смертность и настроения,
     /// на которые это должно влиять, ещё не сделаны.</summary>
     private readonly Tally<GoodType, GoodAmount> _deficit = new();
@@ -154,6 +159,7 @@ public sealed class Simulation
         _bid.Clear();
         _peopleWants.Clear();
         _deficit.Clear();
+        _bought.Clear();
     }
 
     /// <summary>Может ли предприятие работать в этой области. Зовётся только из первого
@@ -649,6 +655,7 @@ public sealed class Simulation
                 }
 
                 state.Stock.TakeUpTo(good, bought);
+                _bought.Add(country.Id, good, bought);
 
                 var missing = wanted - bought;
                 if (missing.Raw > 0) _deficit.Add(country.Id, good, missing);
@@ -660,19 +667,29 @@ public sealed class Simulation
     public Money BudgetOf(byte country) =>
         _sales.GetValueOrDefault(country) - _wages.GetValueOrDefault(country);
 
-    /// <summary>Доля еды в расходах населения, в сотых. Коэффициент Энгеля: чем беднее
-    /// страна, тем он выше, и это самая надёжная проверка уровня жизни — величина
-    /// безразмерная и измерена по всему миру.</summary>
+    /// <summary>Сколько базовых корзин покупает дневной доход, в сотых. Для показа и сверки.</summary>
+    public int CapacityIn(byte country) => CapacityOf(_world.CountryById(country));
+
+    /// <summary>Доля еды в купленном населением, в сотых.</summary>
+    /// <remarks>
+    /// Коэффициент Энгеля — самая надёжная проверка уровня жизни: величина безразмерная и
+    /// измерена по всему миру. Считается по купленному, а не по желаемому: бедные хотят не
+    /// меньше богатых, разница вся в том, на что хватило денег.
+    ///
+    /// Оценивается в стартовых ценах, а не в местных. Местные у половины стран упёрлись в
+    /// коридор, и доля еды мерила бы не достаток, а перекос цен.
+    /// </remarks>
     public int EngelOf(byte country)
     {
-        var capacity = CapacityOf(_world.CountryById(country));
         var prices = _world.CountryById(country).State.Prices;
 
         var all = default(Money);
         var food = default(Money);
         foreach (var (good, _) in _world.Needs.BaseRates)
         {
-            var cost = prices.CostOf(good, _world.Needs.PerMillion(good, capacity));
+            var cost = new Money((long)((Int128)prices.StartOf(good).Raw *
+                _bought.Get(country, good).Raw / GoodAmount.Scale));
+
             all += cost;
             if (good == GoodType.Food) food = cost;
         }

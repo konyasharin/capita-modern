@@ -495,7 +495,7 @@ Console.WriteLine("страна   у нас   в жизни");
 foreach (var (iso, real2020) in new[] { ("USA", 6.7), ("DEU", 11.0), ("CHN", 22.0), ("IND", 30.0), ("NGA", 56.0) })
 {
     var id = world.Countries.First(c => c.Iso == iso).Id;
-    Console.WriteLine($"{iso}   {simulation.EngelOf(id),5}% {real2020,8:F1}%");
+    Console.WriteLine($"{iso}   {simulation.EngelOf(id),5}% {real2020,8:F1}%   корзин {simulation.CapacityIn(id) / 100.0,7:F1}");
 }
 
 Console.WriteLine();
