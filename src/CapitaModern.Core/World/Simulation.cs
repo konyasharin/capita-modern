@@ -999,7 +999,10 @@ public sealed class Simulation
             var info = _world.Buildings[type];
             if (info.BuildCost.Count == 0) continue;
 
-            var profit = Construction.ProfitOf(new BuildingRecipe(info.Inputs, info.Outputs), country.State.Prices);
+            var profit = Construction.ProfitOf(
+                new BuildingRecipe(info.Inputs, info.Outputs),
+                country.State.Prices,
+                good => Faced(country, good));
             if (profit.Raw <= 0) continue;
             if (Construction.CostOf(info.BuildCost, country.State.Prices) > purse) continue;
 
@@ -1016,6 +1019,19 @@ public sealed class Simulation
         }
 
         return best;
+    }
+
+    /// <summary>По какой цене страна имеет дело с товаром, в сотых процента к обычной.</summary>
+    /// <remarks>Чего не хватает — то придётся везти: дороже на перевозку и пошлину. Чего
+    /// в избытке — то повезут от неё, и за перевозку платит она же: дешевле на ту же
+    /// величину. Отсюда и выходит «сделать или купить»: строить стоит то, что дорого
+    /// везти, а не то, что дорого стоит.</remarks>
+    private int Faced(Country country, GoodType good)
+    {
+        var need = new GoodAmount(Prices.TargetCoverDays * _inputs.Get(country.Id, good).Raw);
+        var markup = _world.TradeCosts.ImportMarkup(country.Id, good);
+
+        return country.State.Stock.Of(good) < need ? markup : -markup;
     }
 
     /// <summary>Где ставить: своя область, с месторождением если добыча, и та, где

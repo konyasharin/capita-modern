@@ -26,16 +26,36 @@ public static class Construction
     /// старый, в сотых. Без запаса страна бы металась туда-сюда каждый тик.</summary>
     public const int ClosingMargin = 150;
 
-    /// <summary>Прибыль завода за тик в местных ценах: что выпустил минус что съел.</summary>
-    public static Money ProfitOf(BuildingRecipe recipe, Prices prices)
+    /// <summary>Прибыль завода за тик: что выпустил минус что съел, по цене с доставкой.</summary>
+    /// <remarks>
+    /// Считать надо не по биржевой цене, а по той, которую страна на самом деле платит за
+    /// ввоз: с перевозкой и пошлиной. Это и есть решение «сделать или купить» — своё
+    /// выгодно ровно тогда, когда привозное дороже.
+    ///
+    /// Без этого перевозка и пошлины ничего не решают: страна ввозит то, чего не хватает
+    /// до нормы запаса, и альтернатива нигде не сравнивается. Оттого цемент и возят через
+    /// океан, хотя везти его дороже, чем сделать на месте.
+    /// </remarks>
+    /// <param name="faced">По какой цене страна на самом деле имеет дело с товаром, в
+    /// сотых процента к обычной: чего не хватает — дороже на перевозку и пошлину, чего в
+    /// избытке — дешевле на ту же перевозку, потому что вывозя, за неё платишь сам.</param>
+    public static Money ProfitOf(BuildingRecipe recipe, Prices prices, Func<GoodType, int> faced)
     {
         var made = default(Money);
-        foreach (var (good, amount) in recipe.Outputs) made += prices.CostOf(good, amount);
+        foreach (var (good, amount) in recipe.Outputs) made += AsFaced(prices, good, amount, faced);
 
         var spent = default(Money);
-        foreach (var (good, amount) in recipe.Inputs) spent += prices.CostOf(good, amount);
+        foreach (var (good, amount) in recipe.Inputs) spent += AsFaced(prices, good, amount, faced);
 
         return made - spent;
+    }
+
+    private static Money AsFaced(Prices prices, GoodType good, GoodAmount amount, Func<GoodType, int> faced)
+    {
+        // Ниже десятой доли цена не опускается: даже самый громоздкий товар чего-то стоит.
+        var factor = Math.Max(TradeCosts.Scale / 10, TradeCosts.Scale + faced(good));
+
+        return new Money(prices.CostOf(good, amount).Raw * factor / TradeCosts.Scale);
     }
 
     /// <summary>Отдача с одного работника. По ней и выбирают, что строить.</summary>
