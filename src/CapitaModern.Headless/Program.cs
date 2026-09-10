@@ -16,7 +16,8 @@ GameWorld Load() => WorldDataLoader.LoadWorld(
     Data("goods.json"),
     Data("key-rates.json"),
     File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "politics", "blocs.json")),
-    Data("efficiency.json"));
+    Data("efficiency.json"),
+    Data("money-supply.json"));
 
 var goods = Enum.GetValues<GoodType>();
 
@@ -126,6 +127,10 @@ var startPrices = watched.ToDictionary(
     country => goods.ToDictionary(good => good, country.State.Prices.Of));
 
 var realGdp = world.Countries.ToDictionary(country => country.Id, _ => default(Money));
+// Зарплата копится в местных деньгах, поэтому складываем сразу в мировой мере: курс
+// за год уезжает, и делить в конце на конечный было бы неверно.
+var wagesYear = world.Countries.ToDictionary(country => country.Id, _ => 0.0);
+var employedYear = world.Countries.ToDictionary(country => country.Id, _ => 0L);
 var exports = world.Countries.ToDictionary(country => country.Id, _ => default(Money));
 var imports = world.Countries.ToDictionary(country => country.Id, _ => default(Money));
 
@@ -160,6 +165,8 @@ for (var tick = 1; tick <= 365; tick++)
     {
         realGdp[country.Id] += simulation.ValueAddedOf(country.Id, constant);
         exports[country.Id] += simulation.ExportsOf(country.Id);
+        wagesYear[country.Id] += simulation.WagesIn(country.Id).Exact / country.ExchangeRate.Exact;
+        employedYear[country.Id] += simulation.EmployedIn(country.Id);
         imports[country.Id] += simulation.ImportsOf(country.Id);
     }
 
@@ -452,3 +459,30 @@ Console.WriteLine();
 Console.WriteLine($"Занято в мире: {world.Countries.Sum(c => simulation.EmployedIn(c.Id)) / 1e6:F0} млн " +
                   $"(рабочая сила {world.Countries.Sum(c => world.WorkersOf(c.Id)) / 1e6:F0} млн, в жизни занято 1096)");
 Console.WriteLine($"Стран, где не хватает рук: {world.Countries.Count(c => simulation.JobsIn(c.Id) > simulation.EmployedIn(c.Id))}");
+
+// --- Л. Зарплаты и внутренний оборот ----------------------------------------------
+Console.WriteLine();
+Console.WriteLine("=== Л. Зарплаты ===");
+Console.WriteLine("страна   у нас тыс.$/год   в жизни   бюджет за тик   деньги населения");
+
+(string Iso, double Wage)[] realWages =
+    [("USA", 69.4), ("DEU", 53.7), ("JPN", 38.5), ("CHN", 13.0), ("RUS", 9.9),
+     ("BRA", 7.6), ("IND", 2.1), ("NGA", 2.0)];
+
+foreach (var (iso, realWage) in realWages)
+{
+    var country = world.Countries.First(c => c.Iso == iso);
+    // За первый год: к пятому местные цены у экспортёров лежат на полу, и номинал врёт.
+    var averageEmployed = employedYear[country.Id] / 365.0;
+    var yearly = averageEmployed > 0 ? wagesYear[country.Id] / averageEmployed : 0;
+
+    Console.WriteLine($"{iso}   {yearly,14:F1} {realWage,9:F1} " +
+                      $"{simulation.BudgetOf(country.Id).Exact / 1e6,15:F0} млн " +
+                      $"{country.Households.Savings.Exact / 1e9,12:F2} трлн");
+}
+
+Console.WriteLine();
+Console.WriteLine($"Местных денег в мире: у казны {world.Countries.Sum(c => c.State.Treasury.Balance.Exact) / 1e9:F1} трлн, " +
+                  $"у населения {world.Countries.Sum(c => c.Households.Savings.Exact) / 1e9:F1} трлн");
+Console.WriteLine($"Стран с дефицитом бюджета: {world.Countries.Count(c => simulation.BudgetOf(c.Id).Raw < 0)}");
+Console.WriteLine($"Стран, где казна пуста: {world.Countries.Count(c => c.State.Treasury.Balance.Raw == 0)}");

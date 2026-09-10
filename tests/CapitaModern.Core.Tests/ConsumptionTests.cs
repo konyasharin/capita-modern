@@ -23,7 +23,9 @@ public class ConsumptionTests
         Dictionary<GoodType, GoodAmount>? rate = null) =>
         new(
             [Build.Region(1, 1, buildings ?? [], population: (int)(millions * 1_000_000))],
-            [Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Food] = Build.Whole(foodInStock) }, weights)],
+            // Еду теперь покупают: кошелёк нарочно бездонный, тесты здесь про другое.
+            [Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Food] = Build.Whole(foodInStock) },
+                weights, savings: 1_000_000_000)],
             Build.Catalog(Build.Info(Farm, outputs: new() { [GoodType.Food] = Build.Whole(1) }, sector: Sector.Mining)),
             rate ?? Rate,
             Build.Market(),
@@ -110,7 +112,8 @@ public class ConsumptionTests
         var world = new GameWorld(
             [Build.Region(1, 1, new Dictionary<BuildingType, int> { [BuildingType.FoodPlant] = 1 },
                 population: 1_000_000)],
-            [Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Food] = Build.Whole(1) })],
+            [Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Food] = Build.Whole(1) },
+                savings: 1_000_000_000)],
             Build.Catalog(Build.Info(BuildingType.FoodPlant,
                 inputs: new() { [GoodType.Food] = Build.Whole(2) },
                 outputs: new() { [GoodType.ConsumerGoods] = Build.Whole(1) },
@@ -138,7 +141,8 @@ public class ConsumptionTests
                 population: 1_000_000)],
             [Build.Country(1,
                 new Dictionary<GoodType, GoodAmount> { [GoodType.Food] = Build.Whole(1) },
-                new Dictionary<Sector, int> { [Sector.People] = 0 })],
+                new Dictionary<Sector, int> { [Sector.People] = 0 },
+                savings: 1_000_000_000)],
             Build.Catalog(Build.Info(BuildingType.FoodPlant,
                 inputs: new() { [GoodType.Food] = Build.Whole(2) },
                 outputs: new() { [GoodType.ConsumerGoods] = Build.Whole(1) },

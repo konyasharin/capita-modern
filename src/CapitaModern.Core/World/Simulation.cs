@@ -43,6 +43,15 @@ public sealed class Simulation
     /// <summary>Во сколько урезана загрузка нехваткой людей, в долях Load.Full.</summary>
     private readonly Dictionary<byte, long> _hands = new();
 
+    /// <summary>Сколько валюты пришло и ушло не за товар, а по капитальному счёту:
+    /// займы, погашения, проценты. Без него курс считает только половину баланса.</summary>
+    private readonly Dictionary<byte, Money> _capitalIn = new();
+    private readonly Dictionary<byte, Money> _capitalOut = new();
+
+    /// <summary>Выплачено зарплат и выручено с населения за тик. Разница — бюджет.</summary>
+    private readonly Dictionary<byte, Money> _wages = new();
+    private readonly Dictionary<byte, Money> _sales = new();
+
     /// <summary>Работоспособные предприятия по стране и типу. Считаются вместе, где бы
     /// ни стояли: склад у страны общий.</summary>
     private readonly Tally<BuildingType, int> _working = new();
@@ -97,6 +106,11 @@ public sealed class Simulation
 
     private const int DaysInYear = 365;
 
+    /// <summary>В каком порядке население тратит кошелёк. Еда прежде всего — на этом и
+    /// стоит закон Энгеля.</summary>
+    private static readonly GoodType[] NeedsOrder =
+        [GoodType.Food, GoodType.Medicine, GoodType.ConsumerGoods, GoodType.Electricity, GoodType.Fuel];
+
     public void Tick()
     {
         _day++;
@@ -112,6 +126,7 @@ public sealed class Simulation
         MoveRates();
         CollectAvailable();
         CollectOutputs();
+        PayWages();
         FeedPeople();
         Store();
         MovePrices();
@@ -130,6 +145,10 @@ public sealed class Simulation
         _consumed.Clear();
         _jobs.Clear();
         _hands.Clear();
+        _wages.Clear();
+        _sales.Clear();
+        _capitalIn.Clear();
+        _capitalOut.Clear();
         _imported.Clear();
         _exported.Clear();
         _bid.Clear();
@@ -275,6 +294,13 @@ public sealed class Simulation
         return total;
     }
 
+    /// <summary>Пришло больше, чем было, — приток капитала; меньше — отток.</summary>
+    private void NoteCapital(byte country, Money before, Money after)
+    {
+        _capitalIn[country] = after > before ? after - before : default;
+        _capitalOut[country] = before > after ? before - after : default;
+    }
+
     /// <summary>Запоминает вывоз, сглаживая его за год.</summary>
     private void NoteTrade()
     {
@@ -313,7 +339,20 @@ public sealed class Simulation
                 country.MaxBorrowRate));
         }
 
+        // Движение по кредиту — вторая половина платёжного баланса. Считаем его по
+        // разнице резервов: страна, раздавшая излишек в долг, не должна выглядеть так,
+        // будто у неё вечный профицит.
+        foreach (var country in _world.Countries)
+        {
+            _capitalIn[country.Id] = country.State.Treasury.Reserves.Liquid;
+        }
+
         _world.Credit.Settle(CollectionsMarshal.AsSpan(_credit), _world.Relations.Between);
+
+        foreach (var country in _world.Countries)
+        {
+            NoteCapital(country.Id, _capitalIn[country.Id], country.State.Treasury.Reserves.Liquid);
+        }
     }
 
     /// <summary>Проценты за сутки. Нечем платить — они уходят в тело долга, и нагрузка
@@ -415,11 +454,14 @@ public sealed class Simulation
     {
         foreach (var country in _world.Countries)
         {
-            var inn = ImportsOf(country.Id);
-            var outt = ExportsOf(country.Id);
+            // Полный платёжный баланс: товары плюс движение капитала. Только по товарам
+            // курс экспортёра падал бы вечно — а он раздаёт излишек в долг, и это его
+            // уравновешивает ровно так же, как в жизни.
+            var outflow = ImportsOf(country.Id) + _capitalOut.GetValueOrDefault(country.Id);
+            var inflow = ExportsOf(country.Id) + _capitalIn.GetValueOrDefault(country.Id);
 
-            country.MoveRate(new Money(
-                Drift.Step(country.ExchangeRate.Raw, inn.Raw - outt.Raw, inn.Raw + outt.Raw, Prices.StepPercent)));
+            country.MoveRate(new Money(Drift.Step(
+                country.ExchangeRate.Raw, outflow.Raw - inflow.Raw, outflow.Raw + inflow.Raw, Prices.StepPercent)));
         }
     }
 
@@ -518,14 +560,87 @@ public sealed class Simulation
 
     /// <summary>Население забирает свою долю. Недобор одного товара не отменяет выдачу
     /// остальных — в отличие от рецепта, где либо всё, либо ничего.</summary>
+    /// <summary>Государство платит зарплату из своей казны.</summary>
+    /// <remarks>Сколько — доля труда в том, что произведено. Это стандартное тождество,
+    /// и оно не выдумано: в жизни на оплату труда уходит около 55% добавленной стоимости.
+    /// Не хватило в казне — платит сколько может, и это уже кризис бюджета.</remarks>
+    private void PayWages()
+    {
+        foreach (var country in _world.Countries)
+        {
+            var made = ValueAddedOf(country.Id);
+            if (made.Raw <= 0) continue;
+
+            var owed = new Money(made.Raw * country.LabourShare / 100);
+            var paid = country.State.Treasury.TrySpend(owed) ? owed : PayWhatIsLeft(country);
+
+            country.Households.Earn(paid);
+            _wages[country.Id] = paid;
+        }
+    }
+
+    private static Money PayWhatIsLeft(Country country)
+    {
+        var left = country.State.Treasury.Balance;
+        country.State.Treasury.TrySpend(left);
+
+        return left;
+    }
+
+    /// <summary>Население покупает своё, а не берёт со склада даром.</summary>
+    /// <remarks>
+    /// Порядок задаёт Энгель: сперва еда, потом лекарства, потом всё остальное. Чем беднее
+    /// страна, тем большая доля кошелька уходит на первое, и тем раньше кончается на
+    /// последнее — это и есть уровень жизни, а не отдельный показатель.
+    ///
+    /// Нехватка теперь означает две разные беды сразу: не было на складе или не на что
+    /// было купить. Различать их станет важно, когда появятся настроения.
+    /// </remarks>
     private void FeedPeople()
     {
-        foreach (var (country, good, wanted) in _peopleWants)
+        foreach (var good in NeedsOrder)
         {
-            var deficit = wanted - _world.CountryById(country).State.Stock.TakeUpTo(good, wanted);
-            if (deficit.Raw == 0) continue;
-            _deficit.Add(country, good, deficit);
+            foreach (var country in _world.Countries)
+            {
+                var wanted = _peopleWants.Get(country.Id, good);
+                if (wanted.Raw == 0) continue;
+
+                var state = country.State;
+                var onShelf = state.Stock.Of(good);
+                var offered = wanted < onShelf ? wanted : onShelf;
+
+                var bought = offered;
+                var cost = state.Prices.CostOf(good, offered);
+                if (cost.Raw > 0)
+                {
+                    var paid = country.Households.SpendUpTo(cost);
+                    if (paid < cost) bought = new GoodAmount((long)((Int128)offered.Raw * paid.Raw / cost.Raw));
+
+                    state.Treasury.Receive(paid);
+                    _sales[country.Id] = _sales.GetValueOrDefault(country.Id) + paid;
+                }
+
+                state.Stock.TakeUpTo(good, bought);
+
+                var missing = wanted - bought;
+                if (missing.Raw > 0) _deficit.Add(country.Id, good, missing);
+            }
         }
+    }
+
+    /// <summary>Бюджет за прошедший тик: выручка с населения минус зарплаты.</summary>
+    public Money BudgetOf(byte country) =>
+        _sales.GetValueOrDefault(country) - _wages.GetValueOrDefault(country);
+
+    /// <summary>Сколько всего заплачено зарплат за тик.</summary>
+    public Money WagesIn(byte country) => _wages.GetValueOrDefault(country);
+
+    /// <summary>Сколько заплатили одному работнику за тик.</summary>
+    public Money WagePerWorkerIn(byte country)
+    {
+        var employed = EmployedIn(country);
+
+        return employed > 0 ? new Money(_wages.GetValueOrDefault(country).Raw / employed) : default;
     }
 
     private void Store()

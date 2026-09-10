@@ -39,6 +39,15 @@ public sealed class Country
     /// <summary>Выше этой ставки страна занимать не станет, в сотых долях процента.</summary>
     public int MaxBorrowRate { get; set; } = 5000;
 
+    /// <summary>Деньги населения. Государство платит ему зарплату, оно покупает у
+    /// государства еду — на этом круге и держится внутренний оборот.</summary>
+    public Households Households { get; }
+
+    /// <summary>Какая доля добавленной стоимости уходит на оплату труда, в сотых.</summary>
+    /// <remarks>В жизни около 55% по миру: США 58, Германия 60, Китай 47, Индия 51.
+    /// Двигать её будут профсоюзы, законы и безработица.</remarks>
+    public int LabourShare { get; set; } = 55;
+
     /// <summary>Средний вывоз за сутки, сглаженный за год. По нему считается долговая
     /// нагрузка: выручка одного тика скачет слишком сильно, чтобы на неё опираться.</summary>
     public Money ExportsPerDay { get; private set; }
@@ -62,8 +71,10 @@ public sealed class Country
         ExchangeRate = new Money(Math.Clamp(to.Raw, start.Raw / Prices.MaxSwingTimes, start.Raw * Prices.MaxSwingTimes));
     }
 
-    public Country(byte id, string name, string iso, Producer state, Priorities priorities)
+    public Country(byte id, string name, string iso, Producer state, Priorities priorities,
+        Money savings = default)
     {
+        Households = new Households(savings);
         Id = id;
         Name = name;
         Iso = iso;

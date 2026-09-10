@@ -7,12 +7,15 @@ namespace CapitaModern.Core.Loading;
 /// <param name="Id">Тот же байт, что лежит в world.bin для каждой ячейки.</param>
 /// <param name="Iso">Трёхбуквенный код: RUS, USA.</param>
 /// <param name="Color">Цвет на карте. В игровую модель не идёт.</param>
+/// <param name="Gdp">Настоящий ВВП 2020 года, млн долларов. В игре не считается —
+/// нужен только для стартового состояния и сверки.</param>
 public record CountryDto(
     byte Id,
     string Name,
     string Iso,
     int Color,
-    int Population
+    int Population,
+    long Gdp
 );
 
 /// <param name="Width">Размер карты, под которую собран файл. Сверяется с остальными,

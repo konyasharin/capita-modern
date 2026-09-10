@@ -24,6 +24,8 @@ public sealed class Treasury
 
     public Treasury(IEnumerable<Reserve>? reserves = null, Money balance = default)
     {
+        if (balance < default(Money)) throw new ArgumentOutOfRangeException(nameof(balance));
+
         Reserves = new Reserves(reserves);
         Balance = balance;
     }
