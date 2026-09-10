@@ -21,6 +21,7 @@
 - [`12-labour.md`](./docs/12-labour.md) — эффективность и занятость, сделано
 - [`13-wages.md`](./docs/13-wages.md) — зарплаты, покупки, бюджет
 - [`14-consumption.md`](./docs/14-consumption.md) — потребление по доходу, закон Энгеля
+- [`15-construction.md`](./docs/15-construction.md) — стройка как потребитель: попытка, разбор, план
 
 ## Стек
 
