@@ -15,6 +15,7 @@
 - [`06-roadmap.md`](./docs/06-roadmap.md) — фазы и нерешённые вопросы
 - [`07-economy.md`](./docs/07-economy.md) — категории товаров, кто строит предприятия
 - [`08-economic-model.md`](./docs/08-economic-model.md) — **полный расчёт экономики: формулы, данные, погрешность**
+- [`09-reality-check.md`](./docs/09-reality-check.md) — все замеры модели против реальных чисел
 
 ## Стек
 
