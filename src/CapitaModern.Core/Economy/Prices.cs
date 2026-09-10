@@ -90,21 +90,8 @@ public sealed class Prices
         Apply(good, wanted.Raw - offered.Raw, wanted.Raw + offered.Raw);
 
     /// <summary>Общий шаг обоих правил: перекос задаётся дробью under/over.</summary>
-    private void Apply(GoodType good, long under, long over)
-    {
-        if (over == 0) return; // ничего не известно — двигать не от чего
-
-        // Int128: цена на процент на перекос не влезает в long у дорогих товаров.
-        // Деление обрубает дробь в обе стороны одинаково, так что цена не сползает сама.
-        long raw = Of(good).Raw;
-        long delta = (long)((Int128)raw * StepPercent * under / ((Int128)over * 100));
-
-        // Дешёвый товар иначе застревает навсегда: два процента от копейки — ноль,
-        // и цена больше не сдвинется ни вниз, ни обратно вверх.
-        if (delta == 0 && under != 0) delta = under > 0 ? 1 : -1;
-
-        _values[good] = Clamped(good, raw + delta);
-    }
+    private void Apply(GoodType good, long under, long over) =>
+        _values[good] = Clamped(good, Drift.Step(Of(good).Raw, under, over, StepPercent));
 
     /// <summary>Разовый сдвиг от события: эмбарго, удар по заводу, паника.</summary>
     /// <remarks>В жизни цена улетает от новости, а не оттого, что склад просел на процент.

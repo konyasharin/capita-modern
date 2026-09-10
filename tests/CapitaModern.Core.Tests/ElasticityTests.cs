@@ -12,12 +12,8 @@ public class ElasticityTests
     private const GoodType Coal = GoodType.Coal;
     private const BuildingType Mill = BuildingType.SteelMill;
 
-    private static GoodAmount Ordered(long price, long usual = 100, int elasticity = -50)
-    {
-        var table = new Elasticity(new Dictionary<GoodType, int> { [Coal] = elasticity });
-
-        return table.Adjust(Coal, Build.Whole(100), Money.FromWhole(price), Money.FromWhole(usual));
-    }
+    private static GoodAmount Ordered(long price, long usual = 100, int elasticity = -50) =>
+        Elasticity.Adjust(elasticity, Build.Whole(100), Money.FromWhole(price), Money.FromWhole(usual));
 
     [Fact]
     public void UsualPriceChangesNothing()
@@ -45,6 +41,13 @@ public class ElasticityTests
         Assert.Equal(Build.Whole(80), Ordered(price: 200, elasticity: -20));
     }
 
+    /// <summary>Дороже — продают больше: без этого курс валют не находит равновесия.</summary>
+    [Fact]
+    public void HigherPriceRaisesTheOffer()
+    {
+        Assert.Equal(Build.Whole(130), Ordered(price: 200, elasticity: 30));
+    }
+
     /// <summary>Потребтовары отзываются сильнее всего, но заказ не может исчезнуть.</summary>
     [Fact]
     public void OrderNeverFallsToNothing()
@@ -65,13 +68,14 @@ public class ElasticityTests
     }
 
     [Fact]
-    public void RealDataGivesEveryGoodAnElasticity()
+    public void RealDataGivesEveryGoodBothElasticities()
     {
         var world = WorldDataTests.Shared.Value;
 
         foreach (var good in Enum.GetValues<GoodType>())
         {
-            Assert.True(world.Elasticity.Of(good) < 0, $"у {good} нет эластичности");
+            Assert.True(world.Elasticity.Demand(good) < 0, $"у {good} нет эластичности спроса");
+            Assert.True(world.Elasticity.Supply(good) > 0, $"у {good} нет эластичности предложения");
         }
     }
 
@@ -92,7 +96,8 @@ public class ElasticityTests
                     Build.Info(Mill, inputs: new() { [Coal] = Build.Whole(10) },
                                      outputs: new() { [GoodType.Metals] = Build.Whole(1) })),
                 new Dictionary<GoodType, Money> { [Coal] = Money.FromWhole(100) },
-                new Dictionary<GoodType, int> { [Coal] = -50 });
+                new Dictionary<GoodType, int> { [Coal] = -50 },
+                new Dictionary<GoodType, int> { [Coal] = 30 });
 
             world.Market.Prices.Shock(Coal, percent);
 

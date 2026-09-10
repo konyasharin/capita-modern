@@ -69,6 +69,7 @@ public sealed class Simulation
         Prepare();
         CollectInputs();
         Trade();
+        MoveRates();
         CollectAvailable();
         CollectOutputs();
         FeedPeople();
@@ -156,23 +157,36 @@ public sealed class Simulation
             {
                 if (!country.TradeAccess.CanTrade(good)) continue;
 
-                var target = new GoodAmount(Prices.TargetCoverDays * _inputs.Get(country.Id, good).Raw);
+                // Цену страна видит в своих деньгах: мировая на курс.
+                var local = new Money(
+                    _world.Market.Prices.Of(good).Raw * country.ExchangeRate.Raw / Money.Scale);
+                var usual = _world.Market.Prices.StartOf(good);
+
+                // Норма запаса сама зависит от цены: дёшево — держат больше, дорого —
+                // живут с колёс. Без этого страна с полными складами не купит ничего
+                // ни при какой дешевизне, и курс уезжает до упора вместо равновесия.
+                var target = Elasticity.Adjust(
+                    _world.Elasticity.Demand(good),
+                    new GoodAmount(Prices.TargetCoverDays * _inputs.Get(country.Id, good).Raw),
+                    local,
+                    usual,
+                    Elasticity.MinStockFactor,
+                    Elasticity.MaxStockFactor);
+
                 var stock = country.State.Stock.Of(good);
 
-                // Заявка смотрит на цену: подорожало — берём меньше. Без этого курс
-                // валют будет двигаться и ни на что не влиять.
                 if (target > stock)
                 {
-                    var bid = _world.Elasticity.Adjust(
-                        good,
-                        target - stock,
-                        _world.Market.Prices.Of(good),
-                        _world.Market.Prices.StartOf(good));
-
-                    if (bid.Raw == 0) continue;
-                    _orders.Add(new TradeOrder(country.State, bid, default));
+                    _orders.Add(new TradeOrder(country.State, target - stock, default));
                 }
-                else if (stock > target) _orders.Add(new TradeOrder(country.State, default, stock - target));
+                else if (stock > target)
+                {
+                    // Дорого — продают и часть своего запаса, но не больше, чем есть.
+                    var offer = Elasticity.Adjust(_world.Elasticity.Supply(good), stock - target, local, usual);
+                    if (offer > stock) offer = stock;
+
+                    _orders.Add(new TradeOrder(country.State, default, offer));
+                }
                 else continue;
 
                 _stockBefore.Add(stock);
@@ -202,6 +216,21 @@ public sealed class Simulation
         foreach (var country in _world.Countries) total += what.Get(country.Id, good);
 
         return total;
+    }
+
+    /// <summary>Курс идёт за сальдо: кто больше ввозит, у того валюта дешевеет.</summary>
+    /// <remarks>Петля замыкается через эластичность: подешевевшая валюта поднимает
+    /// местную цену импортного, и заявка сама срезается.</remarks>
+    private void MoveRates()
+    {
+        foreach (var country in _world.Countries)
+        {
+            var inn = ImportsOf(country.Id);
+            var outt = ExportsOf(country.Id);
+
+            country.MoveRate(new Money(
+                Drift.Step(country.ExchangeRate.Raw, inn.Raw - outt.Raw, inn.Raw + outt.Raw, Prices.StepPercent)));
+        }
     }
 
     /// <summary>Сколько страна ввезла за прошедший тик, в деньгах по ценам рынка.</summary>

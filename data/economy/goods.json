@@ -6,7 +6,8 @@
 		"icon": "coal",
 		"unit": "1000 т",
 		"worldOutput2019": 8100000,
-		"elasticity": -25
+		"demandElasticity": -25,
+		"supplyElasticity": 30
 	},
 	{
 		"id": "Oil",
@@ -15,7 +16,8 @@
 		"icon": "oil",
 		"unit": "1000 т",
 		"worldOutput2019": 4485000,
-		"elasticity": -25
+		"demandElasticity": -25,
+		"supplyElasticity": 20
 	},
 	{
 		"id": "Gas",
@@ -24,7 +26,8 @@
 		"icon": "gas",
 		"unit": "млн м3",
 		"worldOutput2019": 4088000,
-		"elasticity": -25
+		"demandElasticity": -25,
+		"supplyElasticity": 20
 	},
 	{
 		"id": "IronOre",
@@ -33,7 +36,8 @@
 		"icon": "iron-ore",
 		"unit": "1000 т",
 		"worldOutput2019": 2500000,
-		"elasticity": -50
+		"demandElasticity": -50,
+		"supplyElasticity": 30
 	},
 	{
 		"id": "CopperOre",
@@ -42,7 +46,8 @@
 		"icon": "copper-ore",
 		"unit": "25 т меди",
 		"worldOutput2019": 816000,
-		"elasticity": -50
+		"demandElasticity": -50,
+		"supplyElasticity": 30
 	},
 	{
 		"id": "Bauxite",
@@ -51,7 +56,8 @@
 		"icon": "bauxite",
 		"unit": "1000 т",
 		"worldOutput2019": 370000,
-		"elasticity": -50
+		"demandElasticity": -50,
+		"supplyElasticity": 30
 	},
 	{
 		"id": "Uranium",
@@ -60,7 +66,8 @@
 		"icon": "uranium",
 		"unit": "т",
 		"worldOutput2019": 54000,
-		"elasticity": -20
+		"demandElasticity": -20,
+		"supplyElasticity": 20
 	},
 	{
 		"id": "RareEarth",
@@ -69,7 +76,8 @@
 		"icon": "rare-earth",
 		"unit": "2 т",
 		"worldOutput2019": 146000,
-		"elasticity": -40
+		"demandElasticity": -40,
+		"supplyElasticity": 30
 	},
 	{
 		"id": "Timber",
@@ -78,7 +86,8 @@
 		"icon": "timber",
 		"unit": "1000 м3",
 		"worldOutput2019": 3970000,
-		"elasticity": -50
+		"demandElasticity": -50,
+		"supplyElasticity": 40
 	},
 	{
 		"id": "Agriculture",
@@ -87,7 +96,8 @@
 		"icon": "agriculture",
 		"unit": "1000 т",
 		"worldOutput2019": 8000000,
-		"elasticity": -40
+		"demandElasticity": -40,
+		"supplyElasticity": 30
 	},
 	{
 		"id": "Electricity",
@@ -96,7 +106,8 @@
 		"icon": "electricity",
 		"unit": "2 ГВт*ч",
 		"worldOutput2019": 13500000,
-		"elasticity": -20
+		"demandElasticity": -20,
+		"supplyElasticity": 50
 	},
 	{
 		"id": "Fuel",
@@ -105,7 +116,8 @@
 		"icon": "fuel",
 		"unit": "1000 т",
 		"worldOutput2019": 4300000,
-		"elasticity": -25
+		"demandElasticity": -25,
+		"supplyElasticity": 60
 	},
 	{
 		"id": "Metals",
@@ -114,7 +126,8 @@
 		"icon": "metals",
 		"unit": "1000 т",
 		"worldOutput2019": 1963000,
-		"elasticity": -50
+		"demandElasticity": -50,
+		"supplyElasticity": 60
 	},
 	{
 		"id": "Chemicals",
@@ -123,7 +136,8 @@
 		"icon": "chemicals",
 		"unit": "1000 т",
 		"worldOutput2019": 2828750,
-		"elasticity": -50
+		"demandElasticity": -50,
+		"supplyElasticity": 70
 	},
 	{
 		"id": "Materials",
@@ -132,7 +146,8 @@
 		"icon": "materials",
 		"unit": "1000 т",
 		"worldOutput2019": 4100000,
-		"elasticity": -60
+		"demandElasticity": -60,
+		"supplyElasticity": 80
 	},
 	{
 		"id": "Components",
@@ -141,7 +156,8 @@
 		"icon": "components",
 		"unit": "условная",
 		"worldOutput2019": 3361650,
-		"elasticity": -60
+		"demandElasticity": -60,
+		"supplyElasticity": 100
 	},
 	{
 		"id": "Electronics",
@@ -150,7 +166,8 @@
 		"icon": "electronics",
 		"unit": "условная",
 		"worldOutput2019": 3465310,
-		"elasticity": -60
+		"demandElasticity": -60,
+		"supplyElasticity": 100
 	},
 	{
 		"id": "Microelectronics",
@@ -159,7 +176,8 @@
 		"icon": "microelectronics",
 		"unit": "условная",
 		"worldOutput2019": 584000,
-		"elasticity": -60
+		"demandElasticity": -60,
+		"supplyElasticity": 80
 	},
 	{
 		"id": "Food",
@@ -168,7 +186,8 @@
 		"icon": "food",
 		"unit": "1000 т",
 		"worldOutput2019": 3000000,
-		"elasticity": -30
+		"demandElasticity": -30,
+		"supplyElasticity": 70
 	},
 	{
 		"id": "ConsumerGoods",
@@ -177,7 +196,8 @@
 		"icon": "consumer-goods",
 		"unit": "условная",
 		"worldOutput2019": 2044000,
-		"elasticity": -120
+		"demandElasticity": -120,
+		"supplyElasticity": 120
 	},
 	{
 		"id": "Medicine",
@@ -186,7 +206,8 @@
 		"icon": "medicine",
 		"unit": "условная",
 		"worldOutput2019": 365000,
-		"elasticity": -20
+		"demandElasticity": -20,
+		"supplyElasticity": 60
 	},
 	{
 		"id": "Armour",
@@ -196,7 +217,8 @@
 		"unit": "1 машина",
 		"consumable": false,
 		"worldOutput2019": 5840,
-		"elasticity": -30
+		"demandElasticity": -30,
+		"supplyElasticity": 40
 	},
 	{
 		"id": "Artillery",
@@ -206,7 +228,8 @@
 		"unit": "1 орудие",
 		"consumable": false,
 		"worldOutput2019": 2190,
-		"elasticity": -30
+		"demandElasticity": -30,
+		"supplyElasticity": 40
 	},
 	{
 		"id": "SmallArms",
@@ -216,7 +239,8 @@
 		"unit": "100 комплектов",
 		"consumable": false,
 		"worldOutput2019": 10585,
-		"elasticity": -30
+		"demandElasticity": -30,
+		"supplyElasticity": 40
 	},
 	{
 		"id": "Ammunition",
@@ -226,7 +250,8 @@
 		"unit": "1000 выстрелов",
 		"consumable": true,
 		"worldOutput2019": 6570,
-		"elasticity": -30
+		"demandElasticity": -30,
+		"supplyElasticity": 40
 	},
 	{
 		"id": "TacticalDrones",
@@ -236,7 +261,8 @@
 		"unit": "10 аппаратов",
 		"consumable": true,
 		"worldOutput2019": 1460,
-		"elasticity": -30
+		"demandElasticity": -30,
+		"supplyElasticity": 40
 	},
 	{
 		"id": "StrikeDrones",
@@ -246,7 +272,8 @@
 		"unit": "1 аппарат",
 		"consumable": false,
 		"worldOutput2019": 1825,
-		"elasticity": -30
+		"demandElasticity": -30,
+		"supplyElasticity": 40
 	},
 	{
 		"id": "Missiles",
@@ -256,7 +283,8 @@
 		"unit": "10 ракет",
 		"consumable": true,
 		"worldOutput2019": 5110,
-		"elasticity": -30
+		"demandElasticity": -30,
+		"supplyElasticity": 40
 	},
 	{
 		"id": "Aircraft",
@@ -266,7 +294,8 @@
 		"unit": "1 самолёт",
 		"consumable": false,
 		"worldOutput2019": 2190,
-		"elasticity": -30
+		"demandElasticity": -30,
+		"supplyElasticity": 40
 	},
 	{
 		"id": "AirDefence",
@@ -276,7 +305,8 @@
 		"unit": "1 пусковая",
 		"consumable": false,
 		"worldOutput2019": 1825,
-		"elasticity": -30
+		"demandElasticity": -30,
+		"supplyElasticity": 40
 	},
 	{
 		"id": "ElectronicWarfare",
@@ -286,6 +316,7 @@
 		"unit": "1 комплекс",
 		"consumable": false,
 		"worldOutput2019": 1460,
-		"elasticity": -30
+		"demandElasticity": -30,
+		"supplyElasticity": 40
 	}
 ]

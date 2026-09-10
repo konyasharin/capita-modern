@@ -59,9 +59,10 @@ internal static class Build
         Country[] countries,
         BuildingCatalog catalog,
         Dictionary<GoodType, Money>? marketPrices = null,
-        Dictionary<GoodType, int>? elasticity = null) =>
+        Dictionary<GoodType, int>? demand = null,
+        Dictionary<GoodType, int>? supply = null) =>
         new(regions, countries, catalog, new Dictionary<GoodType, GoodAmount>(),
-            Market(marketPrices), new Elasticity(elasticity));
+            Market(marketPrices), new Elasticity(demand, supply));
 
     public static Country Country(
         byte id,

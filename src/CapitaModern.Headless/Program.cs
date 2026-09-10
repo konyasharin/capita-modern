@@ -110,7 +110,7 @@ Console.WriteLine("=== В. Год настоящего мира ===");
 
 var world = Load();
 var simulation = new Simulation(world);
-var startMoney = world.Countries.Sum(c => c.State.Treasury.Balance.Exact);
+var startMoney = world.Countries.Sum(c => c.State.Treasury.Reserves.Value.Exact);
 
 // Реальный ВВП считается в постоянных ценах: иначе подорожание не отличить от роста.
 var constant = new Prices(goods.ToDictionary(good => good, world.Market.Prices.Of));
@@ -187,7 +187,7 @@ var worldExport = exports.Values.Aggregate(default(Money), (a, b) => a + b).Exac
 Console.WriteLine();
 Console.WriteLine($"Мир: реальный ВВП {worldGdp:F2} трлн (материальное производство в жизни ~20 трлн)");
 Console.WriteLine($"     товарный экспорт {worldExport:F2} трлн (в жизни 17.6 трлн)");
-Console.WriteLine($"     денег в мире {world.Countries.Sum(c => c.State.Treasury.Balance.Exact) / 1e9:F2} трлн " +
+Console.WriteLine($"     денег в мире {world.Countries.Sum(c => c.State.Treasury.Reserves.Value.Exact) / 1e9:F2} трлн " +
                   $"(на старте {startMoney / 1e9:F2})");
 
 // --- Г. Что осталось на рельсах и почему ------------------------------------------
@@ -226,11 +226,11 @@ foreach (var good in goods.OrderBy(good =>
 // --- Е. Пять лет: не стекутся ли деньги к экспортёрам -----------------------------
 Console.WriteLine();
 Console.WriteLine("=== Е. Пять лет ===");
-Console.WriteLine("год   реальный ВВП   на рельсах   у богатейшей 10%   стран без денег");
+Console.WriteLine("год   реальный ВВП   на рельсах   у богатейшей 10%   стран без денег  валюта вдвое");
 
 void Report(int year, double gdp)
 {
-    var cash = world.Countries.Select(c => c.State.Treasury.Balance.Exact).OrderByDescending(x => x).ToArray();
+    var cash = world.Countries.Select(c => c.State.Treasury.Reserves.Value.Exact).OrderByDescending(x => x).ToArray();
     var top = cash.Take(world.Countries.Count / 10).Sum() / Math.Max(cash.Sum(), 1);
     var broke = cash.Count(x => x <= 0);
     var rails = world.Countries.Sum(c => goods.Count(good =>
@@ -239,8 +239,9 @@ void Report(int year, double gdp)
         return times >= Prices.MaxSwingTimes || times <= 1.0 / Prices.MaxSwingTimes;
     }));
 
+        var weak = world.Countries.Count(c => c.ExchangeRate > Money.FromWhole(2));
     Console.WriteLine($"{year,3} {gdp,14:F2} трлн {100.0 * rails / (world.Countries.Count * goods.Length),9:F1}% " +
-                      $"{top,17:P0} {broke,17}");
+                      $"{top,17:P0} {broke,17} {weak,12}");
 }
 
 Report(1, worldGdp);
@@ -259,13 +260,13 @@ for (var year = 2; year <= 5; year++)
 
 Console.WriteLine();
 Console.WriteLine("Кто держит деньги через пять лет:");
-foreach (var country in world.Countries.OrderByDescending(c => c.State.Treasury.Balance.Raw).Take(6))
+foreach (var country in world.Countries.OrderByDescending(c => c.State.Treasury.Reserves.Value.Raw).Take(6))
 {
-    Console.WriteLine($"  {country.Iso} {country.State.Treasury.Balance.Exact / 1e9,8:F2} трлн " +
-                      $"(на старте по данным {(world.Countries.Sum(x => x.State.Treasury.Balance.Exact) / 1e9):F2} на всех)");
+    Console.WriteLine($"  {country.Iso} {country.State.Treasury.Reserves.Value.Exact / 1e9,8:F2} трлн, " +
+                      $"курс ×{country.ExchangeRate.Exact:F2}");
 }
 
-var median = world.Countries.Select(c => c.State.Treasury.Balance.Exact).OrderBy(x => x).ElementAt(100);
+var median = world.Countries.Select(c => c.State.Treasury.Reserves.Value.Exact).OrderBy(x => x).ElementAt(100);
 Console.WriteLine($"  медиана: {median / 1e6:F0} млн $");
 
 // --- Ж. Опыт: что если деньги не кончаются -----------------------------------------
@@ -275,7 +276,11 @@ Console.WriteLine();
 Console.WriteLine("=== Ж. Тот же мир, но деньги не кончаются ===");
 
 var rich = Load();
-foreach (var country in rich.Countries) country.State.Treasury.Receive(Money.FromWhole(1_000_000_000));
+foreach (var country in rich.Countries)
+{
+    country.State.Treasury.Reserves.Add(ReserveKind.ForeignCurrency, WorldMarket.WorldIssuer,
+        Money.FromWhole(1_000_000_000));
+}
 
 var richSim = new Simulation(rich);
 var richConstant = new Prices(goods.ToDictionary(good => good, rich.Market.Prices.Of));

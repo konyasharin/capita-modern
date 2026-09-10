@@ -23,8 +23,10 @@ public static class WorldDataLoader
         var consumption = LoadConsumptionFile(consumptionJson).UnitPerMillionPeople;
         var startPrices = LoadPricesFile(pricesJson).Prices;
         var reserves = LoadReservesFile(reservesJson);
+        var goodDtos = JsonReader.Read<GoodDto[]>(goodsJson);
         var elasticity = new Elasticity(
-            JsonReader.Read<GoodDto[]>(goodsJson).ToDictionary(dto => dto.Id, dto => dto.Elasticity));
+            goodDtos.ToDictionary(dto => dto.Id, dto => dto.DemandElasticity),
+            goodDtos.ToDictionary(dto => dto.Id, dto => dto.SupplyElasticity));
         var startBuildings = LoadStartBuildingsFile(startBuildingsJson).StartBuildings;
         var countriesFile = LoadCountriesFile(countriesJson);
         var regionsFile = LoadRegionsFile(regionsJson);
