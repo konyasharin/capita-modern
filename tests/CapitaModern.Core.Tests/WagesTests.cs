@@ -28,7 +28,7 @@ public class WagesTests
             [country],
             Build.Catalog(Build.Info(Farm, outputs: new() { [GoodType.Food] = Build.Whole(10) },
                 sector: Sector.Mining)),
-            new Dictionary<GoodType, GoodAmount> { [GoodType.Food] = Build.Whole(2) },
+            new Needs(new Dictionary<GoodType, GoodAmount> { [GoodType.Food] = Build.Whole(2) }),
             Build.Market(),
             new Elasticity());
     }

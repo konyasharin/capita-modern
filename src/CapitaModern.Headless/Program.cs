@@ -486,3 +486,17 @@ Console.WriteLine($"Местных денег в мире: у казны {world.
                   $"у населения {world.Countries.Sum(c => c.Households.Savings.Exact) / 1e9:F1} трлн");
 Console.WriteLine($"Стран с дефицитом бюджета: {world.Countries.Count(c => simulation.BudgetOf(c.Id).Raw < 0)}");
 Console.WriteLine($"Стран, где казна пуста: {world.Countries.Count(c => c.State.Treasury.Balance.Raw == 0)}");
+
+// --- М. Коэффициент Энгеля: доля еды в расходах ------------------------------------
+Console.WriteLine();
+Console.WriteLine("=== М. Коэффициент Энгеля ===");
+Console.WriteLine("страна   у нас   в жизни");
+
+foreach (var (iso, real2020) in new[] { ("USA", 6.7), ("DEU", 11.0), ("CHN", 22.0), ("IND", 30.0), ("NGA", 56.0) })
+{
+    var id = world.Countries.First(c => c.Iso == iso).Id;
+    Console.WriteLine($"{iso}   {simulation.EngelOf(id),5}% {real2020,8:F1}%");
+}
+
+Console.WriteLine();
+Console.WriteLine($"Курс на полу коридора: {world.Countries.Count(c => c.ExchangeRate.Exact <= 0.02)} стран");

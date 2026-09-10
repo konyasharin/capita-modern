@@ -24,7 +24,8 @@ public static class WorldDataLoader
         string efficiencyJson,
         string moneySupplyJson)
     {
-        var consumption = LoadConsumptionFile(consumptionJson).UnitPerMillionPeople;
+        var consumptionFile = LoadConsumptionFile(consumptionJson);
+        var needs = new Needs(consumptionFile.UnitPerMillionPeople, consumptionFile.IncomeElasticity);
         var startPrices = LoadPricesFile(pricesJson).Prices;
         var reserves = LoadReservesFile(reservesJson);
         var keyRates = JsonReader.Read<KeyRatesFile>(keyRatesJson);
@@ -88,7 +89,7 @@ public static class WorldDataLoader
             country => country.Id,
             country => blocs.ByIso.GetValueOrDefault(country.Iso, Bloc.NonAligned)));
 
-        return new GameWorld(regions, countries, buildingCatalog, consumption,
+        return new GameWorld(regions, countries, buildingCatalog, needs,
             new WorldMarket(new Prices(startPrices)), elasticity, relations, efficiency);
     }
 

@@ -25,8 +25,8 @@ public sealed class GameWorld
     /// <summary>Насколько хорошо страна умеет производить. Вся разница в
     /// производительности между странами лежит здесь: завод везде одинаковый.</summary>
     public Efficiency Efficiency { get; }
-    /// <summary>Сколько товара население съедает за сутки на миллион человек.</summary>
-    public readonly IReadOnlyDictionary<GoodType, GoodAmount> Consumption;
+    /// <summary>Что и сколько нужно населению. Зависит от дохода, а не только от числа душ.</summary>
+    public readonly Needs Needs;
 
     private readonly Region[] _regions;
     private readonly Country[] _countries;
@@ -38,7 +38,7 @@ public sealed class GameWorld
         Region[] regions,
         Country[] countries,
         BuildingCatalog buildings,
-        IReadOnlyDictionary<GoodType, GoodAmount> consumption,
+        Needs needs,
         WorldMarket market,
         Elasticity elasticity,
         Relations? relations = null,
@@ -49,7 +49,7 @@ public sealed class GameWorld
         Elasticity = elasticity;
         Relations = relations ?? new Relations();
         Efficiency = efficiency ?? new Efficiency();
-        Consumption = consumption;
+        Needs = needs;
         _regions = regions;
         _countries = countries;
 

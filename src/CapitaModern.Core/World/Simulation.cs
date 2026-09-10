@@ -197,9 +197,12 @@ public sealed class Simulation
         foreach (var country in _world.Countries)
         {
             var weight = country.Priorities.WeightOf(Sector.People);
-            foreach (var (good, ratePerMillion) in _world.Consumption)
+            var capacity = CapacityOf(country);
+
+            foreach (var (good, _) in _world.Needs.BaseRates)
             {
-                var wanted = ratePerMillion * _world.PopulationOf(country.Id).Whole / 1_000_000;
+                var wanted = _world.Needs.PerMillion(good, capacity) *
+                    _world.PopulationOf(country.Id).Whole / 1_000_000;
                 _peopleWants.Add(country.Id, good, wanted);
                 _inputs.Add(country.Id, good, wanted);
                 _claims.Add(country.Id, good, wanted * weight / Priorities.NormalWeight);
@@ -497,6 +500,29 @@ public sealed class Simulation
         }
     }
 
+    /// <summary>Сколько базовых корзин покупает дневной доход, в сотых.</summary>
+    /// <remarks>Считается в корзинах, а не в деньгах: так не нужен курс. Сравнивать
+    /// доходы разных стран через него сейчас нельзя — он сам сломан, и вышел бы круг.
+    ///
+    /// В первый тик зарплат ещё не платили, доход нулевой — выходит обычная нужда, и это
+    /// верно: голодают не оттого, что перехотели, а оттого, что не на что купить.</remarks>
+    private int CapacityOf(Country country)
+    {
+        var basket = default(Money);
+        foreach (var (good, rate) in _world.Needs.BaseRates)
+        {
+            basket += country.State.Prices.CostOf(good, rate);
+        }
+
+        var people = _world.PopulationOf(country.Id).Whole;
+        if (basket.Raw <= 0 || people <= 0) return Needs.Scale;
+
+        // Корзина посчитана на миллион человек, фонд оплаты — на всю страну.
+        var capacity = (Int128)country.Payroll.Raw * 1_000_000 * Needs.Scale / ((Int128)basket.Raw * people);
+
+        return (int)Int128.Clamp(capacity, Needs.MinCapacity, Needs.MaxCapacity);
+    }
+
     private void CollectAvailable()
     {
         foreach (var country in _world.Countries)
@@ -576,6 +602,8 @@ public sealed class Simulation
 
             country.Households.Earn(paid);
             _wages[country.Id] = paid;
+
+            country.Payroll = paid;
         }
     }
 
@@ -631,6 +659,26 @@ public sealed class Simulation
     /// <summary>Бюджет за прошедший тик: выручка с населения минус зарплаты.</summary>
     public Money BudgetOf(byte country) =>
         _sales.GetValueOrDefault(country) - _wages.GetValueOrDefault(country);
+
+    /// <summary>Доля еды в расходах населения, в сотых. Коэффициент Энгеля: чем беднее
+    /// страна, тем он выше, и это самая надёжная проверка уровня жизни — величина
+    /// безразмерная и измерена по всему миру.</summary>
+    public int EngelOf(byte country)
+    {
+        var capacity = CapacityOf(_world.CountryById(country));
+        var prices = _world.CountryById(country).State.Prices;
+
+        var all = default(Money);
+        var food = default(Money);
+        foreach (var (good, _) in _world.Needs.BaseRates)
+        {
+            var cost = prices.CostOf(good, _world.Needs.PerMillion(good, capacity));
+            all += cost;
+            if (good == GoodType.Food) food = cost;
+        }
+
+        return all.Raw > 0 ? (int)(food.Raw * 100 / all.Raw) : 0;
+    }
 
     /// <summary>Сколько всего заплачено зарплат за тик.</summary>
     public Money WagesIn(byte country) => _wages.GetValueOrDefault(country);

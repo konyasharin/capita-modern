@@ -74,7 +74,7 @@ public class EfficiencyTests
                 [Build.Country(owner)],
                 Build.Catalog(Build.Info(BuildingType.CoalMine,
                     outputs: new() { [GoodType.Coal] = Build.Whole(10) }, workers: 10_000)),
-                new Dictionary<GoodType, GoodAmount>(),
+                new Needs(new Dictionary<GoodType, GoodAmount>()),
                 Build.Market(),
                 new Elasticity(),
                 null,

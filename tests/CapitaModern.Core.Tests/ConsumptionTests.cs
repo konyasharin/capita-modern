@@ -27,7 +27,7 @@ public class ConsumptionTests
             [Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Food] = Build.Whole(foodInStock) },
                 weights, savings: 1_000_000_000)],
             Build.Catalog(Build.Info(Farm, outputs: new() { [GoodType.Food] = Build.Whole(1) }, sector: Sector.Mining)),
-            rate ?? Rate,
+            new Needs(rate ?? Rate),
             Build.Market(),
             new Elasticity());
 
@@ -118,7 +118,7 @@ public class ConsumptionTests
                 inputs: new() { [GoodType.Food] = Build.Whole(2) },
                 outputs: new() { [GoodType.ConsumerGoods] = Build.Whole(1) },
                 sector: Sector.Civil)),
-            Rate,
+            new Needs(Rate),
             Build.Market(),
             new Elasticity());
 
@@ -147,7 +147,7 @@ public class ConsumptionTests
                 inputs: new() { [GoodType.Food] = Build.Whole(2) },
                 outputs: new() { [GoodType.ConsumerGoods] = Build.Whole(1) },
                 sector: Sector.Civil)),
-            Rate,
+            new Needs(Rate),
             Build.Market(),
             new Elasticity());
 

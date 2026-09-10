@@ -64,7 +64,7 @@ internal static class Build
         Dictionary<GoodType, Money>? marketPrices = null,
         Dictionary<GoodType, int>? demand = null,
         Dictionary<GoodType, int>? supply = null) =>
-        new(regions, countries, catalog, new Dictionary<GoodType, GoodAmount>(),
+        new(regions, countries, catalog, new Needs(new Dictionary<GoodType, GoodAmount>()),
             Market(marketPrices), new Elasticity(demand, supply));
 
     public static Country Country(
