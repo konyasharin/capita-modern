@@ -1,4 +1,4 @@
-using CapitaModern.Core.Buildings;
+﻿using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
 using CapitaModern.Core.Politics;
 using CapitaModern.Core.World;
@@ -349,7 +349,13 @@ public class CreditTests
         for (var tick = 0; tick < 2000; tick++) simulation.Tick();
 
         Assert.True(poor.DefaultedOnDay > 0, "безнадёжный должник так и не отказался платить");
-        Assert.True(poor.ExchangeRate > Money.FromWhole(2), "курс после отказа не обвалился");
+
+        // Отказ списывает внешний долг и закрывает рынок на пять лет: занять снова он
+        // не может, сколько бы ни просил.
+        var owedAfter = poor.State.Treasury.Debt.Owed(LoanSource.Foreign);
+        for (var tick = 0; tick < 100; tick++) simulation.Tick();
+
+        Assert.Equal(owedAfter, poor.State.Treasury.Debt.Owed(LoanSource.Foreign));
     }
 
     /// <summary>Долг не создаёт денег: сколько в мире было, столько и осталось.</summary>

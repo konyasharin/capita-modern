@@ -93,6 +93,19 @@ public sealed class Prices
     private void Apply(GoodType good, long under, long over) =>
         _values[good] = Clamped(good, Drift.Step(Of(good).Raw, under, over, StepPercent));
 
+    /// <summary>Двигает все цены разом, не меняя их между собой.</summary>
+    /// <remarks>Этим правит общий уровень цен: относительные задаёт покрытие, а во
+    /// сколько раз дорого всё вместе — деньги.</remarks>
+    public void Rescale(long times, long by)
+    {
+        if (by <= 0 || times == by) return;
+
+        foreach (var good in _values.Keys.ToArray())
+        {
+            _values[good] = Clamped(good, (long)((Int128)_values[good].Raw * times / by));
+        }
+    }
+
     /// <summary>Разовый сдвиг от события: эмбарго, удар по заводу, паника.</summary>
     /// <remarks>В жизни цена улетает от новости, а не оттого, что склад просел на процент.
     /// Всё резкое идёт отсюда, а <see cref="Move"/> только сползает к равновесию.</remarks>

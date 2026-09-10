@@ -35,6 +35,13 @@ public sealed class Exchange
     private long[] _bidOf = new long[256];
     private byte[] _whoOf = new byte[256];
 
+    /// <summary>Сколько товара покупатели не взяли, потому что дешевле их собственной
+    /// цены никто не привозит. Отсюда видно, дорога ли дорога.</summary>
+    public GoodAmount Refused { get; private set; }
+
+    /// <summary>Сколько не взяли потому, что ни у кого не осталось товара.</summary>
+    public GoodAmount Empty { get; private set; }
+
     /// <summary>Сводит заявки по одному товару.</summary>
     /// <param name="delivered">Во что обойдётся единица от продавца покупателю: цена
     /// продавца плюс дорога и пошлина. Ею только выбирают, у кого брать — продавцу
@@ -99,7 +106,17 @@ public sealed class Exchange
                 }
 
                 // Ближе и дешевле никого: остальное покупатель не берёт.
-                if (best < 0 || bestPrice > orders[b].Bid) break;
+                if (best < 0)
+                {
+                    Empty += new GoodAmount(want);
+                    break;
+                }
+
+                if (bestPrice > orders[b].Bid)
+                {
+                    Refused += new GoodAmount(want);
+                    break;
+                }
 
                 var amount = Math.Min(want, left[best]);
                 var cost = new Money((long)((Int128)orders[best].Ask.Raw * amount / GoodAmount.Scale));

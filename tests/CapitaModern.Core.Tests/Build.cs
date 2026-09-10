@@ -73,9 +73,13 @@ internal static class Build
         Dictionary<Sector, int>? weights = null,
         Dictionary<GoodType, Money>? prices = null,
         long money = 0,
-        long savings = 0) =>
+        long savings = 0,
+        long supply = 0) =>
         new(id, $"country {id}", $"C{id:00}",
             new Producer(id, new Stock(stock ?? []), new Treasury(Cash(money)), new Prices(prices)),
             new Priorities(weights),
-            Money.FromWhole(savings));
+            Money.FromWhole(savings))
+        {
+            Bank = new CentralBank(Money.FromWhole(supply)),
+        };
 }

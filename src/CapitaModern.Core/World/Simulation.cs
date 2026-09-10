@@ -101,6 +101,15 @@ public sealed class Simulation
     private Money _dealValue;
     private GoodAmount _dealVolume;
 
+    /// <summary>Выпуск в стартовых ценах на первом тике. База для якоря: без неё не
+    /// сказать, во сколько раз выпуск вырос с начала партии.</summary>
+    private readonly Dictionary<byte, Money> _baseReal = new();
+
+    /// <summary>Уровень цен страны и мира с прошлого тика. Курс считается до выпуска,
+    /// поэтому берёт вчерашние: сутки задержки здесь ничего не решают.</summary>
+    private readonly Dictionary<byte, int> _level = new();
+    private int _worldLevel = PriceLevel.Scale;
+
     /// <summary>Спрос стройки отдельно от заводского. Заводы держат сорокадневный запас
     /// сырья, а стройка съедает своё в тот же тик: цемент впрок не закупают.</summary>
     private readonly Tally<GoodType, GoodAmount> _build = new();
@@ -174,6 +183,7 @@ public sealed class Simulation
         FeedPeople();
         Store();
         MovePrices();
+        AnchorPrices();
         Wear();
         Build();
         UpdateDemographics();
@@ -389,12 +399,80 @@ public sealed class Simulation
         PayTransit(deal.Buyer, deal.Seller, deal.Paid);
     }
 
+    /// <summary>Держит общий уровень цен у количества денег на единицу выпуска.</summary>
+    /// <remarks>Относительные цены не трогаются: их задало покрытие в <see cref="MovePrices"/>,
+    /// здесь двигается только уровень — все цены страны разом и в одну сторону.</remarks>
+    private void AnchorPrices()
+    {
+        var nominalWorld = default(Money);
+        var realWorld = default(Money);
+
+        foreach (var country in _world.Countries)
+        {
+            var (nominal, real) = OutputValue(country);
+            if (real.Raw <= 0) continue;
+
+            nominalWorld += nominal;
+            realWorld += real;
+
+            var level = PriceLevel.Of(nominal, real);
+            _level[country.Id] = level;
+
+            // Своих денег нет — нет и центробанка, тянуть уровень нечем.
+            var supply = country.Bank.Supply;
+            if (supply.Raw <= 0) continue;
+
+            if (!_baseReal.TryGetValue(country.Id, out var realBefore))
+            {
+                _baseReal[country.Id] = real;
+                continue;
+            }
+
+            // Уровень не подталкивается на долю перекоса, а приравнивается деньгам:
+            // покрытие двигает свои цены полным шагом, и подталкивание ему проигрывало.
+            // Ограничена только скорость — не больше шага за тик, чтобы не прыгало.
+            var want = PriceLevel.Target(supply, supply - country.Bank.Printed, real, realBefore);
+            var step = Math.Clamp(
+                want,
+                level * (100 - Prices.StepPercent) / 100,
+                level * (100 + Prices.StepPercent) / 100);
+
+            country.State.Prices.Rescale(step, level);
+        }
+
+        _worldLevel = PriceLevel.Of(nominalWorld, realWorld);
+    }
+
+    /// <summary>Выпуск страны в своих ценах и в стартовых. Из их отношения выходит
+    /// уровень цен, из знаменателя — реальный рост.</summary>
+    private (Money Nominal, Money Real) OutputValue(Country country)
+    {
+        var prices = country.State.Prices;
+        var nominal = default(Money);
+        var real = default(Money);
+
+        foreach (var good in AllGoods)
+        {
+            var made = _outputs.Get(country.Id, good);
+            if (made.Raw == 0) continue;
+
+            nominal += prices.CostOf(good, made);
+            real += new Money((long)((Int128)prices.StartOf(good).Raw * made.Raw / GoodAmount.Scale));
+        }
+
+        return (nominal, real);
+    }
+
     /// <summary>Сколько людей заняты на производстве в стране прямо сейчас.</summary>
     public long EmployedIn(byte country) =>
         Math.Min(_jobs.GetValueOrDefault(country), _world.WorkersOf(country));
 
     /// <summary>Сколько людей просят предприятия. Больше занятых — значит рук не хватает.</summary>
     public long JobsIn(byte country) => _jobs.GetValueOrDefault(country);
+
+    /// <summary>Сколько мир не купил из-за дорогой доставки и сколько — из-за того, что
+    /// товара ни у кого не осталось.</summary>
+    public (GoodAmount Refused, GoodAmount Empty) UnfilledBids => (_exchange.Refused, _exchange.Empty);
 
     /// <summary>Что мир выпустил за прошедший тик.</summary>
     public GoodAmount WorldOutputOf(GoodType good) => WorldSum(_outputs, good);
@@ -555,7 +633,10 @@ public sealed class Simulation
 
             debt.Default(LoanSource.Foreign);
             country.DefaultedOnDay = _day;
-            country.MoveRate(country.ExchangeRate * 2);
+
+            // Курс здесь не трогается. Раньше отказ его удваивал, но курс теперь держит
+            // паритет, и через несколько тиков он этот сдвиг откручивал. Валюта обвалится
+            // сама, когда обвал будет чему держать: подорожавшему в местных деньгах ввозу.
         }
     }
 
@@ -576,8 +657,19 @@ public sealed class Simulation
             var outflow = ImportsOf(country.Id) + _capitalOut.GetValueOrDefault(country.Id);
             var inflow = ExportsOf(country.Id) + _capitalIn.GetValueOrDefault(country.Id);
 
+            // Две силы на одно число. Паритет — куда курс тянет разница уровней цен: у
+            // кого цены выросли вдвое против мира, у того и валюта вдвое дешевле. Сальдо —
+            // отклонение от паритета, а не весь курс: иначе курс уезжал бы куда угодно,
+            // лишь бы баланс сходился.
+            var rate = country.ExchangeRate.Raw;
+            if (_level.TryGetValue(country.Id, out var level) && _worldLevel > 0)
+            {
+                var parity = Money.FromWhole(1).Raw * (long)level / _worldLevel;
+                rate = Drift.Step(rate, parity - rate, parity + rate, Prices.StepPercent);
+            }
+
             country.MoveRate(new Money(Drift.Step(
-                country.ExchangeRate.Raw, outflow.Raw - inflow.Raw, outflow.Raw + inflow.Raw, Prices.StepPercent)));
+                rate, outflow.Raw - inflow.Raw, outflow.Raw + inflow.Raw, Prices.StepPercent)));
         }
     }
 

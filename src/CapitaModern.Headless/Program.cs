@@ -202,6 +202,11 @@ var worldExport = exports.Values.Aggregate(default(Money), (a, b) => a + b).Exac
 Console.WriteLine();
 Console.WriteLine($"Мир: реальный ВВП {worldGdp:F2} трлн (в жизни 84.9 трлн)");
 Console.WriteLine($"     товарный экспорт {worldExport:F2} трлн (в жизни 17.6 трлн)");
+
+var (refused, empty) = simulation.UnfilledBids;
+var askedTotal = refused + empty;
+Console.WriteLine($"     не куплено за год: дорога доставка {refused.Exact / 1e9:F1} млрд ед., " +
+    $"нет товара {empty.Exact / 1e9:F1} млрд ед.");
 Console.WriteLine($"     денег в мире {world.Countries.Sum(c => c.State.Treasury.Reserves.Value.Exact) / 1e9:F2} трлн " +
                   $"(на старте {startMoney / 1e9:F2})");
 
