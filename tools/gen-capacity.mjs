@@ -12,9 +12,10 @@
 // товар со своим потребителем не получит целевой запас. Считается по кругу: больше
 // заводов — больше расход их собственного сырья, значит и его надо нарастить.
 //
-// Чего не трогает. Излишки не режет: у Timber, Materials, электричества и военного
-// нет потребителя не потому, что их много, а потому что стройки, услуг и армии ещё
-// нет. Урезать их сейчас — ломать то, что скоро понадобится.
+// Излишки теперь режет, но только у товаров с настоящим потребителем. Раньше не резал:
+// у материалов и электричества спроса не было не потому, что их много, а потому что
+// стройки и услуг ещё не существовало. Теперь они есть, и лишнее — это правда лишнее.
+// Военное по-прежнему не трогается: армии всё ещё нет.
 //
 // Занятость сохраняется: сколько прибавилось предприятий, во столько же раз убавилось
 // рабочих на каждом. Предприятие у нас — условная единица мощности, привязаны к жизни
@@ -54,6 +55,10 @@ const counts = Object.fromEntries(
 	Object.entries(production.types).map(([type, info]) => [type, info.world])
 )
 
+/** Во сколько стройка больше простой замены. В жизни валовые вложения около 25% ВВП, а
+ *  потребление капитала 15%: разница — рост, и материалы на него тоже нужны. */
+const GROSS_TO_REPLACEMENT = 1.67
+
 function balance() {
 	const made = {}
 	const used = {}
@@ -63,7 +68,7 @@ function balance() {
 		for (const [good, amount] of Object.entries(b.inputs)) used[good] = (used[good] ?? 0) + n * amount
 
 		// Стройка — такой же потребитель: мир ежегодно заменяет капитал за срок службы.
-		const rebuilt = n / ((b.lifeYears ?? 20) * 365)
+		const rebuilt = n * GROSS_TO_REPLACEMENT / ((b.lifeYears ?? 20) * 365)
 		for (const [good, amount] of Object.entries(b.buildCost ?? {})) {
 			used[good] = (used[good] ?? 0) + rebuilt * amount
 		}
@@ -83,11 +88,15 @@ for (; rounds < 200; rounds++) {
 		if (need <= 0 || out <= 0) continue
 
 		const required = need * (1 + TARGET_SLACK)
-		if (out >= required - 1e-9) continue
+		if (Math.abs(out / required - 1) < 0.01) continue
 
-		const factor = required / out
-		for (const plant of plants) counts[plant.type] *= factor
-		moved = true
+		// Вверх — всегда, вниз — только если излишек больше чем вдвое: небольшой запас
+		// сверх цели полезен, а вдвое лишние мощности это просто ошибка калибровки.
+		if (out < required || out > required * 2) {
+			const factor = required / out
+			for (const plant of plants) counts[plant.type] *= factor
+			moved = true
+		}
 	}
 
 	if (!moved) break

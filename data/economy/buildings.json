@@ -9,7 +9,7 @@
 		"outputs": {
 			"Coal": 0.2
 		},
-		"optimalWorkers": 40,
+		"optimalWorkers": 25,
 		"buildCost": {
 			"Materials": 70.08,
 			"Metals": 3.75
@@ -27,7 +27,7 @@
 		"outputs": {
 			"Oil": 0.15
 		},
-		"optimalWorkers": 13,
+		"optimalWorkers": 7,
 		"buildCost": {
 			"Materials": 269.81,
 			"Metals": 14.45
@@ -45,7 +45,7 @@
 		"outputs": {
 			"Gas": 0.18
 		},
-		"optimalWorkers": 13,
+		"optimalWorkers": 10,
 		"buildCost": {
 			"Materials": 105.12,
 			"Metals": 5.63
@@ -63,7 +63,7 @@
 		"outputs": {
 			"IronOre": 0.2
 		},
-		"optimalWorkers": 12,
+		"optimalWorkers": 7,
 		"buildCost": {
 			"Materials": 128.48,
 			"Metals": 6.88
@@ -99,7 +99,7 @@
 		"outputs": {
 			"Bauxite": 0.12
 		},
-		"optimalWorkers": 11,
+		"optimalWorkers": 7,
 		"buildCost": {
 			"Materials": 21.02,
 			"Metals": 1.13
@@ -117,7 +117,7 @@
 		"outputs": {
 			"Uranium": 0.02
 		},
-		"optimalWorkers": 3,
+		"optimalWorkers": 2,
 		"buildCost": {
 			"Materials": 7.71,
 			"Metals": 0.41
@@ -153,7 +153,7 @@
 		"outputs": {
 			"Timber": 0.15
 		},
-		"optimalWorkers": 50,
+		"optimalWorkers": 25,
 		"buildCost": {
 			"Materials": 87.6,
 			"Metals": 4.69
@@ -191,7 +191,7 @@
 		"outputs": {
 			"Electricity": 0.2
 		},
-		"optimalWorkers": 45,
+		"optimalWorkers": 27,
 		"buildCost": {
 			"Materials": 57.23,
 			"Metals": 3.07
@@ -211,7 +211,7 @@
 		"outputs": {
 			"Electricity": 0.2
 		},
-		"optimalWorkers": 35,
+		"optimalWorkers": 21,
 		"buildCost": {
 			"Materials": 70.08,
 			"Metals": 3.75
@@ -231,7 +231,7 @@
 		"outputs": {
 			"Electricity": 0.4
 		},
-		"optimalWorkers": 67,
+		"optimalWorkers": 41,
 		"buildCost": {
 			"Materials": 225.89,
 			"Metals": 12.1
@@ -249,7 +249,7 @@
 		"outputs": {
 			"Electricity": 0.25
 		},
-		"optimalWorkers": 22,
+		"optimalWorkers": 13,
 		"buildCost": {
 			"Materials": 146,
 			"Metals": 7.82
@@ -270,7 +270,7 @@
 		"outputs": {
 			"Fuel": 0.1
 		},
-		"optimalWorkers": 8,
+		"optimalWorkers": 5,
 		"buildCost": {
 			"Materials": 71.25,
 			"Metals": 3.82
@@ -292,7 +292,7 @@
 		"outputs": {
 			"Metals": 0.1
 		},
-		"optimalWorkers": 40,
+		"optimalWorkers": 25,
 		"buildCost": {
 			"Materials": 279.74,
 			"Metals": 14.99
@@ -314,7 +314,7 @@
 		"outputs": {
 			"Metals": 0.08
 		},
-		"optimalWorkers": 97,
+		"optimalWorkers": 60,
 		"buildCost": {
 			"Materials": 102.4,
 			"Metals": 5.49
@@ -358,7 +358,7 @@
 		"outputs": {
 			"Materials": 0.12
 		},
-		"optimalWorkers": 10,
+		"optimalWorkers": 5,
 		"buildCost": {
 			"Materials": 61.32,
 			"Metals": 3.29

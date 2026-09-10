@@ -40,7 +40,8 @@ for (const b of buildings) {
 // ежегодно заменяет капитал целиком за срок его службы: капитал стоит три годовых
 // выпуска, вкладывают четверть выпуска, значит служит он двенадцать лет.
 for (const b of buildings) {
-	const perYear = world[b.type].world / (b.lifeYears ?? 20)
+	// Валовые вложения в жизни в полтора раза больше износа: разница это рост.
+	const perYear = world[b.type].world * 1.67 / (b.lifeYears ?? 20)
 	for (const [good, amount] of Object.entries(b.buildCost ?? {})) {
 		used[good] = (used[good] ?? 0) + perYear * amount
 	}

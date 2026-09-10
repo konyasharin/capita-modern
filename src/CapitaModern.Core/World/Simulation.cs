@@ -92,6 +92,15 @@ public sealed class Simulation
     /// поэтому дробная часть копится.</summary>
     private readonly Dictionary<int, int> _decay = new();
 
+    /// <summary>Спрос стройки отдельно от заводского. Заводы держат сорокадневный запас
+    /// сырья, а стройка съедает своё в тот же тик: цемент впрок не закупают.</summary>
+    private readonly Tally<GoodType, GoodAmount> _build = new();
+
+    /// <summary>Что страна собралась строить в этот тик. Решается вместе со спросом,
+    /// чтобы стройку видели и цена, и мировой рынок: без этого главный потребитель
+    /// материалов не создавал спроса, и они лежали на полу у 196 стран.</summary>
+    private readonly Dictionary<byte, (BuildingType Type, Region Where, int Count)> _plan = new();
+
     /// <summary>Отложенные на стройку деньги. Завод стоит три своих годовых выпуска,
     /// за тик такого не накопить — поэтому копится.</summary>
     private readonly Dictionary<byte, Money> _investment = new();
@@ -107,9 +116,10 @@ public sealed class Simulation
     /// <summary>Список типов построек: перебирается каждый тик при выборе стройки.</summary>
     private static readonly BuildingType[] AllBuildings = Enum.GetValues<BuildingType>();
 
-    /// <summary>Сколько заводов страна ставит за тик. Предел от бесконечного цикла, а не
-    /// от смысла: обычно упираются в отложенное или в материалы куда раньше.</summary>
-    private const int MaxBuildsPerTick = 8;
+    /// <summary>Сколько единиц страна ставит за тик. Предел от бесконечного цикла, а не
+    /// от смысла: упираются обычно в отложенное или в материалы куда раньше. Единица
+    /// мощности мелкая, поэтому и предел высокий — миру нужно около двухсот тысяч в год.</summary>
+    private const int MaxBuildsPerTick = 500;
 
     /// <summary>Во сколько долей считается износ. Целыми заводами он осыпается редко,
     /// а сроки службы у типов разные — без общей доли их не сложить.</summary>
@@ -140,6 +150,7 @@ public sealed class Simulation
         _day++;
         Prepare();
         CollectInputs();
+        PlanBuilds();
         CountHands();
         Trade();
         NoteTrade();
@@ -173,6 +184,8 @@ public sealed class Simulation
         _hands.Clear();
         _wages.Clear();
         _sales.Clear();
+        _build.Clear();
+        _plan.Clear();
         _capitalIn.Clear();
         _capitalOut.Clear();
         _imported.Clear();
@@ -266,9 +279,13 @@ public sealed class Simulation
                 // Норма запаса сама зависит от цены: дёшево — держат больше, дорого —
                 // живут с колёс. Без этого страна с полными складами не купит ничего
                 // ни при какой дешевизне, и курс уезжает до упора вместо равновесия.
+                // Запас держат под заводы и людей; стройке нужно ровно на сегодня.
+                var forBuilding = _build.Get(country.Id, good);
+                var flow = _inputs.Get(country.Id, good) - forBuilding;
+
                 var target = Elasticity.Adjust(
                     _world.Elasticity.Demand(good),
-                    new GoodAmount(Prices.TargetCoverDays * _inputs.Get(country.Id, good).Raw),
+                    new GoodAmount(Prices.TargetCoverDays * flow.Raw + forBuilding.Raw),
                     local,
                     usual,
                     Elasticity.MinStockFactor,
@@ -553,6 +570,53 @@ public sealed class Simulation
         var capacity = (Int128)country.Payroll.Raw * 1_000_000 * Needs.Scale / ((Int128)basket.Raw * people);
 
         return (int)Int128.Clamp(capacity, Needs.MinCapacity, Needs.MaxCapacity);
+    }
+
+    /// <summary>Решает, что строить, и заявляет это как спрос наравне с заводами.</summary>
+    private void PlanBuilds()
+    {
+        foreach (var country in _world.Countries)
+        {
+            var purse = _investment.GetValueOrDefault(country.Id);
+            var best = BestBuild(country, purse);
+            if (best is null) continue;
+
+            var info = _world.Buildings[best.Value.Type];
+            var price = Construction.CostOf(info.BuildCost, country.State.Prices) + WagesFor(country, info);
+            if (price.Raw <= 0) continue;
+
+            // Копить больше, чем на пару единиц, незачем: не найдя материалов, страна
+            // накапливала бы на сотни и заявляла спрос, которого мир не выдержит.
+            var ceiling = new Money(price.Raw * MaxBuildsPerTick);
+            if (purse > ceiling) _investment[country.Id] = purse = ceiling;
+
+            var count = (int)(purse.Raw / price.Raw);
+            if (count <= 0) continue;
+
+            _plan[country.Id] = (best.Value.Type, best.Value.Where, count);
+
+            var weight = country.Priorities.WeightOf(info.Sector);
+            foreach (var (good, amount) in info.BuildCost)
+            {
+                var wanted = amount * count;
+                _inputs.Add(country.Id, good, wanted);
+                _build.Add(country.Id, good, wanted);
+                _claims.Add(country.Id, good, wanted * weight / Priorities.NormalWeight);
+            }
+
+            // Строители — такие же рабочие руки и конкурируют с заводами за людей.
+            _jobs[country.Id] = _jobs.GetValueOrDefault(country.Id) +
+                (long)info.BuildWorkers * count * Efficiency.Scale /
+                _world.Efficiency.Of(country.Id, info.Sector);
+        }
+    }
+
+    /// <summary>Во что обойдётся работа строителей по местной зарплате.</summary>
+    private Money WagesFor(Country country, Buildings.BuildingInfo info)
+    {
+        if (country.Payroll.Raw <= 0) return default;
+
+        return new Money(country.Payroll.Raw / Math.Max(1, EmployedIn(country.Id)) * info.BuildWorkers);
     }
 
     private void CollectAvailable()
@@ -858,18 +922,27 @@ public sealed class Simulation
                     new Money(added.Raw * Construction.InvestmentShare / 100);
             }
 
-            // Пока хватает отложенного и материалов. Иначе самый выгодный тип может
-            // оказаться неподъёмным навсегда, и страна не построит вообще ничего.
-            for (var built = 0; built < MaxBuildsPerTick; built++)
-            {
-                var best = BestBuild(country, _investment.GetValueOrDefault(country.Id));
-                if (best is null) break;
+            if (!_plan.TryGetValue(country.Id, out var plan)) continue;
 
-                var info = _world.Buildings[best.Value.Type];
+            var info = _world.Buildings[plan.Type];
+            var wages = WagesFor(country, info);
+            var price = Construction.CostOf(info.BuildCost, country.State.Prices) + wages;
+
+            for (var built = 0; built < plan.Count; built++)
+            {
+                if (_investment.GetValueOrDefault(country.Id) < price) break;
                 if (!country.State.Stock.TryConsume(info.BuildCost, Load.Full)) break;
 
-                _investment[country.Id] -= Construction.CostOf(info.BuildCost, country.State.Prices);
-                best.Value.Where.AddBuildings(best.Value.Type, 1);
+                _investment[country.Id] -= price;
+                plan.Where.AddBuildings(plan.Type, 1);
+
+                // Съеденное стройкой — такой же расход, как заводское сырьё. Без этого
+                // материалы попадали бы в добавленную стоимость дважды: и когда их
+                // сделали, и когда из них построили.
+                foreach (var (good, amount) in info.BuildCost) _consumed.Add(country.Id, good, amount);
+
+                // Строителям платят, и деньги уходят в те же кошельки, что и зарплата.
+                if (country.State.Treasury.TrySpend(wages)) country.Households.Earn(wages);
             }
         }
     }
