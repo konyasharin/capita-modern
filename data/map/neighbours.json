@@ -1,0 +1,1613 @@
+{
+	"note": "Кто с кем граничит по суше и кто выходит к морю. Считается tools/gen-neighbours.mjs из world.bin: числа при соседях — сколько ячеек общей границы. Нужно маршрутам, транзиту и фронту.",
+	"byIso": {
+		"AFG": {
+			"coastal": false,
+			"neighbours": {
+				"PAK": 137,
+				"TJK": 74,
+				"IRN": 54,
+				"TKM": 46,
+				"UZB": 8,
+				"CHN": 3
+			}
+		},
+		"ALB": {
+			"coastal": true,
+			"neighbours": {
+				"GRC": 14,
+				"MKD": 9,
+				"MNE": 7,
+				"KOS": 7
+			}
+		},
+		"DZA": {
+			"coastal": true,
+			"neighbours": {
+				"MAR": 94,
+				"MLI": 89,
+				"NER": 69,
+				"LBY": 62,
+				"TUN": 57,
+				"MRT": 34,
+				"SAH": 2
+			}
+		},
+		"AND": {
+			"coastal": false,
+			"neighbours": {
+				"FRA": 3,
+				"ESP": 3
+			}
+		},
+		"AGO": {
+			"coastal": true,
+			"neighbours": {
+				"COD": 126,
+				"NAM": 75,
+				"ZMB": 57,
+				"COG": 10
+			}
+		},
+		"ATG": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"ARG": {
+			"coastal": true,
+			"neighbours": {
+				"CHL": 308,
+				"PRY": 100,
+				"BRA": 58,
+				"BOL": 42,
+				"URY": 22
+			}
+		},
+		"ARM": {
+			"coastal": false,
+			"neighbours": {
+				"AZE": 39,
+				"TUR": 17,
+				"GEO": 10,
+				"IRN": 4
+			}
+		},
+		"AUS": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"AUT": {
+			"coastal": false,
+			"neighbours": {
+				"DEU": 43,
+				"CZE": 25,
+				"ITA": 25,
+				"SVN": 19,
+				"HUN": 14,
+				"CHE": 10,
+				"SVK": 5,
+				"LIE": 1
+			}
+		},
+		"AZE": {
+			"coastal": true,
+			"neighbours": {
+				"IRN": 45,
+				"ARM": 39,
+				"GEO": 19,
+				"RUS": 18
+			}
+		},
+		"BHR": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"BGD": {
+			"coastal": true,
+			"neighbours": {
+				"IND": 119,
+				"MMR": 11
+			}
+		},
+		"BRB": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"BLR": {
+			"coastal": false,
+			"neighbours": {
+				"RUS": 68,
+				"UKR": 61,
+				"LTU": 35,
+				"POL": 21,
+				"LVA": 11
+			}
+		},
+		"BEL": {
+			"coastal": true,
+			"neighbours": {
+				"FRA": 30,
+				"NLD": 18,
+				"DEU": 8,
+				"LUX": 5
+			}
+		},
+		"BLZ": {
+			"coastal": true,
+			"neighbours": {
+				"GTM": 13,
+				"MEX": 9
+			}
+		},
+		"BEN": {
+			"coastal": true,
+			"neighbours": {
+				"NGA": 44,
+				"TGO": 34,
+				"NER": 14,
+				"BFA": 13
+			}
+		},
+		"BTN": {
+			"coastal": false,
+			"neighbours": {
+				"IND": 37,
+				"CHN": 25
+			}
+		},
+		"BOL": {
+			"coastal": false,
+			"neighbours": {
+				"BRA": 152,
+				"PER": 59,
+				"PRY": 46,
+				"CHL": 45,
+				"ARG": 42
+			}
+		},
+		"BIH": {
+			"coastal": true,
+			"neighbours": {
+				"HRV": 46,
+				"SRB": 18,
+				"MNE": 10
+			}
+		},
+		"BWA": {
+			"coastal": false,
+			"neighbours": {
+				"ZAF": 99,
+				"NAM": 77,
+				"ZWE": 49,
+				"ZMB": 1
+			}
+		},
+		"BRA": {
+			"coastal": true,
+			"neighbours": {
+				"BOL": 152,
+				"PER": 105,
+				"VEN": 95,
+				"COL": 75,
+				"PRY": 60,
+				"ARG": 58,
+				"GUY": 56,
+				"URY": 54,
+				"FRA": 29,
+				"SUR": 20
+			}
+		},
+		"BRN": {
+			"coastal": true,
+			"neighbours": {
+				"MYS": 19
+			}
+		},
+		"BGR": {
+			"coastal": true,
+			"neighbours": {
+				"ROU": 41,
+				"GRC": 25,
+				"SRB": 21,
+				"MKD": 11,
+				"TUR": 10
+			}
+		},
+		"BFA": {
+			"coastal": false,
+			"neighbours": {
+				"MLI": 64,
+				"GHA": 32,
+				"NER": 31,
+				"CIV": 25,
+				"BEN": 13,
+				"TGO": 5
+			}
+		},
+		"BDI": {
+			"coastal": false,
+			"neighbours": {
+				"TZA": 23,
+				"RWA": 15,
+				"COD": 12
+			}
+		},
+		"CPV": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"KHM": {
+			"coastal": true,
+			"neighbours": {
+				"VNM": 50,
+				"THA": 32,
+				"LAO": 27
+			}
+		},
+		"CMR": {
+			"coastal": true,
+			"neighbours": {
+				"NGA": 93,
+				"TCD": 56,
+				"CAF": 45,
+				"COG": 24,
+				"GAB": 14,
+				"GNQ": 9
+			}
+		},
+		"CAN": {
+			"coastal": true,
+			"neighbours": {
+				"USA": 586
+			}
+		},
+		"CAF": {
+			"coastal": false,
+			"neighbours": {
+				"COD": 75,
+				"TCD": 69,
+				"CMR": 45,
+				"SDS": 40,
+				"COG": 24,
+				"SDN": 21
+			}
+		},
+		"TCD": {
+			"coastal": false,
+			"neighbours": {
+				"LBY": 74,
+				"NER": 73,
+				"SDN": 72,
+				"CAF": 69,
+				"CMR": 56,
+				"NGA": 6
+			}
+		},
+		"CHL": {
+			"coastal": true,
+			"neighbours": {
+				"ARG": 308,
+				"BOL": 45,
+				"PER": 9
+			}
+		},
+		"CHN": {
+			"coastal": true,
+			"neighbours": {
+				"MNG": 337,
+				"RUS": 253,
+				"IND": 135,
+				"KAZ": 107,
+				"MMR": 87,
+				"NPL": 66,
+				"PRK": 63,
+				"KGZ": 58,
+				"VNM": 58,
+				"TJK": 27,
+				"BTN": 25,
+				"PAK": 22,
+				"LAO": 17,
+				"KAS": 5,
+				"AFG": 3,
+				"TWN": 1
+			}
+		},
+		"COL": {
+			"coastal": true,
+			"neighbours": {
+				"VEN": 119,
+				"BRA": 75,
+				"PER": 67,
+				"ECU": 29,
+				"PAN": 14
+			}
+		},
+		"COM": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"CRI": {
+			"coastal": true,
+			"neighbours": {
+				"NIC": 17,
+				"PAN": 11
+			}
+		},
+		"HRV": {
+			"coastal": true,
+			"neighbours": {
+				"BIH": 46,
+				"SVN": 20,
+				"HUN": 20,
+				"SRB": 11,
+				"ITA": 1
+			}
+		},
+		"CUB": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"CYP": {
+			"coastal": true,
+			"neighbours": {
+				"CYN": 7
+			}
+		},
+		"CZE": {
+			"coastal": false,
+			"neighbours": {
+				"DEU": 39,
+				"POL": 38,
+				"AUT": 25,
+				"SVK": 16
+			}
+		},
+		"COD": {
+			"coastal": true,
+			"neighbours": {
+				"AGO": 126,
+				"ZMB": 117,
+				"COG": 88,
+				"CAF": 75,
+				"UGA": 42,
+				"SDS": 33,
+				"TZA": 30,
+				"RWA": 12,
+				"BDI": 12
+			}
+		},
+		"DNK": {
+			"coastal": true,
+			"neighbours": {
+				"DEU": 6
+			}
+		},
+		"DJI": {
+			"coastal": true,
+			"neighbours": {
+				"ETH": 19,
+				"ERI": 5,
+				"SOL": 4
+			}
+		},
+		"DMA": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"DOM": {
+			"coastal": true,
+			"neighbours": {
+				"HTI": 11
+			}
+		},
+		"TLS": {
+			"coastal": true,
+			"neighbours": {
+				"IDN": 7
+			}
+		},
+		"ECU": {
+			"coastal": true,
+			"neighbours": {
+				"PER": 74,
+				"COL": 29
+			}
+		},
+		"EGY": {
+			"coastal": true,
+			"neighbours": {
+				"SDN": 70,
+				"LBY": 60,
+				"ISR": 13
+			}
+		},
+		"SLV": {
+			"coastal": true,
+			"neighbours": {
+				"HND": 17,
+				"GTM": 8
+			}
+		},
+		"GNQ": {
+			"coastal": true,
+			"neighbours": {
+				"GAB": 15,
+				"CMR": 9
+			}
+		},
+		"ERI": {
+			"coastal": true,
+			"neighbours": {
+				"ETH": 59,
+				"SDN": 35,
+				"DJI": 5
+			}
+		},
+		"EST": {
+			"coastal": true,
+			"neighbours": {
+				"LVA": 22,
+				"RUS": 20
+			}
+		},
+		"SWZ": {
+			"coastal": false,
+			"neighbours": {
+				"ZAF": 29,
+				"MOZ": 5
+			}
+		},
+		"ETH": {
+			"coastal": false,
+			"neighbours": {
+				"ERI": 59,
+				"SOM": 58,
+				"KEN": 55,
+				"SOL": 48,
+				"SDN": 43,
+				"SDS": 42,
+				"DJI": 19
+			}
+		},
+		"FSM": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"FJI": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"FIN": {
+			"coastal": true,
+			"neighbours": {
+				"RUS": 110,
+				"NOR": 73,
+				"SWE": 41
+			}
+		},
+		"FRA": {
+			"coastal": true,
+			"neighbours": {
+				"ESP": 34,
+				"BEL": 30,
+				"BRA": 29,
+				"SUR": 27,
+				"ITA": 25,
+				"DEU": 24,
+				"CHE": 23,
+				"LUX": 5,
+				"AND": 3,
+				"MCO": 1
+			}
+		},
+		"GAB": {
+			"coastal": true,
+			"neighbours": {
+				"COG": 88,
+				"GNQ": 15,
+				"CMR": 14
+			}
+		},
+		"GMB": {
+			"coastal": true,
+			"neighbours": {
+				"SEN": 37
+			}
+		},
+		"GEO": {
+			"coastal": true,
+			"neighbours": {
+				"RUS": 49,
+				"AZE": 19,
+				"TUR": 15,
+				"ARM": 10
+			}
+		},
+		"DEU": {
+			"coastal": true,
+			"neighbours": {
+				"AUT": 43,
+				"CZE": 39,
+				"NLD": 28,
+				"POL": 26,
+				"FRA": 24,
+				"CHE": 13,
+				"BEL": 8,
+				"DNK": 6,
+				"LUX": 6
+			}
+		},
+		"GHA": {
+			"coastal": true,
+			"neighbours": {
+				"TGO": 40,
+				"BFA": 32,
+				"CIV": 32
+			}
+		},
+		"GRC": {
+			"coastal": true,
+			"neighbours": {
+				"BGR": 25,
+				"ALB": 14,
+				"MKD": 13,
+				"TUR": 11
+			}
+		},
+		"GRD": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"GTM": {
+			"coastal": true,
+			"neighbours": {
+				"MEX": 43,
+				"BLZ": 13,
+				"HND": 13,
+				"SLV": 8
+			}
+		},
+		"GIN": {
+			"coastal": true,
+			"neighbours": {
+				"MLI": 45,
+				"SLE": 33,
+				"LBR": 28,
+				"CIV": 24,
+				"GNB": 18,
+				"SEN": 16
+			}
+		},
+		"GNB": {
+			"coastal": true,
+			"neighbours": {
+				"GIN": 18,
+				"SEN": 17
+			}
+		},
+		"GUY": {
+			"coastal": true,
+			"neighbours": {
+				"BRA": 56,
+				"SUR": 36,
+				"VEN": 35
+			}
+		},
+		"HTI": {
+			"coastal": true,
+			"neighbours": {
+				"DOM": 11
+			}
+		},
+		"HND": {
+			"coastal": true,
+			"neighbours": {
+				"NIC": 42,
+				"SLV": 17,
+				"GTM": 13
+			}
+		},
+		"HUN": {
+			"coastal": false,
+			"neighbours": {
+				"SVK": 36,
+				"ROU": 25,
+				"HRV": 20,
+				"AUT": 14,
+				"SRB": 10,
+				"UKR": 7,
+				"SVN": 2
+			}
+		},
+		"ISL": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"IND": {
+			"coastal": true,
+			"neighbours": {
+				"PAK": 164,
+				"CHN": 135,
+				"BGD": 119,
+				"NPL": 90,
+				"MMR": 72,
+				"BTN": 37,
+				"KAS": 5
+			}
+		},
+		"IDN": {
+			"coastal": true,
+			"neighbours": {
+				"MYS": 80,
+				"PNG": 38,
+				"TLS": 7
+			}
+		},
+		"IRN": {
+			"coastal": true,
+			"neighbours": {
+				"IRQ": 74,
+				"TKM": 63,
+				"AFG": 54,
+				"PAK": 50,
+				"AZE": 45,
+				"TUR": 21,
+				"ARM": 4
+			}
+		},
+		"IRQ": {
+			"coastal": true,
+			"neighbours": {
+				"IRN": 74,
+				"SAU": 62,
+				"SYR": 41,
+				"TUR": 19,
+				"KWT": 12,
+				"JOR": 9
+			}
+		},
+		"IRL": {
+			"coastal": true,
+			"neighbours": {
+				"GBR": 23
+			}
+		},
+		"ISR": {
+			"coastal": true,
+			"neighbours": {
+				"JOR": 23,
+				"EGY": 13,
+				"LBN": 6,
+				"SYR": 4
+			}
+		},
+		"ITA": {
+			"coastal": true,
+			"neighbours": {
+				"CHE": 39,
+				"AUT": 25,
+				"FRA": 25,
+				"SVN": 9,
+				"SMR": 4,
+				"VAT": 4,
+				"HRV": 1
+			}
+		},
+		"CIV": {
+			"coastal": true,
+			"neighbours": {
+				"GHA": 32,
+				"LBR": 29,
+				"BFA": 25,
+				"GIN": 24,
+				"MLI": 23
+			}
+		},
+		"JAM": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"JPN": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"JOR": {
+			"coastal": true,
+			"neighbours": {
+				"SAU": 52,
+				"SYR": 25,
+				"ISR": 23,
+				"IRQ": 9
+			}
+		},
+		"KAS": {
+			"coastal": false,
+			"neighbours": {
+				"CHN": 5,
+				"IND": 5,
+				"PAK": 4
+			}
+		},
+		"KAZ": {
+			"coastal": true,
+			"neighbours": {
+				"RUS": 453,
+				"UZB": 150,
+				"CHN": 107,
+				"KGZ": 69,
+				"TKM": 26
+			}
+		},
+		"KEN": {
+			"coastal": true,
+			"neighbours": {
+				"ETH": 55,
+				"TZA": 50,
+				"UGA": 41,
+				"SOM": 40,
+				"SDS": 14
+			}
+		},
+		"KIR": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"KOS": {
+			"coastal": false,
+			"neighbours": {
+				"SRB": 17,
+				"MKD": 9,
+				"ALB": 7,
+				"MNE": 3
+			}
+		},
+		"KWT": {
+			"coastal": true,
+			"neighbours": {
+				"SAU": 14,
+				"IRQ": 12
+			}
+		},
+		"KGZ": {
+			"coastal": false,
+			"neighbours": {
+				"KAZ": 69,
+				"CHN": 58,
+				"UZB": 57,
+				"TJK": 50
+			}
+		},
+		"LAO": {
+			"coastal": false,
+			"neighbours": {
+				"VNM": 95,
+				"THA": 91,
+				"KHM": 27,
+				"CHN": 17,
+				"MMR": 12
+			}
+		},
+		"LVA": {
+			"coastal": true,
+			"neighbours": {
+				"LTU": 39,
+				"EST": 22,
+				"RUS": 12,
+				"BLR": 11
+			}
+		},
+		"LBN": {
+			"coastal": true,
+			"neighbours": {
+				"SYR": 14,
+				"ISR": 6
+			}
+		},
+		"LSO": {
+			"coastal": false,
+			"neighbours": {
+				"ZAF": 48
+			}
+		},
+		"LBR": {
+			"coastal": true,
+			"neighbours": {
+				"CIV": 29,
+				"GIN": 28,
+				"SLE": 15
+			}
+		},
+		"LBY": {
+			"coastal": true,
+			"neighbours": {
+				"TCD": 74,
+				"DZA": 62,
+				"EGY": 60,
+				"TUN": 28,
+				"NER": 24,
+				"SDN": 19
+			}
+		},
+		"LIE": {
+			"coastal": false,
+			"neighbours": {
+				"CHE": 3,
+				"AUT": 1
+			}
+		},
+		"LTU": {
+			"coastal": true,
+			"neighbours": {
+				"LVA": 39,
+				"BLR": 35,
+				"RUS": 16,
+				"POL": 7
+			}
+		},
+		"LUX": {
+			"coastal": false,
+			"neighbours": {
+				"DEU": 6,
+				"BEL": 5,
+				"FRA": 5
+			}
+		},
+		"MDG": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"MWI": {
+			"coastal": false,
+			"neighbours": {
+				"MOZ": 86,
+				"ZMB": 44,
+				"TZA": 28
+			}
+		},
+		"MYS": {
+			"coastal": true,
+			"neighbours": {
+				"IDN": 80,
+				"THA": 23,
+				"BRN": 19
+			}
+		},
+		"MDV": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"MLI": {
+			"coastal": false,
+			"neighbours": {
+				"MRT": 117,
+				"DZA": 89,
+				"BFA": 64,
+				"NER": 47,
+				"GIN": 45,
+				"CIV": 23,
+				"SEN": 19
+			}
+		},
+		"MLT": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"MHL": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"MRT": {
+			"coastal": true,
+			"neighbours": {
+				"MLI": 117,
+				"SAH": 83,
+				"SEN": 39,
+				"DZA": 34,
+				"MAR": 1
+			}
+		},
+		"MUS": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"MEX": {
+			"coastal": true,
+			"neighbours": {
+				"USA": 168,
+				"GTM": 43,
+				"BLZ": 9
+			}
+		},
+		"MDA": {
+			"coastal": false,
+			"neighbours": {
+				"UKR": 48,
+				"ROU": 26
+			}
+		},
+		"MCO": {
+			"coastal": true,
+			"neighbours": {
+				"FRA": 1
+			}
+		},
+		"MNG": {
+			"coastal": false,
+			"neighbours": {
+				"CHN": 337,
+				"RUS": 233
+			}
+		},
+		"MNE": {
+			"coastal": true,
+			"neighbours": {
+				"BIH": 10,
+				"SRB": 10,
+				"ALB": 7,
+				"KOS": 3
+			}
+		},
+		"MAR": {
+			"coastal": true,
+			"neighbours": {
+				"DZA": 94,
+				"SAH": 84,
+				"MRT": 1
+			}
+		},
+		"MOZ": {
+			"coastal": true,
+			"neighbours": {
+				"MWI": 86,
+				"ZWE": 69,
+				"TZA": 43,
+				"ZAF": 30,
+				"ZMB": 27,
+				"SWZ": 5
+			}
+		},
+		"MMR": {
+			"coastal": true,
+			"neighbours": {
+				"THA": 99,
+				"CHN": 87,
+				"IND": 72,
+				"LAO": 12,
+				"BGD": 11
+			}
+		},
+		"NAM": {
+			"coastal": true,
+			"neighbours": {
+				"BWA": 77,
+				"AGO": 75,
+				"ZAF": 52,
+				"ZMB": 14
+			}
+		},
+		"NRU": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"NPL": {
+			"coastal": false,
+			"neighbours": {
+				"IND": 90,
+				"CHN": 66
+			}
+		},
+		"NLD": {
+			"coastal": true,
+			"neighbours": {
+				"DEU": 28,
+				"BEL": 18
+			}
+		},
+		"NZL": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"NIC": {
+			"coastal": true,
+			"neighbours": {
+				"HND": 42,
+				"CRI": 17
+			}
+		},
+		"NER": {
+			"coastal": false,
+			"neighbours": {
+				"NGA": 86,
+				"TCD": 73,
+				"DZA": 69,
+				"MLI": 47,
+				"BFA": 31,
+				"LBY": 24,
+				"BEN": 14
+			}
+		},
+		"NGA": {
+			"coastal": true,
+			"neighbours": {
+				"CMR": 93,
+				"NER": 86,
+				"BEN": 44,
+				"TCD": 6
+			}
+		},
+		"PRK": {
+			"coastal": true,
+			"neighbours": {
+				"CHN": 63,
+				"KOR": 16,
+				"RUS": 1
+			}
+		},
+		"MKD": {
+			"coastal": false,
+			"neighbours": {
+				"GRC": 13,
+				"BGR": 11,
+				"KOS": 9,
+				"ALB": 9,
+				"SRB": 4
+			}
+		},
+		"CYN": {
+			"coastal": true,
+			"neighbours": {
+				"CYP": 7
+			}
+		},
+		"NOR": {
+			"coastal": true,
+			"neighbours": {
+				"SWE": 140,
+				"FIN": 73,
+				"RUS": 16
+			}
+		},
+		"OMN": {
+			"coastal": true,
+			"neighbours": {
+				"SAU": 43,
+				"ARE": 29,
+				"YEM": 19
+			}
+		},
+		"PAK": {
+			"coastal": true,
+			"neighbours": {
+				"IND": 164,
+				"AFG": 137,
+				"IRN": 50,
+				"CHN": 22,
+				"KAS": 4
+			}
+		},
+		"PLW": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"PAN": {
+			"coastal": true,
+			"neighbours": {
+				"COL": 14,
+				"CRI": 11
+			}
+		},
+		"PNG": {
+			"coastal": true,
+			"neighbours": {
+				"IDN": 38
+			}
+		},
+		"PRY": {
+			"coastal": false,
+			"neighbours": {
+				"ARG": 100,
+				"BRA": 60,
+				"BOL": 46
+			}
+		},
+		"PER": {
+			"coastal": true,
+			"neighbours": {
+				"BRA": 105,
+				"ECU": 74,
+				"COL": 67,
+				"BOL": 59,
+				"CHL": 9
+			}
+		},
+		"PHL": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"POL": {
+			"coastal": true,
+			"neighbours": {
+				"CZE": 38,
+				"UKR": 29,
+				"SVK": 28,
+				"DEU": 26,
+				"BLR": 21,
+				"RUS": 18,
+				"LTU": 7
+			}
+		},
+		"PRT": {
+			"coastal": true,
+			"neighbours": {
+				"ESP": 67
+			}
+		},
+		"QAT": {
+			"coastal": true,
+			"neighbours": {
+				"SAU": 5
+			}
+		},
+		"SRB": {
+			"coastal": false,
+			"neighbours": {
+				"ROU": 25,
+				"BGR": 21,
+				"BIH": 18,
+				"KOS": 17,
+				"HRV": 11,
+				"HUN": 10,
+				"MNE": 10,
+				"MKD": 4
+			}
+		},
+		"COG": {
+			"coastal": true,
+			"neighbours": {
+				"COD": 88,
+				"GAB": 88,
+				"CAF": 24,
+				"CMR": 24,
+				"AGO": 10
+			}
+		},
+		"ROU": {
+			"coastal": true,
+			"neighbours": {
+				"BGR": 41,
+				"UKR": 40,
+				"MDA": 26,
+				"HUN": 25,
+				"SRB": 25
+			}
+		},
+		"RUS": {
+			"coastal": true,
+			"neighbours": {
+				"KAZ": 453,
+				"CHN": 253,
+				"MNG": 233,
+				"UKR": 115,
+				"FIN": 110,
+				"BLR": 68,
+				"GEO": 49,
+				"EST": 20,
+				"POL": 18,
+				"AZE": 18,
+				"NOR": 16,
+				"LTU": 16,
+				"LVA": 12,
+				"PRK": 1
+			}
+		},
+		"RWA": {
+			"coastal": false,
+			"neighbours": {
+				"BDI": 15,
+				"TZA": 12,
+				"COD": 12,
+				"UGA": 7
+			}
+		},
+		"KNA": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"LCA": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"VCT": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"WSM": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"SMR": {
+			"coastal": false,
+			"neighbours": {
+				"ITA": 4
+			}
+		},
+		"STP": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"SAU": {
+			"coastal": true,
+			"neighbours": {
+				"YEM": 75,
+				"IRQ": 62,
+				"JOR": 52,
+				"OMN": 43,
+				"ARE": 30,
+				"KWT": 14,
+				"QAT": 5
+			}
+		},
+		"SEN": {
+			"coastal": true,
+			"neighbours": {
+				"MRT": 39,
+				"GMB": 37,
+				"MLI": 19,
+				"GNB": 17,
+				"GIN": 16
+			}
+		},
+		"SYC": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"SLE": {
+			"coastal": true,
+			"neighbours": {
+				"GIN": 33,
+				"LBR": 15
+			}
+		},
+		"SGP": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"SVK": {
+			"coastal": false,
+			"neighbours": {
+				"HUN": 36,
+				"POL": 28,
+				"CZE": 16,
+				"UKR": 5,
+				"AUT": 5
+			}
+		},
+		"SVN": {
+			"coastal": true,
+			"neighbours": {
+				"HRV": 20,
+				"AUT": 19,
+				"ITA": 9,
+				"HUN": 2
+			}
+		},
+		"SLB": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"SOM": {
+			"coastal": true,
+			"neighbours": {
+				"ETH": 58,
+				"KEN": 40,
+				"SOL": 23
+			}
+		},
+		"SOL": {
+			"coastal": true,
+			"neighbours": {
+				"ETH": 48,
+				"SOM": 23,
+				"DJI": 4
+			}
+		},
+		"ZAF": {
+			"coastal": true,
+			"neighbours": {
+				"BWA": 99,
+				"NAM": 52,
+				"LSO": 48,
+				"MOZ": 30,
+				"SWZ": 29,
+				"ZWE": 13
+			}
+		},
+		"KOR": {
+			"coastal": true,
+			"neighbours": {
+				"PRK": 16
+			}
+		},
+		"SDS": {
+			"coastal": false,
+			"neighbours": {
+				"SDN": 115,
+				"ETH": 42,
+				"CAF": 40,
+				"COD": 33,
+				"UGA": 30,
+				"KEN": 14
+			}
+		},
+		"ESP": {
+			"coastal": true,
+			"neighbours": {
+				"PRT": 67,
+				"FRA": 34,
+				"AND": 3
+			}
+		},
+		"LKA": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"SDN": {
+			"coastal": true,
+			"neighbours": {
+				"SDS": 115,
+				"TCD": 72,
+				"EGY": 70,
+				"ETH": 43,
+				"ERI": 35,
+				"CAF": 21,
+				"LBY": 19
+			}
+		},
+		"SUR": {
+			"coastal": true,
+			"neighbours": {
+				"GUY": 36,
+				"FRA": 27,
+				"BRA": 20
+			}
+		},
+		"SWE": {
+			"coastal": true,
+			"neighbours": {
+				"NOR": 140,
+				"FIN": 41
+			}
+		},
+		"CHE": {
+			"coastal": false,
+			"neighbours": {
+				"ITA": 39,
+				"FRA": 23,
+				"DEU": 13,
+				"AUT": 10,
+				"LIE": 3
+			}
+		},
+		"SYR": {
+			"coastal": true,
+			"neighbours": {
+				"TUR": 48,
+				"IRQ": 41,
+				"JOR": 25,
+				"LBN": 14,
+				"ISR": 4
+			}
+		},
+		"TWN": {
+			"coastal": true,
+			"neighbours": {
+				"CHN": 1
+			}
+		},
+		"TJK": {
+			"coastal": false,
+			"neighbours": {
+				"AFG": 74,
+				"UZB": 67,
+				"KGZ": 50,
+				"CHN": 27
+			}
+		},
+		"THA": {
+			"coastal": true,
+			"neighbours": {
+				"MMR": 99,
+				"LAO": 91,
+				"KHM": 32,
+				"MYS": 23
+			}
+		},
+		"BHS": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"TGO": {
+			"coastal": true,
+			"neighbours": {
+				"GHA": 40,
+				"BEN": 34,
+				"BFA": 5
+			}
+		},
+		"TON": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"TTO": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"TUN": {
+			"coastal": true,
+			"neighbours": {
+				"DZA": 57,
+				"LBY": 28
+			}
+		},
+		"TUR": {
+			"coastal": true,
+			"neighbours": {
+				"SYR": 48,
+				"IRN": 21,
+				"IRQ": 19,
+				"ARM": 17,
+				"GEO": 15,
+				"GRC": 11,
+				"BGR": 10
+			}
+		},
+		"TKM": {
+			"coastal": true,
+			"neighbours": {
+				"UZB": 104,
+				"IRN": 63,
+				"AFG": 46,
+				"KAZ": 26
+			}
+		},
+		"TUV": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"UGA": {
+			"coastal": false,
+			"neighbours": {
+				"COD": 42,
+				"KEN": 41,
+				"SDS": 30,
+				"TZA": 20,
+				"RWA": 7
+			}
+		},
+		"UKR": {
+			"coastal": true,
+			"neighbours": {
+				"RUS": 115,
+				"BLR": 61,
+				"MDA": 48,
+				"ROU": 40,
+				"POL": 29,
+				"HUN": 7,
+				"SVK": 5
+			}
+		},
+		"ARE": {
+			"coastal": true,
+			"neighbours": {
+				"SAU": 30,
+				"OMN": 29
+			}
+		},
+		"GBR": {
+			"coastal": true,
+			"neighbours": {
+				"IRL": 23
+			}
+		},
+		"TZA": {
+			"coastal": true,
+			"neighbours": {
+				"KEN": 50,
+				"MOZ": 43,
+				"COD": 30,
+				"MWI": 28,
+				"BDI": 23,
+				"UGA": 20,
+				"ZMB": 19,
+				"RWA": 12
+			}
+		},
+		"USA": {
+			"coastal": true,
+			"neighbours": {
+				"CAN": 586,
+				"MEX": 168
+			}
+		},
+		"URY": {
+			"coastal": true,
+			"neighbours": {
+				"BRA": 54,
+				"ARG": 22
+			}
+		},
+		"UZB": {
+			"coastal": false,
+			"neighbours": {
+				"KAZ": 150,
+				"TKM": 104,
+				"TJK": 67,
+				"KGZ": 57,
+				"AFG": 8
+			}
+		},
+		"VUT": {
+			"coastal": true,
+			"neighbours": {}
+		},
+		"VAT": {
+			"coastal": false,
+			"neighbours": {
+				"ITA": 4
+			}
+		},
+		"VEN": {
+			"coastal": true,
+			"neighbours": {
+				"COL": 119,
+				"BRA": 95,
+				"GUY": 35
+			}
+		},
+		"VNM": {
+			"coastal": true,
+			"neighbours": {
+				"LAO": 95,
+				"CHN": 58,
+				"KHM": 50
+			}
+		},
+		"SAH": {
+			"coastal": true,
+			"neighbours": {
+				"MAR": 84,
+				"MRT": 83,
+				"DZA": 2
+			}
+		},
+		"YEM": {
+			"coastal": true,
+			"neighbours": {
+				"SAU": 75,
+				"OMN": 19
+			}
+		},
+		"ZMB": {
+			"coastal": false,
+			"neighbours": {
+				"COD": 117,
+				"AGO": 57,
+				"MWI": 44,
+				"ZWE": 43,
+				"MOZ": 27,
+				"TZA": 19,
+				"NAM": 14,
+				"BWA": 1
+			}
+		},
+		"ZWE": {
+			"coastal": false,
+			"neighbours": {
+				"MOZ": 69,
+				"BWA": 49,
+				"ZMB": 43,
+				"ZAF": 13
+			}
+		}
+	}
+}

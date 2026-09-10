@@ -19,7 +19,9 @@ public sealed class TradeCosts
     private readonly bool[] _landlocked;
     private readonly int[] _tariff;
 
-    /// <param name="landlockedFactor">Во сколько дороже везти без выхода к морю, в сотых.</param>
+    /// <param name="landlockedFactor">Насколько дороже каждая чужая граница на пути, в
+    /// сотых процента. Море стоит около цента за тонно-километр, грузовик вдесятеро;
+    /// Всемирный банк оценивает надбавку стран без моря примерно в полтора раза.</param>
     public TradeCosts(
         IReadOnlyDictionary<GoodType, int>? freight = null,
         IReadOnlySet<byte>? landlocked = null,
@@ -51,12 +53,20 @@ public sealed class TradeCosts
 
     /// <summary>Во сколько ввоз обходится дороже самой цены, в сотых процента.</summary>
     /// <remarks>Перевозка плюс пошлина. Вывоз этого не платит: везёт и растаможивает
-    /// покупатель.</remarks>
-    public int ImportMarkup(byte country, GoodType good)
+    /// покупатель. Чем дальше страна от моря, тем дороже: каждая чужая граница на пути
+    /// добавляет свою долю.</remarks>
+    /// <param name="hops">Сколько чужих границ до моря. Ноль у приморских.</param>
+    public int ImportMarkup(byte country, GoodType good, int hops = 0)
     {
         var freight = FreightOf(good);
-        if (Landlocked(country)) freight = freight * LandlockedFactor / 100;
+        for (var hop = 0; hop < hops; hop++) freight = freight * LandlockedFactor / 100;
 
         return freight + TariffOf(country);
     }
+
+    /// <summary>Сколько берёт за проход страна, через которую везут, в сотых процента.</summary>
+    /// <remarks>В жизни это Суэц с Панамой и транзит по чужой земле: девять и пять
+    /// миллиардов в год соответственно. Деньги идут владельцу пути, и это, в отличие от
+    /// пошлины, настоящее перераспределение между странами.</remarks>
+    public const int TransitFee = 200;
 }

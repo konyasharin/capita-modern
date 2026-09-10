@@ -18,7 +18,8 @@ GameWorld Load() => WorldDataLoader.LoadWorld(
     File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "politics", "blocs.json")),
     Data("efficiency.json"),
     Data("money-supply.json"),
-    Data("trade-costs.json"));
+    Data("trade-costs.json"),
+    File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "map", "neighbours.json")));
 
 var goods = Enum.GetValues<GoodType>();
 
@@ -132,6 +133,7 @@ var realGdp = world.Countries.ToDictionary(country => country.Id, _ => default(M
 // за год уезжает, и делить в конце на конечный было бы неверно.
 var wagesYear = world.Countries.ToDictionary(country => country.Id, _ => 0.0);
 var employedYear = world.Countries.ToDictionary(country => country.Id, _ => 0L);
+var transitYear = world.Countries.ToDictionary(country => country.Id, _ => default(Money));
 var exports = world.Countries.ToDictionary(country => country.Id, _ => default(Money));
 var imports = world.Countries.ToDictionary(country => country.Id, _ => default(Money));
 
@@ -168,6 +170,7 @@ for (var tick = 1; tick <= 365; tick++)
         exports[country.Id] += simulation.ExportsOf(country.Id);
         wagesYear[country.Id] += simulation.WagesIn(country.Id).Exact / country.ExchangeRate.Exact;
         employedYear[country.Id] += simulation.EmployedIn(country.Id);
+        transitYear[country.Id] += simulation.TransitEarnedBy(country.Id);
         imports[country.Id] += simulation.ImportsOf(country.Id);
     }
 
@@ -542,6 +545,25 @@ foreach (var good in new[] { GoodType.Materials, GoodType.Coal, GoodType.IronOre
     Console.WriteLine($"{good,-18} {world.TradeCosts.FreightOf(good) / 100.0,10:F1}%");
 }
 
-var locked = world.Countries.Count(c => world.TradeCosts.Landlocked(c.Id));
-Console.WriteLine($"Стран без выхода к морю: {locked}, им перевозка дороже в " +
-                  $"{world.TradeCosts.LandlockedFactor / 100.0:F1} раза");
+Console.WriteLine();
+Console.WriteLine("=== Р. Маршруты и транзит ===");
+Console.WriteLine($"С выходом к морю: {world.Countries.Count(c => world.Routes.Coastal(c.Id))} из {world.Countries.Count}");
+foreach (var hops in new[] { 1, 2, 3 })
+{
+    var many = world.Countries.Where(c => world.Routes.HopsTo(c.Id) == hops).ToArray();
+    if (many.Length == 0) continue;
+
+    Console.WriteLine($"  через {hops} чужих границ: {many.Length} стран " +
+                      $"({string.Join(", ", many.Take(6).Select(c => c.Iso))})");
+}
+
+Console.WriteLine($"  отрезаны от рынка: {world.Countries.Count(c => !world.Routes.CanReachMarket(c.Id))}");
+Console.WriteLine();
+Console.WriteLine("Кто зарабатывает на чужом транзите:");
+foreach (var country in world.Countries.OrderByDescending(c => transitYear[c.Id].Raw).Take(5))
+{
+    Console.WriteLine($"  {country.Iso} {transitYear[country.Id].Exact / 1e6,8:F0} млн $ за первый год");
+}
+
+Console.WriteLine($"  всего за год: {transitYear.Values.Sum(m => m.Exact) / 1e6:F0} млн $ " +
+                  "(в жизни Суэц 9 млрд, Панама 5 млрд)");

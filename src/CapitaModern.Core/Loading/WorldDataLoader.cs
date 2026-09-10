@@ -23,7 +23,8 @@ public static class WorldDataLoader
         string blocsJson,
         string efficiencyJson,
         string moneySupplyJson,
-        string tradeCostsJson)
+        string tradeCostsJson,
+        string neighboursJson)
     {
         var consumptionFile = LoadConsumptionFile(consumptionJson);
         var needs = new Needs(consumptionFile.UnitPerMillionPeople, consumptionFile.IncomeElasticity);
@@ -34,6 +35,7 @@ public static class WorldDataLoader
         var efficiencyFile = JsonReader.Read<EfficiencyFile>(efficiencyJson);
         var moneySupply = JsonReader.Read<MoneySupplyFile>(moneySupplyJson);
         var tradeCostsFile = JsonReader.Read<TradeCostsFile>(tradeCostsJson);
+        var neighbours = JsonReader.Read<NeighboursFile>(neighboursJson);
         var goodDtos = JsonReader.Read<GoodDto[]>(goodsJson);
         var elasticity = new Elasticity(
             goodDtos.ToDictionary(dto => dto.Id, dto => dto.DemandElasticity),
@@ -96,12 +98,18 @@ public static class WorldDataLoader
                 country => tradeCostsFile.TariffByIso.GetValueOrDefault(country.Iso, tradeCostsFile.DefaultTariff)),
             tradeCostsFile.LandlockedFactor);
 
+        var routes = new Routes(countries.ToDictionary(
+            country => country.Id,
+            country => neighbours.ByIso.TryGetValue(country.Iso, out var dto)
+                ? (dto.Coastal, dto.Neighbours.Keys.Where(idByIso.ContainsKey).Select(iso => idByIso[iso]).ToArray())
+                : (false, Array.Empty<byte>())));
+
         var relations = new Relations(countries.ToDictionary(
             country => country.Id,
             country => blocs.ByIso.GetValueOrDefault(country.Iso, Bloc.NonAligned)));
 
         return new GameWorld(regions, countries, buildingCatalog, needs,
-            new WorldMarket(new Prices(startPrices)), elasticity, relations, efficiency, tradeCosts);
+            new WorldMarket(new Prices(startPrices)), elasticity, relations, efficiency, tradeCosts, routes);
     }
 
     private static CountriesFile LoadCountriesFile(string json) => JsonReader.Read<CountriesFile>(json);
