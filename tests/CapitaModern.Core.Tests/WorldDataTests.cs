@@ -31,7 +31,8 @@ public class WorldDataTests
             Read("data", "economy", "efficiency.json"),
             Read("data", "economy", "money-supply.json"),
             Read("data", "economy", "trade-costs.json"),
-            Read("data", "map", "neighbours.json"));
+            Read("data", "map", "neighbours.json"),
+            Read("data", "map", "basins.json"));
     }
 
     [Fact]

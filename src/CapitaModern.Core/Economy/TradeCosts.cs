@@ -55,14 +55,10 @@ public sealed class TradeCosts
     /// <remarks>Перевозка плюс пошлина. Вывоз этого не платит: везёт и растаможивает
     /// покупатель. Чем дальше страна от моря, тем дороже: каждая чужая граница на пути
     /// добавляет свою долю.</remarks>
-    /// <param name="hops">Сколько чужих границ до моря. Ноль у приморских.</param>
-    public int ImportMarkup(byte country, GoodType good, int hops = 0)
-    {
-        var freight = FreightOf(good);
-        for (var hop = 0; hop < hops; hop++) freight = freight * LandlockedFactor / 100;
-
-        return freight + TariffOf(country);
-    }
+    /// <param name="route">Во что обходится путь до рынка, в сотых: ноль у тех, кто
+    /// прямо в океане, и тем больше, чем больше чужих границ и проливов по дороге.</param>
+    public int ImportMarkup(byte country, GoodType good, int route = 0) =>
+        FreightOf(good) * (100 + route) / 100 + TariffOf(country);
 
     /// <summary>Сколько берёт за проход страна, через которую везут, в сотых процента.</summary>
     /// <remarks>В жизни это Суэц с Панамой и транзит по чужой земле: девять и пять

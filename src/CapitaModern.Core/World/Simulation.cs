@@ -290,9 +290,7 @@ public sealed class Simulation
 
                 // Ввоз обходится дороже самой цены: перевозка и пошлина. Отсюда и берётся
                 // то, что цемент через океан не возят, а микросхемы возят через полмира.
-                var hops = _world.Routes.HopsTo(country.Id);
-                var markup = _world.TradeCosts.ImportMarkup(country.Id, good, hops) +
-                    hops * TradeCosts.TransitFee;
+                var markup = _world.TradeCosts.ImportMarkup(country.Id, good, _world.Routes.CostTo(country.Id));
                 var landed = new Money(local.Raw * (TradeCosts.Scale + markup) / TradeCosts.Scale);
 
                 // Норма запаса сама зависит от цены: дёшево — держат больше, дорого —
@@ -548,11 +546,8 @@ public sealed class Simulation
     {
         if (good == GoodType.Fuel) return; // топливо везёт само себя, второй раз не считаем
 
-        var freight = _world.TradeCosts.FreightOf(good);
-        for (var hop = 0; hop < _world.Routes.HopsTo(country); hop++)
-        {
-            freight = freight * _world.TradeCosts.LandlockedFactor / 100;
-        }
+        var freight = _world.TradeCosts.FreightOf(good) *
+            (100 + _world.Routes.CostTo(country)) / 100;
 
         if (freight == 0) return;
 
@@ -574,11 +569,9 @@ public sealed class Simulation
         var payer = _world.CountryById(country);
         var value = payer.State.Prices.CostOf(good, brought);
 
-        var at = country;
-        for (var hop = 0; hop < _world.Routes.HopsTo(country); hop++)
+        foreach (var through in _world.Routes.TollTakers(country))
         {
-            var through = _world.Routes.Through(at);
-            if (through == at) break;
+            if (through == country) continue;
 
             var fee = new Money(value.Raw * TradeCosts.TransitFee / TradeCosts.Scale);
             if (!payer.State.Treasury.Reserves.TrySpend(fee)) break;
@@ -586,15 +579,11 @@ public sealed class Simulation
             var host = _world.CountryById(through).State;
             host.Treasury.Reserves.Add(Reserves.Incoming((byte)host.Id, host.Custody, fee));
             _transit[through] = _transit.GetValueOrDefault(through) + fee;
-
-            at = through;
         }
     }
 
     /// <summary>Сколько страна заработала на чужом транзите за тик.</summary>
     public Money TransitEarnedBy(byte country) => _transit.GetValueOrDefault(country);
-
-    private bool Landlocked(byte country) => !_world.Routes.Coastal(country);
 
     /// <summary>Сколько топлива сожгла перевозка за тик. Показывать это стоит: в жизни на
     /// транспорт уходит около четверти нефти.</summary>
@@ -1071,8 +1060,7 @@ public sealed class Simulation
     private int Faced(Country country, GoodType good)
     {
         var need = new GoodAmount(Prices.TargetCoverDays * _inputs.Get(country.Id, good).Raw);
-        var hops = _world.Routes.HopsTo(country.Id);
-        var markup = _world.TradeCosts.ImportMarkup(country.Id, good, hops) + hops * TradeCosts.TransitFee;
+        var markup = _world.TradeCosts.ImportMarkup(country.Id, good, _world.Routes.CostTo(country.Id));
 
         return country.State.Stock.Of(good) < need ? markup : -markup;
     }

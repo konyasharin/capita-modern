@@ -24,7 +24,8 @@ public static class WorldDataLoader
         string efficiencyJson,
         string moneySupplyJson,
         string tradeCostsJson,
-        string neighboursJson)
+        string neighboursJson,
+        string basinsJson)
     {
         var consumptionFile = LoadConsumptionFile(consumptionJson);
         var needs = new Needs(consumptionFile.UnitPerMillionPeople, consumptionFile.IncomeElasticity);
@@ -36,6 +37,7 @@ public static class WorldDataLoader
         var moneySupply = JsonReader.Read<MoneySupplyFile>(moneySupplyJson);
         var tradeCostsFile = JsonReader.Read<TradeCostsFile>(tradeCostsJson);
         var neighbours = JsonReader.Read<NeighboursFile>(neighboursJson);
+        var basins = JsonReader.Read<BasinsFile>(basinsJson);
         var goodDtos = JsonReader.Read<GoodDto[]>(goodsJson);
         var elasticity = new Elasticity(
             goodDtos.ToDictionary(dto => dto.Id, dto => dto.DemandElasticity),
@@ -98,11 +100,32 @@ public static class WorldDataLoader
                 country => tradeCostsFile.TariffByIso.GetValueOrDefault(country.Iso, tradeCostsFile.DefaultTariff)),
             tradeCostsFile.LandlockedFactor);
 
-        var routes = new Routes(countries.ToDictionary(
-            country => country.Id,
-            country => neighbours.ByIso.TryGetValue(country.Iso, out var dto)
-                ? (dto.Coastal, dto.Neighbours.Keys.Where(idByIso.ContainsKey).Select(iso => idByIso[iso]).ToArray())
-                : (false, Array.Empty<byte>())));
+        // Пролив соединяет не только два главных бассейна: рядом с ним попадаются мелкие
+        // заливы. Берём все пары — путь через них всё равно найдётся кратчайший.
+        var straits = new List<(int, int, byte)>();
+        foreach (var strait in basins.Straits)
+        {
+            if (!idByIso.TryGetValue(strait.Owner, out var owner)) continue;
+
+            for (var i = 0; i < strait.Joins.Length; i++)
+            {
+                for (var j = i + 1; j < strait.Joins.Length; j++)
+                {
+                    straits.Add((strait.Joins[i], strait.Joins[j], owner));
+                }
+            }
+        }
+
+        var routes = new Routes(
+            countries.ToDictionary(
+                country => country.Id,
+                country => neighbours.ByIso.TryGetValue(country.Iso, out var dto)
+                    ? dto.Neighbours.Keys.Where(idByIso.ContainsKey).Select(iso => idByIso[iso]).ToArray()
+                    : []),
+            countries.ToDictionary(
+                country => country.Id,
+                country => basins.ByIso.GetValueOrDefault(country.Iso, [])),
+            straits);
 
         var relations = new Relations(countries.ToDictionary(
             country => country.Id,

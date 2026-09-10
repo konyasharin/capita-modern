@@ -19,7 +19,8 @@ GameWorld Load() => WorldDataLoader.LoadWorld(
     Data("efficiency.json"),
     Data("money-supply.json"),
     Data("trade-costs.json"),
-    File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "map", "neighbours.json")));
+    File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "map", "neighbours.json")),
+    File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "map", "basins.json")));
 
 var goods = Enum.GetValues<GoodType>();
 
@@ -547,14 +548,15 @@ foreach (var good in new[] { GoodType.Materials, GoodType.Coal, GoodType.IronOre
 
 Console.WriteLine();
 Console.WriteLine("=== Р. Маршруты и транзит ===");
-Console.WriteLine($"С выходом к морю: {world.Countries.Count(c => world.Routes.Coastal(c.Id))} из {world.Countries.Count}");
-foreach (var hops in new[] { 1, 2, 3 })
+Console.WriteLine($"Прямо в океане: {world.Countries.Count(c => world.Routes.CostTo(c.Id) == 0)} " +
+                  $"из {world.Countries.Count}");
+foreach (var (low, high, what) in new[] { (1, 30, "через свой пролив"), (31, 100, "через чужой пролив или соседа"),
+             (101, 300, "далеко от моря") })
 {
-    var many = world.Countries.Where(c => world.Routes.HopsTo(c.Id) == hops).ToArray();
+    var many = world.Countries.Where(c => world.Routes.CostTo(c.Id) >= low && world.Routes.CostTo(c.Id) <= high).ToArray();
     if (many.Length == 0) continue;
 
-    Console.WriteLine($"  через {hops} чужих границ: {many.Length} стран " +
-                      $"({string.Join(", ", many.Take(6).Select(c => c.Iso))})");
+    Console.WriteLine($"  {what}: {many.Length} стран ({string.Join(", ", many.Take(8).Select(c => c.Iso))})");
 }
 
 Console.WriteLine($"  отрезаны от рынка: {world.Countries.Count(c => !world.Routes.CanReachMarket(c.Id))}");
