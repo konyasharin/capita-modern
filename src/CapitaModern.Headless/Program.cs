@@ -266,3 +266,43 @@ foreach (var country in world.Countries.OrderByDescending(c => c.State.Treasury.
 
 var median = world.Countries.Select(c => c.State.Treasury.Balance.Exact).OrderBy(x => x).ElementAt(100);
 Console.WriteLine($"  медиана: {median / 1e6:F0} млн $");
+
+// --- Ж. Опыт: что если деньги не кончаются -----------------------------------------
+// Отделяет нехватку мощностей от нехватки денег. Если с бездонной казной мир выходит
+// на свои возможности, значит остаток упирается в курс валют, а не в промышленность.
+Console.WriteLine();
+Console.WriteLine("=== Ж. Тот же мир, но деньги не кончаются ===");
+
+var rich = Load();
+foreach (var country in rich.Countries) country.State.Treasury.Receive(Money.FromWhole(1_000_000_000));
+
+var richSim = new Simulation(rich);
+var richConstant = new Prices(goods.ToDictionary(good => good, rich.Market.Prices.Of));
+var richGdp = default(Money);
+var richExport = default(Money);
+
+for (var tick = 0; tick < 365; tick++)
+{
+    richSim.Tick();
+    foreach (var country in rich.Countries)
+    {
+        richGdp += richSim.ValueAddedOf(country.Id, richConstant);
+        richExport += richSim.ExportsOf(country.Id);
+    }
+}
+
+var richRails = rich.Countries.Sum(c => goods.Count(good =>
+{
+    var times = c.State.Prices.Of(good).Exact / c.State.Prices.StartOf(good).Exact;
+    return times >= Prices.MaxSwingTimes || times <= 1.0 / Prices.MaxSwingTimes;
+}));
+
+Console.WriteLine($"  реальный ВВП {richGdp.Exact / 1e9:F2} трлн против {worldGdp:F2} с настоящими деньгами");
+Console.WriteLine($"  экспорт {richExport.Exact / 1e9:F2} трлн против {worldExport:F2}");
+Console.WriteLine($"  на рельсах {100.0 * richRails / (rich.Countries.Count * goods.Length):F1}%");
+Console.WriteLine();
+Console.WriteLine("  покрытие конечных товаров:");
+foreach (var good in new[] { GoodType.ConsumerGoods, GoodType.Food, GoodType.Medicine, GoodType.Components, GoodType.Electronics })
+{
+    Console.WriteLine($"    {good,-16} {richSim.WorldOutputOf(good).Exact / richSim.WorldDemandOf(good).Exact,6:P0}");
+}

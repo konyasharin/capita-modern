@@ -3,8 +3,11 @@
 //   node tools/check-balance.mjs
 //
 // Считает, сколько каждого товара за год делают все предприятия мира и сколько его
-// же съедают рецепты. Ловит две вещи: сырья не хватает на переделы, или наоборот
-// производится то, что никому не нужно.
+// же съедают рецепты и население. Ловит две вещи: сырья не хватает на переделы, или
+// наоборот производится то, что никому не нужно.
+//
+// Запас — это выпуск сверх расхода. Нулевой запас так же плох, как дефицит: любая
+// неровность в распределении, и товар становится узким местом для всей цепочки.
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -15,9 +18,14 @@ const read = (...p) => JSON.parse(fs.readFileSync(path.join(root, ...p), 'utf8')
 const buildings = read('data', 'economy', 'buildings.json')
 const goods = read('data', 'economy', 'goods.json')
 const world = read('data', 'economy', 'production.json').types
+const consumption = read('data', 'economy', 'consumption.json').unitPerMillionPeople
+const regions = read('data', 'map', 'regions.json').regions
+
+const peopleMillions = regions.reduce((sum, r) => sum + r.population, 0) / 1e6
 
 const made = {}
 const used = {}
+const byPeople = {}
 
 for (const b of buildings) {
 	const n = world[b.type].world * 365
@@ -26,30 +34,40 @@ for (const b of buildings) {
 	for (const [good, amount] of Object.entries(b.inputs)) used[good] = (used[good] ?? 0) + n * amount
 }
 
+for (const [good, rate] of Object.entries(consumption)) {
+	byPeople[good] = rate * peopleMillions * 365
+}
+
 const million = (v) => (v / 1e6).toFixed(2)
 const problems = []
 
-console.log('товар'.padEnd(15) + 'выпуск'.padStart(10) + 'расход'.padStart(10) + '  баланс   единица')
+console.log(`население ${peopleMillions.toFixed(0)} млн, млн единиц в год\n`)
+console.log(
+	'товар'.padEnd(17) + 'выпуск'.padStart(9) + 'заводам'.padStart(9) +
+	'людям'.padStart(9) + 'запас'.padStart(9) + '  вердикт'
+)
 
 for (const g of goods) {
 	const out = made[g.id] ?? 0
-	const inn = used[g.id] ?? 0
-	const final = g.category === 'final'
-	const ratio = out > 0 ? inn / out : 0
+	const industry = used[g.id] ?? 0
+	const people = byPeople[g.id] ?? 0
+	const need = industry + people
+	const slack = need > 0 && out > 0 ? out / need - 1 : null
 
 	let mark = '  ок'
-	if (final) mark = '  людям'
-	else if (out === 0) mark = '  НЕ ДЕЛАЕТСЯ'
-	else if (ratio > 1.15) mark = `  дефицит ${Math.round((ratio - 1) * 100)}%`
-	else if (ratio < 0.5) mark = `  лишнее ${Math.round((1 - ratio) * 100)}%`
+	if (out === 0) mark = '  НЕ ДЕЛАЕТСЯ'
+	else if (need === 0) mark = '  никому не нужен'
+	else if (slack < 0) mark = `  дефицит ${Math.round(-slack * 100)}%`
+	else if (slack < 0.15) mark = `  впритык, запас ${Math.round(slack * 100)}%`
+	else if (slack > 3) mark = `  лишнее, запас ${Math.round(slack * 100)}%`
 
-	if (mark.includes('дефицит') || mark.includes('НЕ')) problems.push(g.id)
+	if (mark.includes('дефицит') || mark.includes('впритык') || mark.includes('НЕ')) problems.push(g.id)
 
 	console.log(
-		g.id.padEnd(15) + million(out).padStart(10) + million(inn).padStart(10) +
-		mark.padEnd(18) + (g.unit ?? '')
+		g.id.padEnd(17) + million(out).padStart(9) + million(industry).padStart(9) +
+		million(people).padStart(9) + (slack === null ? '—' : `${Math.round(slack * 100)}%`).padStart(9) + mark
 	)
 }
 
-console.log('\nмлн единиц в год; «людям» — конечный товар, потребление населением пока вне модели')
+console.log('\n«никому не нужен» — потребителя ещё нет: стройка, армия, услуги.')
 if (problems.length) console.log(`требуют внимания: ${problems.join(', ')}`)

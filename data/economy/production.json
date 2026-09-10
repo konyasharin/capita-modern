@@ -22,7 +22,7 @@
 			}
 		},
 		"OilRig": {
-			"world": 819,
+			"world": 1007,
 			"tail": 0,
 			"shares": {
 				"USA": 19,
@@ -55,7 +55,7 @@
 			}
 		},
 		"GasField": {
-			"world": 622,
+			"world": 716,
 			"tail": 0,
 			"shares": {
 				"USA": 25,
@@ -80,7 +80,7 @@
 			}
 		},
 		"IronMine": {
-			"world": 342,
+			"world": 494,
 			"tail": 0,
 			"shares": {
 				"AUS": 35,
@@ -137,7 +137,7 @@
 			}
 		},
 		"UraniumMine": {
-			"world": 74,
+			"world": 118,
 			"tail": 0,
 			"shares": {
 				"KAZ": 43,
@@ -153,7 +153,7 @@
 			}
 		},
 		"RareEarthMine": {
-			"world": 133,
+			"world": 162,
 			"tail": 0,
 			"shares": {
 				"CHN": 68,
@@ -335,7 +335,7 @@
 			}
 		},
 		"SteelMill": {
-			"world": 511,
+			"world": 593,
 			"tail": 3,
 			"shares": {
 				"CHN": 53,
@@ -356,7 +356,7 @@
 			}
 		},
 		"Smelter": {
-			"world": 34,
+			"world": 40,
 			"tail": 4,
 			"shares": {
 				"CHN": 55,
@@ -376,7 +376,7 @@
 			}
 		},
 		"ChemicalPlant": {
-			"world": 775,
+			"world": 1082,
 			"tail": 6,
 			"shares": {
 				"CHN": 42,
@@ -419,7 +419,7 @@
 			}
 		},
 		"ElectronicsPlant": {
-			"world": 202,
+			"world": 311,
 			"tail": 2,
 			"shares": {
 				"CHN": 62,
@@ -444,7 +444,7 @@
 			}
 		},
 		"FoodPlant": {
-			"world": 411,
+			"world": 527,
 			"tail": 20,
 			"shares": {
 				"CHN": 17,
@@ -470,7 +470,7 @@
 			}
 		},
 		"ConsumerGoodsPlant": {
-			"world": 700,
+			"world": 895,
 			"tail": 15,
 			"shares": {
 				"CHN": 30,
@@ -494,7 +494,7 @@
 			}
 		},
 		"PharmaPlant": {
-			"world": 250,
+			"world": 324,
 			"tail": 5,
 			"shares": {
 				"USA": 22,
@@ -639,7 +639,7 @@
 			}
 		},
 		"MicroelectronicsPlant": {
-			"world": 80,
+			"world": 123,
 			"tail": 0,
 			"shares": {
 				"TWN": 24,
@@ -655,7 +655,7 @@
 			}
 		},
 		"ComponentsPlant": {
-			"world": 307,
+			"world": 450,
 			"tail": 10,
 			"shares": {
 				"CHN": 74,

@@ -25,7 +25,7 @@
 		"outputs": {
 			"Oil": 15
 		},
-		"optimalWorkers": 3663,
+		"optimalWorkers": 2979,
 		"buildCost": {
 			"Materials": 180,
 			"Metals": 200
@@ -41,7 +41,7 @@
 		"outputs": {
 			"Gas": 18
 		},
-		"optimalWorkers": 1608,
+		"optimalWorkers": 1397,
 		"buildCost": {
 			"Materials": 160,
 			"Metals": 180
@@ -57,7 +57,7 @@
 		"outputs": {
 			"IronOre": 20
 		},
-		"optimalWorkers": 4386,
+		"optimalWorkers": 3036,
 		"buildCost": {
 			"Materials": 220,
 			"Metals": 120
@@ -105,7 +105,7 @@
 		"outputs": {
 			"Uranium": 2
 		},
-		"optimalWorkers": 676,
+		"optimalWorkers": 424,
 		"buildCost": {
 			"Materials": 240,
 			"Metals": 160
@@ -121,7 +121,7 @@
 		"outputs": {
 			"RareEarth": 3
 		},
-		"optimalWorkers": 752,
+		"optimalWorkers": 617,
 		"buildCost": {
 			"Materials": 200,
 			"Metals": 140
@@ -263,7 +263,7 @@
 		"outputs": {
 			"Metals": 10
 		},
-		"optimalWorkers": 11742,
+		"optimalWorkers": 10118,
 		"buildCost": {
 			"Materials": 450,
 			"Metals": 350
@@ -283,7 +283,7 @@
 		"outputs": {
 			"Metals": 8
 		},
-		"optimalWorkers": 29412,
+		"optimalWorkers": 25000,
 		"buildCost": {
 			"Materials": 380,
 			"Metals": 300
@@ -303,7 +303,7 @@
 		"outputs": {
 			"Chemicals": 10
 		},
-		"optimalWorkers": 25806,
+		"optimalWorkers": 18484,
 		"buildCost": {
 			"Materials": 400,
 			"Metals": 320
@@ -343,7 +343,7 @@
 		"outputs": {
 			"Components": 30
 		},
-		"optimalWorkers": 16287,
+		"optimalWorkers": 11111,
 		"buildCost": {
 			"Materials": 200,
 			"Metals": 150
@@ -365,7 +365,7 @@
 		"outputs": {
 			"Electronics": 47
 		},
-		"optimalWorkers": 14851,
+		"optimalWorkers": 9646,
 		"buildCost": {
 			"Materials": 350,
 			"Metals": 250,
@@ -387,7 +387,7 @@
 		"outputs": {
 			"Microelectronics": 20
 		},
-		"optimalWorkers": 7500,
+		"optimalWorkers": 4878,
 		"buildCost": {
 			"Materials": 420,
 			"Metals": 300,
@@ -408,7 +408,7 @@
 		"outputs": {
 			"Food": 20
 		},
-		"optimalWorkers": 60827,
+		"optimalWorkers": 47438,
 		"buildCost": {
 			"Materials": 260,
 			"Metals": 160
@@ -430,7 +430,7 @@
 		"outputs": {
 			"ConsumerGoods": 8
 		},
-		"optimalWorkers": 142857,
+		"optimalWorkers": 111732,
 		"buildCost": {
 			"Materials": 300,
 			"Metals": 200,
@@ -450,7 +450,7 @@
 		"outputs": {
 			"Medicine": 4
 		},
-		"optimalWorkers": 20000,
+		"optimalWorkers": 15432,
 		"buildCost": {
 			"Materials": 280,
 			"Metals": 180,
