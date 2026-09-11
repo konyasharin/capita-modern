@@ -166,6 +166,13 @@ public sealed class Simulation
     /// мощности мелкая, поэтому и предел высокий — миру нужно около двухсот тысяч в год.</summary>
     private const int MaxBuildsPerTick = 500;
 
+    /// <summary>Какую долю склада стройка может съесть за тик, в сотых.</summary>
+    /// <remarks>Вычерпать полку за день нельзя. Заказ на тысячу зданий растягивается на
+    /// несколько дней, и каждый следующий день платит уже подорожавшую цену: спрос стройки
+    /// попадает в заявку и двигает цену на конце тика. Без этого вся тысяча покупалась бы
+    /// по вчерашней цене разом.</remarks>
+    private const int BiteOfStock = 34;
+
     /// <summary>Во сколько долей считается износ. Целыми заводами он осыпается редко,
     /// а сроки службы у типов разные — без общей доли их не сложить.</summary>
     private const int WearScale = 1000;
@@ -657,6 +664,24 @@ public sealed class Simulation
         _ordered[country] = (type, same ? order.Left + amount : amount);
 
         return true;
+    }
+
+    /// <summary>Сколько таких зданий страна поднимет за один тик по нынешнему складу.</summary>
+    /// <remarks>Хотя бы одно можно всегда: иначе дорогое здание в маленькой стране не
+    /// построилось бы никогда, сколько ни копи.</remarks>
+    public int CanRaisePerTick(byte country, BuildingType type)
+    {
+        var stock = _world.CountryById(country).State.Stock;
+        var most = MaxBuildsPerTick;
+
+        foreach (var (good, amount) in _world.Buildings[type].BuildCost)
+        {
+            if (amount.Raw <= 0) continue;
+
+            most = (int)Math.Min(most, stock.Of(good).Raw * BiteOfStock / 100 / amount.Raw);
+        }
+
+        return Math.Max(most, 1);
     }
 
     /// <summary>Во что обойдётся работа строителей на одной постройке.</summary>
@@ -1451,8 +1476,9 @@ public sealed class Simulation
             var wages = WagesFor(country, info);
             var price = Construction.CostOf(info.BuildCost, country.State.Prices) + wages;
             var done = 0;
+            var limit = Math.Min(plan.Count, CanRaisePerTick(country.Id, plan.Type));
 
-            for (var built = 0; built < plan.Count; built++)
+            for (var built = 0; built < limit; built++)
             {
                 if (_investment.GetValueOrDefault(country.Id) < price) break;
                 if (!country.State.Stock.TryConsume(info.BuildCost, Load.Full)) break;

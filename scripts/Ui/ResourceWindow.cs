@@ -677,8 +677,12 @@ public partial class ResourceWindow : Control
         _sum.Text = Fmt.Cash(amount);
         _accept.Disabled = amount <= 0 || _plant is null;
 
+        // Заказ на много зданий растянется на дни: за день стройка съедает лишь часть
+        // склада, а к следующему материалы уже подорожают.
+        var daily = _plant is { } which ? _loop.Simulation.CanRaisePerTick(_loop.Player, which) : 0;
+
         _enough.Text = price > 0
-            ? $"Хватит на {amount / price:0.00} предприятия"
+            ? $"Хватит на {amount / price:0.00} предприятия · за день поднимем не больше {Fmt.Count(daily)}"
             : "Выберите, что строить";
 
         _enough.AddThemeColorOverride("font_color", price > 0 && amount >= price ? Skin.Good : Skin.Dim);
