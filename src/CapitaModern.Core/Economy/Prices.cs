@@ -34,8 +34,10 @@ public sealed class Prices
     /// <summary>Цена товара, которого нет в стартовых данных.</summary>
     public static readonly Money Default = Money.FromWhole(1);
 
-    private readonly Dictionary<GoodType, Money> _values = new();
-    private readonly Dictionary<GoodType, Money> _start = new();
+    /// <summary>Массивы, а не словари: цену спрашивают по несколько раз на каждую пару
+    /// стран в каждой сделке, и хеширование там стоило дороже самой торговли.</summary>
+    private readonly Money[] _values = new Money[Enum.GetValues<GoodType>().Length];
+    private readonly Money[] _start = new Money[Enum.GetValues<GoodType>().Length];
 
     public Prices(IReadOnlyDictionary<GoodType, Money>? startPrices = null)
     {
@@ -43,22 +45,22 @@ public sealed class Prices
         foreach (var good in Enum.GetValues<GoodType>())
         {
             var price = startPrices.GetValueOrDefault(good, Default);
-            _values.Add(good, price);
-            _start.Add(good, price);
+            _values[(int)good] = price;
+            _start[(int)good] = price;
         }
     }
 
-    public Money Of(GoodType good) => _values[good];
+    public Money Of(GoodType good) => _values[(int)good];
 
     /// <summary>С чего цена начинала. Нужна как база: и для коридора, и потом для
     /// индекса цен.</summary>
-    public Money StartOf(GoodType good) => _start[good];
+    public Money StartOf(GoodType good) => _start[(int)good];
 
     public void Set(GoodType good, Money price)
     {
         if (price < Floor) throw new ArgumentOutOfRangeException(nameof(price));
 
-        _values[good] = price;
+        _values[(int)good] = price;
     }
 
     /// <summary>Сколько стоит такая партия товара.</summary>
@@ -91,7 +93,7 @@ public sealed class Prices
 
     /// <summary>Общий шаг обоих правил: перекос задаётся дробью under/over.</summary>
     private void Apply(GoodType good, long under, long over) =>
-        _values[good] = Clamped(good, Drift.Step(Of(good).Raw, under, over, StepPercent));
+        _values[(int)good] = Clamped(good, Drift.Step(Of(good).Raw, under, over, StepPercent));
 
     /// <summary>Двигает все цены разом, не меняя их между собой.</summary>
     /// <remarks>Этим правит общий уровень цен: относительные задаёт покрытие, а во
@@ -100,9 +102,9 @@ public sealed class Prices
     {
         if (by <= 0 || times == by) return;
 
-        foreach (var good in _values.Keys.ToArray())
+        foreach (var good in Enum.GetValues<GoodType>())
         {
-            _values[good] = Clamped(good, (long)((Int128)_values[good].Raw * times / by));
+            _values[(int)good] = Clamped(good, (long)((Int128)_values[(int)good].Raw * times / by));
         }
     }
 
@@ -113,13 +115,13 @@ public sealed class Prices
     {
         long raw = Of(good).Raw;
 
-        _values[good] = Clamped(good, raw + raw * percent / 100);
+        _values[(int)good] = Clamped(good, raw + raw * percent / 100);
     }
 
     /// <summary>Держит цену в коридоре вокруг стартовой.</summary>
     private Money Clamped(GoodType good, long raw)
     {
-        long start = _start[good].Raw;
+        long start = _start[(int)good].Raw;
 
         return new Money(Math.Clamp(raw, Math.Max(start / MaxSwingTimes, Floor.Raw), start * MaxSwingTimes));
     }
