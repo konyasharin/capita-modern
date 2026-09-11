@@ -14,6 +14,8 @@ public partial class PopoverStack : Control
 
     public override void _Ready()
     {
+        Glossary ??= Glossary.Load();
+
         MouseFilter = MouseFilterEnum.Ignore;
         SetAnchorsPreset(LayoutPreset.FullRect);
     }

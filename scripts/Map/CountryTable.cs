@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 /// <param name="Color">Индекс в палитре карты, а не сам цвет: соседи гарантированно
 /// не совпадают, раскраска подобрана генератором.</param>
 /// <param name="Cells">Площадь страны в ячейках карты.</param>
-public sealed record Country(
+public sealed record MapCountry(
     int Id,
     string Name,
     string Iso,
@@ -17,14 +17,14 @@ public sealed record Country(
 /// <summary>Справочник стран из data/map/countries.json.</summary>
 public sealed class CountryTable
 {
-    private readonly Country?[] _byId;
+    private readonly MapCountry?[] _byId;
 
-    public IReadOnlyList<Country> All { get; }
+    public IReadOnlyList<MapCountry> All { get; }
 
-    private CountryTable(IReadOnlyList<Country> all)
+    private CountryTable(IReadOnlyList<MapCountry> all)
     {
         All = all;
-        _byId = new Country?[all.Max(c => c.Id) + 1];
+        _byId = new MapCountry?[all.Max(c => c.Id) + 1];
 
         foreach (var c in all)
         {
@@ -32,9 +32,9 @@ public sealed class CountryTable
         }
     }
 
-    public Country? ById(int id) => id >= 0 && id < _byId.Length ? _byId[id] : null;
+    public MapCountry? ById(int id) => id >= 0 && id < _byId.Length ? _byId[id] : null;
 
-    public Country? ByIso(string iso) =>
+    public MapCountry? ByIso(string iso) =>
         All.FirstOrDefault(c => string.Equals(c.Iso, iso, StringComparison.OrdinalIgnoreCase));
 
     public static CountryTable FromJson(string json)
@@ -58,6 +58,6 @@ public sealed class CountryTable
     private sealed record Meta(
         int Width,
         int Height,
-        [property: JsonPropertyName("countries")] List<Country> Countries
+        [property: JsonPropertyName("countries")] List<MapCountry> Countries
     );
 }

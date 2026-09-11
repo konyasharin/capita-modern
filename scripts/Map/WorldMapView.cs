@@ -136,6 +136,35 @@ public partial class WorldMapView : Sprite2D
         _controlTex.Update(_controlImage);
     }
 
+    /// <summary>Щелчок по карте, в точке экрана. Перетаскивание сюда не попадает.</summary>
+    public Action<Vector2>? Clicked;
+
+    /// <summary>Насколько курсор может сдвинуться, чтобы щелчок ещё считался щелчком.</summary>
+    private const float Slack = 4f;
+
+    private Vector2 _pressed;
+    private bool _dragging;
+
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        // Карту таскают той же левой кнопкой, поэтому щелчок отделяется по пройденному пути.
+        switch (@event)
+        {
+            case InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } down:
+                _pressed = down.Position;
+                _dragging = false;
+                break;
+
+            case InputEventMouseMotion motion when motion.Position.DistanceTo(_pressed) > Slack:
+                _dragging = true;
+                break;
+
+            case InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: false } up when !_dragging:
+                Clicked?.Invoke(up.Position);
+                break;
+        }
+    }
+
     /// <summary>Владелец ячейки под точкой в координатах карты, 0 — океан или мимо.</summary>
     public int OwnerAt(Vector2 local)
     {
@@ -150,5 +179,5 @@ public partial class WorldMapView : Sprite2D
         return Map.OwnerAt(x, y);
     }
 
-    public Country? CountryAt(Vector2 local) => Countries.ById(OwnerAt(local));
+    public MapCountry? CountryAt(Vector2 local) => Countries.ById(OwnerAt(local));
 }

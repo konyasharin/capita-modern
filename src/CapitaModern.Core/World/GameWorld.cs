@@ -127,6 +127,15 @@ public sealed class GameWorld
     public IReadOnlyList<Region> RegionsOf(byte country) =>
         country < _regionsByCountry.Length ? _regionsByCountry[country] : [];
 
+    /// <summary>Сколько у страны зданий одного типа по всем её регионам.</summary>
+    public int BuildingsOf(byte country, BuildingType type)
+    {
+        var total = 0;
+        foreach (var region in RegionsOf(country)) total += region.BuildingsOf(type, country);
+
+        return total;
+    }
+
     public void TransferCells(int region, byte from, byte to, int count)
     {
         _regionsById[region].TransferCells(from, to, count);

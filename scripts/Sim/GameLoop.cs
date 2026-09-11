@@ -80,6 +80,13 @@ public partial class GameLoop : Node
         }
 
         _left += SecondsPerDay;
+        Advance();
+    }
+
+    /// <summary>Одни сутки. Отдельно от хода времени: партию иногда надо прокрутить
+    /// разом — для снимков и замеров.</summary>
+    public void Advance()
+    {
         Simulation.Tick();
         Day++;
     }
@@ -89,6 +96,8 @@ public partial class GameLoop : Node
 
     /// <summary>Годовой выпуск в постоянных ценах: добавленная стоимость за сутки на год.
     /// Меряется постоянными ценами, иначе ВВП скакал бы вместе с ценами.</summary>
+    /// <remarks>Дневной выпуск на год, а не сумма за год: партия начинается сегодня, и
+    /// года ещё не прошло.</remarks>
     public double YearlyOutput =>
         Simulation.ValueAddedOf(Player, _constant).Exact * DaysInYear;
 
@@ -102,6 +111,28 @@ public partial class GameLoop : Node
 
     /// <summary>Что лежит в казне, в местных деньгах.</summary>
     public double Treasury => PlayerCountry.State.Treasury.Balance.Exact;
+
+    /// <summary>Какая доля рабочей силы занята, в процентах. Сто процентов — не праздник,
+    /// а признак того, что рук больше нет.</summary>
+    public double Employment
+    {
+        get
+        {
+            var workers = World.WorkersOf(Player);
+
+            return workers > 0 ? Simulation.EmployedIn(Player) * 100.0 / workers : 0;
+        }
+    }
+
+    /// <summary>Долг перед другими странами.</summary>
+    public double ExternalDebt =>
+        PlayerCountry.State.Treasury.Debt.Owed(LoanSource.Foreign).Exact;
+
+    /// <summary>Курс к доллару.</summary>
+    public double Rate => PlayerCountry.ExchangeRate.Exact;
+
+    /// <summary>Цены начала партии: ими меряется реальный выпуск.</summary>
+    public Prices Constant => _constant;
 
     private const int DaysInYear = 365;
 

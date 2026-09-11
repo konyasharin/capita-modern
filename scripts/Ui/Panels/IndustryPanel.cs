@@ -1,0 +1,108 @@
+using CapitaModern.Core.Buildings;
+using CapitaModern.Core.Economy;
+using CapitaModern.Core.Politics;
+using Godot;
+
+/// <summary>Предприятия и стройка. Здесь же приоритеты снабжения — единственный рычаг,
+/// которым игрок влияет на то, что строится и кому достаётся дефицит.</summary>
+public partial class IndustryPanel : SidePanel
+{
+    private static readonly BuildingType[] AllTypes = Enum.GetValues<BuildingType>();
+
+    public override string Title => "Промышленность";
+    public override string Icon => "industry";
+
+    private readonly List<Stepper> _weights = [];
+
+    private StatRow _building = null!;
+    private StatRow _builders = null!;
+    private StatRow _investment = null!;
+    private StatRow _total = null!;
+    private Table _table = null!;
+
+    protected override void Build()
+    {
+        Section("Приоритеты снабжения");
+        Note("Вес — множитель к заказу отрасли. При избытке он ни на что не влияет, " +
+            "а при нехватке решает, кому достанется сырьё и руки. Обычный вес ×1.00.");
+
+        foreach (var sector in Enum.GetValues<Sector>())
+        {
+            var which = sector;
+
+            var knob = Stepper.Create(
+                Names.Of(sector),
+                0,
+                400,
+                10,
+                () => Me.Priorities.WeightOf(which),
+                weight => Me.Priorities.SetWeight(which, weight),
+                weight => $"×{weight / (double)Priorities.NormalWeight:0.00}",
+                Stack,
+                "priority");
+
+            _weights.Add(knob);
+            Rows.AddChild(knob);
+        }
+
+        Section("Стройка");
+        _building = Stat("Строится сейчас", "building");
+        _builders = Stat("Занято на стройке", "builders");
+        _investment = Stat("Вложения за день", "investment");
+
+        Section("Предприятия");
+        _total = Stat("Всего", "plants");
+        Note("«Работает» меньше «есть» — значит зданию не хватило сырья или рук.");
+
+        _table = Table.Create(
+        [
+            new Column("Здание", 0, Right: false),
+            new Column("Есть", 54),
+            new Column("Работает", 62),
+            new Column("Людей", 58),
+        ]);
+
+        Rows.AddChild(_table);
+    }
+
+    public override void Refresh()
+    {
+        var sim = Loop.Simulation;
+        var catalog = Loop.World.Buildings;
+
+        foreach (var knob in _weights) knob.Refresh();
+
+        var plan = sim.PlanOf(Id);
+        _building.Set(plan is { } what ? $"{Names.Of(what.Type)} ×{what.Count}" : "ничего",
+            plan is null ? Skin.Dim : Skin.Good);
+
+        var builders = sim.BuildersIn(Id);
+        _builders.Set(builders > 0 ? Fmt.Count(builders) : "никого", builders > 0 ? Skin.Bright : Skin.Dim);
+        _investment.Set(Fmt.Cash(sim.InvestmentIn(Id).Exact));
+
+        var rows = new List<Cell[]>(AllTypes.Length);
+        var total = 0L;
+
+        foreach (var type in AllTypes)
+        {
+            var count = Loop.World.BuildingsOf(Id, type);
+            if (count == 0) continue;
+
+            total += count;
+
+            var working = sim.WorkingOf(Id, type);
+            var staff = (long)working * catalog[type].OptimalWorkers;
+
+            rows.Add(
+            [
+                new Cell(Names.Of(type), (double)type, Skin.Text, Names.IconOf(type)),
+                new Cell(Fmt.Count(count), count, Skin.Bright),
+                new Cell(Fmt.Count(working), working, working < count ? Skin.Bad : Skin.Good),
+                new Cell(Fmt.Count(staff), staff, Skin.Text),
+            ]);
+        }
+
+        _total.Set(Fmt.Count(total));
+        _table.Set(rows);
+    }
+}

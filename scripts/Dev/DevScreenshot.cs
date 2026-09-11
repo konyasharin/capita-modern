@@ -12,6 +12,9 @@ public partial class DevScreenshot : Node
     private Vector2? _focus;
     private float _zoom = 1f;
     private Vector2? _mouse;
+    private Vector2? _click;
+    private int? _tab;
+    private int _days;
 
     public override void _Ready()
     {
@@ -33,6 +36,24 @@ public partial class DevScreenshot : Node
                 if (at.Length == 2 && float.TryParse(at[0], out var mx) && float.TryParse(at[1], out var my))
                 {
                     _mouse = new Vector2(mx, my);
+                }
+            }
+            else if (arg.StartsWith("--shot-days=", StringComparison.Ordinal)
+                && int.TryParse(arg["--shot-days=".Length..], out var days))
+            {
+                _days = days;
+            }
+            else if (arg.StartsWith("--shot-tab=", StringComparison.Ordinal)
+                && int.TryParse(arg["--shot-tab=".Length..], out var tab))
+            {
+                _tab = tab;
+            }
+            else if (arg.StartsWith("--shot-click=", StringComparison.Ordinal))
+            {
+                var at = arg["--shot-click=".Length..].Split(',');
+                if (at.Length == 2 && float.TryParse(at[0], out var cx) && float.TryParse(at[1], out var cy))
+                {
+                    _click = new Vector2(cx, cy);
                 }
             }
             else if (arg.StartsWith("--shot-focus=", StringComparison.Ordinal))
@@ -67,6 +88,37 @@ public partial class DevScreenshot : Node
         {
             GetParent().GetNode<MapCamera>("MapCamera").FocusOn(point, _zoom);
             _focus = null;
+        }
+
+        if (_days > 0 && _framesLeft == 25)
+        {
+            var loop = GetParent().GetNode<GameLoop>("GameLoop");
+            for (var day = 0; day < _days; day++) loop.Advance();
+
+            _days = 0;
+        }
+
+        if (_tab is { } which && _framesLeft == 20)
+        {
+            GetParent().GetNode<SideTabs>("Ui/SideTabs").Show(which);
+            _tab = null;
+        }
+
+        // Щелчок по карте: панель выбора ждёт нажатия и отпускания, а не одного события.
+        if (_click is { } spot && _framesLeft == 18)
+        {
+            Input.WarpMouse(spot);
+            Input.ParseInputEvent(new InputEventMouseButton
+            {
+                ButtonIndex = MouseButton.Left, Pressed = true, Position = spot, GlobalPosition = spot,
+            });
+
+            Input.ParseInputEvent(new InputEventMouseButton
+            {
+                ButtonIndex = MouseButton.Left, Pressed = false, Position = spot, GlobalPosition = spot,
+            });
+
+            _click = null;
         }
 
         // Ставится не в самом конце: подсказке нужно несколько кадров, чтобы открыться.

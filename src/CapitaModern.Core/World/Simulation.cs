@@ -594,6 +594,9 @@ public sealed class Simulation
         return (nominal, real);
     }
 
+    /// <summary>Какие сутки партии идут. По ним считается срок отлучения от кредита.</summary>
+    public int Day => _day;
+
     /// <summary>Сколько рабочих мест в услугах. Считается отдельно: настоящая занятость
     /// в услугах вдвое больше промышленной, и складывать их в один замер нечестно.</summary>
     public long ServiceJobs => _serviceJobs;
@@ -611,6 +614,35 @@ public sealed class Simulation
 
     /// <summary>Что страна выпустила за тик по одному товару.</summary>
     public GoodAmount OutputOf(byte country, GoodType good) => _outputs.Get(country, good);
+
+    /// <summary>Сколько страна заказала по одному товару — и заводы, и население.</summary>
+    public GoodAmount InputOf(byte country, GoodType good) => _inputs.Get(country, good);
+
+    /// <summary>Что население страны купило за тик.</summary>
+    public GoodAmount BoughtOf(byte country, GoodType good) => _bought.Get(country, good);
+
+    /// <summary>Сколько страна ввезла за тик по одному товару.</summary>
+    public GoodAmount ImportedOf(byte country, GoodType good) => _imported.Get(country, good);
+
+    /// <summary>Сколько страна вывезла за тик по одному товару.</summary>
+    public GoodAmount ExportedOf(byte country, GoodType good) => _exported.Get(country, good);
+
+    /// <summary>Чего не хватило по стране: заказали, а не досталось.</summary>
+    public GoodAmount ShortOf(byte country, GoodType good) => _deficit.Get(country, good);
+
+    /// <summary>Сколько рук занято на стройке в стране.</summary>
+    public long BuildersIn(byte country) => _builders.GetValueOrDefault(country);
+
+    /// <summary>Что страна откладывает на стройку за тик.</summary>
+    public Money InvestmentIn(byte country) => _investment.GetValueOrDefault(country);
+
+    /// <summary>Что строится прямо сейчас: тип, регион и сколько штук.</summary>
+    public (BuildingType Type, Region Where, int Count)? PlanOf(byte country) =>
+        _plan.TryGetValue(country, out var plan) ? plan : null;
+
+    /// <summary>Сколько зданий типа работало на прошлом тике. Меньше построенных —
+    /// значит не хватило сырья или рук.</summary>
+    public int WorkingOf(byte country, BuildingType type) => _working.Get(country, type);
 
     /// <summary>Сколько людей заняты на производстве в стране прямо сейчас.</summary>
     public long EmployedIn(byte country) =>

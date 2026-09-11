@@ -32,6 +32,7 @@ const GOODS = {
 	food: 'delapouite/meal',
 	'consumer-goods': 'delapouite/clothes',
 	medicine: 'delapouite/medicine-pills',
+	services: 'delapouite/shaking-hands',
 	armour: 'cathelineau/great-war-tank',
 	artillery: 'quoting/field-gun',
 	'small-arms': 'skoll/ak47',
@@ -80,15 +81,44 @@ const BUILDINGS = {
 	'aircraft-plant': 'skoll/airplane',
 	'air-defence-plant': 'lorc/radar-sweep',
 	'electronic-warfare-plant': 'lorc/radar-dish',
+	'retail-firm': 'delapouite/shopping-cart',
+	'transport-firm': 'delapouite/truck',
+	'public-service': 'delapouite/greek-temple',
+	'business-firm': 'delapouite/modern-city',
 }
 
-/** Значки верхней панели: показатели страны игрока. */
+/** Значки интерфейса: показатели, вкладки, тревоги. */
 const UI = {
+	// Верхняя панель
 	population: 'delapouite/three-friends',
+	employment: 'delapouite/miner',
 	output: 'delapouite/upgrade',
 	plants: 'delapouite/factory',
 	inflation: 'delapouite/price-tag',
 	treasury: 'delapouite/money-stack',
+	debt: 'delapouite/pay-money',
+	rate: 'lorc/scales',
+
+	// Вкладки
+	'tab-overview': 'lorc/scroll-unfurled',
+	'tab-goods': 'delapouite/cardboard-box',
+	'tab-industry': 'delapouite/crane',
+	'tab-trade': 'delapouite/cargo-ship',
+	'tab-finance': 'delapouite/bank',
+	'tab-politics': 'lorc/globe',
+
+	// Тревоги
+	'alert-hands': 'lorc/hand',
+	'alert-idle': 'lorc/stopwatch',
+	'alert-frozen': 'lorc/frozen-orb',
+	'alert-default': 'lorc/tombstone',
+	'alert-shortage': 'lorc/empty-hourglass',
+	'alert-deficit': 'delapouite/receive-money',
+
+	// Прочее
+	sound: 'delapouite/speaker',
+	mute: 'delapouite/speaker-off',
+	close: 'sbed/cancel',
 }
 
 const root = path.resolve(import.meta.dirname, '..')
@@ -106,7 +136,11 @@ function normalize(svg) {
 
 async function grab(group, name, source) {
 	const res = await fetch(`${RAW}/${source}.svg`)
-	if (!res.ok) throw new Error(`${source}: HTTP ${res.status}`)
+	// Не роняем весь прогон: имена на game-icons меняются, проще увидеть список промахов.
+	if (!res.ok) {
+		missed.push(`${group}/${name} -> ${source}`)
+		return null
+	}
 
 	const dir = path.join(root, 'assets', 'icons', group)
 	fs.mkdirSync(dir, { recursive: true })
@@ -116,15 +150,21 @@ async function grab(group, name, source) {
 }
 
 const authors = new Set()
+const missed = []
 let count = 0
 
 for (const [group, map] of [['goods', GOODS], ['buildings', BUILDINGS], ['ui', UI]]) {
 	for (const [name, source] of Object.entries(map)) {
-		authors.add(await grab(group, name, source))
+		const author = await grab(group, name, source)
+		if (author === null) continue
+
+		authors.add(author)
 		count++
 	}
 	console.log(`${group}: ${Object.keys(map).length}`)
 }
+
+for (const miss of missed) console.log(`не нашлась: ${miss}`)
 
 fs.writeFileSync(
 	path.join(root, 'assets', 'icons', 'ATTRIBUTION.md'),
