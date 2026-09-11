@@ -21,10 +21,25 @@ public partial class Table : VBoxContainer
     private int _sort;
     private bool _ascending;
     private Action<int>? _clicked;
+    private PopoverStack? _stack;
+    private Func<int, Article?>? _about;
 
-    public static Table Create(Column[] columns, Action<int>? clicked = null)
+    /// <param name="about">Что рассказать о строке при наведении. Номер тот же, что и у
+    /// щелчка: порядковый в исходном списке, а не в отсортированном.</param>
+    public static Table Create(
+        Column[] columns,
+        Action<int>? clicked = null,
+        PopoverStack? stack = null,
+        Func<int, Article?>? about = null)
     {
-        var table = new Table { _columns = columns, _clicked = clicked, _sort = columns.Length > 1 ? 1 : 0 };
+        var table = new Table
+        {
+            _columns = columns,
+            _clicked = clicked,
+            _stack = stack,
+            _about = about,
+            _sort = columns.Length > 1 ? 1 : 0,
+        };
         table.AddThemeConstantOverride("separation", 0);
         table.AddChild(table.Head());
 
@@ -49,7 +64,7 @@ public partial class Table : VBoxContainer
 
         while (_rows.Count < rows.Count)
         {
-            var row = TableRow.Create(_columns, _rows.Count, _clicked);
+            var row = TableRow.Create(_columns, _rows.Count, _clicked, _stack, _about);
 
             _rows.Add(row);
             AddChild(row);
@@ -130,14 +145,23 @@ public partial class Table : VBoxContainer
         private int _source;
         private Action<int>? _clicked;
 
-        public static TableRow Create(Column[] columns, int index, Action<int>? clicked)
+        public static TableRow Create(
+            Column[] columns,
+            int index,
+            Action<int>? clicked,
+            PopoverStack? stack,
+            Func<int, Article?>? about)
         {
             var row = new TableRow
             {
                 _clicked = clicked,
                 CustomMinimumSize = new Vector2(0, RowHeight),
-                MouseFilter = clicked is null ? MouseFilterEnum.Ignore : MouseFilterEnum.Stop,
+                MouseFilter = clicked is null && stack is null
+                    ? MouseFilterEnum.Ignore
+                    : MouseFilterEnum.Stop,
             };
+
+            if (stack is not null && about is not null) row.Hover(stack, "row", () => about(row._source));
 
             row.AddThemeStyleboxOverride("panel", Skin.RowBox(index % 2 == 1));
 

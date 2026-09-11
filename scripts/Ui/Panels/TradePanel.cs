@@ -65,7 +65,9 @@ public partial class TradePanel : SidePanel
                 new Column("Сальдо", 60),
                 new Column("Запрет", 50),
             ],
-            row => Toggle(AllGoods[row]));
+            row => Toggle(AllGoods[row]),
+            Stack,
+            row => GoodCard.Of(Loop, AllGoods[row]));
 
         Rows.AddChild(_table);
     }

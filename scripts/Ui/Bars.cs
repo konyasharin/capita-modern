@@ -1,20 +1,38 @@
 using Godot;
 
 /// <summary>Одна полоса: значок, подпись, длина и число.</summary>
-public readonly record struct Slice(string Label, double Value, string Text, Color Colour, string? Icon = null);
+/// <param name="About">Что рассказать при наведении. Пусто — строка молчит.</param>
+public readonly record struct Slice(
+    string Label,
+    double Value,
+    string Text,
+    Color Colour,
+    string? Icon = null,
+    Func<Article?>? About = null);
 
 /// <summary>Столбик горизонтальных полос. Там, где важно не точное число, а кто больше
 /// кого, полосы читаются с одного взгляда, а колонка цифр — нет.</summary>
 public partial class Bars : VBoxContainer
 {
     private readonly List<BarRow> _rows = [];
+    private PopoverStack? _stack;
+    private Label? _empty;
 
-    public static Bars Create()
+    public static Bars Create(PopoverStack? stack = null)
     {
-        var bars = new Bars { MouseFilter = MouseFilterEnum.Ignore };
+        var bars = new Bars { MouseFilter = MouseFilterEnum.Ignore, _stack = stack };
         bars.AddThemeConstantOverride("separation", 3);
 
         return bars;
+    }
+
+    /// <summary>Подпись, которая показывается вместо полос, когда их нет. Пустое место
+    /// читается как поломка, а «никого» — как ответ.</summary>
+    public Control Empty(string text)
+    {
+        _empty = Ui.Text(text, 13, 400, Skin.Dim);
+
+        return _empty;
     }
 
     /// <summary>Длина полосы считается от наибольшего в наборе, а не от общей суммы:
@@ -24,9 +42,11 @@ public partial class Bars : VBoxContainer
         var top = 0.0;
         foreach (var slice in slices) top = Math.Max(top, Math.Abs(slice.Value));
 
+        if (_empty is not null) _empty.Visible = slices.Count == 0;
+
         while (_rows.Count < slices.Count)
         {
-            var row = BarRow.Create();
+            var row = BarRow.Create(_stack);
 
             _rows.Add(row);
             AddChild(row);
@@ -50,13 +70,17 @@ public partial class Bars : VBoxContainer
         private ColorRect _groove = null!;
         private ColorRect _fill = null!;
 
-        public static BarRow Create()
+        private Func<Article?>? _about;
+
+        public static BarRow Create(PopoverStack? stack)
         {
             var row = new BarRow
             {
                 CustomMinimumSize = new Vector2(0, Height),
                 MouseFilter = MouseFilterEnum.Ignore,
             };
+
+            if (stack is not null) row.Hover(stack, "bar", () => row._about?.Invoke());
 
             row._icon = Ui.Icon("res://assets/icons/ui/close.svg", 14, Skin.Dim);
             row._icon.Position = new Vector2(0, 3);
@@ -100,6 +124,7 @@ public partial class Bars : VBoxContainer
 
         public void Show(Slice slice, double top)
         {
+            _about = slice.About;
             _label.Text = slice.Label;
             _value.Text = slice.Text;
             _value.AddThemeColorOverride("font_color", slice.Colour);

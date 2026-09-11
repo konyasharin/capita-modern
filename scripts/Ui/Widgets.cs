@@ -221,10 +221,11 @@ public static class Ui
 
     /// <summary>Подсказка по наведению. Проверяется прямоугольником каждый кадр: сигналы
     /// входа-выхода врут на щелях между соседними элементами.</summary>
-    public static T Hover<T>(this T node, PopoverStack stack, string key) where T : Control
+    public static T Hover<T>(this T node, PopoverStack stack, string key, Func<Article?>? about = null)
+        where T : Control
     {
         node.MouseFilter = Control.MouseFilterEnum.Stop;
-        node.AddChild(new HoverProbe { Stack = stack, Key = key });
+        node.AddChild(new HoverProbe { Stack = stack, Key = key, About = about });
 
         return node;
     }
@@ -240,13 +241,19 @@ public partial class HoverProbe : Node
     /// что в игре происходит прямо сейчас.</summary>
     public Func<string?>? Extra;
 
+    /// <summary>Готовая статья вместо словарной. Так подсказывают о товарах: статью на
+    /// каждый из тридцати двух в словаре не напишешь, она зависит от хода партии.</summary>
+    public Func<Article?>? About;
+
     public override void _Process(double delta)
     {
         var owner = GetParent<Control>();
-        if (owner.IsVisibleInTree() && owner.GetGlobalRect().HasPoint(owner.GetGlobalMousePosition()))
-        {
-            Stack.Open(owner, Key, 0, Extra?.Invoke());
-        }
+        if (!owner.IsVisibleInTree()) return;
+        if (!owner.GetGlobalRect().HasPoint(owner.GetGlobalMousePosition())) return;
+
+        var ready = About?.Invoke();
+
+        Stack.Open(owner, ready is null ? Key : $"{Key}:{ready.Title}", 0, Extra?.Invoke(), ready);
     }
 }
 

@@ -22,7 +22,8 @@ public partial class GoodsPanel : SidePanel
         _short = Stat("Не хватило заказанного", "shortage");
 
         Section("Крупнейшие производства", "plants");
-        _top = Columns();
+        _top = Bars.Create(Stack);
+        Rows.AddChild(_top);
 
         Section("По товарам", "tab-goods");
         Note("Выпуск и заказ — за сутки, склад — остаток на начало дня. Столбец «к старту» " +
@@ -36,7 +37,9 @@ public partial class GoodsPanel : SidePanel
             new Column("Склад", 52),
             new Column("Цена", 54),
             new Column("К старту", 52),
-        ]);
+        ],
+            stack: Stack,
+            about: row => GoodCard.Of(Loop, AllGoods[row]));
 
         Rows.AddChild(_table);
     }
@@ -83,7 +86,7 @@ public partial class GoodsPanel : SidePanel
             .Take(8)
             .Select(pair => new Slice(
                 Names.Of(pair.Good), pair.Worth.Exact, Fmt.Cash(pair.Worth.Exact),
-                Skin.Output, Names.IconOf(pair.Good)))
+                Skin.Output, Names.IconOf(pair.Good), () => GoodCard.Of(Loop, pair.Good)))
             .ToList());
 
         _made.Set(Fmt.Cash(made.Exact));

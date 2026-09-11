@@ -23,7 +23,9 @@ public partial class PopoverStack : Control
     /// <summary>Показать подсказку от элемента. Всё, что было открыто глубже, закрывается.</summary>
     /// <param name="extra">Строка, дописываемая к статье. Нужна там, где подробность
     /// зависит от состояния игры: какой именно товар подорожал и на сколько.</param>
-    public void Open(Control source, string key, int depth, string? extra = null)
+    /// <param name="ready">Готовая статья вместо словарной. Нужна там, где текст зависит
+    /// от состояния игры целиком: карточка товара, например.</param>
+    public void Open(Control source, string key, int depth, string? extra = null, Article? ready = null)
     {
         if (_open.Count > depth && _open[depth].Key == key && _open[depth].Extra == extra)
         {
@@ -32,7 +34,7 @@ public partial class PopoverStack : Control
 
         CloseFrom(depth);
 
-        var article = Glossary.Any(key);
+        var article = ready ?? Glossary.Any(key);
         if (article is null)
         {
             return;

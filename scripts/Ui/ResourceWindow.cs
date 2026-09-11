@@ -13,6 +13,9 @@ public partial class ResourceWindow : Control
     private const double RefreshEvery = 0.25;
     private const int Columns = 6;
 
+    /// <summary>Ширина средней колонки.</summary>
+    private const int Middling = 560;
+
     /// <summary>Что показывает число под плашкой.</summary>
     private enum Mode
     {
@@ -44,10 +47,13 @@ public partial class ResourceWindow : Control
     private VBoxContainer _needs = null!;
     private VBoxContainer _gives = null!;
     private Flowline _flow = null!;
+    private Label _needsEmpty = null!;
+    private Label _givesEmpty = null!;
     private HashSet<GoodType> _underground = [];
     private Label _deposits = null!;
     private Label _order = null!;
     private Label _sum = null!;
+    private HBoxContainer _traffic = null!;
     private Bars _sellers = null!;
     private Bars _buyers = null!;
     private Bars _world = null!;
@@ -226,7 +232,7 @@ public partial class ResourceWindow : Control
 
         var column = new VBoxContainer
         {
-            CustomMinimumSize = new Vector2(560, 0),
+            CustomMinimumSize = new Vector2(Middling, 0),
             SizeFlagsVertical = SizeFlags.Fill,
         };
 
@@ -244,7 +250,7 @@ public partial class ResourceWindow : Control
         _pie.SizeFlagsHorizontal = SizeFlags.ShrinkCenter;
         column.AddChild(_pie);
 
-        _whose = Ui.Text(string.Empty, 12, 400, Skin.Dim);
+        _whose = Wrapped(12);
         column.AddChild(_whose);
 
         column.AddChild(Heading("Кто производит в мире"));
@@ -277,10 +283,10 @@ public partial class ResourceWindow : Control
         _accept = Ui.Act("Вложить", Skin.Good, Invest, 96);
         line.AddChild(_accept);
 
-        _enough = Ui.Text(string.Empty, 13, 600, Skin.Text);
+        _enough = Wrapped(13, Skin.Text, 600);
         column.AddChild(_enough);
 
-        _order = Ui.Text(string.Empty, 13, 400, Skin.Dim);
+        _order = Wrapped(13);
         column.AddChild(_order);
 
         var head = new HBoxContainer();
@@ -295,13 +301,13 @@ public partial class ResourceWindow : Control
         _breakdown.AddThemeConstantOverride("separation", 2);
         column.AddChild(_breakdown);
 
-        var traffic = new HBoxContainer();
-        traffic.AddThemeConstantOverride("separation", 24);
+        _traffic = new HBoxContainer();
+        _traffic.AddThemeConstantOverride("separation", 24);
         column.AddChild(Ui.Gap(6));
-        column.AddChild(traffic);
+        column.AddChild(_traffic);
 
-        traffic.AddChild(Side("Кто больше всех вывозит", out _sellers));
-        traffic.AddChild(Side("Кто больше всех ввозит", out _buyers));
+        _traffic.AddChild(Side("Кто больше всех вывозит", out _sellers));
+        _traffic.AddChild(Side("Кто больше всех ввозит", out _buyers));
 
         column.AddChild(Ui.Spring());
 
@@ -312,28 +318,45 @@ public partial class ResourceWindow : Control
     /// стрелка с бегущими уголками.</summary>
     private Control Works()
     {
+        var block = new VBoxContainer();
+        block.AddThemeConstantOverride("separation", 4);
+        block.AddChild(Heading("Рецепт за день"));
+
         var row = new HBoxContainer();
         row.AddThemeConstantOverride("separation", 14);
+        block.AddChild(row);
 
-        row.AddChild(Half("Берёт за день", out _needs));
+        // Обе стороны прижаты к середине по высоте: стрелка должна идти между списками,
+        // а не мимо них, когда слева три строки, а справа одна.
+        row.AddChild(Half(out _needs, out _needsEmpty));
 
         _flow = Flowline.Create();
         row.AddChild(_flow);
 
-        row.AddChild(Half("Даёт за день", out _gives));
+        row.AddChild(Half(out _gives, out _givesEmpty));
 
-        return row;
+        return block;
     }
 
-    private static Control Half(string title, out VBoxContainer rows)
+    /// <summary>Одна сторона рецепта: строки товаров и подпись на случай, когда их нет.
+    /// Подпись живёт отдельно, чтобы строки можно было переиспользовать, а не
+    /// пересоздавать: на пересозданной строке не удержится подсказка.</summary>
+    private static Control Half(out VBoxContainer rows, out Label empty)
     {
-        var side = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        var side = new VBoxContainer
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            SizeFlagsVertical = SizeFlags.ShrinkCenter,
+        };
+
         side.AddThemeConstantOverride("separation", 3);
-        side.AddChild(Heading(title));
 
         rows = new VBoxContainer();
         rows.AddThemeConstantOverride("separation", 3);
         side.AddChild(rows);
+
+        empty = Ui.Text(string.Empty, 13, 400, Skin.Dim);
+        side.AddChild(empty);
 
         return side;
     }
@@ -347,6 +370,7 @@ public partial class ResourceWindow : Control
 
         bars = Bars.Create();
         column.AddChild(bars);
+        column.AddChild(bars.Empty("Никто не возит"));
 
         return column;
     }
@@ -390,6 +414,17 @@ public partial class ResourceWindow : Control
         ("Ввоз за день", "imports"),
         ("Вывоз за день", "exports"),
     ];
+
+    /// <summary>Подпись, которая переносится по словам и не тянет колонку вширь.</summary>
+    private static Label Wrapped(int size, Color? colour = null, int weight = 400)
+    {
+        var label = Ui.Text(string.Empty, size, weight, colour ?? Skin.Dim);
+
+        label.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        label.CustomMinimumSize = new Vector2(Middling, 0);
+
+        return label;
+    }
 
     private static Control Heading(string text)
     {
@@ -489,8 +524,13 @@ public partial class ResourceWindow : Control
         ShowPlants();
         ShowNeeds();
 
-        _sellers.Show(Traffic(who => sim.ExportedOf(who, _chosen), Skin.Output));
-        _buyers.Show(Traffic(who => sim.ImportedOf(who, _chosen), Skin.Prices));
+        // Услуги через границу не возят, и пустые полосы у них только сбивают с толку.
+        _traffic.Visible = _chosen != GoodType.Services;
+        if (_traffic.Visible)
+        {
+            _sellers.Show(Traffic(who => sim.ExportedOf(who, _chosen), Skin.Output));
+            _buyers.Show(Traffic(who => sim.ImportedOf(who, _chosen), Skin.Prices));
+        }
 
         _deposits.Visible = _underground.Contains(_chosen);
         if (_deposits.Visible)
@@ -682,47 +722,47 @@ public partial class ResourceWindow : Control
     {
         var info = _plant is { } type ? _loop.World.Buildings[type] : null;
 
-        Flow(_needs, info?.Inputs, "Ничего: берётся из земли");
-        Flow(_gives, info?.Outputs, "Ничего");
+        Flow(_needs, _needsEmpty, info?.Inputs, "Ничего: берётся из земли");
+        Flow(_gives, _givesEmpty, info?.Outputs, "Ничего");
         _flow.Tint(Names.ColourOf(_chosen));
     }
 
     /// <summary>Строки «значок — товар — сколько» для одной стороны обмена.</summary>
-    private static void Flow(
+    private void Flow(
         VBoxContainer rows,
+        Label empty,
         IReadOnlyDictionary<GoodType, GoodAmount>? goods,
-        string empty)
+        string nothing)
     {
         var list = goods is null
             ? []
             : goods.Where(pair => pair.Value.Raw > 0).OrderBy(pair => (int)pair.Key).ToList();
 
-        // Строки собираются заново, а не правятся: состав меняется целиком при смене
-        // завода, и полудюжина узлов четыре раза в секунду ничего не стоит.
-        Ui.Trim(rows, 0);
+        empty.Text = nothing;
+        empty.Visible = list.Count == 0;
 
-        if (list.Count == 0)
+        Ui.Trim(rows, list.Count);
+
+        for (var index = 0; index < list.Count; index++)
         {
-            rows.AddChild(Ui.Text(empty, 13, 400, Skin.Dim));
-            return;
-        }
+            if (index >= rows.GetChildCount()) rows.AddChild(NeedRow());
 
-        foreach (var (good, amount) in list)
-        {
-            var row = NeedRow();
+            var (good, amount) = list[index];
+            var row = rows.GetChild(index);
 
+            row.SetMeta("good", (int)good);
             row.GetChild<TextureRect>(0).Texture = GD.Load<Texture2D>(Names.IconOf(good));
             row.GetChild<TextureRect>(0).Modulate = Names.ColourOf(good);
             row.GetChild<Label>(1).Text = Names.Of(good);
             row.GetChild<Label>(3).Text = Fmt.Amount(amount);
-
-            rows.AddChild(row);
         }
     }
 
-    private static Control NeedRow()
+    /// <summary>Строка рецепта. Товар держится в метаданных узла: строки живут дольше
+    /// одного обновления, а товар в них меняется вместе с выбранным заводом.</summary>
+    private Control NeedRow()
     {
-        var row = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
+        var row = new HBoxContainer();
         row.AddThemeConstantOverride("separation", 8);
 
         row.AddChild(Ui.Icon("res://assets/icons/ui/close.svg", 15, Skin.Text));
@@ -730,8 +770,12 @@ public partial class ResourceWindow : Control
         row.AddChild(Ui.Spring());
         row.AddChild(Ui.Number(string.Empty, 14, Skin.Bright, 80));
 
-        return row;
+        return row.Hover(_stack, "good", () => Told(row));
     }
+
+    /// <summary>Карточка товара, записанного в узле. Пусто — рассказывать нечего.</summary>
+    private Article? Told(Node row) =>
+        row.HasMeta("good") ? GoodCard.Of(_loop, (GoodType)(int)row.GetMeta("good")) : null;
 
     private void ShowSum()
     {
@@ -769,6 +813,7 @@ public partial class ResourceWindow : Control
 
         var rows = info.BuildCost
             .Select(pair => (
+                Good: (GoodType?)pair.Key,
                 Order: (int)pair.Key,
                 Label: Names.Of(pair.Key),
                 Icon: Names.IconOf(pair.Key),
@@ -779,6 +824,7 @@ public partial class ResourceWindow : Control
             .ToList();
 
         rows.Add((
+            null,
             int.MaxValue,
             "Работа строителей",
             Names.Ui("employment"),
@@ -794,6 +840,10 @@ public partial class ResourceWindow : Control
 
             var row = _breakdown.GetChild(index);
 
+            // Работа строителей — не товар, у неё метки нет и подсказки не будет.
+            if (rows[index].Good is { } which) row.SetMeta("good", (int)which);
+            else row.RemoveMeta("good");
+
             row.GetChild<TextureRect>(0).Texture = GD.Load<Texture2D>(rows[index].Icon);
             row.GetChild<TextureRect>(0).Modulate = rows[index].Tint;
             row.GetChild<Label>(1).Text = rows[index].Label;
@@ -802,9 +852,9 @@ public partial class ResourceWindow : Control
         }
     }
 
-    private static Control CostRow()
+    private Control CostRow()
     {
-        var row = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
+        var row = new HBoxContainer();
         row.AddThemeConstantOverride("separation", 8);
 
         row.AddChild(Ui.Icon("res://assets/icons/ui/close.svg", 14, Skin.Text));
@@ -813,7 +863,7 @@ public partial class ResourceWindow : Control
         row.AddChild(Ui.Number(string.Empty, 13, Skin.Dim, 84));
         row.AddChild(Ui.Number(string.Empty, 13, Skin.Money, 96));
 
-        return row;
+        return row.Hover(_stack, "good", () => Told(row));
     }
 
     /// <summary>Круглая плашка товара.</summary>
