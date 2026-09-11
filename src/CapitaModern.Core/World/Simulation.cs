@@ -101,6 +101,9 @@ public sealed class Simulation
     private Money _dealValue;
     private GoodAmount _dealVolume;
 
+    /// <summary>Сколько тиков подряд страна не платит по долгу.</summary>
+    private readonly Dictionary<byte, int> _missedInARow = new();
+
     /// <summary>Сколько страна не смогла оплатить за этот тик.</summary>
     private readonly Dictionary<byte, Money> _unpaid = new();
 
@@ -173,6 +176,11 @@ public sealed class Simulation
     /// <summary>Сколько лет после отказа платить на рынок не пускают. В жизни
     /// примерно столько и не пускают.</summary>
     public const int DefaultLockYears = 5;
+
+    /// <summary>Сколько суток подряд можно не платить, прежде чем это станет отказом.
+    /// По суверенным облигациям льготный срок обычно тридцать дней, по кредитам МВФ и
+    /// клубов кредиторов доходит до полугода; девяносто — середина.</summary>
+    public const int GraceDays = 90;
 
     /// <summary>Нагрузка, после которой долг заведомо не вернуть: вчетверо больше того,
     /// чем страна может платить за год. В жизни зона риска начинается вдвое раньше.</summary>
@@ -812,13 +820,25 @@ public sealed class Simulation
 
             var debt = country.State.Treasury.Debt;
             if (debt.Owed(LoanSource.Foreign).Raw == 0) continue;
-            if (!_missedPayment.Contains(country.Id)) continue;
+
+            // Один пропущенный платёж — ещё не отказ: должнику дают срок договориться,
+            // и в жизни договариваются чаще, чем отказываются. Считаем пропуски подряд.
+            if (!_missedPayment.Contains(country.Id))
+            {
+                _missedInARow.Remove(country.Id);
+                continue;
+            }
+
+            var missed = _missedInARow.GetValueOrDefault(country.Id) + 1;
+            _missedInARow[country.Id] = missed;
+            if (missed < GraceDays) continue;
             // Той же меркой, что и ставка: у кого валюту держат в резервах, тот платит
             // своими деньгами, и по вывозу его судить нельзя.
             if (debt.BurdenToExports(DebtCapacity(country)) < DefaultBurden) continue;
 
             debt.Default(LoanSource.Foreign);
             country.DefaultedOnDay = _day;
+            _missedInARow.Remove(country.Id);
 
             // Курс здесь не трогается. Раньше отказ его удваивал, но курс теперь держит
             // паритет, и через несколько тиков он этот сдвиг откручивал. Валюта обвалится
