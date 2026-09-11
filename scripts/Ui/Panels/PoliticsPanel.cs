@@ -15,6 +15,7 @@ public partial class PoliticsPanel : SidePanel
     private Country[] _others = [];
     private Country? _chosen;
 
+    private Bars _blocs = null!;
     private StatRow _bloc = null!;
     private StatRow _friends = null!;
     private StatRow _foes = null!;
@@ -28,12 +29,15 @@ public partial class PoliticsPanel : SidePanel
 
     protected override void Build()
     {
-        Section("Наше место");
+        Section("Мир по блокам", "tab-politics");
+        _blocs = Columns();
+
+        Section("Наше место", "rate");
         _bloc = Stat("Блок", "bloc");
         _friends = Stat("Дружественных стран", "attitude");
         _foes = Stat("Враждебных стран", "attitude");
 
-        Section("Выбранная страна");
+        Section("Выбранная страна", "population");
         Note("Щелчок по строке в списке выбирает страну. Заморозка касается только тех " +
             "резервов, что она держит у нас: чужое хранилище нам не подчиняется.");
 
@@ -52,7 +56,7 @@ public partial class PoliticsPanel : SidePanel
         line.AddChild(_freeze);
         Rows.AddChild(line);
 
-        Section("Страны");
+        Section("Страны", "tab-politics");
         _table = Table.Create(
             [
                 new Column("Страна", 0, Right: false),
@@ -92,19 +96,26 @@ public partial class PoliticsPanel : SidePanel
 
             rows.Add(
             [
-                new Cell(other.Name, 0, _chosen == other ? Skin.Link : Skin.Text),
+                new Cell(Names.Of(other), 0, _chosen == other ? Skin.Link : Skin.Text),
                 new Cell(Names.Of(bloc), (double)bloc, Names.ColourOf(bloc)),
                 new Cell(attitude.ToString(), attitude, Fmt.Sign(attitude)),
                 new Cell(reachable ? "есть" : "нет", reachable ? 1 : 0, reachable ? Skin.Dim : Skin.Bad),
             ]);
         }
 
+        _blocs.Show(Enum.GetValues<Bloc>()
+            .Select(bloc => (Bloc: bloc, Count: world.Countries.Count(c => relations.BlocOf(c.Id) == bloc)))
+            .OrderByDescending(pair => pair.Count)
+            .Select(pair => new Slice(
+                Names.Of(pair.Bloc), pair.Count, pair.Count.ToString(), Names.ColourOf(pair.Bloc)))
+            .ToList());
+
         _friends.Set(friends.ToString(), friends > 0 ? Skin.Good : Skin.Dim);
         _foes.Set(foes.ToString(), foes > 0 ? Skin.Bad : Skin.Dim);
         _table.Set(rows);
 
         var chosen = _chosen is not null;
-        _who.Text = chosen ? $"{_chosen!.Name} · {relations.Between(Id, _chosen.Id)}" : "никто не выбран";
+        _who.Text = chosen ? $"{Names.Of(_chosen!)} · {relations.Between(Id, _chosen.Id)}" : "никто не выбран";
         _who.AddThemeColorOverride("font_color", chosen ? Skin.Bright : Skin.Dim);
 
         _worse.Disabled = !chosen;

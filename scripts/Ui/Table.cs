@@ -38,9 +38,14 @@ public partial class Table : VBoxContainer
         var order = Enumerable.Range(0, rows.Count).ToList();
         var by = Mathf.Min(_sort, _columns.Length - 1);
 
-        order.Sort((a, b) => _ascending
-            ? rows[a][by].Order.CompareTo(rows[b][by].Order)
-            : rows[b][by].Order.CompareTo(rows[a][by].Order));
+        order.Sort((a, b) =>
+        {
+            var first = _ascending ? a : b;
+            var second = _ascending ? b : a;
+            var step = rows[first][by].Order.CompareTo(rows[second][by].Order);
+
+            return step != 0 ? step : string.CompareOrdinal(rows[first][by].Text, rows[second][by].Text);
+        });
 
         while (_rows.Count < rows.Count)
         {

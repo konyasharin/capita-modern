@@ -11,6 +11,9 @@ public abstract partial class SidePanel : PanelContainer
     /// <summary>Сюда наследник складывает строки, полоски и таблицы.</summary>
     protected VBoxContainer Rows = null!;
 
+    /// <summary>Что с чем было по дням. Из неё панели рисуют графики.</summary>
+    protected History Past = null!;
+
     protected Country Me => Loop.PlayerCountry;
     protected byte Id => Loop.Player;
 
@@ -30,6 +33,8 @@ public abstract partial class SidePanel : PanelContainer
 
     public override void _Ready()
     {
+        Past = GetNode<History>("/root/Game/History");
+
         CustomMinimumSize = new Vector2(Skin.PanelWidth, 0);
         AddThemeStyleboxOverride("panel", Skin.PanelBox());
 
@@ -41,7 +46,7 @@ public abstract partial class SidePanel : PanelContainer
 
         var margin = new MarginContainer { SizeFlagsVertical = SizeFlags.ExpandFill };
         margin.AddThemeConstantOverride("margin_left", 12);
-        margin.AddThemeConstantOverride("margin_right", 18);
+        margin.AddThemeConstantOverride("margin_right", 8);
         margin.AddThemeConstantOverride("margin_top", 8);
         margin.AddThemeConstantOverride("margin_bottom", 10);
         frame.AddChild(margin);
@@ -54,9 +59,17 @@ public abstract partial class SidePanel : PanelContainer
 
         margin.AddChild(scroll);
 
+        // Полоса прокрутки рисуется поверх содержимого, а не рядом с ним, поэтому место
+        // ей отводится отступом изнутри — иначе она режет правую колонку чисел.
+        var inner = new MarginContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        inner.AddThemeConstantOverride("margin_right", 12);
+        scroll.AddChild(inner);
+
         Rows = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
         Rows.AddThemeConstantOverride("separation", 4);
-        scroll.AddChild(Rows);
+        inner.AddChild(Rows);
+
+        Skin.Scrollbar(scroll.GetVScrollBar());
 
         Build();
         Refresh();
@@ -83,14 +96,30 @@ public abstract partial class SidePanel : PanelContainer
         return bar;
     }
 
-    protected void Section(string title) => Rows.AddChild(Ui.Section(title));
+    protected void Section(string title, string? icon = null) => Rows.AddChild(Ui.Section(title, icon));
+
+    protected Chart Graph(string title, Func<double, string>? show = null)
+    {
+        var chart = Chart.Create(title, show);
+        Rows.AddChild(chart);
+
+        return chart;
+    }
+
+    protected Bars Columns()
+    {
+        var bars = Bars.Create();
+        Rows.AddChild(bars);
+
+        return bars;
+    }
 
     /// <summary>Пояснение мелким шрифтом под разделом: где число врёт и почему.</summary>
     protected void Note(string text)
     {
         var note = Ui.Text(text, 12, 400, Skin.Dim);
         note.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        note.CustomMinimumSize = new Vector2(Skin.PanelWidth - 40, 0);
+        note.CustomMinimumSize = new Vector2(Skin.PanelWidth - 46, 0);
 
         Rows.AddChild(note);
     }

@@ -10,6 +10,10 @@ public partial class TradePanel : SidePanel
     public override string Title => "Торговля";
     public override string Icon => "trade";
 
+    private Chart _flow = null!;
+    private Bars _in = null!;
+    private Bars _out = null!;
+
     private StatRow _exports = null!;
     private StatRow _imports = null!;
     private StatRow _balance = null!;
@@ -25,22 +29,31 @@ public partial class TradePanel : SidePanel
 
     protected override void Build()
     {
-        Section("За день");
+        Section("Как идёт торговля", "tab-trade");
+        _flow = Graph("Вывоз и ввоз за день", Fmt.Cash);
+
+        Section("За день", "output");
         _exports = Stat("Вывоз", "exports");
         _imports = Stat("Ввоз", "imports");
         _balance = Stat("Сальдо", "balance");
         _transit = Stat("Заработано на транзите", "transit");
         _fuel = Stat("Топливо на перевозку", "freight");
 
-        Section("За год");
+        Section("За год", "output");
         _yearly = Stat("Вывоз за год, скользящий", "exports");
 
-        Section("Доступ к рынкам");
+        Section("Что ввозим", "alert-shortage");
+        _in = Columns();
+
+        Section("Что вывозим", "tab-trade");
+        _out = Columns();
+
+        Section("Доступ к рынкам", "tab-politics");
         _unreachable = Stat("Стран без пути", "routes");
         _tolls = Stat("Берут с нас пошлину", "tolls");
         _refused = Stat("Мир не купил из-за доставки", "shortage");
 
-        Section("По товарам");
+        Section("По товарам", "tab-goods");
         Note("Щелчок по строке ставит и снимает запрет на этот товар: он перестаёт " +
             "и ввозиться, и вывозиться.");
 
@@ -72,6 +85,13 @@ public partial class TradePanel : SidePanel
         _yearly.Set(Fmt.Cash(Me.ExportsPerDay.Exact * 365));
         _transit.Set(Fmt.Cash(sim.TransitEarnedBy(Id).Exact));
         _fuel.Set(Fmt.Amount(sim.FuelBurnedIn(Id)));
+
+        _flow.Show(
+            new Trace("вывоз", Skin.Output, Past.Of(History.Line.Exports)),
+            new Trace("ввоз", Skin.Prices, Past.Of(History.Line.Imports)));
+
+        _in.Show(Top(good => prices.CostOf(good, sim.ImportedOf(Id, good)), Skin.Prices));
+        _out.Show(Top(good => prices.CostOf(good, sim.ExportedOf(Id, good)), Skin.Output));
 
         var routes = Loop.World.Routes;
         var unreachable = 0;
@@ -109,6 +129,16 @@ public partial class TradePanel : SidePanel
 
         _table.Set(rows);
     }
+
+    /// <summary>Шесть самых крупных товаров по заданной мерке.</summary>
+    private List<Slice> Top(Func<GoodType, Money> worth, Color colour) => AllGoods
+        .Select(good => (Good: good, Worth: worth(good)))
+        .Where(pair => pair.Worth.Raw > 0)
+        .OrderByDescending(pair => pair.Worth.Raw)
+        .Take(6)
+        .Select(pair => new Slice(
+            Names.Of(pair.Good), pair.Worth.Exact, Fmt.Cash(pair.Worth.Exact), colour, Names.IconOf(pair.Good)))
+        .ToList();
 
     private void Toggle(GoodType good)
     {

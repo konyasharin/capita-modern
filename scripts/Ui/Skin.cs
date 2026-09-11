@@ -176,6 +176,17 @@ public static class Skin
         return box;
     }
 
+    /// <summary>Полоса прокрутки под общий вид: у стандартной светло-серый ползунок,
+    /// который на тёмной панели кричит громче содержимого.</summary>
+    public static void Scrollbar(VScrollBar bar)
+    {
+        bar.CustomMinimumSize = new Vector2(6, 0);
+        bar.AddThemeStyleboxOverride("scroll", BarBox(new Color(Soft, 0.35f)));
+        bar.AddThemeStyleboxOverride("grabber", BarBox(new Color(Line, 0.9f)));
+        bar.AddThemeStyleboxOverride("grabber_highlight", BarBox(Link));
+        bar.AddThemeStyleboxOverride("grabber_pressed", BarBox(Link));
+    }
+
     /// <summary>Полоска-указатель: жёлоб и заполнение.</summary>
     public static StyleBoxFlat BarBox(Color colour) => Box(colour, colour, 2);
 

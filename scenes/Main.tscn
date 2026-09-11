@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/Game.cs" id="1_game"]
 [ext_resource type="Script" path="res://scripts/Map/WorldMapView.cs" id="2_map"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://scripts/Ui/SelectionPanel.cs" id="9_pick"]
 [ext_resource type="Script" path="res://scripts/Ui/PopoverStack.cs" id="10_pop"]
 [ext_resource type="Script" path="res://scripts/Audio/Music.cs" id="11_music"]
+[ext_resource type="Script" path="res://scripts/Sim/History.cs" id="12_hist"]
 
 [node name="Game" type="Node2D"]
 script = ExtResource("1_game")
@@ -25,6 +26,9 @@ script = ExtResource("3_cam")
 
 [node name="GameLoop" type="Node" parent="."]
 script = ExtResource("6_loop")
+
+[node name="History" type="Node" parent="."]
+script = ExtResource("12_hist")
 
 [node name="Music" type="AudioStreamPlayer" parent="."]
 script = ExtResource("11_music")

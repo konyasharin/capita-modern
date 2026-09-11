@@ -9,9 +9,10 @@ public partial class DevScreenshot : Node
 {
     private string? _path;
     private int _framesLeft = 30;
+    private int _total = 30;
     private Vector2? _focus;
     private float _zoom = 1f;
-    private Vector2? _mouse;
+    private readonly List<Vector2> _mouse = [];
     private Vector2? _click;
     private int? _tab;
     private int _days;
@@ -28,14 +29,20 @@ public partial class DevScreenshot : Node
                 && int.TryParse(arg["--shot-frame=".Length..], out var frames))
             {
                 _framesLeft = frames;
+                _total = frames;
             }
             else if (arg.StartsWith("--shot-mouse=", StringComparison.Ordinal))
             {
                 // Курсор нужен, чтобы снять подсказку: она открывается по наведению.
-                var at = arg["--shot-mouse=".Length..].Split(',');
-                if (at.Length == 2 && float.TryParse(at[0], out var mx) && float.TryParse(at[1], out var my))
+                // Точек можно дать несколько через «;» — так проверяется, гаснет ли
+                // вложенная подсказка, когда мышь ушла с термина.
+                foreach (var step in arg["--shot-mouse=".Length..].Split(';'))
                 {
-                    _mouse = new Vector2(mx, my);
+                    var at = step.Split(',');
+                    if (at.Length == 2 && float.TryParse(at[0], out var mx) && float.TryParse(at[1], out var my))
+                    {
+                        _mouse.Add(new Vector2(mx, my));
+                    }
                 }
             }
             else if (arg.StartsWith("--shot-days=", StringComparison.Ordinal)
@@ -90,7 +97,7 @@ public partial class DevScreenshot : Node
             _focus = null;
         }
 
-        if (_days > 0 && _framesLeft == 25)
+        if (_days > 0 && _framesLeft == _total - 5)
         {
             var loop = GetParent().GetNode<GameLoop>("GameLoop");
             for (var day = 0; day < _days; day++) loop.Advance();
@@ -98,14 +105,14 @@ public partial class DevScreenshot : Node
             _days = 0;
         }
 
-        if (_tab is { } which && _framesLeft == 20)
+        if (_tab is { } which && _framesLeft == _total - 8)
         {
             GetParent().GetNode<SideTabs>("Ui/SideTabs").Show(which);
             _tab = null;
         }
 
         // Щелчок по карте: панель выбора ждёт нажатия и отпускания, а не одного события.
-        if (_click is { } spot && _framesLeft == 18)
+        if (_click is { } spot && _framesLeft == _total - 11)
         {
             Input.WarpMouse(spot);
             Input.ParseInputEvent(new InputEventMouseButton
@@ -121,9 +128,13 @@ public partial class DevScreenshot : Node
             _click = null;
         }
 
-        // Ставится не в самом конце: подсказке нужно несколько кадров, чтобы открыться.
-        if (_mouse is { } cursor && _framesLeft == 12)
+        // Точки проходятся по одной, по восемь кадров на каждую. Начинаются они после
+        // того, как открыта вкладка: до этого наводиться попросту не на что.
+        var since = _total - 14 - _framesLeft;
+        if (since >= 0 && since % 8 == 0 && since / 8 < _mouse.Count)
         {
+            var cursor = _mouse[since / 8];
+
             // WarpMouse двигает курсор молча, а подсказки на терминах ждут события
             // движения — иначе наведение на них не проверить.
             Input.WarpMouse(cursor);

@@ -9,6 +9,9 @@ public partial class FinancePanel : SidePanel
     public override string Title => "Финансы";
     public override string Icon => "finance";
 
+    private Chart _purse = null!;
+    private Bars _held = null!;
+
     private StatRow _balance = null!;
     private StatRow _budget = null!;
     private StatRow _wages = null!;
@@ -30,17 +33,21 @@ public partial class FinancePanel : SidePanel
 
     protected override void Build()
     {
-        Section("Казна");
+        Section("Как идут деньги", "treasury");
+        _purse = Graph("Казна и внешний долг", Fmt.Cash);
+
+        Section("Казна", "treasury");
         _balance = Stat("Остаток", "treasury");
         _budget = Stat("Сальдо за день", "budget");
         _wages = Stat("Зарплаты за день", "wages");
 
-        Section("Резервы");
+        Section("Резервы", "rate");
+        _held = Columns();
         _reserves = Stat("Всего", "reserves");
         _frozen = Stat("Заморожено", "frozen");
         _frozenBy = Stat("Кем заморожено", "frozen");
 
-        Section("Долг");
+        Section("Долг", "debt");
         _debt = Stat("Внешний долг", "debt");
         _burden = Stat("Нагрузка на вывоз", "burden");
         _loans = Stat("Займов", "debt");
@@ -56,7 +63,7 @@ public partial class FinancePanel : SidePanel
 
         Rows.AddChild(_table);
 
-        Section("Рычаги");
+        Section("Рычаги", "tab-finance");
         Knob("Ключевая ставка", 0, 3000, 25,
             () => Me.KeyRate, value => Me.KeyRate = value, Fmt.Rate, "keyrate");
         Knob("Потолок заимствования", 0, CreditMarket.Ceiling, 100,
@@ -64,7 +71,7 @@ public partial class FinancePanel : SidePanel
         Knob("Доля труда в выручке", 0, 100, 1,
             () => Me.LabourShare, value => Me.LabourShare = value, value => $"{value}%", "labour");
 
-        Section("Необратимое");
+        Section("Необратимое", "alert-default");
         Note("Печать поднимает цены по всей стране, отказ платить закрывает кредит " +
             "на пять лет. Оба действия обычно делает сама модель — здесь они вручную.");
 
@@ -90,7 +97,19 @@ public partial class FinancePanel : SidePanel
         _budget.Set(Fmt.Cash(budget.Exact), Fmt.Sign(budget.Exact));
         _wages.Set(Fmt.Cash(sim.WagesIn(Id).Exact));
 
+        _purse.Show(
+            new Trace("казна", Skin.Money, Past.Of(History.Line.Treasury)),
+            new Trace("долг", Skin.Owed, Past.Of(History.Line.Debt)));
+
         var reserves = treasury.Reserves;
+        _held.Show(reserves.Held
+            .GroupBy(item => item.Issuer)
+            .Select(group => (Iso: Loop.World.CountryById(group.Key).Iso, Sum: group.Sum(item => item.Amount.Exact)))
+            .Where(pair => pair.Sum > 0)
+            .OrderByDescending(pair => pair.Sum)
+            .Take(6)
+            .Select(pair => new Slice(pair.Iso, pair.Sum, Fmt.Cash(pair.Sum), Skin.Rate))
+            .ToList());
         _reserves.Set(Fmt.Cash(reserves.Value.Exact));
         _frozen.Set(Fmt.Cash(reserves.Frozen.Exact), reserves.Frozen.Raw > 0 ? Skin.Bad : Skin.Good);
         _frozenBy.Set(reserves.FrozenBy.Count == 0
@@ -118,7 +137,7 @@ public partial class FinancePanel : SidePanel
 
             rows.Add(
             [
-                new Cell(loan.Lender is { } id ? Loop.World.CountryById(id).Name : Names.Of(loan.Source),
+                new Cell(loan.Lender is { } id ? Names.Of(Loop.World.CountryById(id)) : Names.Of(loan.Source),
                     loan.Principal.Exact, Skin.Text),
                 new Cell(Fmt.Cash(loan.Principal.Exact), loan.Principal.Exact, Skin.Owed),
                 new Cell(Fmt.Rate(rate), rate, rate > 1500 ? Skin.Bad : Skin.Text),

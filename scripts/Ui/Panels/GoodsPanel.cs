@@ -10,17 +10,21 @@ public partial class GoodsPanel : SidePanel
     public override string Title => "Товары";
     public override string Icon => "goods";
 
+    private Bars _top = null!;
     private StatRow _made = null!;
     private StatRow _short = null!;
     private Table _table = null!;
 
     protected override void Build()
     {
-        Section("Итоги за день");
+        Section("Итоги за день", "output");
         _made = Stat("Выпущено, в своих ценах", "output");
         _short = Stat("Не хватило заказанного", "shortage");
 
-        Section("По товарам");
+        Section("Крупнейшие производства", "plants");
+        _top = Columns();
+
+        Section("По товарам", "tab-goods");
         Note("Выпуск и заказ — за сутки, склад — остаток на начало дня. Столбец «к старту» " +
             "показывает, во сколько раз цена ушла от начала партии.");
 
@@ -71,6 +75,16 @@ public partial class GoodsPanel : SidePanel
                 new Cell($"×{times:0.00}", times, Fmt.Sign(times - 1, moreIsBetter: false)),
             ]);
         }
+
+        _top.Show(AllGoods
+            .Select(good => (Good: good, Worth: prices.CostOf(good, sim.OutputOf(Id, good))))
+            .Where(pair => pair.Worth.Raw > 0)
+            .OrderByDescending(pair => pair.Worth.Raw)
+            .Take(8)
+            .Select(pair => new Slice(
+                Names.Of(pair.Good), pair.Worth.Exact, Fmt.Cash(pair.Worth.Exact),
+                Skin.Output, Names.IconOf(pair.Good)))
+            .ToList());
 
         _made.Set(Fmt.Cash(made.Exact));
         _short.Set(Fmt.Cash(missing.Exact), missing.Raw > 0 ? Skin.Bad : Skin.Good);

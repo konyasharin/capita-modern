@@ -38,10 +38,24 @@ public partial class PopoverStack : Control
 
         var popover = Popover.Create(source, key, article);
         AddChild(popover);
-        popover.PlaceUnder(source, GetViewportRect());
+        popover.PlaceNear(source, GetViewportRect());
+
+        // Верхняя подсказка держится курсором над своим элементом, вложенная — курсором
+        // над самим термином: иначе она висит, пока мышь где угодно в родительской.
+        var parent = depth > 0 ? _open[depth - 1] : null;
+        popover.Alive = parent is null ? () => Under(source) : () => parent.HotTerm == key;
 
         var level = _open.Count;
-        popover.Body.MetaHoverStarted += meta => Open(popover.Body, meta.AsString(), level + 1);
+        popover.Body.MetaHoverStarted += meta =>
+        {
+            popover.HotTerm = meta.AsString();
+            Open(popover.Body, popover.HotTerm, level + 1);
+        };
+
+        popover.Body.MetaHoverEnded += meta =>
+        {
+            if (popover.HotTerm == meta.AsString()) popover.HotTerm = string.Empty;
+        };
 
         _open.Add(popover);
     }
@@ -54,7 +68,7 @@ public partial class PopoverStack : Control
         }
 
         var last = _open[^1];
-        if (Under(last) || Under(last.Source))
+        if (Under(last) || last.Alive())
         {
             return;
         }

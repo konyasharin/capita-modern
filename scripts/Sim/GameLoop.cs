@@ -89,7 +89,11 @@ public partial class GameLoop : Node
     {
         Simulation.Tick();
         Day++;
+        Ticked?.Invoke();
     }
+
+    /// <summary>Сутки прошли. Отсюда история значений берёт свои точки.</summary>
+    public Action? Ticked;
 
     /// <summary>Население страны игрока, человек.</summary>
     public long Population => World.PopulationOf(Player).Whole;

@@ -52,16 +52,24 @@ public static class Ui
         MouseFilter = Control.MouseFilterEnum.Ignore,
     };
 
-    /// <summary>Заголовок раздела внутри панели.</summary>
-    public static Control Section(string title)
+    /// <summary>Заголовок раздела внутри панели. Со значком: по нему раздел находят
+    /// прокруткой, не вчитываясь в подписи.</summary>
+    public static Control Section(string title, string? icon = null)
     {
         var rows = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
         rows.AddThemeConstantOverride("separation", 3);
-
         rows.AddChild(Gap(6));
-        rows.AddChild(Text(title.ToUpperInvariant(), 12, 700, Skin.Dim));
-        rows.AddChild(new HSeparator());
-        rows.GetChild<HSeparator>(2).AddThemeStyleboxOverride("separator", Skin.BarBox(Skin.Soft));
+
+        var line = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        line.AddThemeConstantOverride("separation", 6);
+        if (icon is not null) line.AddChild(Icon(Names.Ui(icon), 13, Skin.Link));
+
+        line.AddChild(Text(title.ToUpperInvariant(), 12, 700, Skin.Dim));
+        rows.AddChild(line);
+
+        var rule = new HSeparator();
+        rule.AddThemeStyleboxOverride("separator", Skin.BarBox(Skin.Soft));
+        rows.AddChild(rule);
 
         return rows;
     }

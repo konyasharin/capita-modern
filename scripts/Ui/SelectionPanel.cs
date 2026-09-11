@@ -91,7 +91,7 @@ public partial class SelectionPanel : PanelContainer
             _rows.AddChild(row);
         }
 
-        frame.AddChild(Ui.Section("Область"));
+        frame.AddChild(Ui.Section("Область", "plants"));
 
         _region = Ui.Text("—", 14, 600, Skin.Bright);
         frame.AddChild(_region);
@@ -157,7 +157,7 @@ public partial class SelectionPanel : PanelContainer
                 .SetShaderParameter("aspect", (float)texture.GetWidth() / texture.GetHeight());
         }
 
-        _name.Text = country.Name;
+        _name.Text = Names.Of(country);
 
         var bloc = _loop.World.Relations.BlocOf(country.Id);
         _blocText.Text = Names.Of(bloc);

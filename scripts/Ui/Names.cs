@@ -3,6 +3,7 @@ using Godot;
 using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
 using CapitaModern.Core.Politics;
+using Country = CapitaModern.Core.World.Country;
 
 /// <summary>Русские названия для того, что в коде названо по-английски, и пути к значкам.
 /// Держатся в C#, а не в данных: компилятор так проверяет, что ни один товар не забыт.</summary>
@@ -88,6 +89,33 @@ public static class Names
         BuildingType.BusinessFirm => "Деловые услуги",
         _ => type.ToString(),
     };
+
+    /// <summary>Русское название страны. В countries.json имена английские: они пришли
+    /// из Natural Earth и служат ключом сверки с данными, поэтому перевод лежит рядом.</summary>
+    public static string Of(Country country) => Of(country.Iso, country.Name);
+
+    public static string Of(string iso, string fallback) => Countries.GetValueOrDefault(iso, fallback);
+
+    private static Dictionary<string, string>? _countries;
+
+    private static Dictionary<string, string> Countries
+    {
+        get
+        {
+            if (_countries is not null) return _countries;
+
+            var json = Godot.FileAccess.GetFileAsString("res://data/ui/countries-ru.json");
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+
+            _countries = [];
+            foreach (var item in doc.RootElement.GetProperty("names").EnumerateObject())
+            {
+                _countries[item.Name] = item.Value.GetString() ?? item.Name;
+            }
+
+            return _countries;
+        }
+    }
 
     public static string Of(Sector sector) => sector switch
     {

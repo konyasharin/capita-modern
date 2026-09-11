@@ -14,6 +14,7 @@ public partial class IndustryPanel : SidePanel
 
     private readonly List<Stepper> _weights = [];
 
+    private Bars _bySector = null!;
     private StatRow _building = null!;
     private StatRow _builders = null!;
     private StatRow _investment = null!;
@@ -22,7 +23,7 @@ public partial class IndustryPanel : SidePanel
 
     protected override void Build()
     {
-        Section("Приоритеты снабжения");
+        Section("Приоритеты снабжения", "tab-industry");
         Note("Вес — множитель к заказу отрасли. При избытке он ни на что не влияет, " +
             "а при нехватке решает, кому достанется сырьё и руки. Обычный вес ×1.00.");
 
@@ -45,12 +46,15 @@ public partial class IndustryPanel : SidePanel
             Rows.AddChild(knob);
         }
 
-        Section("Стройка");
+        Section("Стройка", "plants");
         _building = Stat("Строится сейчас", "building");
         _builders = Stat("Занято на стройке", "builders");
         _investment = Stat("Вложения за день", "investment");
 
-        Section("Предприятия");
+        Section("Предприятия по отраслям", "employment");
+        _bySector = Columns();
+
+        Section("Предприятия", "tab-industry");
         _total = Stat("Всего", "plants");
         Note("«Работает» меньше «есть» — значит зданию не хватило сырья или рук.");
 
@@ -81,6 +85,7 @@ public partial class IndustryPanel : SidePanel
         _investment.Set(Fmt.Cash(sim.InvestmentIn(Id).Exact));
 
         var rows = new List<Cell[]>(AllTypes.Length);
+        var bySector = new Dictionary<Sector, long>();
         var total = 0L;
 
         foreach (var type in AllTypes)
@@ -93,6 +98,8 @@ public partial class IndustryPanel : SidePanel
             var working = sim.WorkingOf(Id, type);
             var staff = (long)working * catalog[type].OptimalWorkers;
 
+            bySector[catalog[type].Sector] = bySector.GetValueOrDefault(catalog[type].Sector) + count;
+
             rows.Add(
             [
                 new Cell(Names.Of(type), (double)type, Skin.Text, Names.IconOf(type)),
@@ -101,6 +108,11 @@ public partial class IndustryPanel : SidePanel
                 new Cell(Fmt.Count(staff), staff, Skin.Text),
             ]);
         }
+
+        _bySector.Show(bySector
+            .OrderByDescending(pair => pair.Value)
+            .Select(pair => new Slice(Names.Of(pair.Key), pair.Value, Fmt.Count(pair.Value), Skin.Plants))
+            .ToList());
 
         _total.Set(Fmt.Count(total));
         _table.Set(rows);

@@ -12,12 +12,15 @@ public partial class AlertBar : HBoxContainer
     /// кадр, а обход товаров не бесплатный.</summary>
     private const double CheckEvery = 0.25;
 
+    /// <summary>Сторона значка тревоги.</summary>
+    private const int Size = 24;
+
     private sealed record Alert(string Icon, string Key, Color Colour, int Tab, Func<bool> Lit);
 
     private GameLoop _loop = null!;
     private SideTabs _tabs = null!;
 
-    private readonly List<(Alert Alert, TextureRect Icon, bool[] Lit)> _alerts = [];
+    private readonly List<(Alert Alert, Button Plate, TextureRect Icon, bool[] Lit)> _alerts = [];
     private double _left;
     private double _phase;
 
@@ -35,23 +38,20 @@ public partial class AlertBar : HBoxContainer
         {
             var button = new Button
             {
-                CustomMinimumSize = new Vector2(22, 22),
+                CustomMinimumSize = new Vector2(Size, Size),
                 FocusMode = FocusModeEnum.None,
                 SizeFlagsVertical = SizeFlags.ShrinkCenter,
             };
 
-            button.AddThemeStyleboxOverride("normal", new StyleBoxEmpty());
-            button.AddThemeStyleboxOverride("hover", new StyleBoxEmpty());
-            button.AddThemeStyleboxOverride("pressed", new StyleBoxEmpty());
             button.AddChild(new HoverProbe { Stack = stack, Key = alert.Key });
             button.Pressed += () => _tabs.Show(alert.Tab);
 
-            var icon = Ui.Icon(Names.Ui(alert.Icon), 18, alert.Colour);
+            var icon = Ui.Icon(Names.Ui(alert.Icon), 17, alert.Colour);
             icon.SetAnchorsPreset(LayoutPreset.Center);
-            icon.Position = new Vector2(-9, -9);
+            icon.Position = new Vector2(-8.5f, -8.5f);
             button.AddChild(icon);
 
-            _alerts.Add((alert, icon, new bool[1]));
+            _alerts.Add((alert, button, icon, new bool[1]));
             AddChild(button);
         }
 
@@ -64,7 +64,7 @@ public partial class AlertBar : HBoxContainer
         // замечать через минуту.
         _phase += delta * 2.2;
 
-        foreach (var (alert, icon, lit) in _alerts)
+        foreach (var (alert, _, icon, lit) in _alerts)
         {
             if (lit[0]) icon.Modulate = new Color(alert.Colour, 0.72f + 0.28f * (float)Mathf.Sin(_phase));
         }
@@ -78,10 +78,21 @@ public partial class AlertBar : HBoxContainer
 
     private void Check()
     {
-        foreach (var (alert, icon, lit) in _alerts)
+        foreach (var (alert, plate, icon, lit) in _alerts)
         {
             lit[0] = alert.Lit();
-            if (!lit[0]) icon.Modulate = new Color(Skin.Dim, 0.28f);
+
+            // Горящая тревога получает плашку в свой цвет: одного оттенка значка мало,
+            // на тёмной панели он теряется.
+            var box = lit[0] ? Skin.ChipBox(alert.Colour) : Skin.ChipBox(new Color(Skin.Dim, 0.25f));
+            box.ContentMarginLeft = 0;
+            box.ContentMarginRight = 0;
+
+            plate.AddThemeStyleboxOverride("normal", box);
+            plate.AddThemeStyleboxOverride("hover", Skin.ChipBox(lit[0] ? alert.Colour : Skin.Dim));
+            plate.AddThemeStyleboxOverride("pressed", Skin.ChipBox(Skin.Link));
+
+            if (!lit[0]) icon.Modulate = new Color(Skin.Dim, 0.5f);
         }
     }
 

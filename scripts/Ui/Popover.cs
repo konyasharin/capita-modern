@@ -10,10 +10,23 @@ public partial class Popover : PanelContainer
     private const int Width = 360;
     private const int Pad = 14;
 
+    /// <summary>Отступ от источника и от краёв экрана.</summary>
+    private const int Gap = 8;
+
     /// <summary>От чего открыт. Пока мышь над ним, подсказка не гаснет.</summary>
     public Control Source { get; private set; } = null!;
 
     public string Key { get; private set; } = string.Empty;
+
+    /// <summary>Жива ли ещё причина, по которой подсказку открыли.</summary>
+    /// <remarks>Для показателя это «курсор над ним», а для термина внутри другой
+    /// подсказки — «курсор над самим термином». Одним прямоугольником источника тут не
+    /// обойтись: у термина источник — вся строка текста, и вторая подсказка не гасла,
+    /// пока мышь оставалась в первой.</remarks>
+    public Func<bool> Alive { get; set; } = () => false;
+
+    /// <summary>Термин, над которым сейчас курсор. Пустая строка — ни над каким.</summary>
+    public string HotTerm { get; set; } = string.Empty;
 
     private RichTextLabel _body = null!;
 
@@ -64,18 +77,34 @@ public partial class Popover : PanelContainer
 
     /// <summary>Ставится один раз и больше не двигается: подсказка, которая ездит за
     /// курсором, не даёт себя прочитать.</summary>
-    public void PlaceUnder(Control source, Rect2 screen)
+    /// <remarks>Сбоку, если источник прижат к левому краю, и снизу во всех остальных
+    /// случаях. Вкладки и строки панели стоят слева, и подсказка под ними закрывала бы
+    /// то, ради чего её открыли.</remarks>
+    public void PlaceNear(Control source, Rect2 screen)
     {
         var anchor = source.GetGlobalRect();
         var size = GetCombinedMinimumSize();
 
-        var x = Mathf.Clamp(anchor.Position.X + anchor.Size.X / 2 - size.X / 2, 8f, screen.Size.X - size.X - 8f);
-        var y = anchor.Position.Y + anchor.Size.Y;
+        var beside = anchor.Position.X < screen.Size.X / 3
+            && anchor.Position.X + anchor.Size.X + size.X + Gap <= screen.Size.X;
 
-        // Внизу не помещается — вешаем над источником.
-        if (y + size.Y > screen.Size.Y - 8f) y = anchor.Position.Y - size.Y;
+        var x = beside
+            ? anchor.Position.X + anchor.Size.X + Gap
+            : anchor.Position.X + anchor.Size.X / 2 - size.X / 2;
 
-        Position = new Vector2(x, y);
+        var y = beside
+            ? anchor.Position.Y
+            : anchor.Position.Y + anchor.Size.Y;
+
+        // Снизу не помещается — вешаем выше; сбоку просто подтягиваем вверх.
+        if (y + size.Y > screen.Size.Y - Gap)
+        {
+            y = beside ? screen.Size.Y - size.Y - Gap : anchor.Position.Y - size.Y;
+        }
+
+        Position = new Vector2(
+            Mathf.Clamp(x, Gap, Mathf.Max(Gap, screen.Size.X - size.X - Gap)),
+            Mathf.Max(y, Gap));
     }
 
     /// <summary>Наши ссылки вида [[ключ|слово]] превращаются в подчёркнутый термин.</summary>

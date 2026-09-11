@@ -1,3 +1,4 @@
+using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
 using Godot;
 
@@ -25,6 +26,11 @@ public partial class OverviewPanel : SidePanel
 
     private readonly Dictionary<Sector, StatRow> _efficiency = [];
 
+    private Chart _wealth = null!;
+    private Chart _prices = null!;
+    private Chart _work = null!;
+    private Bars _sectors = null!;
+
     private StatRow _supply = null!;
     private StatRow _printed = null!;
     private StatRow _level = null!;
@@ -32,25 +38,35 @@ public partial class OverviewPanel : SidePanel
 
     protected override void Build()
     {
-        Section("Люди");
+        Section("Как идут дела", "output");
+        _wealth = Graph("ВВП за год, постоянные цены", Fmt.Cash);
+        _prices = Graph("Уровень цен к старту", value => Fmt.Percent(value, signed: true));
+        _work = Graph("Занятость и загрузка", value => Fmt.Percent(value));
+
+        Section("Люди", "population");
         _population = Stat("Население", "population");
         _workers = Stat("Рабочая сила", "workers");
         _employment = Gauge("Занятость", Skin.People, "employment");
         _missing = Stat("Не хватает рук", "hands");
 
-        Section("Достаток");
+        Section("Достаток", "treasury");
         _wage = Stat("Зарплата за день", "wage");
         _savings = Stat("Сбережения населения", "savings");
         _engel = Stat("Доля еды в расходах", "engel");
         _capacity = Stat("Корзин на дневной доход", "capacity");
 
-        Section("Производство");
+        Section("Производство", "plants");
         _load = Gauge("Загрузка предприятий", Skin.Plants, "load");
         _added = Stat("Добавленная стоимость за день", "output");
         _yearly = Stat("ВВП за год, постоянные цены", "output");
         _perWorker = Stat("Выработка на работника за год");
 
-        Section("Эффективность отраслей");
+        Section("Занято по отраслям", "employment");
+        Note("Считается по тем зданиям, что работали на прошлом тике, с поправкой на " +
+            "эффективность: где она выше, тех же людей хватает на больший выпуск.");
+        _sectors = Columns();
+
+        Section("Эффективность отраслей", "tab-industry");
         foreach (var sector in Enum.GetValues<Sector>())
         {
             if (sector == Sector.People) continue;
@@ -58,7 +74,7 @@ public partial class OverviewPanel : SidePanel
             _efficiency[sector] = Stat(Names.Of(sector), "efficiency");
         }
 
-        Section("Деньги");
+        Section("Деньги", "rate");
         _supply = Stat("Денежная масса", "supply");
         _printed = Stat("Напечатано за партию", "printed");
         _level = Stat("Уровень цен к старту", "inflation");
@@ -107,11 +123,43 @@ public partial class OverviewPanel : SidePanel
             row.Set($"×{value:0.00}", value >= 1 ? Skin.Good : Skin.Warn);
         }
 
+        _wealth.Show(new Trace("ВВП", Skin.Output, Past.Of(History.Line.Gdp)));
+        _prices.Show(new Trace("цены", Skin.Prices, Past.Of(History.Line.Inflation)));
+        _work.Show(
+            new Trace("занятость", Skin.Labour, Past.Of(History.Line.Employment)),
+            new Trace("загрузка", Skin.Plants, Past.Of(History.Line.Load)));
+
+        _sectors.Show(Sectors());
+
         _supply.Set(Fmt.Cash(Me.Bank.Supply.Exact));
         _printed.Set(Fmt.Cash(Me.Bank.Printed.Exact), Me.Bank.Printed.Raw > 0 ? Skin.Warn : Skin.Text);
 
         var level = Loop.Inflation;
         _level.Set(Fmt.Percent(level, signed: true), Fmt.Sign(level, moreIsBetter: false));
         _rate.Set($"{Me.ExchangeRate.Exact:0.00}");
+    }
+
+    /// <summary>Сколько рук занято в каждой отрасли.</summary>
+    private List<Slice> Sectors()
+    {
+        var catalog = Loop.World.Buildings;
+        var efficiency = Loop.World.Efficiency;
+        var hands = new Dictionary<Sector, long>();
+
+        foreach (var type in Enum.GetValues<BuildingType>())
+        {
+            var working = Loop.Simulation.WorkingOf(Id, type);
+            if (working == 0) continue;
+
+            var info = catalog[type];
+            var need = efficiency.HandsFor(Id, info.Sector, (long)working * info.OptimalWorkers);
+
+            hands[info.Sector] = hands.GetValueOrDefault(info.Sector) + need;
+        }
+
+        return hands
+            .OrderByDescending(pair => pair.Value)
+            .Select(pair => new Slice(Names.Of(pair.Key), pair.Value, Fmt.Count(pair.Value), Skin.Labour))
+            .ToList();
     }
 }

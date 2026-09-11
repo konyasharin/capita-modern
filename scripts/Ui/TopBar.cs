@@ -75,8 +75,8 @@ public partial class TopBar : Control
         AddChild(_date);
 
         var alerts = new AlertBar();
-        alerts.SetAnchorsPreset(LayoutPreset.CenterLeft);
-        alerts.Position = new Vector2(10, Height / 2 - 11);
+        alerts.SetAnchorsPreset(LayoutPreset.TopLeft);
+        alerts.Position = new Vector2(Skin.RailWidth + 10, 3);
         AddChild(alerts);
 
         var speed = new SpeedBar();
