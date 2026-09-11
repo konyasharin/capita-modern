@@ -60,12 +60,22 @@ public sealed class Country
     /// нагрузка: выручка одного тика скачет слишком сильно, чтобы на неё опираться.</summary>
     public Money ExportsPerDay { get; private set; }
 
+    /// <summary>Средний ввоз за сутки, сглаженный так же. По нему считается, сколько
+    /// валюты стране нужно держать: запас меряется сутками ввоза, а не оборота.</summary>
+    public Money ImportsPerDay { get; private set; }
+
     /// <summary>Скользящее среднее за год: вчерашнее забывается на одну триста
     /// шестьдесят пятую.</summary>
     public void NoteExports(Money today, int daysInYear)
     {
         ExportsPerDay = new Money(
             (ExportsPerDay.Raw * (daysInYear - 1) + today.Raw) / daysInYear);
+    }
+
+    public void NoteImports(Money today, int daysInYear)
+    {
+        ImportsPerDay = new Money(
+            (ImportsPerDay.Raw * (daysInYear - 1) + today.Raw) / daysInYear);
     }
 
     /// <summary>Тик, когда страна отказалась платить. Ноль — не отказывалась. После

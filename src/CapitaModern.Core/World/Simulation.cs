@@ -101,6 +101,9 @@ public sealed class Simulation
     private Money _dealValue;
     private GoodAmount _dealVolume;
 
+    /// <summary>Сколько страна не смогла оплатить за этот тик.</summary>
+    private readonly Dictionary<byte, Money> _unpaid = new();
+
     /// <summary>Доля валюты страны в мировых резервах, в десятитысячных.</summary>
     private readonly Dictionary<byte, long> _reserveShare = new();
 
@@ -171,8 +174,8 @@ public sealed class Simulation
     /// примерно столько и не пускают.</summary>
     public const int DefaultLockYears = 5;
 
-    /// <summary>Нагрузка, после которой долг заведомо не вернуть: вчетверо больше
-    /// годового вывоза. В жизни зона риска начинается вдвое раньше.</summary>
+    /// <summary>Нагрузка, после которой долг заведомо не вернуть: вчетверо больше того,
+    /// чем страна может платить за год. В жизни зона риска начинается вдвое раньше.</summary>
     public const int DefaultBurden = 400;
 
     private const int DaysInYear = 365;
@@ -219,6 +222,7 @@ public sealed class Simulation
         _working.Clear();
         _serviceJobs = 0;
         _buildJobs = 0;
+        _unpaid.Clear();
         _consumed.Clear();
         _jobs.Clear();
         _hands.Clear();
@@ -464,7 +468,14 @@ public sealed class Simulation
         var buyer = _world.CountryById(deal.Buyer);
         var seller = _world.CountryById(deal.Seller);
 
-        if (!buyer.State.Treasury.Reserves.TrySpend(deal.Paid)) return;
+        if (!buyer.State.Treasury.Reserves.TrySpend(deal.Paid))
+        {
+            // Не хватило валюты. Под это и занимают: иначе страна без резервов не может
+            // начать ввозить, а не ввозя — не может показать, что ей нужна валюта.
+            _unpaid[deal.Buyer] = _unpaid.GetValueOrDefault(deal.Buyer) + deal.Paid;
+
+            return;
+        }
         if (seller.State.Stock.TakeUpTo(_trading, deal.Amount).Raw != deal.Amount.Raw) return;
 
         buyer.State.Stock.Store(_trading, deal.Amount);
@@ -617,7 +628,11 @@ public sealed class Simulation
     /// <summary>Запоминает вывоз, сглаживая его за год.</summary>
     private void NoteTrade()
     {
-        foreach (var country in _world.Countries) country.NoteExports(ExportsOf(country.Id), DaysInYear);
+        foreach (var country in _world.Countries)
+        {
+            country.NoteExports(ExportsOf(country.Id), DaysInYear);
+            country.NoteImports(ImportsOf(country.Id), DaysInYear);
+        }
     }
 
     /// <summary>Кому не хватает валюты — тот занимает, у кого лишняя.</summary>
@@ -636,18 +651,45 @@ public sealed class Simulation
         _credit.Clear();
         foreach (var country in _world.Countries)
         {
-            // Занимают ровно на то, что заказали и не смогли оплатить.
-            var need = Valued(_bid, country.Id);
+            // Занимают под запас валюты на ввоз, а не под весь оборот: своё покупают за
+            // свои же деньги, и чужая валюта на это не нужна. Раньше здесь стояла
+            // стоимость всех заявок, и страна каждый тик занимала под дневной расход
+            // целиком — оттого внешний долг и рос без предела.
+            var need = new Money(country.ImportsPerDay.Raw * Prices.TargetCoverDays);
+
+            // Валюта нужна и на погашение: старый долг гасят новым, и в жизни это норма,
+            // а не крайность. Без этого страна у черты потолка не могла перезанять и
+            // отказывалась платить — за пять лет так делали больше половины стран.
+            var owed = country.State.Treasury.Debt.Owed(LoanSource.Foreign);
+            need += new Money(owed.Raw / CreditMarket.LoanYears / DaysInYear * Prices.TargetCoverDays);
+
+            // У кого ввоза ещё не было, тому нормы не из чего вывести: считаем по тому,
+            // что он сегодня не смог оплатить.
+            var unpaid = _unpaid.GetValueOrDefault(country.Id);
+            if (unpaid > need) need = unpaid;
             var have = country.State.Treasury.Reserves.Liquid;
+            var capacity = DebtCapacity(country);
             var premium = CreditMarket.PremiumFor(
-                country.State.Treasury.Debt.BurdenToExports(DebtCapacity(country)),
+                country.State.Treasury.Debt.BurdenToExports(capacity),
                 LockedOut(country));
+
+            var want = need > have ? need - have : default;
+
+            // Больше, чем сможет обслуживать, не дадут ни под какой процент: за чертой
+            // дефолта заём — это не сделка, а подарок. У кого платить нечем вовсе, того
+            // держит не потолок, а ставка: нагрузка без вывоза уходит в бесконечность.
+            if (capacity.Raw > 0)
+            {
+                var ceiling = new Money(capacity.Raw / 100 * CreditMarket.SafeBurden);
+                var room = ceiling > owed ? ceiling - owed : default;
+                if (want > room) want = room;
+            }
 
             _credit.Add(new CreditOrder(
                 country.Id,
                 country.State.Treasury,
                 country.State.Custody,
-                need > have ? need - have : default,
+                want,
                 have > need ? have - need : default,
                 country.KeyRate,
                 premium,
@@ -771,7 +813,9 @@ public sealed class Simulation
             var debt = country.State.Treasury.Debt;
             if (debt.Owed(LoanSource.Foreign).Raw == 0) continue;
             if (!_missedPayment.Contains(country.Id)) continue;
-            if (debt.BurdenToExports(country.ExportsPerDay * DaysInYear) < DefaultBurden) continue;
+            // Той же меркой, что и ставка: у кого валюту держат в резервах, тот платит
+            // своими деньгами, и по вывозу его судить нельзя.
+            if (debt.BurdenToExports(DebtCapacity(country)) < DefaultBurden) continue;
 
             debt.Default(LoanSource.Foreign);
             country.DefaultedOnDay = _day;
@@ -810,8 +854,20 @@ public sealed class Simulation
                 rate = Drift.Step(rate, parity - rate, parity + rate, Prices.StepPercent);
             }
 
-            country.MoveRate(new Money(Drift.Step(
-                rate, outflow.Raw - inflow.Raw, outflow.Raw + inflow.Raw, Prices.StepPercent)));
+            rate = Drift.Step(
+                rate, outflow.Raw - inflow.Raw, outflow.Raw + inflow.Raw, Prices.StepPercent);
+
+            // Третья сила: сколько осталось резервов. Правило достаточности — запас на
+            // сорок суток ввоза; кто проедает его, у того валюта слабеет, и ввоз дорожает
+            // сам. Без этого страна с пустой казной продолжала покупать в долг без конца.
+            var norm = country.ImportsPerDay.Raw * Prices.TargetCoverDays;
+            if (norm > 0)
+            {
+                var left = country.State.Treasury.Reserves.Liquid.Raw;
+                rate = Drift.Step(rate, norm - left, norm + left, Prices.StepPercent);
+            }
+
+            country.MoveRate(new Money(rate));
         }
     }
 
@@ -867,7 +923,9 @@ public sealed class Simulation
     public GoodAmount FuelBurnedIn(byte country) => _burnedFuel.Get(country, GoodType.Fuel);
 
     /// <summary>Сколько страна ввезла за прошедший тик, в деньгах по ценам рынка.</summary>
-    public Money ImportsOf(byte country) => Valued(_imported, country);
+    /// <summary>Что страна ввезла за тик. С ценами — в них: сальдо считается вычитанием,
+    /// и обе половины должны быть в одной мере.</summary>
+    public Money ImportsOf(byte country, Prices? at = null) => Valued(_imported, country, at);
 
     /// <summary>Сколько страна вывезла за прошедший тик.</summary>
     /// <summary>Что страна вывезла за тик. Без цен на входе — в нынешних мировых, с

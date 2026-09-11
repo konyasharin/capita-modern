@@ -178,10 +178,14 @@ for (var tick = 1; tick <= 365; tick++)
     {
         realGdp[country.Id] += simulation.ValueAddedOf(country.Id, constant);
         exports[country.Id] += simulation.ExportsOf(country.Id, constant);
-        wagesYear[country.Id] += simulation.WagesIn(country.Id).Exact / country.ExchangeRate.Exact;
+        // В тех же постоянных ценах, что и ВВП: фонд оплаты — известная доля добавленной
+        // стоимости. Считать местные деньги через текущий курс нельзя, тогда зарплату и
+        // выработку меряют двумя разными линейками.
+        wagesYear[country.Id] +=
+            simulation.ValueAddedOf(country.Id, constant).Exact * country.LabourShare / 100;
         employedYear[country.Id] += simulation.EmployedIn(country.Id);
         transitYear[country.Id] += simulation.TransitEarnedBy(country.Id);
-        imports[country.Id] += simulation.ImportsOf(country.Id);
+        imports[country.Id] += simulation.ImportsOf(country.Id, constant);
     }
 
     if (tick is 1 or 7 or 30 or 90 or 365) CountRails(tick);
@@ -298,7 +302,12 @@ for (var year = 2; year <= years; year++)
         foreach (var country in world.Countries)
         {
             yearGdp += simulation.ValueAddedOf(country.Id, constant);
+            realGdp[country.Id] += simulation.ValueAddedOf(country.Id, constant);
             exports[country.Id] += simulation.ExportsOf(country.Id, constant);
+            imports[country.Id] += simulation.ImportsOf(country.Id, constant);
+            wagesYear[country.Id] +=
+                simulation.ValueAddedOf(country.Id, constant).Exact * country.LabourShare / 100;
+            employedYear[country.Id] += simulation.EmployedIn(country.Id);
         }
     }
 
@@ -487,7 +496,10 @@ foreach (var (iso, _) in realOutput)
 {
     var id = world.Countries.First(c => c.Iso == iso).Id;
     var employed = simulation.EmployedIn(id);
-    perWorker[iso] = employed > 0 ? realGdp[id].Exact / years / employed : 0;
+    // Средняя занятость за весь прогон, а не сегодняшняя: ВВП накоплен за те же годы,
+    // и делить одно на другое можно только по одной мерке. Зарплата ниже — по ней же.
+    var averageEmployed = employedYear[id] / (365.0 * years);
+    perWorker[iso] = averageEmployed > 0 ? realGdp[id].Exact / years / averageEmployed : 0;
 }
 
 foreach (var (iso, realValue) in realOutput)
@@ -523,8 +535,8 @@ foreach (var (iso, realWage) in realWages)
 {
     var country = world.Countries.First(c => c.Iso == iso);
     // За первый год: к пятому местные цены у экспортёров лежат на полу, и номинал врёт.
-    var averageEmployed = employedYear[country.Id] / 365.0;
-    var yearly = averageEmployed > 0 ? wagesYear[country.Id] / averageEmployed : 0;
+    var averageEmployed = employedYear[country.Id] / (365.0 * years);
+    var yearly = averageEmployed > 0 ? wagesYear[country.Id] / years / averageEmployed : 0;
 
     Console.WriteLine($"{iso}   {yearly,14:F1} {realWage,9:F1} " +
                       $"{simulation.BudgetOf(country.Id).Exact / 1e6,15:F0} млн " +
