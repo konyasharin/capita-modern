@@ -7,7 +7,9 @@ public partial class Metric : HBoxContainer
     private string _key = string.Empty;
     private PopoverStack _stack = null!;
 
-    public static Metric Create(PopoverStack stack, string key, Texture2D icon, Color tint)
+    /// <param name="width">Ширина места под число: иначе при смене «9.9M» на «10.1M»
+    /// весь ряд дёргается вбок.</param>
+    public static Metric Create(PopoverStack stack, string key, Texture2D icon, Color tint, int width)
     {
         var metric = new Metric
         {
@@ -34,9 +36,10 @@ public partial class Metric : HBoxContainer
         {
             MouseFilter = MouseFilterEnum.Ignore,
             VerticalAlignment = VerticalAlignment.Center,
+            CustomMinimumSize = new Vector2(width, 0),
         };
 
-        metric._value.AddThemeFontOverride("font", Skin.Weight(600));
+        metric._value.AddThemeFontOverride("font", Skin.Digits());
         metric._value.AddThemeColorOverride("font_color", Skin.Bright);
         metric._value.AddThemeFontSizeOverride("font_size", 16);
         metric.AddChild(metric._value);

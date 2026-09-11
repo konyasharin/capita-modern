@@ -34,6 +34,16 @@ public static class Skin
         return font;
     }
 
+    /// <summary>Шрифт для чисел: цифры одной ширины, иначе число шевелится само по себе,
+    /// даже когда стоит на месте.</summary>
+    public static FontVariation Digits()
+    {
+        var font = Weight(600);
+        font.OpentypeFeatures = new Godot.Collections.Dictionary { { "tnum", 1 } };
+
+        return font;
+    }
+
     public static StyleBoxFlat PopoverBox()
     {
         var box = new StyleBoxFlat

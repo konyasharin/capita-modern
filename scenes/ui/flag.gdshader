@@ -6,19 +6,26 @@ render_mode unshaded;
 // свой обрезанный файл.
 
 uniform vec4 ring_color : source_color = vec4(0.20, 0.34, 0.40, 1.0);
-uniform float ring_px = 1.5;
+uniform float ring_px = 2.0;
 uniform float shade = 0.16;
 
+// Ширина полотнища к высоте.
+uniform float aspect = 1.5;
+
 void fragment() {
-	vec2 size = 1.0 / TEXTURE_PIXEL_SIZE;
 	vec2 middle = UV - 0.5;
 	float radius = length(middle) * 2.0;
 
-	float px = 2.0 / max(size.x, size.y);
+	// Край меряем по экрану, а не по пикселям картинки: она вчетверо крупнее показа.
+	float px = fwidth(radius);
 	float inside = 1.0 - smoothstep(1.0 - px, 1.0, radius);
 	float ring = smoothstep(1.0 - ring_px * px - px, 1.0 - ring_px * px, radius) * inside;
 
-	vec4 flag = texture(TEXTURE, UV);
+	vec2 uv = middle;
+	if (aspect > 1.0) uv.x /= aspect;
+	else uv.y *= aspect;
+
+	vec4 flag = texture(TEXTURE, uv + 0.5);
 
 	// Лёгкая тень снизу: кружок читается как значок, а не как дырка.
 	flag.rgb *= 1.0 - shade * smoothstep(0.1, 1.0, UV.y) * radius;

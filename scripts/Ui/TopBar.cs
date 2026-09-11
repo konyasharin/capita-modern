@@ -9,6 +9,10 @@ public partial class TopBar : Control
 {
     private const int Height = 30;
 
+    /// <summary>Кружок с флагом крупнее панели и свисает из-под неё: это знак страны, а
+    /// не ещё один значок в ряду.</summary>
+    private const int FlagSize = 40;
+
     private GameLoop _loop = null!;
     private PopoverStack _stack = null!;
 
@@ -39,14 +43,14 @@ public partial class TopBar : Control
         middle.AddThemeConstantOverride("separation", 15);
         AddChild(middle);
 
-        _population = Add(middle, "population", Skin.People);
-        _output = Add(middle, "output", Skin.Output);
-        _plants = Add(middle, "plants", Skin.Plants);
+        _population = Add(middle, "population", Skin.People, 56);
+        _output = Add(middle, "output", Skin.Output, 62);
+        _plants = Add(middle, "plants", Skin.Plants, 50);
 
         middle.AddChild(Flag());
 
-        _inflation = Add(middle, "inflation", Skin.Prices);
-        _treasury = Add(middle, "treasury", Skin.Money);
+        _inflation = Add(middle, "inflation", Skin.Prices, 52);
+        _treasury = Add(middle, "treasury", Skin.Money, 66);
 
         _date = new Label { MouseFilter = MouseFilterEnum.Ignore };
         _date.AddThemeFontOverride("font", Skin.Weight(600));
@@ -87,31 +91,65 @@ public partial class TopBar : Control
         if (_flag.GetGlobalRect().HasPoint(_flag.GetGlobalMousePosition())) _stack.Open(_flag, "flag", 0);
     }
 
-    private Metric Add(Node parent, string key, Color tint)
+    private Metric Add(Node parent, string key, Color tint, int width)
     {
-        var metric = Metric.Create(_stack, key, GD.Load<Texture2D>($"res://assets/icons/ui/{key}.svg"), tint);
+        var icon = GD.Load<Texture2D>($"res://assets/icons/ui/{key}.svg");
+        var metric = Metric.Create(_stack, key, icon, tint, width);
         parent.AddChild(metric);
 
         return metric;
     }
 
-    /// <summary>Флаг страны игрока — круглый, крупнее прочего: это её опознавательный знак.</summary>
     private Control Flag()
     {
-        var holder = new TextureRect
+        var texture = FlagTexture(_loop.PlayerCountry.Iso);
+        var material = new ShaderMaterial { Shader = GD.Load<Shader>("res://scenes/ui/flag.gdshader") };
+
+        // Круг вырезается из середины полотнища по настоящим пропорциям, иначе флаг
+        // сплющивается в квадрат.
+        material.SetShaderParameter("aspect", (float)texture.GetWidth() / texture.GetHeight());
+
+        var circle = new TextureRect
         {
-            Texture = GD.Load<Texture2D>($"res://assets/flags/{_loop.PlayerCountry.Iso}.svg"),
-            CustomMinimumSize = new Vector2(28, 28),
             ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
             StretchMode = TextureRect.StretchModeEnum.Scale,
-            SizeFlagsVertical = SizeFlags.ShrinkCenter,
+            TextureFilter = TextureFilterEnum.LinearWithMipmaps,
             MouseFilter = MouseFilterEnum.Stop,
-            Material = new ShaderMaterial { Shader = GD.Load<Shader>("res://scenes/ui/flag.gdshader") },
+            Texture = texture,
+            Material = material,
         };
 
-        _flag = holder;
+        // В ряду кружок занимает место только по ширине: будь он высоким, ряд показателей
+        // съехал бы вниз вместе с ним.
+        var holder = new Control
+        {
+            CustomMinimumSize = new Vector2(FlagSize, Height),
+            MouseFilter = MouseFilterEnum.Ignore,
+        };
+
+        holder.AddChild(circle);
+
+        // Размер после добавления: до него TextureRect подгоняется под картинку.
+        circle.Position = new Vector2(0, 1);
+        circle.Size = new Vector2(FlagSize, FlagSize);
+        _flag = circle;
 
         return holder;
+    }
+
+    /// <summary>Растеризует флаг сам, под нужный размер.</summary>
+    /// <remarks>Импортёр делает из SVG картинку в размер полотнища — тысяча пикселей на
+    /// сорок экранных, и в кружке остаётся каша. Здесь запас вчетверо и мипмапы.</remarks>
+    private static ImageTexture FlagTexture(string iso)
+    {
+        var svg = Godot.FileAccess.GetFileAsBytes($"res://assets/flags/{iso}.svg");
+        var image = new Image();
+
+        image.LoadSvgFromBuffer(svg);
+        image.LoadSvgFromBuffer(svg, FlagSize * 4f / Mathf.Max(image.GetWidth(), image.GetHeight()));
+        image.GenerateMipmaps();
+
+        return ImageTexture.CreateFromImage(image);
     }
 
     private ColorRect Background()
