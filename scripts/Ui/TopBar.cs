@@ -7,7 +7,7 @@ using Godot;
 /// </remarks>
 public partial class TopBar : Control
 {
-    private const int Height = 34;
+    private const int Height = 30;
 
     private GameLoop _loop = null!;
     private PopoverStack _stack = null!;
@@ -36,21 +36,22 @@ public partial class TopBar : Control
         };
 
         middle.SetAnchorsPreset(LayoutPreset.FullRect);
-        middle.AddThemeConstantOverride("separation", 18);
+        middle.AddThemeConstantOverride("separation", 15);
         AddChild(middle);
 
-        _population = Add(middle, "population", Skin.Text);
-        _output = Add(middle, "output", Skin.Good);
-        _plants = Add(middle, "plants", Skin.Text);
+        _population = Add(middle, "population", Skin.People);
+        _output = Add(middle, "output", Skin.Output);
+        _plants = Add(middle, "plants", Skin.Plants);
 
         middle.AddChild(Flag());
 
-        _inflation = Add(middle, "inflation", Skin.Text);
-        _treasury = Add(middle, "treasury", Skin.Good);
+        _inflation = Add(middle, "inflation", Skin.Prices);
+        _treasury = Add(middle, "treasury", Skin.Money);
 
         _date = new Label { MouseFilter = MouseFilterEnum.Ignore };
+        _date.AddThemeFontOverride("font", Skin.Weight(600));
         _date.AddThemeColorOverride("font_color", Skin.Link);
-        _date.AddThemeFontSizeOverride("font_size", 15);
+        _date.AddThemeFontSizeOverride("font_size", 16);
         _date.SetAnchorsPreset(LayoutPreset.RightWide);
         _date.GrowHorizontal = GrowDirection.Begin;
         _date.HorizontalAlignment = HorizontalAlignment.Right;
@@ -58,6 +59,12 @@ public partial class TopBar : Control
         _date.OffsetLeft = -180;
         _date.OffsetRight = -16;
         AddChild(_date);
+
+        var speed = new SpeedBar();
+        speed.SetAnchorsPreset(LayoutPreset.TopRight);
+        speed.GrowHorizontal = GrowDirection.Begin;
+        speed.Position = new Vector2(-16, Height + 8);
+        GetParent().CallDeferred(Node.MethodName.AddChild, speed);
 
         // Подсказки поверх всего: панель им не хозяин, иначе они обрежутся её высотой.
         GetParent().CallDeferred(Node.MethodName.AddChild, _stack);
@@ -70,10 +77,10 @@ public partial class TopBar : Control
         _plants.Set(Short(_loop.Plants));
 
         var inflation = _loop.Inflation;
-        _inflation.Set($"{inflation:+0.0;-0.0;0.0}%", inflation > 0 ? Skin.Bad : Skin.Good);
+        _inflation.Set($"{inflation:+0.0;-0.0;0.0}%", inflation > 0.05 ? Skin.Bad : Skin.Bright);
 
         var treasury = _loop.Treasury;
-        _treasury.Set($"{Money(treasury)}$", treasury >= 0 ? Skin.Good : Skin.Bad);
+        _treasury.Set($"{Money(treasury)}$", treasury >= 0 ? Skin.Bright : Skin.Bad);
 
         _date.Text = _loop.Today.ToString("dd.MM.yyyy");
 

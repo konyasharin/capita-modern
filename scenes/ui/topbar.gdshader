@@ -5,12 +5,12 @@ render_mode unshaded;
 // вертикальный градиент, светлая кромка сверху, тёмная снизу и едва заметное зерно —
 // без него на широком градиенте видны полосы.
 
-uniform vec4 top_color : source_color = vec4(0.075, 0.129, 0.157, 0.96);
-uniform vec4 bottom_color : source_color = vec4(0.043, 0.078, 0.098, 0.98);
+uniform vec4 top_color : source_color = vec4(0.043, 0.067, 0.082, 0.97);
+uniform vec4 bottom_color : source_color = vec4(0.020, 0.035, 0.043, 0.99);
 uniform vec4 edge_color : source_color = vec4(0.20, 0.34, 0.40, 1.0);
 
 uniform float edge_px = 1.0;
-uniform float glow = 0.05;
+uniform float glow = 0.028;
 uniform float grain = 0.012;
 
 float hash(vec2 p) {

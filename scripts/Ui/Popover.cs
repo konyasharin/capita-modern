@@ -34,8 +34,9 @@ public partial class Popover : PanelContainer
         popover.AddChild(rows);
 
         var title = new Label { Text = article.Title, MouseFilter = MouseFilterEnum.Ignore };
+        title.AddThemeFontOverride("font", Skin.Weight(600));
         title.AddThemeColorOverride("font_color", Skin.Bright);
-        title.AddThemeFontSizeOverride("font_size", 16);
+        title.AddThemeFontSizeOverride("font_size", 17);
         rows.AddChild(title);
 
         popover._body = new RichTextLabel
@@ -48,8 +49,10 @@ public partial class Popover : PanelContainer
             MouseFilter = MouseFilterEnum.Stop,
         };
 
+        popover._body.AddThemeFontOverride("normal_font", Skin.Weight(400));
+        popover._body.AddThemeFontOverride("bold_font", Skin.Weight(600));
         popover._body.AddThemeColorOverride("default_color", Skin.Text);
-        popover._body.AddThemeFontSizeOverride("normal_font_size", 14);
+        popover._body.AddThemeFontSizeOverride("normal_font_size", 15);
         popover._body.Text = Markup(article.Text);
         rows.AddChild(popover._body);
 

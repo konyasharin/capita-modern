@@ -93,14 +93,15 @@ const UI = {
 
 const root = path.resolve(import.meta.dirname, '..')
 
-// Чёрная подложка занимает весь холст — в игре она не нужна, иконка должна быть
-// прозрачной и краситься через currentColor.
+// Чёрная подложка занимает весь холст — в игре она не нужна. Сама иконка делается белой:
+// Godot рисует currentColor чёрным, а чёрное не покрасить умножением — цвет задаётся
+// через Modulate уже в интерфейсе.
 function normalize(svg) {
 	return svg
 		.replace(/<path d="M0 0h512v512H0z"\s*\/>/g, '')
 		.replace(/<path d="M0 0h512v512H0"\s*\/>/g, '')
-		.replace(/fill="#fff"/g, 'fill="currentColor"')
-		.replace(/<svg /, '<svg fill="currentColor" ')
+		.replace(/fill="currentColor"/g, 'fill="#ffffff"')
+		.replace(/<svg /, '<svg fill="#ffffff" ')
 }
 
 async function grab(group, name, source) {

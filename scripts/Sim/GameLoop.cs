@@ -17,7 +17,13 @@ public partial class GameLoop : Node
     /// <summary>Сколько секунд идут игровые сутки при обычной скорости.</summary>
     private const double SecondsPerDay = 1.0;
 
+    /// <summary>Во сколько раз быстрее обычного. Ноль — пауза.</summary>
+    public int Speed { get; private set; } = 1;
+
+    public bool Paused => Speed == 0;
+
     private double _left = SecondsPerDay;
+    private int _wasRunning = 1;
 
     public GameWorld World { get; private set; } = null!;
     public Simulation Simulation { get; private set; } = null!;
@@ -40,9 +46,34 @@ public partial class GameLoop : Node
         Player = World.Countries.First(country => country.Iso == "RUS").Id;
     }
 
+    /// <summary>Ставит скорость. Пауза помнит, с какой скорости её включили.</summary>
+    public void SetSpeed(int speed)
+    {
+        if (speed > 0) _wasRunning = speed;
+
+        Speed = speed;
+    }
+
+    public void TogglePause() => SetSpeed(Paused ? _wasRunning : 0);
+
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        if (@event is not InputEventKey { Pressed: true, Echo: false } key) return;
+
+        switch (key.Keycode)
+        {
+            case Key.Space: TogglePause(); break;
+            case Key.Key1: SetSpeed(1); break;
+            case Key.Key2: SetSpeed(2); break;
+            case Key.Key3: SetSpeed(4); break;
+        }
+    }
+
     public override void _Process(double delta)
     {
-        _left -= delta;
+        if (Paused) return;
+
+        _left -= delta * Speed;
         if (_left > 0)
         {
             return;

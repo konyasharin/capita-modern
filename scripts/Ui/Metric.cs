@@ -16,7 +16,7 @@ public partial class Metric : HBoxContainer
             MouseFilter = MouseFilterEnum.Stop,
         };
 
-        metric.AddThemeConstantOverride("separation", 5);
+        metric.AddThemeConstantOverride("separation", 4);
 
         metric.AddChild(new TextureRect
         {
@@ -24,15 +24,21 @@ public partial class Metric : HBoxContainer
             // Иконки лежат квадратами по 512: без IgnoreSize они растягивают панель собой.
             ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
             StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
-            CustomMinimumSize = new Vector2(18, 18),
+            CustomMinimumSize = new Vector2(17, 17),
             SizeFlagsVertical = SizeFlags.ShrinkCenter,
             Modulate = tint,
             MouseFilter = MouseFilterEnum.Ignore,
         });
 
-        metric._value = new Label { MouseFilter = MouseFilterEnum.Ignore };
+        metric._value = new Label
+        {
+            MouseFilter = MouseFilterEnum.Ignore,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+
+        metric._value.AddThemeFontOverride("font", Skin.Weight(600));
         metric._value.AddThemeColorOverride("font_color", Skin.Bright);
-        metric._value.AddThemeFontSizeOverride("font_size", 15);
+        metric._value.AddThemeFontSizeOverride("font_size", 16);
         metric.AddChild(metric._value);
 
         return metric;
