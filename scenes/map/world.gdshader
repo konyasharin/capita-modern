@@ -36,7 +36,7 @@ uniform float shadow_alpha = 0.30;
 uniform float far_border_scale = 2.2;
 uniform float far_coast_scale = 2.8;
 
-uniform float region_px = 2.0;
+uniform float region_px = 5.0;
 
 // Однотонная заливка выглядит мёртвой. Зерно привязано к карте, а не к экрану, поэтому
 // при зуме оно не плывёт: у воды крупные разводы, у суши мелкая рябь.
@@ -134,6 +134,13 @@ const float SHORE = 0.56;
 float contour(float mask, float width) {
 	float d = (mask - SHORE) / max(fwidth(mask), 1e-6);
 	return 1.0 - smoothstep(0.0, width, abs(d));
+}
+
+// Толщина линии областей задаётся прямо, а не через производную. У границы стран
+// производная годится: там веса сглажены прочностью владения. У областей же выборка
+// сдвинута шумом, производная от него скачет, и линия рвалась на ровном месте.
+float thin_line(float margin, float cells_per_px, float width_px) {
+	return 1.0 - smoothstep(0.0, max(width_px * cells_per_px, 1e-5), margin);
 }
 
 float edge_fill(float mask) {
@@ -276,7 +283,8 @@ void fragment() {
 		if (r11 != rid) region_rival = max(region_rival, q11);
 
 		col = mix(col, region_line_color.rgb,
-			border(region_own - region_rival, region_px) * regions * region_line_color.a * inland);
+			thin_line(region_own - region_rival, cells_per_px, region_px)
+				* regions * region_line_color.a * inland);
 	}
 
 	// Обводка по берегу и границы стран одного цвета — почти чёрного. Разделяет их

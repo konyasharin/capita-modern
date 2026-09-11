@@ -42,7 +42,7 @@ for (const b of buildings) {
 
 
 // Отрасль нужна для весов приоритета: без неё постройку некуда отнести при дележе дефицита.
-const SECTORS = new Set(['Mining', 'Power', 'Heavy', 'Civil', 'Military'])
+const SECTORS = new Set(['Mining', 'Power', 'Heavy', 'Civil', 'Military', 'Services'])
 for (const b of buildings) {
 	if (!SECTORS.has(b.sector)) errors.push(`${b.type}: отрасль "${b.sector}" неизвестна`)
 }

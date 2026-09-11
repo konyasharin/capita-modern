@@ -41,7 +41,7 @@ public class WorldDataTests
         var world = Shared.Value;
 
         Assert.Equal(200, world.Countries.Count);
-        Assert.Equal(2606, world.Regions.Count);
+        Assert.Equal(1616, world.Regions.Count);
     }
 
     /// <summary>Загрузчик не должен терять предприятия: сверяемся с самим файлом.</summary>
