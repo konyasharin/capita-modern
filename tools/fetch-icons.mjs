@@ -82,6 +82,15 @@ const BUILDINGS = {
 	'electronic-warfare-plant': 'lorc/radar-dish',
 }
 
+/** Значки верхней панели: показатели страны игрока. */
+const UI = {
+	population: 'delapouite/three-friends',
+	output: 'delapouite/upgrade',
+	plants: 'delapouite/factory',
+	inflation: 'delapouite/price-tag',
+	treasury: 'delapouite/money-stack',
+}
+
 const root = path.resolve(import.meta.dirname, '..')
 
 // Чёрная подложка занимает весь холст — в игре она не нужна, иконка должна быть
@@ -108,7 +117,7 @@ async function grab(group, name, source) {
 const authors = new Set()
 let count = 0
 
-for (const [group, map] of [['goods', GOODS], ['buildings', BUILDINGS]]) {
+for (const [group, map] of [['goods', GOODS], ['buildings', BUILDINGS], ['ui', UI]]) {
 	for (const [name, source] of Object.entries(map)) {
 		authors.add(await grab(group, name, source))
 		count++

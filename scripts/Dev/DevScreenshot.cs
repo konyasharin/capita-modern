@@ -11,6 +11,7 @@ public partial class DevScreenshot : Node
     private int _framesLeft = 30;
     private Vector2? _focus;
     private float _zoom = 1f;
+    private Vector2? _mouse;
 
     public override void _Ready()
     {
@@ -24,6 +25,15 @@ public partial class DevScreenshot : Node
                 && int.TryParse(arg["--shot-frame=".Length..], out var frames))
             {
                 _framesLeft = frames;
+            }
+            else if (arg.StartsWith("--shot-mouse=", StringComparison.Ordinal))
+            {
+                // Курсор нужен, чтобы снять подсказку: она открывается по наведению.
+                var at = arg["--shot-mouse=".Length..].Split(',');
+                if (at.Length == 2 && float.TryParse(at[0], out var mx) && float.TryParse(at[1], out var my))
+                {
+                    _mouse = new Vector2(mx, my);
+                }
             }
             else if (arg.StartsWith("--shot-focus=", StringComparison.Ordinal))
             {
@@ -57,6 +67,15 @@ public partial class DevScreenshot : Node
         {
             GetParent().GetNode<MapCamera>("MapCamera").FocusOn(point, _zoom);
             _focus = null;
+        }
+
+        // Ставится не в самом конце: подсказке нужно несколько кадров, чтобы открыться.
+        if (_mouse is { } cursor && _framesLeft == 12)
+        {
+            // WarpMouse двигает курсор молча, а подсказки на терминах ждут события
+            // движения — иначе наведение на них не проверить.
+            Input.WarpMouse(cursor);
+            Input.ParseInputEvent(new InputEventMouseMotion { Position = cursor, GlobalPosition = cursor });
         }
 
         if (--_framesLeft > 0)

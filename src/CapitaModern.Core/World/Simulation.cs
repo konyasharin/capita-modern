@@ -601,6 +601,10 @@ public sealed class Simulation
     /// <summary>Сколько рук занято на стройке.</summary>
     public long BuildJobs => _buildJobs;
 
+    /// <summary>Во сколько раз цены страны ушли от начала партии, в долях
+    /// <see cref="PriceLevel.Scale"/>. Считается на прошлом тике вместе с якорем.</summary>
+    public int PriceLevelOf(byte country) => _level.GetValueOrDefault(country, PriceLevel.Scale);
+
     /// <summary>Загрузка предприятий страны в сотых долях от полной. Меньше единицы —
     /// значит рук не хватило и всё производство идёт вполсилы.</summary>
     public long LoadIn(byte country) => _hands.GetValueOrDefault(country, Load.Full);
