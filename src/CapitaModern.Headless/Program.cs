@@ -24,6 +24,13 @@ GameWorld Load() => WorldDataLoader.LoadWorld(
 
 var goods = Enum.GetValues<GoodType>();
 
+// Быстрый режим для итераций: один год вместо пяти и без двух опытов на отдельных мирах.
+// Полный прогон — только перед коммитом, числа из быстрого с ним не сравнивать.
+var fast = args.Contains("--fast");
+var years = fast ? 1 : 5;
+
+if (fast) Console.WriteLine("### БЫСТРЫЙ РЕЖИМ: один год, опыты Ж и З пропущены\n");
+
 // --- А. Что формула делает при постоянном покрытии -------------------------------
 Console.WriteLine("=== А. Постоянное покрытие: во сколько раз меняется цена ===");
 Console.WriteLine("покрытие  сутки    неделя   месяц    год");
@@ -247,7 +254,7 @@ foreach (var good in goods.OrderBy(good =>
 
 // --- Е. Пять лет: не стекутся ли деньги к экспортёрам -----------------------------
 Console.WriteLine();
-Console.WriteLine("=== Е. Пять лет ===");
+Console.WriteLine($"=== Е. Лет: {years} ===");
 Console.WriteLine("год   реальный ВВП   на рельсах   внешний долг   нагрузка >200%   валюта вдвое");
 
 void Report(int year, double gdp)
@@ -269,7 +276,7 @@ void Report(int year, double gdp)
 
 Report(1, worldGdp);
 
-for (var year = 2; year <= 5; year++)
+for (var year = 2; year <= years; year++)
 {
     var yearGdp = default(Money);
     for (var tick = 0; tick < 365; tick++)
@@ -286,10 +293,10 @@ for (var year = 2; year <= 5; year++)
 }
 
 Console.WriteLine();
-Console.WriteLine("Крупнейшие должники через пять лет:");
+Console.WriteLine("Крупнейшие должники в конце прогона:");
 foreach (var country in world.Countries.OrderByDescending(c => c.State.Treasury.Debt.Owed().Raw).Take(6))
 {
-    var burden = country.State.Treasury.Debt.BurdenToExports(exports[country.Id] / 5);
+    var burden = country.State.Treasury.Debt.BurdenToExports(exports[country.Id] / years);
     Console.WriteLine($"  {country.Iso} долг {country.State.Treasury.Debt.Owed().Exact / 1e9,6:F2} трлн, " +
                       $"нагрузка {(burden == int.MaxValue ? "без экспорта" : burden + "%"),12}, " +
                       $"курс x{country.ExchangeRate.Exact:F2}");
@@ -313,7 +320,7 @@ foreach (var (id, sum) in lentBy.OrderByDescending(p => p.Value).Take(5))
 }
 
 Console.WriteLine();
-Console.WriteLine("Кто держит деньги через пять лет:");
+Console.WriteLine("Кто держит деньги в конце прогона:");
 foreach (var country in world.Countries.OrderByDescending(c => c.State.Treasury.Reserves.Value.Raw).Take(6))
 {
     Console.WriteLine($"  {country.Iso} {country.State.Treasury.Reserves.Value.Exact / 1e9,8:F2} трлн, " +
@@ -328,6 +335,10 @@ Console.WriteLine($"  медиана: {median / 1e6:F0} млн $");
 // на свои возможности, значит остаток упирается в курс валют, а не в промышленность.
 Console.WriteLine();
 Console.WriteLine("=== Ж. Тот же мир, но деньги не кончаются ===");
+
+if (fast) Console.WriteLine("  пропущено");
+else
+{
 
 var rich = Load();
 foreach (var country in rich.Countries)
@@ -367,11 +378,17 @@ foreach (var good in new[] { GoodType.ConsumerGoods, GoodType.Food, GoodType.Med
     Console.WriteLine($"    {good,-16} {richSim.WorldOutputOf(good).Exact / richSim.WorldDemandOf(good).Exact,6:P0}");
 }
 
+}
+
 // --- З. Заморозка резервов: сколько уцелеет ---------------------------------------
 Console.WriteLine();
 Console.WriteLine("=== З. Если Запад заморозит резервы ===");
 
 // На свежем мире: за пять лет резервы почти проедены, мерить нечего.
+if (fast) Console.WriteLine("  пропущено");
+else
+{
+
 var fresh = Load();
 var west = fresh.Countries
     .Where(c => fresh.Relations.BlocOf(c.Id) == CapitaModern.Core.Politics.Bloc.West)
@@ -389,6 +406,8 @@ foreach (var iso in new[] { "RUS", "CHN", "IND", "BRA", "SAU" })
 
     Console.WriteLine($"  {iso}: уцелело {(before > 0 ? after / before : 0),6:P0} " +
                       $"({after / 1e9:F1} из {before / 1e9:F1} трлн $)");
+}
+
 }
 
 Console.WriteLine();
@@ -455,7 +474,7 @@ foreach (var (iso, _) in realOutput)
 {
     var id = world.Countries.First(c => c.Iso == iso).Id;
     var employed = simulation.EmployedIn(id);
-    perWorker[iso] = employed > 0 ? realGdp[id].Exact / 5 / employed : 0;
+    perWorker[iso] = employed > 0 ? realGdp[id].Exact / years / employed : 0;
 }
 
 foreach (var (iso, realValue) in realOutput)
