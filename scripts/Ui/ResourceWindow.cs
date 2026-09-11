@@ -84,6 +84,20 @@ public partial class ResourceWindow : Control
         columns.AddChild(Middle());
         columns.AddChild(Right());
 
+        // Крестик у самого края окна, а не в колонке: так его ищут в любой модалке.
+        var close = Ui.Act("✕", Skin.Bad, Toggle, 34);
+        close.AnchorLeft = 1;
+        close.AnchorRight = 1;
+        close.OffsetLeft = -48;
+        close.OffsetRight = -14;
+        close.OffsetTop = 12;
+        close.OffsetBottom = 40;
+        AddChild(close);
+
+        // Числа пересчитываются и по тику, а не только четырежды в секунду: иначе цена
+        // постройки висит старой до следующего касания мышью.
+        _loop.Ticked += () => { if (Visible) Refresh(); };
+
         Choose(_chosen);
     }
 
@@ -195,16 +209,20 @@ public partial class ResourceWindow : Control
 
     private Control Middle()
     {
-        // Колонка держит свою ширину и стоит посередине свободного места, но прижата
-        // к верху: содержимое короткое, и по центру оно висело в пустоте.
+        // Середина занимает всё, что осталось между колонками, и потому правая колонка
+        // стоит у самого края окна. Само содержимое держат по центру две распорки.
+        var room = new HBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        room.AddChild(Ui.Spring());
+
         var column = new VBoxContainer
         {
             CustomMinimumSize = new Vector2(560, 0),
-            SizeFlagsHorizontal = SizeFlags.ShrinkCenter,
             SizeFlagsVertical = SizeFlags.Fill,
         };
 
         column.AddThemeConstantOverride("separation", 10);
+        room.AddChild(column);
+        room.AddChild(Ui.Spring());
 
         _title = Ui.Text("—", 30, 700, Skin.Bright);
         _title.HorizontalAlignment = HorizontalAlignment.Center;
@@ -275,7 +293,7 @@ public partial class ResourceWindow : Control
 
         column.AddChild(Ui.Spring());
 
-        return column;
+        return room;
     }
 
     /// <summary>Половина нижнего ряда: заголовок и полосы под ним.</summary>
@@ -296,14 +314,7 @@ public partial class ResourceWindow : Control
         var column = new VBoxContainer { CustomMinimumSize = new Vector2(340, 0) };
         column.AddThemeConstantOverride("separation", 4);
 
-        var head = new HBoxContainer();
-        head.AddChild(Heading("Сведения о товаре"));
-        head.AddChild(Ui.Spring());
-
-        var close = Ui.Act("✕", Skin.Dim, Toggle);
-        close.CustomMinimumSize = new Vector2(28, 0);
-        head.AddChild(close);
-        column.AddChild(head);
+        column.AddChild(Heading("Сведения о товаре"));
 
         foreach (var (label, key) in Rows)
         {
@@ -408,7 +419,7 @@ public partial class ResourceWindow : Control
 
         var owners = Owners();
 
-        _pie.Show(owners);
+        _pie.Show(owners.Count > 0 ? owners : [new Wedge("Нет предприятий", 0, "—", Skin.Dim)]);
         _whose.Text = owners.Count == 0
             ? "В стране нет предприятий, делающих этот товар."
             : "Раздел по долям области: где граница разрезала область, часть предприятий числится за соседом.";
@@ -566,7 +577,8 @@ public partial class ResourceWindow : Control
     private void ShowPlants()
     {
         var types = Producers().ToList();
-        _plant ??= types.FirstOrDefault();
+        _plant ??= types.Count > 0 ? types[0] : null;
+        if (types.Count == 0) _plant = null;
 
         Ui.Trim(_plants, types.Count);
 
@@ -576,7 +588,7 @@ public partial class ResourceWindow : Control
 
             var type = types[index];
             var row = _plants.GetChild<Button>(index);
-            var line = row.GetChild(0);
+            var line = row.GetNode<HBoxContainer>("Line");
 
             line.GetChild<TextureRect>(0).Texture = GD.Load<Texture2D>(Names.IconOf(type));
             line.GetChild<Label>(1).Text = Names.Of(type);
@@ -593,7 +605,7 @@ public partial class ResourceWindow : Control
         var row = Ui.Act(string.Empty, Skin.Dim, null);
         row.CustomMinimumSize = new Vector2(0, 28);
 
-        var line = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
+        var line = new HBoxContainer { Name = "Line", MouseFilter = MouseFilterEnum.Ignore };
         line.AddThemeConstantOverride("separation", 8);
         line.AnchorRight = 1;
         line.AnchorBottom = 1;
@@ -769,9 +781,10 @@ public partial class ResourceWindow : Control
 
             badge.AddChild(disc);
 
-            var icon = Ui.Icon(Names.IconOf(good), 28, Contrast(Names.ColourOf(good)));
-            icon.Position = new Vector2(1 + (Circle - 28) / 2f, (Circle - 28) / 2f);
-            icon.Size = new Vector2(28, 28);
+            var icon = Ui.Icon(Names.IconOf(good), 30, Colors.White);
+            icon.Material = Skin.Glyph(Names.ColourOf(good));
+            icon.Position = new Vector2(1 + (Circle - 30) / 2f, (Circle - 30) / 2f);
+            icon.Size = new Vector2(30, 30);
             badge.AddChild(icon);
 
             badge._under = Ui.Number(string.Empty, 11, Skin.Text);
@@ -781,15 +794,6 @@ public partial class ResourceWindow : Control
             badge.AddChild(badge._under);
 
             return badge;
-        }
-
-        /// <summary>Цвет значка под цвет кружка: на тёмном светлый, на светлом тёмный.
-        /// Один чёрный на всех сливался с половиной палитры.</summary>
-        private static Color Contrast(Color disc)
-        {
-            var light = disc.R * 0.30f + disc.G * 0.59f + disc.B * 0.11f;
-
-            return light > 0.55f ? disc.Darkened(0.78f) : disc.Lightened(0.86f);
         }
 
         public void Show(bool chosen, string under)

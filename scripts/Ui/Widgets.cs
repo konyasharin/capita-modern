@@ -91,15 +91,46 @@ public static class Ui
 
         button.AddThemeFontOverride("font", Skin.Weight(600));
         button.AddThemeFontSizeOverride("font_size", 14);
+
+        // Заливка живёт отдельным прямоугольником за кнопкой: у StyleBoxFlat нет
+        // градиента, а ровный цвет выглядит куском пластика.
+        var fill = new ColorRect
+        {
+            Name = "Fill",
+            ShowBehindParent = true,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            Material = Skin.Fill(colour),
+        };
+
+        fill.AnchorRight = 1;
+        fill.AnchorBottom = 1;
+        button.AddChild(fill);
+
         Paint(button, colour);
+
+        button.MouseEntered += () => Glow(button, true);
+        button.MouseExited += () => Glow(button, false);
 
         if (pressed is not null) button.Pressed += pressed;
 
         return button;
     }
 
+    /// <summary>Под курсором заливка светлеет. Рамкой это уже показано, но одной рамки
+    /// на широкой кнопке мало.</summary>
+    private static void Glow(Button button, bool hover)
+    {
+        if (button.GetNodeOrNull<ColorRect>("Fill") is not { Material: ShaderMaterial paint }) return;
+
+        var colour = (Color)button.GetMeta("tint");
+        paint.SetShaderParameter("tint", new Color(colour, hover ? 0.58f : 0.34f));
+    }
+
     public static void Paint(Button button, Color colour)
     {
+        button.SetMeta("tint", colour);
+        Glow(button, false);
+
         button.AddThemeStyleboxOverride("normal", Skin.ButtonBox(colour, false));
         button.AddThemeStyleboxOverride("hover", Skin.ButtonBox(colour, true));
         button.AddThemeStyleboxOverride("pressed", Skin.ButtonBox(colour, true));

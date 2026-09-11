@@ -75,7 +75,6 @@ public partial class SideTabs : Control
         {
             CustomMinimumSize = new Vector2(Skin.RailWidth, 40),
             FocusMode = FocusModeEnum.None,
-            TooltipText = "Производство",
         };
 
         button.AddThemeStyleboxOverride("normal", Skin.TabBox(false));
@@ -135,7 +134,6 @@ public partial class SideTabs : Control
         {
             CustomMinimumSize = new Vector2(Skin.RailWidth, 40),
             FocusMode = FocusModeEnum.None,
-            TooltipText = panel.Title,
         };
 
         tab.AddChild(new HoverProbe { Stack = stack, Key = $"tab-{panel.Icon}" });

@@ -88,8 +88,10 @@ public partial class Popover : PanelContainer
         var beside = anchor.Position.X < screen.Size.X / 3
             && anchor.Position.X + anchor.Size.X + size.X + Gap <= screen.Size.X;
 
+        // Сбоку подсказка стоит вплотную: был зазор в несколько пикселей, и курсор,
+        // идущий к ней, успевал побывать вне обоих прямоугольников — она гасла.
         var x = beside
-            ? anchor.Position.X + anchor.Size.X + Gap
+            ? anchor.Position.X + anchor.Size.X
             : anchor.Position.X + anchor.Size.X / 2 - size.X / 2;
 
         var y = beside

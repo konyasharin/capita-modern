@@ -166,7 +166,8 @@ public static class Skin
     /// отыграть.</summary>
     public static StyleBoxFlat ButtonBox(Color colour, bool hover)
     {
-        var box = Box(new Color(colour, hover ? 0.34f : 0.15f), new Color(colour, 0.7f), 3);
+        // Фон прозрачный: его рисует шейдер за кнопкой, иначе цвет выходит ровным.
+        var box = Box(new Color(0f, 0f, 0f, 0f), new Color(colour, 0.7f), 3);
 
         // Светлая кромка сверху и тёмная снизу: ровная рамка со всех сторон делает кнопку
         // плоской наклейкой, а скос читается как выпуклость.
@@ -183,6 +184,24 @@ public static class Skin
         box.ContentMarginBottom = 5;
 
         return box;
+    }
+
+    /// <summary>Материал значка на цветном кружке: градиент по высоте и обводка. Значки
+    /// у нас силуэтные, в один цвет, и без этого выглядят наклейкой.</summary>
+    /// <param name="disc">Цвет кружка под значком. По его светлоте решается, светлый
+    /// значок рисовать или тёмный.</param>
+    public static ShaderMaterial Glyph(Color disc)
+    {
+        var light = disc.R * 0.30f + disc.G * 0.59f + disc.B * 0.11f < 0.55f;
+        var paint = new ShaderMaterial { Shader = GD.Load<Shader>("res://scenes/ui/icon.gdshader") };
+
+        paint.SetShaderParameter("top", light ? Colors.White : disc.Darkened(0.62f));
+        paint.SetShaderParameter("bottom", light ? disc.Lightened(0.55f) : disc.Darkened(0.85f));
+        paint.SetShaderParameter("edge", light
+            ? new Color(disc.Darkened(0.85f), 0.85f)
+            : new Color(disc.Lightened(0.80f), 0.8f));
+
+        return paint;
     }
 
     /// <summary>Материал для заливок: градиент, косые полосы и зерно вместо ровного цвета.</summary>

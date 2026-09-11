@@ -35,6 +35,24 @@ void fragment() {
 	// Штриховка через строку: еле заметная, но убирает ощущение пустой заливки.
 	col *= 1.0 - 0.07 * step(0.5, fract(FRAGCOORD.y * 0.5));
 
+	// Силуэт производства понизу: трубы, корпуса и дым. Картинки нет — рисуется здесь,
+	// иначе окно остаётся пустым тёмным полем.
+	float block = floor(uv.x * 16.0);
+	float inside = fract(uv.x * 16.0);
+
+	float roof = 0.09 + noise(vec2(block, 3.0)) * 0.14;
+	float stack = step(0.40, inside) * step(inside, 0.48) * (0.10 + noise(vec2(block, 9.0)) * 0.16);
+	float ground = roof + stack;
+
+	float solid = smoothstep(1.0 - ground - 0.004, 1.0 - ground, uv.y);
+
+	// Дым над трубами: только выше крыши, иначе он подсвечивает сами корпуса.
+	float haze = smoothed(vec2(uv.x * 7.0, uv.y * 3.0 - 0.6)) * step(0.38, inside) * step(inside, 0.62);
+	col += lift.rgb * haze * (1.0 - solid)
+		* smoothstep(1.0 - ground - 0.26, 1.0 - ground - 0.02, uv.y) * 0.45;
+
+	col *= 1.0 - 0.78 * solid;
+
 	// Мягкий свет за средней колонкой: там смотрят чаще всего.
 	float glow = 1.0 - smoothstep(0.0, 0.55, length((uv - vec2(0.5, 0.42)) * vec2(1.6, 1.0)));
 	col += lift.rgb * glow * 0.35;

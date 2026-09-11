@@ -9,6 +9,9 @@ public partial class Pie : HBoxContainer
 {
     private const int Across = 168;
 
+    /// <summary>Место под подписи. Задано, иначе без владельцев круг съезжает вбок.</summary>
+    private const int Legend = 250;
+
     private Dial _dial = null!;
     private VBoxContainer _legend = null!;
 
@@ -34,6 +37,7 @@ public partial class Pie : HBoxContainer
         };
 
         pie._legend.AddThemeConstantOverride("separation", 2);
+        pie._legend.CustomMinimumSize = new Vector2(Legend, 0);
         pie.AddChild(pie._legend);
 
         return pie;
@@ -92,9 +96,10 @@ public partial class Pie : HBoxContainer
         public override void _Draw()
         {
             var centre = Size / 2f;
-            var radius = Mathf.Min(Size.X, Size.Y) / 2f - 4;
+            var outer = Mathf.Min(Size.X, Size.Y) / 2f - 4;
+            var inner = outer * 0.54f;
 
-            DrawCircle(centre, radius + 3, new Color(Skin.Ink, 0.75f));
+            DrawCircle(centre, outer + 3, new Color(Skin.Ink, 0.8f));
 
             var from = -Mathf.Pi / 2;
 
@@ -103,38 +108,38 @@ public partial class Pie : HBoxContainer
                 var angle = (float)(wedge.Share * Mathf.Tau);
                 if (angle <= 0.0005f) continue;
 
-                Slice(centre, radius, from, from + angle, wedge.Colour);
+                Ring(centre, inner, outer, from, from + angle, wedge.Colour);
                 from += angle;
             }
 
-            // Тёмная серёдка: кольцо читается спокойнее сплошного круга, и в дырку влезает
-            // самое главное — доля страны игрока.
-            DrawCircle(centre, radius * 0.5f, new Color(Skin.Ink, 0.94f));
-            DrawArc(centre, radius * 0.5f, 0, Mathf.Tau, Steps, new Color(Skin.Line, 0.9f), 1, true);
-            DrawArc(centre, radius, 0, Mathf.Tau, Steps, new Color(Skin.Line, 0.9f), 1, true);
+            DrawArc(centre, inner, 0, Mathf.Tau, Steps, new Color(Skin.Line, 0.9f), 1, true);
+            DrawArc(centre, outer, 0, Mathf.Tau, Steps, new Color(Skin.Line, 0.9f), 1, true);
         }
 
-        private void Slice(Vector2 centre, float radius, float from, float to, Color colour)
+        /// <summary>Кольцевой сектор четырёхугольниками. Веером треугольников из середины
+        /// цвет растекался пятнами: у такого веера все треугольники делят одну вершину.</summary>
+        private void Ring(Vector2 centre, float inner, float outer, float from, float to, Color colour)
         {
             var count = Mathf.Max(2, (int)(Steps * (to - from) / Mathf.Tau) + 2);
-            var points = new Vector2[count + 1];
+            var dark = colour.Darkened(0.40f);
+            var light = colour.Lightened(0.14f);
 
-            // Цвет задаётся по вершинам: к середине темнее, к ободу светлее. Дольку
-            // ровного цвета глаз читает как наклейку.
-            var shades = new Color[count + 1];
-
-            points[0] = centre;
-            shades[0] = colour.Darkened(0.45f);
-
-            for (var step = 0; step < count; step++)
+            for (var step = 0; step < count - 1; step++)
             {
-                var angle = Mathf.Lerp(from, to, (float)step / (count - 1));
+                var here = Edge(centre, Mathf.Lerp(from, to, (float)step / (count - 1)), inner, outer);
+                var next = Edge(centre, Mathf.Lerp(from, to, (float)(step + 1) / (count - 1)), inner, outer);
 
-                points[step + 1] = centre + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
-                shades[step + 1] = colour.Lightened(0.12f);
+                DrawPolygon(
+                    [here.Inner, here.Outer, next.Outer, next.Inner],
+                    [dark, light, light, dark]);
             }
+        }
 
-            DrawPolygon(points, shades);
+        private static (Vector2 Inner, Vector2 Outer) Edge(Vector2 centre, float angle, float inner, float outer)
+        {
+            var away = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+
+            return (centre + away * inner, centre + away * outer);
         }
     }
 }
