@@ -176,6 +176,9 @@ public sealed class Simulation
     /// по вчерашней цене разом.</remarks>
     private const int BiteOfStock = 34;
 
+    /// <summary>По каким товарам за тик сошлась хоть одна сделка.</summary>
+    private readonly bool[] _dealt = new bool[Enum.GetValues<GoodType>().Length];
+
     /// <summary>Во сколько долей считается износ. Целыми заводами он осыпается редко,
     /// а сроки службы у типов разные — без общей доли их не сложить.</summary>
     private const int WearScale = 1000;
@@ -227,6 +230,7 @@ public sealed class Simulation
         Store();
         MovePrices();
         AnchorPrices();
+        PullPrices();
         Wear();
         Build();
         UpdateDemographics();
@@ -239,6 +243,7 @@ public sealed class Simulation
         _inputs.Clear();
         _outputs.Clear();
         _available.Clear();
+        Array.Clear(_dealt);
         _claims.Clear();
         _working.Clear();
         _serviceJobs = 0;
@@ -408,6 +413,7 @@ public sealed class Simulation
             if (average >= Prices.Floor)
             {
                 _world.Market.Prices.Set(good, average);
+                _dealt[(int)good] = true;
             }
             else
             {
@@ -741,6 +747,13 @@ public sealed class Simulation
 
         return (most == int.MaxValue ? 0 : most, tight);
     }
+
+    /// <summary>Мировая цена товара в деньгах страны.</summary>
+    /// <remarks>Мировая цена живёт в мировой мере, местная — в своих деньгах. Сравнивать их
+    /// напрямую нельзя: это рубли против непонятно чего.</remarks>
+    public Money WorldPriceIn(byte country, GoodType good) =>
+        new((long)((Int128)_world.Market.Prices.Of(good).Raw
+            * _world.CountryById(country).ExchangeRate.Raw / Money.Scale));
 
     /// <summary>Наценка на ввоз товара в сотых долях процента: дорога и пошлины по пути.</summary>
     public int MarkupOn(byte country, GoodType good) =>
@@ -1202,6 +1215,10 @@ public sealed class Simulation
             // до стройки.
             var count = (int)Math.Min(purse.Raw / price.Raw, MaxBuildsPerTick);
 
+            // Заявлять больше, чем со склада откусишь, нельзя: страна просила материалы
+            // на пятьсот зданий, а поднимала пять, и выдуманный спрос гнал цену вверх.
+            count = Math.Min(count, CanRaisePerTick(country.Id, best.Value.Type));
+
             // Стройке нужны руки, и берёт она их у заводов: больше, чем свободно, не
             // построишь ни за какие деньги.
             var perUnit = _world.Efficiency.HandsFor(country.Id, info.Sector, info.BuildWorkers);
@@ -1473,6 +1490,30 @@ public sealed class Simulation
         foreach (var (country, good, available) in _available)
         {
             _world.CountryById(country).State.Prices.MoveFromCover(good, _inputs.Get(country, good), available);
+        }
+    }
+
+    /// <summary>Подтягивает цены к мировым: свободно возимый товар не может стоить намного
+    /// дороже привозного.</summary>
+    /// <remarks>Идёт после денежного якоря, и это важно. Якорь двигает все цены страны
+    /// разом, чтобы уровень сошёлся с деньгами, и он способен вытолкнуть отдельный товар
+    /// сколь угодно высоко над мировой ценой. Последнее слово должно оставаться за
+    /// перевозчиком: держать товар дороже привозного никакая страна не может.</remarks>
+    private void PullPrices()
+    {
+        foreach (var country in _world.Countries)
+        {
+            foreach (var good in AllGoods)
+            {
+                // Равняться можно только на то, чем и правда торгуют: держит закон
+                // одной цены перевозчик, а не число.
+                if (good == GoodType.Services || !_dealt[(int)good]) continue;
+
+                country.State.Prices.PullToWorld(
+                    good,
+                    WorldPriceIn(country.Id, good),
+                    _world.TradeCosts.ImportMarkup(country.Id, good, _world.Routes.CostTo(country.Id)));
+            }
         }
     }
 

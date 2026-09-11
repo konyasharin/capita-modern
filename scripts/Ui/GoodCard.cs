@@ -36,7 +36,7 @@ public static class GoodCard
         head.AddChild(name);
         head.AddChild(Ui.Spring());
 
-        var world = loop.World.Market.Prices.Of(good);
+        var world = loop.Simulation.WorldPriceIn(loop.PlayerCountry.Id, good);
         var times = world.Raw > 0 ? loop.PlayerCountry.State.Prices.Of(good).Exact / world.Exact : 0;
 
         head.AddChild(times > 0

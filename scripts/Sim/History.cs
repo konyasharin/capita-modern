@@ -217,7 +217,7 @@ public partial class History : Node
         foreach (var good in Enum.GetValues<GoodType>())
         {
             prices[(int)good] = (float)me.State.Prices.Of(good).Exact;
-            world[(int)good] = (float)_loop.World.Market.Prices.Of(good).Exact;
+            world[(int)good] = (float)sim.WorldPriceIn(id, good).Exact;
             stocks[(int)good] = (float)me.State.Stock.Of(good).Exact;
             wants[(int)good] = (float)sim.InputOf(id, good).Exact;
         }

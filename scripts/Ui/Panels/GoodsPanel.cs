@@ -60,7 +60,7 @@ public partial class GoodsPanel : SidePanel
             var input = sim.InputOf(Id, good);
             var held = stock.Of(good);
             var price = prices.Of(good);
-            var world = Loop.World.Market.Prices.Of(good);
+            var world = sim.WorldPriceIn(Id, good);
             var lack = sim.ShortOf(Id, good);
 
             made += prices.CostOf(good, output);

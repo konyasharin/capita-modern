@@ -640,3 +640,43 @@ foreach (var country in world.Countries.OrderByDescending(c => transitYear[c.Id]
 
 Console.WriteLine($"  всего за год: {transitYear.Values.Sum(m => m.Exact) / 1e6:F0} млн $ " +
                   "(в жизни Суэц 9 млрд, Панама 5 млрд)");
+
+// --- С. Свои цены против мировых ---------------------------------------------------
+Console.WriteLine();
+Console.WriteLine("=== С. Свои цены против мировых ===");
+Console.WriteLine("Закон одной цены: свободно возимый товар не может стоить в стране заметно");
+Console.WriteLine("дороже привозного. Сравнивать надо в одних деньгах, потому мировая цена");
+Console.WriteLine("переведена по курсу.");
+Console.WriteLine();
+
+Console.WriteLine("товар            выпуск мира   спрос мира   покрытие");
+foreach (var good in Enum.GetValues<GoodType>())
+{
+    if (good == GoodType.Services) continue;
+
+    var made = world.Countries.Sum(c => simulation.OutputOf(c.Id, good).Exact);
+    var eaten = world.Countries.Sum(c => simulation.InputOf(c.Id, good).Exact);
+    if (eaten <= 0) continue;
+
+    Console.WriteLine($"{good,-16} {made,12:F0} {eaten,12:F0} {made / eaten,10:P0}");
+}
+
+var rus = world.Countries.First(c => c.Iso == "RUS");
+
+Console.WriteLine();
+Console.WriteLine($"Россия, курс {rus.ExchangeRate.Exact:F2}");
+Console.WriteLine("товар               наша   мир в рублях   к миру   дней   спрос    свой    ввоз");
+foreach (var good in new[]
+{
+    GoodType.Materials, GoodType.Metals, GoodType.Electricity, GoodType.Coal,
+    GoodType.IronOre, GoodType.Food, GoodType.Oil,
+})
+{
+    var mine = rus.State.Prices.Of(good).Exact;
+    var abroad = world.Market.Prices.Of(good).Exact * rus.ExchangeRate.Exact;
+    var want = simulation.InputOf(rus.Id, good).Exact;
+    var days = want > 0 ? rus.State.Stock.Of(good).Exact / want : 0;
+
+    Console.WriteLine($"{good,-14} {mine,10:F2} {abroad,14:F2} {(abroad > 0 ? mine / abroad : 0),8:F2} {days,6:F0}"
+        + $" {want,8:F0} {simulation.OutputOf(rus.Id, good).Exact,8:F0} {simulation.ImportedOf(rus.Id, good).Exact,8:F0}");
+}

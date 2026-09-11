@@ -79,7 +79,9 @@ public class ExchangeRateTests
         var before = world.CountryById(2).ExchangeRate;
         world.CountryById(2).State.Prices.Rescale(2, 1);
 
-        for (var tick = 0; tick < 100; tick++) simulation.Tick();
+        // Десять тиков, а не сто: держать цены вдвое выше мировых страна и не может —
+        // закон одной цены вернёт их назад, а курс к тому времени уже отреагирует.
+        for (var tick = 0; tick < 10; tick++) simulation.Tick();
 
         Assert.True(world.CountryById(2).ExchangeRate > before,
             "цены выросли вдвое, а валюта не подешевела");

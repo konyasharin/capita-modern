@@ -85,6 +85,28 @@ public sealed class Prices
         Apply(good, target - available.Raw, target + available.Raw);
     }
 
+    /// <summary>Тянет цену к полосе вокруг мировой. Внутри полосы не двигает.</summary>
+    /// <remarks>
+    /// Закон одной цены. Свободно возимый товар не может стоить втрое дороже мирового: его
+    /// привезут и продадут дешевле. Сойтись до копейки они тоже не могут — доставка стоит
+    /// денег, и внутри её ширины возить невыгодно. Поэтому полоса, а не точка.
+    ///
+    /// Раньше связи с миром у местной цены не было вовсе: она ходила только от своего
+    /// покрытия и денежного якоря, и стройматериалы в России уезжали до ×375 мировых.
+    /// </remarks>
+    /// <param name="markup">Наценка за доставку и пошлину, в сотых долях процента.</param>
+    public void PullToWorld(GoodType good, Money world, int markup)
+    {
+        if (world.Raw <= 0) return;
+
+        var top = (Int128)world.Raw * (10_000 + markup) / 10_000;
+        var floor = (Int128)world.Raw * 10_000 / (10_000 + markup);
+        var price = (Int128)Of(good).Raw;
+
+        if (price > top) Apply(good, (long)(top - price), (long)(top + price));
+        else if (price < floor) Apply(good, (long)(floor - price), (long)(floor + price));
+    }
+
     /// <summary>Цена мирового рынка: двигается по балансу заявок и предложений.</summary>
     /// <remarks>Здесь покрытие ни при чём: заявка и предложение — величины одного рода,
     /// обе уже посчитаны от нормы запаса.</remarks>

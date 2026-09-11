@@ -535,7 +535,7 @@ public partial class ResourceWindow : Control
 
         var output = sim.OutputOf(id, _chosen);
         var everywhere = sim.WorldOutputOf(_chosen);
-        var world = _loop.World.Market.Prices.Of(_chosen);
+        var world = sim.WorldPriceIn(id, _chosen);
         var times = world.Raw > 0 ? prices.Of(_chosen).Exact / world.Exact : 0;
 
         _stats[0].Set(Fmt.Amount(stock.Of(_chosen)));
