@@ -1,3 +1,4 @@
+using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
 using Godot;
 
@@ -22,6 +23,9 @@ public partial class History : Node
         Savings,
         Supply,
         Rate,
+        People,
+        Plants,
+        Workers,
     }
 
     /// <summary>За сколько дней помним цены. По ним видно не уровень, а рывок: месяц —
@@ -45,10 +49,11 @@ public partial class History : Node
     private readonly List<float[]> _prices = [];
     private readonly List<float[]> _world = [];
 
-    /// <summary>Кольца склада и заказа: по ним видно, отчего цена пошла — товар кончился
-    /// или его вдруг стали больше просить.</summary>
+    /// <summary>Кольца склада, заказа и выпуска: по ним видно, отчего цена пошла — товар
+    /// кончился, его стали больше просить или меньше делать.</summary>
     private readonly List<float[]> _stocks = [];
     private readonly List<float[]> _wants = [];
+    private readonly List<float[]> _made = [];
 
     private GameLoop _loop = null!;
 
@@ -142,6 +147,12 @@ public partial class History : Node
     /// <summary>Цена товара по дням. Ноль дней — вся история, что есть.</summary>
     public IReadOnlyList<float> PricesOf(GoodType good, int days = 0) => Slice(_prices, good, days);
 
+    /// <summary>Выпуск товара за сутки по дням.</summary>
+    public IReadOnlyList<float> OutputOf(GoodType good, int days = 0) => Slice(_made, good, days);
+
+    /// <summary>Заказ товара за сутки по дням: сколько его просили заводы и люди.</summary>
+    public IReadOnlyList<float> WantsOf(GoodType good, int days = 0) => Slice(_wants, good, days);
+
     /// <summary>Наша цена к мировой по дням. Где мировой не было, стоит ноль.</summary>
     public IReadOnlyList<float> ToWorldOf(GoodType good)
     {
@@ -207,12 +218,16 @@ public partial class History : Node
         Put(Line.Savings, (float)me.Households.Savings.Exact);
         Put(Line.Supply, (float)me.Bank.Supply.Exact);
         Put(Line.Rate, (float)me.ExchangeRate.Exact);
+        Put(Line.People, _loop.World.PopulationOf(id).Whole);
+        Put(Line.Workers, _loop.World.WorkersOf(id));
+        Put(Line.Plants, Plants(id));
 
         var count = Enum.GetValues<GoodType>().Length;
         var prices = new float[count];
         var world = new float[count];
         var stocks = new float[count];
         var wants = new float[count];
+        var made = new float[count];
 
         foreach (var good in Enum.GetValues<GoodType>())
         {
@@ -220,12 +235,24 @@ public partial class History : Node
             world[(int)good] = (float)sim.WorldPriceIn(id, good).Exact;
             stocks[(int)good] = (float)me.State.Stock.Of(good).Exact;
             wants[(int)good] = (float)sim.InputOf(id, good).Exact;
+            made[(int)good] = (float)sim.OutputOf(id, good).Exact;
         }
 
         Ring(_prices, prices);
         Ring(_world, world);
         Ring(_stocks, stocks);
         Ring(_wants, wants);
+        Ring(_made, made);
+    }
+
+    /// <summary>Сколько предприятий в стране. Это и есть мощности: сколько всего может
+    /// работать, если хватит сырья и рук.</summary>
+    private long Plants(byte id)
+    {
+        var total = 0L;
+        foreach (var type in Enum.GetValues<BuildingType>()) total += _loop.World.BuildingsOf(id, type);
+
+        return total;
     }
 
     private static void Ring(List<float[]> rings, float[] day)

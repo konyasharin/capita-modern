@@ -321,7 +321,12 @@ public partial class Bar : VBoxContainer
     private ColorRect _fill = null!;
     private Color _colour;
 
-    public static Bar Create(string label, Color colour, PopoverStack? stack = null, string? key = null)
+    public static Bar Create(
+        string label,
+        Color colour,
+        PopoverStack? stack = null,
+        string? key = null,
+        Func<(string Key, Control Body)?>? card = null)
     {
         var bar = new Bar { MouseFilter = MouseFilterEnum.Ignore, _colour = colour };
         bar.AddThemeConstantOverride("separation", 3);
@@ -353,7 +358,7 @@ public partial class Bar : VBoxContainer
         groove.AddChild(bar._fill);
         bar.AddChild(groove);
 
-        if (stack is not null && key is not null) bar.Hover(stack, key);
+        if (stack is not null && key is not null) bar.Hover(stack, key, card: card);
 
         return bar;
     }

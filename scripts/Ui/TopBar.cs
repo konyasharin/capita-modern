@@ -52,22 +52,17 @@ public partial class TopBar : Control
 
         // Слева от флага страна, справа её деньги: так восемь чисел читаются двумя
         // взглядами, а не восемью.
-        _population = Add(middle, "population", Skin.People, 54);
-        _employment = Add(middle, "employment", Skin.Labour, 46);
-        _output = Add(middle, "output", Skin.Output, 60);
-        _plants = Add(middle, "plants", Skin.Plants, 48);
+        _population = Add(middle, "population", Skin.People, 54, Trends.People(_past));
+        _employment = Add(middle, "employment", Skin.Labour, 46, Trends.Employment(_past));
+        _output = Add(middle, "output", Skin.Output, 60, Trends.Output(_past));
+        _plants = Add(middle, "plants", Skin.Plants, 48, Trends.Plants(_past));
 
         middle.AddChild(Flag());
 
-        _inflation = Add(middle, "inflation", Skin.Prices, 52, () => TrendCard.Of(
-            "inflation", "Инфляция по неделям",
-            value => Fmt.Percent(value, signed: true),
-            new Trace("за неделю", Skin.Prices, _past.WeeklyLine())));
-        _treasury = Add(middle, "treasury", Skin.Money, 64);
-        _debt = Add(middle, "debt", Skin.Owed, 58);
-        _rate = Add(middle, "rate", Skin.Rate, 46, () => TrendCard.Of(
-            "rate", "Курс валюты за год", value => $"×{value:0.00}",
-            new Trace("курс", Skin.Rate, _past.Of(History.Line.Rate))));
+        _inflation = Add(middle, "inflation", Skin.Prices, 52, Trends.Inflation(_past));
+        _treasury = Add(middle, "treasury", Skin.Money, 64, Trends.Treasury(_past));
+        _debt = Add(middle, "debt", Skin.Owed, 58, Trends.Debt(_past));
+        _rate = Add(middle, "rate", Skin.Rate, 46, Trends.Rate(_past));
 
         _date = new Label { MouseFilter = MouseFilterEnum.Ignore };
         _date.AddThemeFontOverride("font", Skin.Digits());

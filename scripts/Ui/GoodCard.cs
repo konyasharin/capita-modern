@@ -2,7 +2,7 @@ using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
 using Godot;
 
-/// <summary>Карточка товара для подсказки: кружок с цветом, четыре числа, цена за месяц
+/// <summary>Карточка товара для подсказки: кружок с цветом, четыре числа, цена за год
 /// графиком и рецепт значками. Собирается на месте — в словаре такого не напишешь, всё
 /// зависит от состояния игры.</summary>
 public static class GoodCard
@@ -19,6 +19,7 @@ public static class GoodCard
         card.AddChild(Numbers(loop, good));
         card.AddChild(Why(loop, past, good));
         card.AddChild(Price(loop, past, good));
+        card.AddChild(Flow(past, good));
         card.AddChild(Recipe(loop, good));
 
         return ($"good:{good}", card);
@@ -169,12 +170,26 @@ public static class GoodCard
     /// <summary>Ниже этого движение считаем стоянием: сотые процента в день — это шум.</summary>
     private const int Still = 5;
 
-    /// <summary>Цена за последний месяц. По одному числу не видно, дорожает товар или нет.</summary>
+    /// <summary>Цена за год. По одному числу не видно, дорожает товар или нет, а за месяц
+    /// не видно, надолго ли: цена в модели ползёт, а не прыгает.</summary>
     private static Control Price(GameLoop loop, History past, GoodType good)
     {
-        var chart = Chart.Create("Цена за месяц", value => Fmt.Price(new Money((long)(value * 100))));
+        var chart = Chart.Create("Цена за год", Fmt.Cash);
 
-        chart.Show(new Trace("цена", Names.ColourOf(good).Lightened(0.2f), past.PricesOf(good, History.Month)));
+        chart.Show(new Trace("цена", Names.ColourOf(good).Lightened(0.2f), past.PricesOf(good, History.Year)));
+
+        return chart;
+    }
+
+    /// <summary>Выпуск против заказа за год. По ним видно, чем вызвана цена: товара стали
+    /// меньше делать или больше просить.</summary>
+    private static Control Flow(History past, GoodType good)
+    {
+        var chart = Chart.Create("Выпуск и заказ за год", Fmt.Count);
+
+        chart.Show(
+            new Trace("выпуск", Skin.Output, past.OutputOf(good, History.Year)),
+            new Trace("заказ", Skin.Prices, past.WantsOf(good, History.Year)));
 
         return chart;
     }

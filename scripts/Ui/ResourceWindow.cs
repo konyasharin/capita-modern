@@ -282,7 +282,8 @@ public partial class ResourceWindow : Control
             ShowSum();
         });
 
-        // Засечка показывает, где кончается безопасная сумма: дальше материалы дорожают.
+        // Засечка — сумма, на которой худший материал заказа начинает ускоряться на
+        // процент в день. Левее стройка цен почти не трогает, правее — заметно.
         _notch = new ColorRect
         {
             Color = Skin.Warn,
@@ -410,11 +411,13 @@ public partial class ResourceWindow : Control
 
         foreach (var (label, key) in Rows)
         {
-            var card = key == "worldprice"
-                ? () => TrendCard.Of("worldprice", $"{Names.Of(_chosen)}: наша цена к мировой",
-                    value => $"×{value:0.00}",
-                    new Trace("к миру", Names.ColourOf(_chosen).Lightened(0.2f), _past.ToWorldOf(_chosen)))
-                : (Func<(string Key, Control Body)?>?)null;
+            var card = key switch
+            {
+                "worldprice" => Trends.ToWorld(_past, () => _chosen),
+                "price" => Trends.Price(_past, () => _chosen),
+                "output" or "demand" => Trends.Flow(_past, () => _chosen),
+                _ => null,
+            };
 
             var row = StatRow.Create(label, _stack, key, card);
 
@@ -435,9 +438,9 @@ public partial class ResourceWindow : Control
     [
         ("На складе", null),
         ("Выпуск за день", "output"),
-        ("Заказ за день", null),
+        ("Заказ за день", "demand"),
         ("Не хватает", "shortage"),
-        ("Цена", null),
+        ("Цена", "price"),
         ("К мировой цене", "worldprice"),
         ("Рабочих мест", "employment"),
         ("Доля в мировом выпуске", null),

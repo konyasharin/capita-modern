@@ -57,7 +57,7 @@ public partial class IndustryPanel : SidePanel
         _bySector = Columns();
 
         Section("Предприятия", "tab-industry");
-        _total = Stat("Всего", "plants");
+        _total = Stat("Всего", "plants", Trends.Plants(Past));
         Note("«Работает» меньше «есть» — значит зданию не хватило сырья или рук.");
 
         _table = Table.Create(

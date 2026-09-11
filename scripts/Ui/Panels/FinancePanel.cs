@@ -39,12 +39,10 @@ public partial class FinancePanel : SidePanel
         _purse = Graph("Казна и внешний долг", Fmt.Cash).Ranged();
 
         Section("Казна", "treasury");
-        _balance = Stat("Остаток", "treasury");
+        _balance = Stat("Остаток", "treasury", Trends.Treasury(Past));
         _budget = Stat("Сальдо за день", "budget");
         _wages = Stat("Зарплаты за день", "wages");
-        _supply = Stat("Денежная масса", "supply", () => TrendCard.Of(
-            "supply", "Денежная масса за год", Fmt.Cash,
-            new Trace("масса", Skin.Money, Past.Of(History.Line.Supply))));
+        _supply = Stat("Денежная масса", "supply", Trends.Supply(Past));
         _printed = Stat("Напечатано за партию", "printed");
 
         Section("Резервы", "rate");
@@ -54,7 +52,7 @@ public partial class FinancePanel : SidePanel
         _frozenBy = Stat("Кем заморожено", "frozen");
 
         Section("Долг", "debt");
-        _debt = Stat("Внешний долг", "debt");
+        _debt = Stat("Внешний долг", "debt", Trends.Debt(Past));
         _burden = Stat("Нагрузка на вывоз", "burden");
         _loans = Stat("Займов", "debt");
         _interest = Stat("Проценты за день", "interest");

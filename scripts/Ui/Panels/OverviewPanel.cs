@@ -44,12 +44,12 @@ public partial class OverviewPanel : SidePanel
         _wealth.Ranged();
         _prices = Graph("Уровень цен к старту", value => Fmt.Percent(value, signed: true));
         _prices.Ranged();
-        _work = Graph("Занятость и загрузка", value => Fmt.Percent(value));
+        _work = Graph("Занятость и загрузка", value => Fmt.Percent(value)).Ranged();
 
         Section("Люди", "population");
-        _population = Stat("Население", "population");
-        _workers = Stat("Рабочая сила", "workers");
-        _employment = Gauge("Занятость", Skin.People, "employment");
+        _population = Stat("Население", "population", Trends.People(Past));
+        _workers = Stat("Рабочая сила", "workers", Trends.Workers(Past));
+        _employment = Gauge("Занятость", Skin.People, "employment", Trends.Employment(Past));
         _missing = Stat("Не хватает рук", "hands");
 
         Section("Достаток", "treasury");
@@ -59,9 +59,9 @@ public partial class OverviewPanel : SidePanel
         _capacity = Stat("Корзин на дневной доход", "capacity");
 
         Section("Производство", "plants");
-        _load = Gauge("Загрузка предприятий", Skin.Plants, "load");
+        _load = Gauge("Загрузка предприятий", Skin.Plants, "load", Trends.Load(Past));
         _added = Stat("Добавленная стоимость за день", "output");
-        _yearly = Stat("ВВП за год, постоянные цены", "output");
+        _yearly = Stat("ВВП за год, постоянные цены", "output", Trends.Output(Past));
         _perWorker = Stat("Выработка на работника за год");
 
         Section("Занято по отраслям", "employment");
@@ -78,16 +78,11 @@ public partial class OverviewPanel : SidePanel
         }
 
         Section("Деньги", "rate");
-        _supply = Stat("Денежная масса", "supply");
+        _supply = Stat("Денежная масса", "supply", Trends.Supply(Past));
         _printed = Stat("Напечатано за партию", "printed");
-        _priceYear = Stat("Инфляция за год", "inflation", () => TrendCard.Of(
-            "inflation", "Инфляция по неделям",
-            value => Fmt.Percent(value, signed: true),
-            new Trace("за неделю", Skin.Prices, Past.WeeklyLine())));
+        _priceYear = Stat("Инфляция за год", "inflation", Trends.Inflation(Past));
         _level = Stat("Уровень цен к старту", "pricelevel");
-        _rate = Stat("Курс валюты к старту", "rate", () => TrendCard.Of(
-            "rate", "Курс валюты за год", value => $"×{value:0.00}",
-            new Trace("курс", Skin.Rate, Past.Of(History.Line.Rate))));
+        _rate = Stat("Курс валюты к старту", "rate", Trends.Rate(Past));
     }
 
     public override void Refresh()

@@ -3,7 +3,7 @@ using Godot;
 /// <summary>Один ряд на графике.</summary>
 public readonly record struct Trace(string Name, Color Colour, IReadOnlyList<float> Points);
 
-/// <summary>График по дням. Заголовок, поле и подписи границ: без чисел у краёв линия
+/// <summary>График по дням: заголовок, поле и шкала слева. Без чисел на шкале линия
 /// показывает форму, но не величину.</summary>
 public partial class Chart : VBoxContainer
 {
@@ -13,11 +13,14 @@ public partial class Chart : VBoxContainer
     /// уезжает вбок вместе с ним.</summary>
     private const int LegendWidth = 132;
 
+    /// <summary>Больше стольких делений на шкале не рисуем. Точного числа нет: шаг
+    /// берётся круглый, а делений выходит сколько выйдет — три или четыре. Поле высотой
+    /// в восемьдесят точек, и на шести подписи уже слипаются.</summary>
+    private const int MostDivisions = 4;
+
     private Label _title = null!;
     private HBoxContainer _legend = null!;
     private Plot _plot = null!;
-    private Label _top = null!;
-    private Label _bottom = null!;
 
     private Func<double, string> _show = value => $"{value:0.##}";
 
@@ -57,17 +60,8 @@ public partial class Chart : VBoxContainer
         chart._picker.AddThemeConstantOverride("separation", 4);
         chart.AddChild(chart._picker);
 
-        chart._plot = new Plot { CustomMinimumSize = new Vector2(0, PlotHeight) };
+        chart._plot = new Plot { CustomMinimumSize = new Vector2(0, PlotHeight), Show = chart._show };
         chart.AddChild(chart._plot);
-
-        var feet = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
-        chart._bottom = Ui.Text("—", 11, 400, Skin.Dim);
-        chart._top = Ui.Text("—", 11, 400, Skin.Dim);
-
-        feet.AddChild(chart._bottom);
-        feet.AddChild(Ui.Spring());
-        feet.AddChild(chart._top);
-        chart.AddChild(feet);
 
         return chart;
     }
@@ -143,18 +137,29 @@ public partial class Chart : VBoxContainer
         if (low > 0 && high / Mathf.Max(low, 0.0001f) > 6) low = 0;
         if (high < 0) high = 0;
 
-        var pad = Mathf.Max((high - low) * 0.08f, 0.0001f);
+        // Ровная линия: раздвигаем шкалу вокруг неё, иначе делить будет нечего.
+        if (high - low < Mathf.Abs(high) * 0.001f) high = low + Mathf.Max(Mathf.Abs(low) * 0.1f, 1f);
 
-        // Ниже нуля шкалу не опускаем, если ряд туда не заходит: «−262 млрд» под графиком
-        // казны читается как долг, которого нет.
-        _plot.Low = low >= 0 ? Mathf.Max(low - pad, 0) : low - pad;
-        _plot.High = high + pad;
+        var step = Step((high - low) / MostDivisions);
+
+        _plot.Step = step;
+        _plot.Low = Mathf.Floor(low / step) * step;
+        _plot.High = Mathf.Max(Mathf.Ceil(high / step) * step, _plot.Low + step);
         _plot.QueueRedraw();
 
-        _bottom.Text = _show(_plot.Low);
-        _top.Text = _show(_plot.High);
-
         Legend(traces);
+    }
+
+    /// <summary>Круглый шаг шкалы не меньше заданного: 1, 2, 2.5 или 5 на своём порядке.
+    /// Иначе подписи выходят вроде «947.98B$» — число верное, а прочесть нельзя.</summary>
+    private static float Step(float raw)
+    {
+        if (raw <= 0) return 1;
+
+        var order = Mathf.Pow(10, Mathf.Floor(Mathf.Log(raw) / Mathf.Log(10)));
+        var times = raw / order;
+
+        return (float)(order * (times <= 1 ? 1 : times <= 2 ? 2 : times <= 2.5 ? 2.5 : times <= 5 ? 5 : 10));
     }
 
     private void Legend(Trace[] traces)
@@ -185,22 +190,43 @@ public partial class Chart : VBoxContainer
     /// <summary>Само поле. Рисуется вручную: узлов на тысячу точек не напасёшься.</summary>
     private partial class Plot : Control
     {
+        /// <summary>Полоса слева под подписи шкалы. Линия по ней не идёт: цифра поверх
+        /// графика читается плохо, а без цифр не видно величины.</summary>
+        private const int AxisWidth = 52;
+
         public Trace[] Traces = [];
         public float Low;
         public float High = 1;
+        public float Step = 1;
+        public Func<double, string> Show = value => $"{value:0.##}";
+
+        /// <summary>Шрифт подписей один на все графики: создавать его в каждой
+        /// перерисовке — это новый объект шестьдесят раз в секунду.</summary>
+        private static readonly FontVariation Face = Skin.Weight(400);
+
+        private float Field => Mathf.Max(Size.X - AxisWidth, 2);
 
         public override void _Draw()
         {
-            var box = new Rect2(Vector2.Zero, Size);
+            var box = new Rect2(AxisWidth, 0, Field, Size.Y);
 
             DrawRect(box, new Color(Skin.Ink, 0.5f));
             DrawRect(box, new Color(Skin.Soft, 0.9f), filled: false, width: 1);
 
-            for (var line = 1; line < 4; line++)
+            for (var value = Low; value <= High + Step / 2; value += Step)
             {
-                var y = Size.Y * line / 4f;
+                var y = Y(value);
 
-                DrawLine(new Vector2(0, y), new Vector2(Size.X, y), new Color(Skin.Soft, 0.55f));
+                if (y > 1 && y < Size.Y - 1)
+                {
+                    DrawLine(new Vector2(AxisWidth, y), new Vector2(Size.X, y), new Color(Skin.Soft, 0.55f));
+                }
+
+                // Крайние подписи вжимаются внутрь: у самой границы буквы обрезались бы.
+                var baseline = Mathf.Clamp(y + 3.5f, 9f, Size.Y - 1f);
+
+                DrawString(Face, new Vector2(0, baseline), Show(value), HorizontalAlignment.Right,
+                    AxisWidth - 6, 10, new Color(Skin.Dim, 0.95f));
             }
 
             foreach (var trace in Traces) Draw(trace);
@@ -208,9 +234,9 @@ public partial class Chart : VBoxContainer
 
         private void Draw(Trace trace)
         {
-            if (trace.Points.Count < 2 || Size.X < 2) return;
+            if (trace.Points.Count < 2 || Field < 2) return;
 
-            var width = (int)Size.X;
+            var width = (int)Field;
             var points = new Vector2[width];
 
             // По точке на пиксель: за пять лет их под две тысячи, а полоса шириной
@@ -221,13 +247,13 @@ public partial class Chart : VBoxContainer
                     ? 0
                     : x * (trace.Points.Count - 1) / (width - 1);
 
-                points[x] = new Vector2(x, Y(trace.Points[at]));
+                points[x] = new Vector2(AxisWidth + x, Y(trace.Points[at]));
             }
 
             var under = new Vector2[width + 2];
             points.CopyTo(under, 0);
-            under[width] = new Vector2(width - 1, Size.Y);
-            under[width + 1] = new Vector2(0, Size.Y);
+            under[width] = new Vector2(AxisWidth + width - 1, Size.Y);
+            under[width + 1] = new Vector2(AxisWidth, Size.Y);
 
             // Заливка под линией гаснет книзу: ровная плашка цвета спорит с самой линией.
             var shades = new Color[width + 2];

@@ -88,9 +88,13 @@ public abstract partial class SidePanel : PanelContainer
         return row;
     }
 
-    protected Bar Gauge(string label, Color colour, string? key = null)
+    protected Bar Gauge(
+        string label,
+        Color colour,
+        string? key = null,
+        Func<(string Key, Control Body)?>? card = null)
     {
-        var bar = Bar.Create(label, colour, Stack, key);
+        var bar = Bar.Create(label, colour, Stack, key, card);
         Rows.AddChild(bar);
 
         return bar;
