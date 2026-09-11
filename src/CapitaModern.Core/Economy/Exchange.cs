@@ -6,13 +6,15 @@ public readonly record struct Deal(byte Buyer, byte Seller, GoodAmount Amount, M
 /// <summary>Заявка на парную торговлю.</summary>
 /// <param name="Ask">За сколько продавец отдаёт единицу в мировой мере.</param>
 /// <param name="Bid">Сколько покупатель готов заплатить за единицу с доставкой.</param>
+/// <param name="Quality">Каков товар этой страны, в сотых. Сотня — как у передовой.</param>
 public readonly record struct MarketOrder(
     byte Country,
     Producer Trader,
     GoodAmount Offer,
     GoodAmount Want,
     Money Ask,
-    Money Bid);
+    Money Bid,
+    int Quality = Efficiency.Scale);
 
 /// <summary>Парная торговля: продавец и покупатель встречаются, а не сваливают в котёл.</summary>
 /// <remarks>
@@ -38,6 +40,11 @@ public sealed class Exchange
     /// поставщиков закрывает почти весь ввоз. Заодно это и цена тика — сделок иначе
     /// выходит вдесятеро больше.</summary>
     public const int MaxOrigins = 12;
+
+    /// <summary>Насколько качество отстаёт от отрыва в умении, в сотых. Корень четвёртой
+    /// степени: страна, которая производит вчетверо ловчее, делает товар вдвое лучше, а
+    /// не вчетверо. Иначе передовые забирали бы весь рынок при любой цене.</summary>
+    public const int QualityFromSkill = 25;
 
     /// <summary>Вес по отношению цен, посчитанный заранее. Степень считается долго, а
     /// отношение — целое от нуля до <see cref="Powers.Scale"/>: пар за тик выходит больше
@@ -138,9 +145,11 @@ public sealed class Exchange
             // Ноль означает, что пути нет вовсе; дороже своей цены покупатель не берёт.
             if (price <= 0 || price > ceiling) continue;
 
-            _priceOf[s] = price;
+            // Сравнивают не цену, а цену за качество: немецкий станок берут не потому,
+            // что он дешевле. Платят при этом полную цену — качество только выбирает.
+            _priceOf[s] = QualityAdjusted(price, orders[s].Quality);
             _fit.Add(s);
-            if (price < cheapest) cheapest = price;
+            if (_priceOf[s] < cheapest) cheapest = _priceOf[s];
         }
 
         if (_fit.Count == 0)
@@ -216,6 +225,16 @@ public sealed class Exchange
         if (want > 0) Empty += new GoodAmount(want);
 
         return taken;
+    }
+
+    /// <summary>Во что обходится покупателю единица качества, а не единица товара.</summary>
+    private static long QualityAdjusted(long price, int quality)
+    {
+        if (quality <= 0 || quality == Efficiency.Scale) return price;
+
+        var ratio = (long)quality * Powers.Scale / Efficiency.Scale;
+
+        return Math.Max(1, price * Powers.Scale / Powers.PowCached(ratio, QualityFromSkill));
     }
 
     private static long[] BuildWeights()

@@ -101,6 +101,14 @@ public sealed class Simulation
     private Money _dealValue;
     private GoodAmount _dealVolume;
 
+    /// <summary>Доля валюты страны в мировых резервах, в десятитысячных.</summary>
+    private readonly Dictionary<byte, long> _reserveShare = new();
+
+    private const int ReserveShareScale = 10_000;
+
+    /// <summary>Чья отрасль у каждого товара. Считается раз при создании мира.</summary>
+    private readonly Sector[] _sectorOf = new Sector[Enum.GetValues<GoodType>().Length];
+
     /// <summary>Выпуск страны при полной загрузке, в стартовых ценах. База для якоря.</summary>
     /// <remarks>Считается из данных, а не меряется на первом тике: на первом тике склады
     /// пусты, половина заводов стоит без сырья, и база выходит втрое ниже правды. Якорь
@@ -155,6 +163,7 @@ public sealed class Simulation
     public Simulation(GameWorld world)
     {
         _world = world;
+        MapSectors();
         MeasurePotential();
     }
 
@@ -353,7 +362,9 @@ public sealed class Simulation
                 if (bid.Raw == 0 && offer.Raw == 0) continue;
 
                 _bid.Add(country.Id, good, bid);
-                _market.Add(new MarketOrder(country.Id, country.State, offer, bid, inWorld, inWorld));
+                _market.Add(new MarketOrder(
+                    country.Id, country.State, offer, bid, inWorld, inWorld,
+                    _world.Efficiency.Of(country.Id, SectorOf(good))));
                 wanted += bid;
                 offered += offer;
             }
@@ -379,6 +390,59 @@ public sealed class Simulation
             }
         }
     }
+
+    /// <summary>Чем страна может платить по внешнему долгу за год.</summary>
+    /// <remarks>
+    /// Обычной стране — только вывозом: чтобы отдать чужие деньги, их надо сперва
+    /// заработать. А тому, чью валюту мир держит в резервах, отдавать можно своими же:
+    /// их примут. Оттого США занимают под процент при долге в четырнадцать годовых
+    /// вывозов, а Пакистан не занимает вовсе.
+    /// </remarks>
+    private Money DebtCapacity(Country country)
+    {
+        var exports = country.ExportsPerDay * DaysInYear;
+
+        var share = _reserveShare.GetValueOrDefault(country.Id);
+        if (share <= 0 || country.LabourShare <= 0) return exports;
+
+        // Выпуск за год в мировой мере: фонд оплаты — известная доля добавленной стоимости.
+        var daily = new Money(country.Payroll.Raw * 100 / country.LabourShare);
+        var yearly = new Money(daily.Raw * DaysInYear * Money.Scale /
+            Math.Max(1, country.ExchangeRate.Raw));
+
+        return exports + new Money((long)((Int128)yearly.Raw * share / ReserveShareScale));
+    }
+
+    /// <summary>Какая доля мировых резервов лежит в валюте каждой страны.</summary>
+    /// <remarks>Считается из состояния мира, а не задана: резервной станет та валюта,
+    /// которую и правда начнут копить.</remarks>
+    private void CountReserves()
+    {
+        _reserveShare.Clear();
+
+        var total = 0L;
+        foreach (var country in _world.Countries)
+        {
+            foreach (var held in country.State.Treasury.Reserves.Held)
+            {
+                if (held.Kind != ReserveKind.ForeignCurrency || held.Issuer == country.Id) continue;
+
+                _reserveShare[held.Issuer] = _reserveShare.GetValueOrDefault(held.Issuer) + held.Amount.Raw;
+                total += held.Amount.Raw;
+            }
+        }
+
+        if (total <= 0) return;
+
+        foreach (var issuer in _reserveShare.Keys.ToArray())
+        {
+            _reserveShare[issuer] = (long)((Int128)_reserveShare[issuer] * ReserveShareScale / total);
+        }
+    }
+
+    /// <summary>Чья это отрасль. Нужна, чтобы знать, насколько страна умеет делать
+    /// именно этот товар: нефть качают везде одинаково, станки — нет.</summary>
+    private Sector SectorOf(GoodType good) => _sectorOf[(int)good];
 
     /// <summary>Во что обойдётся покупателю единица товара у этого продавца.</summary>
     /// <remarks>Цена продавца плюс дорога от него до покупателя плюс пошлина покупателя.
@@ -420,6 +484,16 @@ public sealed class Simulation
     /// <remarks>От этого числа якорь и считает, вырос выпуск или упал. Меняться оно
     /// должно вместе со стройкой и износом, но пока предприятия стоят на месте весь
     /// расчёт — одного раза хватает.</remarks>
+    /// <summary>Отрасль каждого товара — по тому, кто его делает.</summary>
+    private void MapSectors()
+    {
+        foreach (var type in Enum.GetValues<BuildingType>())
+        {
+            var info = _world.Buildings[type];
+            foreach (var good in info.Outputs.Keys) _sectorOf[(int)good] = info.Sector;
+        }
+    }
+
     private void MeasurePotential()
     {
         foreach (var region in _world.Regions)
@@ -557,6 +631,8 @@ public sealed class Simulation
     /// </remarks>
     private void Borrow()
     {
+        CountReserves();
+
         _credit.Clear();
         foreach (var country in _world.Countries)
         {
@@ -564,7 +640,7 @@ public sealed class Simulation
             var need = Valued(_bid, country.Id);
             var have = country.State.Treasury.Reserves.Liquid;
             var premium = CreditMarket.PremiumFor(
-                country.State.Treasury.Debt.BurdenToExports(country.ExportsPerDay * DaysInYear),
+                country.State.Treasury.Debt.BurdenToExports(DebtCapacity(country)),
                 LockedOut(country));
 
             _credit.Add(new CreditOrder(

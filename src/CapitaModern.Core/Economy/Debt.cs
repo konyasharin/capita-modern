@@ -42,13 +42,15 @@ public sealed class Debt
         return total;
     }
 
-    /// <summary>Долговая нагрузка в сотых: 200 означает «внешний долг равен двум годовым
-    /// экспортам». За этой чертой в жизни начинается зона риска.</summary>
-    public int BurdenToExports(Money yearlyExports)
+    /// <summary>Долговая нагрузка в сотых: 200 означает «внешний долг вдвое больше того,
+    /// чем страна может по нему платить за год». За этой чертой в жизни зона риска.</summary>
+    /// <param name="capacity">Чем платить: обычно годовой вывоз, а у резервной валюты
+    /// ещё и часть своего выпуска — её деньги примут.</param>
+    public int BurdenToExports(Money capacity)
     {
-        if (yearlyExports.Raw <= 0) return Owed(LoanSource.Foreign).Raw > 0 ? int.MaxValue : 0;
+        if (capacity.Raw <= 0) return Owed(LoanSource.Foreign).Raw > 0 ? int.MaxValue : 0;
 
-        var burden = (Int128)Owed(LoanSource.Foreign).Raw * 100 / yearlyExports.Raw;
+        var burden = (Int128)Owed(LoanSource.Foreign).Raw * 100 / capacity.Raw;
 
         return burden > int.MaxValue ? int.MaxValue : (int)burden;
     }
