@@ -23,7 +23,7 @@ uniform vec4 border_color : source_color = vec4(0.071, 0.094, 0.110, 1.0);
 
 // Крупная форма берётся из сетки, мелкие изгибы — отсюда. Шум привязан к карте,
 // поэтому граница ползёт по нему, а не он вместе с ней.
-uniform float warp_amp = 0.75;
+uniform float warp_amp = 0.6;
 uniform float warp_scale = 420.0;
 
 uniform float border_px = 3.2;
@@ -126,14 +126,18 @@ float border(float margin, float width) {
 	return 1.0 - smoothstep(0.0, width, margin / max(fwidth(margin), 1e-6));
 }
 
-// Изолиния 0.5 маски, антиалиасенная и постоянной экранной толщины.
+// Где проходит берег по маске суши. Не ровно половина: на половине маска перемыкается
+// через узкие заливы, заливки там на глаз нет, а обводка рисует поперёк воды волосок.
+const float SHORE = 0.56;
+
+// Изолиния берега, антиалиасенная и постоянной экранной толщины.
 float contour(float mask, float width) {
-	float d = (mask - 0.5) / max(fwidth(mask), 1e-6);
+	float d = (mask - SHORE) / max(fwidth(mask), 1e-6);
 	return 1.0 - smoothstep(0.0, width, abs(d));
 }
 
 float edge_fill(float mask) {
-	return clamp((mask - 0.5) / max(fwidth(mask), 1e-6) + 0.5, 0.0, 1.0);
+	return clamp((mask - SHORE) / max(fwidth(mask), 1e-6) + 0.5, 0.0, 1.0);
 }
 
 void fragment() {
@@ -220,8 +224,15 @@ void fragment() {
 	water *= 1.0 + (swell - 0.5) * water_grain;
 
 	// Суша отбрасывает тень на воду: карта читается как наклейка, а не как заливка.
-	float shadow = edge_fill(land_mask(uv - px * shadow_px * vec2(0.6, 0.8), texel));
-	water = mix(water, ocean_deep_color.rgb, shadow * shadow_alpha);
+	// Тень набирается несколькими выборками вдоль сдвига. Одной было мало: у неё резкий
+	// край, и в воде вдоль берега проступала лишняя тонкая линия.
+	float shadow = 0.0;
+	for (int i = 1; i <= 4; i++) {
+		vec2 step_uv = uv - px * shadow_px * (float(i) / 4.0) * vec2(0.6, 0.8);
+		shadow += land_mask(step_uv, texel) * 0.25;
+	}
+
+	water = mix(water, ocean_deep_color.rgb, smoothstep(0.0, 0.9, shadow) * shadow_alpha);
 
 	vec3 ground = country_color(land_id);
 
@@ -234,8 +245,14 @@ void fragment() {
 	vec3 col = mix(water, ground, on_land);
 
 	// Условное деление суши на регионы: проступает только вблизи.
-	float regions = 1.0 - smoothstep(0.22, 0.45, cells_per_px);
-	if (regions > 0.003 && land > 0.5) {
+	float regions = 1.0 - smoothstep(0.12, 0.28, cells_per_px);
+
+	// Линия области рисуется только там, где суша уверенная. Порога берега мало: в узком
+	// заливе маска зависает чуть выше него, заливка там едва проступает, а линия
+	// перепрыгивала через воду и читалась волоском поперёк пролива.
+	float inland = smoothstep(0.80, 0.95, land);
+
+	if (regions > 0.003 && inland > 0.003) {
 		int r00 = region_at(uv00);
 		int r10 = region_at(uv00 + vec2(texel.x, 0.0));
 		int r01 = region_at(uv00 + vec2(0.0, texel.y));
@@ -259,7 +276,7 @@ void fragment() {
 		if (r11 != rid) region_rival = max(region_rival, q11);
 
 		col = mix(col, region_line_color.rgb,
-			border(region_own - region_rival, region_px) * regions * region_line_color.a * on_land);
+			border(region_own - region_rival, region_px) * regions * region_line_color.a * inland);
 	}
 
 	// Обводка по берегу и границы стран одного цвета — почти чёрного. Разделяет их
@@ -273,7 +290,7 @@ void fragment() {
 	if (i11 != id) rival = max(rival, s11);
 
 	float width = border_px * mix(1.0, far_border_scale, far);
-	float political = border(own - rival, width) * on_land * step(0.5, land);
+	float political = border(own - rival, width) * on_land * step(SHORE, land);
 	col = mix(col, border_color.rgb, political);
 
 	COLOR = vec4(col, 1.0);
