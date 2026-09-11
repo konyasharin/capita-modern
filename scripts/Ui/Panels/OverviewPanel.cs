@@ -81,9 +81,9 @@ public partial class OverviewPanel : SidePanel
         _supply = Stat("Денежная масса", "supply");
         _printed = Stat("Напечатано за партию", "printed");
         _priceYear = Stat("Инфляция за год", "inflation", () => TrendCard.Of(
-            "inflation", "Инфляция за год",
+            "inflation", "Инфляция по неделям",
             value => Fmt.Percent(value, signed: true),
-            new Trace("инфляция", Skin.Prices, Past.YearlyLine())));
+            new Trace("за неделю", Skin.Prices, Past.WeeklyLine())));
         _level = Stat("Уровень цен к старту", "pricelevel");
         _rate = Stat("Курс валюты к старту", "rate", () => TrendCard.Of(
             "rate", "Курс валюты за год", value => $"×{value:0.00}",

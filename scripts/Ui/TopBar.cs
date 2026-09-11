@@ -60,9 +60,9 @@ public partial class TopBar : Control
         middle.AddChild(Flag());
 
         _inflation = Add(middle, "inflation", Skin.Prices, 52, () => TrendCard.Of(
-            "inflation", "Инфляция за год",
+            "inflation", "Инфляция по неделям",
             value => Fmt.Percent(value, signed: true),
-            new Trace("инфляция", Skin.Prices, _past.YearlyLine())));
+            new Trace("за неделю", Skin.Prices, _past.WeeklyLine())));
         _treasury = Add(middle, "treasury", Skin.Money, 64);
         _debt = Add(middle, "debt", Skin.Owed, 58);
         _rate = Add(middle, "rate", Skin.Rate, 46, () => TrendCard.Of(

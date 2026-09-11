@@ -17,6 +17,7 @@ public static class GoodCard
 
         card.AddChild(Head(loop, good));
         card.AddChild(Numbers(loop, good));
+        card.AddChild(Why(loop, past, good));
         card.AddChild(Price(loop, past, good));
         card.AddChild(Recipe(loop, good));
 
@@ -110,12 +111,70 @@ public static class GoodCard
         grid.AddChild(row);
     }
 
+    /// <summary>Отчего цена идёт туда, куда идёт.</summary>
+    /// <remarks>Догадок здесь нет: цена в модели ходит ровно от покрытия склада, а общий
+    /// уровень тянут деньги. Обе причины и названы, а недельные перемены склада и заказа
+    /// говорят, которая сторона сдвинулась.</remarks>
+    private static Control Why(GameLoop loop, History past, GoodType good)
+    {
+        var pace = loop.Simulation.PaceOf(loop.Player, good);
+        var push = loop.Simulation.LevelPushOf(loop.Player);
+        var (stock, want) = past.WeekOf(good);
+
+        var text = pace switch
+        {
+            > Still => $"[b]Дорожает на {Fmt.Percent(pace / 100.0)} в день[/b] — запаса меньше нормы.",
+            < -Still => $"[b]Дешевеет на {Fmt.Percent(-pace / 100.0)} в день[/b] — запаса больше нормы.",
+            _ => "[b]Цена стоит[/b] — запас примерно равен сорокадневной норме.",
+        };
+
+        // Что именно сдвинулось за неделю: склад или заказ. Берём того, кто сдвинулся сильнее.
+        if (Math.Abs(stock) > 5 || Math.Abs(want) > 5)
+        {
+            text += Math.Abs(stock) >= Math.Abs(want)
+                ? $" За неделю склад {Moved(stock)}."
+                : $" За неделю заказ {Moved(want)}.";
+        }
+
+        if (Math.Abs(push) > Still)
+        {
+            var where = push > 0 ? "вверх" : "вниз";
+
+            text += $"\n\nСверх этого деньги тянут все цены страны {where} на " +
+                $"{Fmt.Percent(Math.Abs(push) / 100.0)} в день.";
+        }
+
+        var label = new RichTextLabel
+        {
+            BbcodeEnabled = true,
+            FitContent = true,
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+            ScrollActive = false,
+            CustomMinimumSize = new Vector2(Wide, 0),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+
+        label.AddThemeFontOverride("normal_font", Skin.Weight(400));
+        label.AddThemeFontOverride("bold_font", Skin.Weight(600));
+        label.AddThemeColorOverride("default_color", Skin.Text);
+        label.AddThemeFontSizeOverride("normal_font_size", 13);
+        label.Text = text;
+
+        return label;
+    }
+
+    private static string Moved(double percent) =>
+        percent > 0 ? $"вырос на {Fmt.Percent(percent)}" : $"упал на {Fmt.Percent(-percent)}";
+
+    /// <summary>Ниже этого движение считаем стоянием: сотые процента в день — это шум.</summary>
+    private const int Still = 5;
+
     /// <summary>Цена за последний месяц. По одному числу не видно, дорожает товар или нет.</summary>
     private static Control Price(GameLoop loop, History past, GoodType good)
     {
         var chart = Chart.Create("Цена за месяц", value => Fmt.Price(new Money((long)(value * 100))));
 
-        chart.Show(new Trace("цена", Names.ColourOf(good).Lightened(0.2f), past.PricesOf(good)));
+        chart.Show(new Trace("цена", Names.ColourOf(good).Lightened(0.2f), past.PricesOf(good, History.Month)));
 
         return chart;
     }

@@ -16,6 +16,9 @@ public partial class ResourceWindow : Control
     /// <summary>Ширина средней колонки.</summary>
     private const int Middling = 560;
 
+    /// <summary>Какое ускорение подорожания считать заметным, в сотых долях процента в день.</summary>
+    private const int LiftMark = 100;
+
     /// <summary>Что показывает число под плашкой.</summary>
     private enum Mode
     {
@@ -407,7 +410,13 @@ public partial class ResourceWindow : Control
 
         foreach (var (label, key) in Rows)
         {
-            var row = StatRow.Create(label, _stack, key);
+            var card = key == "worldprice"
+                ? () => TrendCard.Of("worldprice", $"{Names.Of(_chosen)}: наша цена к мировой",
+                    value => $"×{value:0.00}",
+                    new Trace("к миру", Names.ColourOf(_chosen).Lightened(0.2f), _past.ToWorldOf(_chosen)))
+                : (Func<(string Key, Control Body)?>?)null;
+
+            var row = StatRow.Create(label, _stack, key, card);
 
             _stats.Add(row);
             column.AddChild(row);
@@ -825,7 +834,12 @@ public partial class ResourceWindow : Control
         ShowBreakdown();
     }
 
-    /// <summary>Засечка безопасной суммы и предупреждение, когда ползунок ушёл за неё.</summary>
+    /// <summary>Насколько выбранная сумма ускорит подорожание материалов и где та
+    /// граница, за которой это уже заметно.</summary>
+    /// <remarks>Прежняя засечка отвечала «двинет цены или нет» и всегда стояла на нуле:
+    /// склад почти никогда не держит ровно сорокадневный запас, поэтому цены и так уже
+    /// куда-то идут. Полезен не порог, а величина: на сколько именно эта стройка ускорит
+    /// движение.</remarks>
     private void Spill(double price, double amount, double purse)
     {
         if (_plant is not { } type || price <= 0 || purse <= 0)
@@ -836,27 +850,55 @@ public partial class ResourceWindow : Control
             return;
         }
 
-        var (safe, tight) = _loop.Simulation.SafeToBuild(_loop.Player, type);
-        var money = safe * price;
+        // Засечка — там, где худший материал начинает ускоряться на процент в день.
+        var mark = Mark(type, price, purse);
 
-        _notch.Visible = money < purse;
-        _notch.AnchorLeft = _notch.AnchorRight = (float)Mathf.Clamp(money / purse, 0.0, 1.0);
+        _notch.Visible = mark > 0 && mark < purse;
+        _notch.AnchorLeft = _notch.AnchorRight = (float)Mathf.Clamp(mark / purse, 0.0, 1.0);
 
-        if (amount <= money)
+        // Ползунок на нуле — считаем для всей казны: иначе строка молчит, когда как раз и
+        // хочется прикинуть, во что обойдётся размах.
+        var whole = amount <= 0;
+        var count = (int)((whole ? purse : amount) / price);
+        var (good, lift) = _loop.Simulation.OrderLift(_loop.Player, type, count);
+
+        if (good is not { } which || lift <= 0)
         {
-            _spill.Text = safe > 0
-                ? $"Не двигая цены можно вложить до {Fmt.Cash(money)} — это {Fmt.Count(safe)} предприятий."
-                : "Склад уже пуст: любая стройка поднимет цены на материалы.";
-
-            _spill.AddThemeColorOverride("font_color", safe > 0 ? Skin.Dim : Skin.Warn);
+            _spill.Text = "На ценах материалов это почти не скажется.";
+            _spill.AddThemeColorOverride("font_color", Skin.Dim);
 
             return;
         }
 
-        _spill.AddThemeColorOverride("font_color", Skin.Warn);
-        _spill.Text = tight is { } good
-            ? $"Сверх {Fmt.Cash(money)} подорожает {Names.Of(good).ToLowerInvariant()}. {Ship(good)}"
-            : $"Сверх {Fmt.Cash(money)} материалы подорожают.";
+        var pace = _loop.Simulation.PaceOf(_loop.Player, which);
+        var head = whole ? "Если вложить всё, сильнее всего заденет" : "Сильнее всего заденет";
+
+        _spill.AddThemeColorOverride("font_color", lift >= LiftMark && !whole ? Skin.Warn : Skin.Dim);
+        _spill.Text =
+            $"{head} {Names.Of(which).ToLowerInvariant()}: " +
+            $"сейчас {Fmt.Percent(pace / 100.0, signed: true)} в день, эта стройка добавит " +
+            $"{Fmt.Percent(lift / 100.0, signed: true)}. {Ship(which)}";
+    }
+
+    /// <summary>Сумма, на которой худший материал начинает ускоряться на процент в день.
+    /// Ищется перебором пополам: обратной формулы у правила цен нет.</summary>
+    private double Mark(BuildingType type, double price, double purse)
+    {
+        var most = (int)(purse / price);
+        if (most <= 0) return 0;
+
+        var low = 0;
+        var high = most;
+
+        while (low < high)
+        {
+            var middle = (low + high) / 2;
+
+            if (_loop.Simulation.OrderLift(_loop.Player, type, middle).Lift >= LiftMark) high = middle;
+            else low = middle + 1;
+        }
+
+        return low >= most ? 0 : low * price;
     }
 
     /// <summary>Привезут ли нехватку из-за границы и во что обойдётся дорога.</summary>

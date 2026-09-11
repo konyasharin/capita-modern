@@ -15,6 +15,8 @@ public partial class FinancePanel : SidePanel
     private StatRow _balance = null!;
     private StatRow _budget = null!;
     private StatRow _wages = null!;
+    private StatRow _supply = null!;
+    private StatRow _printed = null!;
 
     private StatRow _reserves = null!;
     private StatRow _frozen = null!;
@@ -40,6 +42,10 @@ public partial class FinancePanel : SidePanel
         _balance = Stat("Остаток", "treasury");
         _budget = Stat("Сальдо за день", "budget");
         _wages = Stat("Зарплаты за день", "wages");
+        _supply = Stat("Денежная масса", "supply", () => TrendCard.Of(
+            "supply", "Денежная масса за год", Fmt.Cash,
+            new Trace("масса", Skin.Money, Past.Of(History.Line.Supply))));
+        _printed = Stat("Напечатано за партию", "printed");
 
         Section("Резервы", "rate");
         _held = Columns();
@@ -96,6 +102,8 @@ public partial class FinancePanel : SidePanel
         var budget = sim.BudgetOf(Id);
         _budget.Set(Fmt.Cash(budget.Exact), Fmt.Sign(budget.Exact));
         _wages.Set(Fmt.Cash(sim.WagesIn(Id).Exact));
+        _supply.Set(Fmt.Cash(Me.Bank.Supply.Exact));
+        _printed.Set(Fmt.Cash(Me.Bank.Printed.Exact), Me.Bank.Printed.Raw > 0 ? Skin.Warn : Skin.Text);
 
         _purse.Show(
             new Trace("казна", Skin.Money, Past.Of(History.Line.Treasury)),

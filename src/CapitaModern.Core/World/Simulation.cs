@@ -131,6 +131,9 @@ public sealed class Simulation
     /// <summary>Уровень цен страны и мира с прошлого тика. Курс считается до выпуска,
     /// поэтому берёт вчерашние: сутки задержки здесь ничего не решают.</summary>
     private readonly Dictionary<byte, int> _level = new();
+
+    /// <summary>Куда якорь двинул уровень цен на прошлом тике, в сотых долях процента.</summary>
+    private readonly Dictionary<byte, int> _levelPush = new();
     private int _worldLevel = PriceLevel.Scale;
 
     /// <summary>Спрос стройки отдельно от заводского. Заводы держат сорокадневный запас
@@ -569,6 +572,8 @@ public sealed class Simulation
                 level * (100 - Prices.StepPercent) / 100,
                 level * (100 + Prices.StepPercent) / 100);
 
+            _levelPush[country.Id] = level > 0 ? (int)((long)(step - level) * 10_000 / level) : 0;
+
             country.State.Prices.Rescale(step, level);
         }
 
@@ -656,6 +661,52 @@ public sealed class Simulation
         _ordered[country] = (type, same ? order.Left + amount : amount);
 
         return true;
+    }
+
+    /// <summary>С какой скоростью цена товара идёт сейчас, в сотых долях процента за день.
+    /// Плюс — дорожает.</summary>
+    /// <remarks>То же правило, что и в <see cref="Prices.MoveFromCover"/>, только наружу и
+    /// заранее: по нему видно, что будет, а не что уже случилось.</remarks>
+    public int PaceOf(byte country, GoodType good) =>
+        Pace(_inputs.Get(country, good).Raw, _world.CountryById(country).State.Stock.Of(good).Raw);
+
+    /// <summary>На сколько ускорится подорожание, если добавить к спросу столько товара.</summary>
+    public int PriceLift(byte country, GoodType good, GoodAmount extra)
+    {
+        var stock = _world.CountryById(country).State.Stock.Of(good).Raw;
+        var demand = _inputs.Get(country, good).Raw;
+
+        return Pace(demand + extra.Raw, stock) - Pace(demand, stock);
+    }
+
+    /// <summary>Какой материал заказ ударит сильнее всего и насколько.</summary>
+    public (GoodType? Good, int Lift) OrderLift(byte country, BuildingType type, int count)
+    {
+        GoodType? worst = null;
+        var most = 0;
+
+        foreach (var (good, amount) in _world.Buildings[type].BuildCost)
+        {
+            var lift = PriceLift(country, good, new GoodAmount(amount.Raw * count));
+            if (lift <= most) continue;
+
+            most = lift;
+            worst = good;
+        }
+
+        return (worst, most);
+    }
+
+    /// <summary>Куда денежный якорь тянет все цены страны разом, в сотых долях процента
+    /// за день. Это общий сдвиг уровня, а не движение отдельного товара.</summary>
+    public int LevelPushOf(byte country) => _levelPush.GetValueOrDefault(country);
+
+    private static int Pace(long demand, long stock)
+    {
+        var target = (long)Prices.TargetCoverDays * demand;
+        var over = target + stock;
+
+        return over == 0 ? 0 : (int)((Int128)Prices.StepPercent * 100 * (target - stock) / over);
     }
 
     /// <summary>Сколько таких зданий можно заказать, не сдвинув цены на материалы, и во
