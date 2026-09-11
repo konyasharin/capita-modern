@@ -133,9 +133,59 @@ public static class WorldDataLoader
             country => country.Id,
             country => blocs.ByIso.GetValueOrDefault(country.Iso, Bloc.NonAligned)));
 
-        return new GameWorld(regions, countries, buildingCatalog, needs,
+        var world = new GameWorld(regions, countries, buildingCatalog, needs,
             new WorldMarket(new Prices(startPrices)), elasticity, relations, efficiency, tradeCosts, routes);
+
+        FillStores(world);
+
+        return world;
     }
+
+    /// <summary>Наполняет склады на старте нормой запаса.</summary>
+    /// <remarks>
+    /// Пустой склад означает нулевое покрытие, а нулевое покрытие двигает цену полным
+    /// шагом вверх — сразу у всех стран и по всем товарам. Первые месяцы партии уходили
+    /// на этот разгон, и половина цен успевала уехать за коридор ещё до того, как
+    /// хозяйство хоть что-нибудь показало.
+    ///
+    /// Сорок дней — та самая норма <see cref="Prices.TargetCoverDays"/>, при которой цена
+    /// стоит на месте. Это и значит «нехватки нет», а на первое января двухтысячного
+    /// двадцатого в мире общей нехватки и не было: ни ковидного дефицита лекарств, ни
+    /// нехватки микросхем — обе беды случились позже.
+    ///
+    /// Спрос берётся расчётный: сколько съедят заводы на полном ходу плюс базовая нужда
+    /// населения. Настоящего спроса до первого тика взять неоткуда.
+    /// </remarks>
+    private static void FillStores(GameWorld world)
+    {
+        foreach (var country in world.Countries)
+        {
+            var daily = new Dictionary<GoodType, GoodAmount>();
+
+            foreach (var type in Enum.GetValues<BuildingType>())
+            {
+                var count = world.BuildingsOf(country.Id, type);
+                if (count == 0) continue;
+
+                foreach (var (good, amount) in world.Buildings[type].Inputs)
+                {
+                    daily[good] = daily.GetValueOrDefault(good) + new GoodAmount(amount.Raw * count);
+                }
+            }
+
+            var millions = world.PopulationOf(country.Id).Whole / 1_000_000.0;
+            foreach (var (good, rate) in world.Needs.BaseRates)
+            {
+                daily[good] = daily.GetValueOrDefault(good) + new GoodAmount((long)(rate.Raw * millions));
+            }
+
+            foreach (var (good, amount) in daily)
+            {
+                country.State.Stock.Store(good, new GoodAmount(amount.Raw * Prices.TargetCoverDays));
+            }
+        }
+    }
+
 
     private static CountriesFile LoadCountriesFile(string json) => JsonReader.Read<CountriesFile>(json);
     private static RegionsFile LoadRegionsFile(string json) => JsonReader.Read<RegionsFile>(json);
