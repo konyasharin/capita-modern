@@ -13,14 +13,13 @@ public partial class WorldMapView : Sprite2D
     private const string PalettePath = "res://data/map/palette.json";
 
     /// <summary>Насколько линия области бледнее границы страны.</summary>
-    private const float RegionLineAlpha = 0.45f;
+    private const float RegionLineAlpha = 0.70f;
 
     private ShaderMaterial _material = null!;
     private ImageTexture _ownerTex = null!;
     private ImageTexture _controlTex = null!;
     private Image _ownerImage = null!;
     private Image _controlImage = null!;
-    private int _hoverId;
 
     public WorldMap Map { get; private set; } = null!;
     public CountryTable Countries { get; private set; } = null!;
@@ -71,10 +70,29 @@ public partial class WorldMapView : Sprite2D
         _material.SetShaderParameter("border_color", Palette.Border);
         _material.SetShaderParameter("region_line_color",
             new Color(Palette.RegionLine, RegionLineAlpha));
-        _material.SetShaderParameter("select_color", Palette.Selected);
+
+        AddWrapCopies();
 
         GD.Print($"map {Map.Width}x{Map.Height}, стран: {Countries.All.Count}, "
             + $"регионов: {Regions.Regions.Count} за {Time.GetTicksMsec() - started} мс");
+    }
+
+    /// <summary>Копии карты слева и справа: мир замкнут по долготе, и за краем должна
+    /// быть карта, а не пустота. Материал и текстуры общие, так что стоит это почти
+    /// ничего — рисуется только то, что попало в кадр.</summary>
+    private void AddWrapCopies()
+    {
+        foreach (var shift in new[] { -Map.Width, Map.Width })
+        {
+            AddChild(new Sprite2D
+            {
+                Texture = Texture,
+                Material = Material,
+                Centered = false,
+                TextureFilter = TextureFilterEnum.Nearest,
+                Position = new Vector2(shift, 0f),
+            });
+        }
     }
 
     /// <summary>Цвет каждой страны по её id: строка 256x1, индекс = id владельца.</summary>
@@ -85,7 +103,11 @@ public partial class WorldMapView : Sprite2D
 
         foreach (var country in Countries.All)
         {
-            image.SetPixel(country.Id, 0, Palette.Countries[country.Color % Palette.Countries.Length]);
+            var colour = Palette.ByIso.TryGetValue(country.Iso, out var own)
+                ? own
+                : Palette.Countries[country.Color % Palette.Countries.Length];
+
+            image.SetPixel(country.Id, 0, colour);
         }
 
         return ImageTexture.CreateFromImage(image);
@@ -129,15 +151,4 @@ public partial class WorldMapView : Sprite2D
     }
 
     public Country? CountryAt(Vector2 local) => Countries.ById(OwnerAt(local));
-
-    public void SetHover(int id)
-    {
-        if (id == _hoverId)
-        {
-            return;
-        }
-
-        _hoverId = id;
-        _material.SetShaderParameter("hover_id", id);
-    }
 }

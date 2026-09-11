@@ -17,33 +17,6 @@ script = ExtResource("2_map")
 [node name="MapCamera" type="Camera2D" parent="."]
 script = ExtResource("3_cam")
 
-[node name="Ui" type="CanvasLayer" parent="."]
-
-[node name="Info" type="Label" parent="Ui"]
-offset_left = 26.0
-offset_top = 20.0
-offset_right = 700.0
-offset_bottom = 54.0
-theme_override_colors/font_color = Color(0.898, 0.925, 0.937, 1)
-theme_override_colors/font_outline_color = Color(0.043, 0.078, 0.094, 0.85)
-theme_override_constants/outline_size = 6
-theme_override_font_sizes/font_size = 24
-
-[node name="Hint" type="Label" parent="Ui"]
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 26.0
-offset_top = -46.0
-offset_right = 900.0
-offset_bottom = -20.0
-grow_vertical = 0
-theme_override_colors/font_color = Color(0.898, 0.925, 0.937, 0.65)
-theme_override_colors/font_outline_color = Color(0.043, 0.078, 0.094, 0.7)
-theme_override_constants/outline_size = 5
-theme_override_font_sizes/font_size = 15
-text = "перетаскивание — мышь · зум — колесо · WASD"
-
 [node name="DevScreenshot" type="Node" parent="."]
 script = ExtResource("4_shot")
 

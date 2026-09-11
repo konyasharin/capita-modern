@@ -6,20 +6,20 @@ render_mode unshaded;
 // строятся непрерывные маски принадлежности, а берег и границы берутся как их
 // изолинии уровня 0.5. См. docs/01-map.md.
 
-uniform sampler2D owner_tex : filter_nearest, repeat_disable;
-uniform sampler2D region_tex : filter_nearest, repeat_disable;
+// repeat_enable, потому что карта замкнута по долготе: за правым краем идёт левый.
+uniform sampler2D owner_tex : filter_nearest, repeat_enable;
+uniform sampler2D region_tex : filter_nearest, repeat_enable;
 // Прочность владения ячейкой, 0..1. На спокойной территории единица, у фронта
 // проседает — за счёт этого граница едет плавно, а не прыгает целыми ячейками.
-uniform sampler2D control_tex : filter_nearest, repeat_disable;
+uniform sampler2D control_tex : filter_nearest, repeat_enable;
 uniform sampler2D palette_tex : filter_nearest, repeat_disable;
 uniform vec2 map_size = vec2(2048.0, 800.0);
 
 uniform vec4 ocean_color : source_color = vec4(0.114, 0.200, 0.231, 1.0);
 uniform vec4 ocean_deep_color : source_color = vec4(0.071, 0.141, 0.169, 1.0);
-uniform vec4 ocean_shelf_color : source_color = vec4(0.184, 0.329, 0.376, 1.0);
+uniform vec4 ocean_shelf_color : source_color = vec4(0.149, 0.271, 0.310, 1.0);
 uniform vec4 coast_color : source_color = vec4(0.043, 0.078, 0.094, 1.0);
 uniform vec4 border_color : source_color = vec4(0.071, 0.094, 0.110, 1.0);
-uniform vec4 select_color : source_color = vec4(1.0, 0.945, 0.659, 1.0);
 
 // Крупная форма берётся из сетки, мелкие изгибы — отсюда. Шум привязан к карте,
 // поэтому граница ползёт по нему, а не он вместе с ней.
@@ -28,7 +28,7 @@ uniform float warp_scale = 420.0;
 
 uniform float border_px = 3.2;
 uniform float coast_px = 2.8;
-uniform float shelf_px = 22.0;
+uniform float shelf_px = 16.0;
 uniform float shadow_px = 5.0;
 uniform float shadow_alpha = 0.30;
 
@@ -36,10 +36,8 @@ uniform float shadow_alpha = 0.30;
 uniform float far_border_scale = 2.2;
 uniform float far_coast_scale = 2.8;
 
-uniform float region_px = 1.0;
-uniform vec4 region_line_color : source_color = vec4(0.071, 0.094, 0.110, 0.45);
-
-uniform int hover_id = 0;
+uniform float region_px = 1.4;
+uniform vec4 region_line_color : source_color = vec4(0.071, 0.094, 0.110, 0.70);
 
 const vec2 DIRS[8] = vec2[8](
 	vec2(1.0, 0.0), vec2(-1.0, 0.0), vec2(0.0, 1.0), vec2(0.0, -1.0),
@@ -75,18 +73,23 @@ float fbm(vec2 p) {
 	return v;
 }
 
+// Земля кругла: по долготе выборка заворачивается, по широте упирается в полюс.
+vec2 around(vec2 uv) {
+	return vec2(fract(uv.x), clamp(uv.y, 0.0, 1.0));
+}
+
 int owner_at(vec2 uv) {
-	return int(texture(owner_tex, clamp(uv, vec2(0.0), vec2(1.0))).r * 255.0 + 0.5);
+	return int(texture(owner_tex, around(uv)).r * 255.0 + 0.5);
 }
 
 // Номер региона разложен по двум каналам: 16 бит в один байт не влезают.
 int region_at(vec2 uv) {
-	vec2 t = texture(region_tex, clamp(uv, vec2(0.0), vec2(1.0))).rg;
+	vec2 t = texture(region_tex, around(uv)).rg;
 	return int(t.r * 255.0 + 0.5) + int(t.g * 255.0 + 0.5) * 256;
 }
 
 float control_at(vec2 uv) {
-	return texture(control_tex, clamp(uv, vec2(0.0), vec2(1.0))).r;
+	return texture(control_tex, around(uv)).r;
 }
 
 vec3 country_color(int id) {
@@ -213,20 +216,13 @@ void fragment() {
 	water = mix(water, ocean_deep_color.rgb, shadow * shadow_alpha);
 
 	vec3 ground = country_color(land_id);
-	bool hovered = hover_id != 0 && land_id == hover_id;
-
-	// Подсветка только выбранной страны: затемнять остальные — значит мигать всей
-	// картой. Цвет не подмешивается, а высветляется: смесь с жёлтым даёт грязь.
-	if (hovered) {
-		ground = clamp(ground * 1.06 + 0.09, 0.0, 1.0);
-	}
 
 	// Берег — изолиния маски суши: гладкий на любом зуме, без лесенки из ячеек.
 	float on_land = edge_fill(land);
 	vec3 col = mix(water, ground, on_land);
 
 	// Условное деление суши на регионы: проступает только вблизи.
-	float regions = 1.0 - smoothstep(0.7, 1.8, cells_per_px);
+	float regions = 1.0 - smoothstep(0.30, 0.75, cells_per_px);
 	if (regions > 0.003 && land > 0.5) {
 		int r00 = region_at(uv00);
 		int r10 = region_at(uv00 + vec2(texel.x, 0.0));
@@ -264,9 +260,9 @@ void fragment() {
 	if (i01 != id) rival = max(rival, s01);
 	if (i11 != id) rival = max(rival, s11);
 
-	float width = border_px * mix(1.0, far_border_scale, far) * (hovered ? 1.7 : 1.0);
+	float width = border_px * mix(1.0, far_border_scale, far);
 	float political = border(own - rival, width) * on_land * step(0.5, land);
-	col = mix(col, hovered ? select_color.rgb : border_color.rgb, political);
+	col = mix(col, border_color.rgb, political);
 
 	COLOR = vec4(col, 1.0);
 }

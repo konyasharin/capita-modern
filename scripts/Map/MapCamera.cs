@@ -1,4 +1,4 @@
-using Godot;
+﻿using Godot;
 
 /// <summary>
 /// Камера карты: перетаскивание, зум колесом к курсору, клавиши. Всё движение
@@ -44,8 +44,9 @@ public partial class MapCamera : Camera2D
     private void FitToScreen()
     {
         var screen = GetViewportRect().Size;
-        // Весь мир должен помещаться на экране целиком: дальше отдаляться незачем.
-        _minZoom = Mathf.Min(screen.X / _mapSize.X, screen.Y / _mapSize.Y);
+        // Ограничивает только высота: по долготе карта замкнута и края у неё нет, а
+        // сверху и снизу пустоты быть не должно.
+        _minZoom = screen.Y / _mapSize.Y;
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -118,15 +119,18 @@ public partial class MapCamera : Camera2D
         }
     }
 
+    /// <summary>Держит камеру в пределах карты по широте и заворачивает по долготе.</summary>
+    /// <remarks>Заворачивается и цель, и текущая позиция разом, иначе сглаживание
+    /// потащит камеру через всю карту обратно.</remarks>
     private void Clamp()
     {
         var half = GetViewportRect().Size * 0.5f / _targetZoom;
-        var minX = Mathf.Min(half.X, _mapSize.X * 0.5f);
         var minY = Mathf.Min(half.Y, _mapSize.Y * 0.5f);
 
-        _targetPos = new Vector2(
-            Mathf.Clamp(_targetPos.X, minX, _mapSize.X - minX),
-            Mathf.Clamp(_targetPos.Y, minY, _mapSize.Y - minY)
-        );
+        _targetPos.Y = Mathf.Clamp(_targetPos.Y, minY, _mapSize.Y - minY);
+
+        var wrapped = Mathf.PosMod(_targetPos.X, _mapSize.X);
+        Position = new Vector2(Position.X + wrapped - _targetPos.X, Position.Y);
+        _targetPos.X = wrapped;
     }
 }

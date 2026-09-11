@@ -14,8 +14,11 @@ public sealed class MapPalette
     /// но рисуется тоньше и полупрозрачной.</summary>
     public required Color RegionLine { get; init; }
     public required Color BorderWar { get; init; }
-    public required Color Selected { get; init; }
     public required Color[] Countries { get; init; }
+
+    /// <summary>Цвет конкретной страны по её коду. Кого здесь нет — тому достаётся
+    /// цвет из <see cref="Countries"/> по жадной раскраске.</summary>
+    public required Dictionary<string, Color> ByIso { get; init; }
 
     public static MapPalette Load(string path)
     {
@@ -34,6 +37,10 @@ public sealed class MapPalette
 
         Color Read(string key) => Hex(root.GetProperty(key));
 
+        var byIso = root.GetProperty("byIso")
+            .EnumerateObject()
+            .ToDictionary(item => item.Name, item => Hex(item.Value), StringComparer.OrdinalIgnoreCase);
+
         var countries = root.GetProperty("countries")
             .EnumerateArray()
             .Select(Hex)
@@ -48,8 +55,8 @@ public sealed class MapPalette
             Border = Read("border"),
             RegionLine = Read("regionLine"),
             BorderWar = Read("borderWar"),
-            Selected = Read("selected"),
             Countries = countries,
+            ByIso = byIso,
         };
     }
 }
