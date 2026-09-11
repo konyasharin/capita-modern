@@ -42,6 +42,7 @@ public partial class ResourceWindow : Control
     private Pie _pie = null!;
     private VBoxContainer _plants = null!;
     private VBoxContainer _needs = null!;
+    private VBoxContainer _gives = null!;
     private Label _deposits = null!;
     private Label _order = null!;
     private Label _sum = null!;
@@ -314,6 +315,8 @@ public partial class ResourceWindow : Control
         var column = new VBoxContainer { CustomMinimumSize = new Vector2(340, 0) };
         column.AddThemeConstantOverride("separation", 4);
 
+        // Место под крестик: он висит в углу окна и иначе налезает на заголовок.
+        column.AddChild(Ui.Gap(26));
         column.AddChild(Heading("Сведения о товаре"));
 
         foreach (var (label, key) in Rows)
@@ -324,11 +327,17 @@ public partial class ResourceWindow : Control
             column.AddChild(row);
         }
 
-        column.AddChild(Heading("Что нужно для выпуска"));
+        column.AddChild(Heading("Завод берёт за день"));
 
         _needs = new VBoxContainer();
         _needs.AddThemeConstantOverride("separation", 3);
         column.AddChild(_needs);
+
+        column.AddChild(Heading("Завод даёт за день"));
+
+        _gives = new VBoxContainer();
+        _gives.AddThemeConstantOverride("separation", 3);
+        column.AddChild(_gives);
 
         column.AddChild(Ui.Spring());
 
@@ -455,8 +464,10 @@ public partial class ResourceWindow : Control
 
         var order = sim.OrderOf(id);
         _order.Text = order is { } what
-            ? $"Заказано: {Names.Of(what.Type)}, вложенного осталось {Fmt.Cash(what.Left.Exact)}"
-            : "Заказа нет — страна строит то, что выгоднее.";
+            ? $"Заказано: {Names.Of(what.Type)}, вложенного осталось {Fmt.Cash(what.Left.Exact)}. "
+                + "Деньги лежат в кошельке стройки и тратятся по цене того дня, когда здание встанет."
+            : "Заказа нет — страна строит то, что выгоднее. Число предприятий выше — оценка по "
+                + "сегодняшней цене: пока идёт стройка, материалы дорожают, и выйдет меньше.";
 
         ShowSum();
     }
@@ -628,31 +639,45 @@ public partial class ResourceWindow : Control
         return row;
     }
 
-    /// <summary>Что съедает выбранный завод за тик работы.</summary>
+    /// <summary>Что выбранный завод берёт и что отдаёт за тик работы.</summary>
     private void ShowNeeds()
     {
-        var inputs = _plant is { } type
-            ? _loop.World.Buildings[type].Inputs.OrderByDescending(pair => pair.Value.Raw).ToList()
-            : [];
+        var info = _plant is { } type ? _loop.World.Buildings[type] : null;
 
-        Ui.Trim(_needs, inputs.Count);
+        Flow(_needs, info?.Inputs, "Ничего: берётся из земли.");
+        Flow(_gives, info?.Outputs, "Ничего.");
+    }
 
-        for (var index = 0; index < inputs.Count; index++)
+    /// <summary>Строки «значок — товар — сколько» для одной стороны обмена.</summary>
+    private static void Flow(
+        VBoxContainer rows,
+        IReadOnlyDictionary<GoodType, GoodAmount>? goods,
+        string empty)
+    {
+        var list = goods is null
+            ? []
+            : goods.Where(pair => pair.Value.Raw > 0).OrderByDescending(pair => pair.Value.Raw).ToList();
+
+        // Строки собираются заново, а не правятся: состав меняется целиком при смене
+        // завода, и полудюжина узлов четыре раза в секунду ничего не стоит.
+        Ui.Trim(rows, 0);
+
+        if (list.Count == 0)
         {
-            if (index >= _needs.GetChildCount()) _needs.AddChild(NeedRow());
+            rows.AddChild(Ui.Text(empty, 13, 400, Skin.Dim));
+            return;
+        }
 
-            var (good, amount) = inputs[index];
-            var row = _needs.GetChild(index);
+        foreach (var (good, amount) in list)
+        {
+            var row = NeedRow();
 
             row.GetChild<TextureRect>(0).Texture = GD.Load<Texture2D>(Names.IconOf(good));
             row.GetChild<TextureRect>(0).Modulate = Names.ColourOf(good);
             row.GetChild<Label>(1).Text = Names.Of(good);
             row.GetChild<Label>(3).Text = Fmt.Amount(amount);
-        }
 
-        if (inputs.Count == 0 && _needs.GetChildCount() == 0)
-        {
-            _needs.AddChild(Ui.Text("Ничего: берётся из земли.", 13, 400, Skin.Dim));
+            rows.AddChild(row);
         }
     }
 
@@ -682,7 +707,7 @@ public partial class ResourceWindow : Control
         var daily = _plant is { } which ? _loop.Simulation.CanRaisePerTick(_loop.Player, which) : 0;
 
         _enough.Text = price > 0
-            ? $"Хватит на {amount / price:0.00} предприятия · за день поднимем не больше {Fmt.Count(daily)}"
+            ? $"По нынешней цене хватит на {amount / price:0.00} предприятия · за день поднимем не больше {Fmt.Count(daily)}"
             : "Выберите, что строить";
 
         _enough.AddThemeColorOverride("font_color", price > 0 && amount >= price ? Skin.Good : Skin.Dim);

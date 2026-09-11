@@ -21,9 +21,11 @@ public partial class PopoverStack : Control
     }
 
     /// <summary>Показать подсказку от элемента. Всё, что было открыто глубже, закрывается.</summary>
-    public void Open(Control source, string key, int depth)
+    /// <param name="extra">Строка, дописываемая к статье. Нужна там, где подробность
+    /// зависит от состояния игры: какой именно товар подорожал и на сколько.</param>
+    public void Open(Control source, string key, int depth, string? extra = null)
     {
-        if (_open.Count > depth && _open[depth].Key == key)
+        if (_open.Count > depth && _open[depth].Key == key && _open[depth].Extra == extra)
         {
             return;
         }
@@ -36,7 +38,7 @@ public partial class PopoverStack : Control
             return;
         }
 
-        var popover = Popover.Create(source, key, article);
+        var popover = Popover.Create(source, key, article, extra);
         AddChild(popover);
         popover.PlaceNear(source, GetViewportRect());
 

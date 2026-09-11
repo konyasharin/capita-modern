@@ -236,12 +236,16 @@ public partial class HoverProbe : Node
     public PopoverStack Stack = null!;
     public string Key = string.Empty;
 
+    /// <summary>Что дописать к статье. Считается на месте: подробность зависит от того,
+    /// что в игре происходит прямо сейчас.</summary>
+    public Func<string?>? Extra;
+
     public override void _Process(double delta)
     {
         var owner = GetParent<Control>();
         if (owner.IsVisibleInTree() && owner.GetGlobalRect().HasPoint(owner.GetGlobalMousePosition()))
         {
-            Stack.Open(owner, Key, 0);
+            Stack.Open(owner, Key, 0, Extra?.Invoke());
         }
     }
 }

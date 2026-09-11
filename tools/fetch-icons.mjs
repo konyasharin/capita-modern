@@ -115,6 +115,9 @@ const UI = {
 	'alert-default': 'lorc/tombstone',
 	'alert-shortage': 'lorc/empty-hourglass',
 	'alert-deficit': 'delapouite/receive-money',
+	'alert-spike': 'lorc/burning-embers',
+	'alert-currency': 'delapouite/coins',
+	'alert-inflation': 'lorc/paper-bomb',
 
 	// Прочее
 	sound: 'delapouite/speaker',

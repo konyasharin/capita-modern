@@ -21,9 +21,17 @@ public partial class History : Node
         Imports,
         Savings,
         Supply,
+        Rate,
     }
 
+    /// <summary>За сколько дней помним цены. По ним видно не уровень, а рывок: месяц —
+    /// достаточный срок, чтобы отличить скачок от дневной ряби.</summary>
+    public const int Month = 30;
+
     private readonly Dictionary<Line, List<float>> _lines = [];
+
+    /// <summary>Кольцо снимков цен: по одному на день, за последний месяц.</summary>
+    private readonly List<float[]> _prices = [];
 
     private GameLoop _loop = null!;
 
@@ -39,6 +47,26 @@ public partial class History : Node
     }
 
     public IReadOnlyList<float> Of(Line line) => _lines[line];
+
+    /// <summary>Значение ряда столько дней назад. Если истории меньше — самое раннее.</summary>
+    public float Ago(Line line, int days)
+    {
+        var points = _lines[line];
+        if (points.Count == 0) return 0;
+
+        return points[Math.Max(0, points.Count - 1 - days)];
+    }
+
+    /// <summary>Во сколько раз цена товара ушла за месяц. Единица — не менялась.</summary>
+    public double Jump(GoodType good)
+    {
+        if (_prices.Count < 2) return 1;
+
+        var was = _prices[0][(int)good];
+        var now = _prices[^1][(int)good];
+
+        return was > 0 ? now / was : 1;
+    }
 
     private void Sample()
     {
@@ -56,6 +84,13 @@ public partial class History : Node
         Put(Line.Imports, (float)sim.ImportsOf(id).Exact);
         Put(Line.Savings, (float)me.Households.Savings.Exact);
         Put(Line.Supply, (float)me.Bank.Supply.Exact);
+        Put(Line.Rate, (float)me.ExchangeRate.Exact);
+
+        var prices = new float[Enum.GetValues<GoodType>().Length];
+        foreach (var good in Enum.GetValues<GoodType>()) prices[(int)good] = (float)me.State.Prices.Of(good).Exact;
+
+        _prices.Add(prices);
+        if (_prices.Count > Month) _prices.RemoveRange(0, _prices.Count - Month);
     }
 
     private void Put(Line line, float value)

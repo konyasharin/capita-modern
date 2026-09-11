@@ -15,10 +15,28 @@ public partial class AlertBar : HBoxContainer
     /// <summary>Сторона значка тревоги.</summary>
     private const int Size = 24;
 
-    private sealed record Alert(string Icon, string Key, Color Colour, int Tab, Func<bool> Lit);
+    /// <param name="Extra">Что дописать к подсказке по месту: какой товар подорожал и на
+    /// сколько. У постоянных тревог этого нет — им хватает статьи.</param>
+    private sealed record Alert(
+        string Icon,
+        string Key,
+        Color Colour,
+        int Tab,
+        Func<bool> Lit,
+        Func<string?>? Extra = null);
+
+    /// <summary>Насколько цены должны уйти за месяц, чтобы это считалось рывком.</summary>
+    private const double PriceJump = 1.5;
+
+    /// <summary>На сколько процентных пунктов уровень цен должен вырасти за месяц.</summary>
+    private const double InflationJump = 5;
+
+    /// <summary>Насколько должен ослабнуть курс за месяц.</summary>
+    private const double RateSlide = 1.15;
 
     private GameLoop _loop = null!;
     private SideTabs _tabs = null!;
+    private History _past = null!;
 
     private readonly List<(Alert Alert, Button Plate, TextureRect Icon, bool[] Lit)> _alerts = [];
     private double _left;
@@ -28,6 +46,7 @@ public partial class AlertBar : HBoxContainer
     {
         _loop = GetNode<GameLoop>("/root/Game/GameLoop");
         _tabs = GetNode<SideTabs>("/root/Game/Ui/SideTabs");
+        _past = GetNode<History>("/root/Game/History");
 
         var stack = GetNode<PopoverStack>("/root/Game/Overlay/PopoverStack");
 
@@ -43,7 +62,7 @@ public partial class AlertBar : HBoxContainer
                 SizeFlagsVertical = SizeFlags.ShrinkCenter,
             };
 
-            button.AddChild(new HoverProbe { Stack = stack, Key = alert.Key });
+            button.AddChild(new HoverProbe { Stack = stack, Key = alert.Key, Extra = alert.Extra });
             button.Pressed += () => _tabs.Show(alert.Tab);
 
             var icon = Ui.Icon(Names.Ui(alert.Icon), 17, alert.Colour);
@@ -119,7 +138,68 @@ public partial class AlertBar : HBoxContainer
             new Alert("alert-default", "lockout", Skin.Bad, 4,
                 () => _loop.PlayerCountry.DefaultedOnDay > 0
                     && sim.Day - _loop.PlayerCountry.DefaultedOnDay < Simulation.DefaultLockYears * 365),
+
+            // Дальше не состояния, а перемены: они и есть события, ради которых на панель
+            // смотрят. Считаются сравнением с тем, что было месяц назад.
+            new Alert("alert-spike", "spike", Skin.Warn, 1, () => Spiked().Count > 0, SpikeText),
+
+            new Alert("alert-inflation", "runaway", Skin.Bad, 4,
+                () => _loop.Inflation - _past.Ago(History.Line.Inflation, History.Month) > InflationJump,
+                RunawayText),
+
+            new Alert("alert-currency", "slide", Skin.Warn, 3, () => Slide() > RateSlide, SlideText),
         ];
+    }
+
+    /// <summary>Товары, подорожавшие за месяц сильнее порога, от худшего к меньшему.</summary>
+    private List<(GoodType Good, double Times)> Spiked()
+    {
+        var found = new List<(GoodType, double)>();
+
+        foreach (var good in Enum.GetValues<GoodType>())
+        {
+            var times = _past.Jump(good);
+            if (times > PriceJump) found.Add((good, times));
+        }
+
+        found.Sort((a, b) => b.Item2.CompareTo(a.Item2));
+
+        return found;
+    }
+
+    private string? SpikeText()
+    {
+        var spiked = Spiked();
+        if (spiked.Count == 0) return null;
+
+        var worst = spiked.Take(3).Select(pair => $"{Names.Of(pair.Good)} ×{pair.Times:0.0}");
+
+        return $"[b]Подорожали за месяц:[/b] {string.Join(", ", worst)}.";
+    }
+
+    private string? RunawayText()
+    {
+        var grew = _loop.Inflation - _past.Ago(History.Line.Inflation, History.Month);
+
+        return $"[b]За месяц цены выросли на {grew:0.0} пункта.[/b] " +
+            $"Ключевая ставка сейчас {Fmt.Rate(_loop.PlayerCountry.KeyRate)}, " +
+            $"доля труда {_loop.PlayerCountry.LabourShare}%.";
+    }
+
+    /// <summary>Во сколько раз ослаб курс за месяц. Больше единицы — своя валюта дешевеет.</summary>
+    private double Slide()
+    {
+        var was = _past.Ago(History.Line.Rate, History.Month);
+
+        return was > 0 ? _loop.Rate / was : 1;
+    }
+
+    private string? SlideText()
+    {
+        var times = Slide();
+
+        return $"[b]За месяц валюта подешевела в {times:0.00} раза.[/b] " +
+            $"Курс {_loop.Rate:0.00} против {_past.Ago(History.Line.Rate, History.Month):0.00} месяц назад.";
     }
 
     private bool Shortage()

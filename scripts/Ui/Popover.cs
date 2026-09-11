@@ -30,12 +30,17 @@ public partial class Popover : PanelContainer
 
     private RichTextLabel _body = null!;
 
-    public static Popover Create(Control source, string key, Article article)
+    /// <summary>Что дописано к статье по месту. Хранится, чтобы не пересоздавать
+    /// подсказку, пока подробность не изменилась.</summary>
+    public string? Extra { get; private set; }
+
+    public static Popover Create(Control source, string key, Article article, string? extra = null)
     {
         var popover = new Popover
         {
             Source = source,
             Key = key,
+            Extra = extra,
             CustomMinimumSize = new Vector2(Width, 0),
             MouseFilter = MouseFilterEnum.Stop,
         };
@@ -66,7 +71,7 @@ public partial class Popover : PanelContainer
         popover._body.AddThemeFontOverride("bold_font", Skin.Weight(600));
         popover._body.AddThemeColorOverride("default_color", Skin.Text);
         popover._body.AddThemeFontSizeOverride("normal_font_size", 15);
-        popover._body.Text = Markup(article.Text);
+        popover._body.Text = Markup(extra is null ? article.Text : $"{article.Text}\n\n{extra}");
         rows.AddChild(popover._body);
 
         return popover;
