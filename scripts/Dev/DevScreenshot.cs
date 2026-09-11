@@ -19,6 +19,7 @@ public partial class DevScreenshot : Node
     private Vector2? _click;
     private int? _tab;
     private bool _window;
+    private int? _good;
     private int _days;
 
     public override void _Ready()
@@ -57,6 +58,11 @@ public partial class DevScreenshot : Node
             else if (arg == "--shot-window")
             {
                 _window = true;
+            }
+            else if (arg.StartsWith("--shot-good=", StringComparison.Ordinal)
+                && int.TryParse(arg["--shot-good=".Length..], out var good))
+            {
+                _good = good;
             }
             else if (arg.StartsWith("--shot-tab=", StringComparison.Ordinal)
                 && int.TryParse(arg["--shot-tab=".Length..], out var tab))
@@ -122,7 +128,11 @@ public partial class DevScreenshot : Node
 
         if (_window && _framesLeft == _total - 8)
         {
-            GetParent().GetNode<ResourceWindow>("Overlay/ResourceWindow").Toggle();
+            var window = GetParent().GetNode<ResourceWindow>("Overlay/ResourceWindow");
+
+            window.Toggle();
+            if (_good is { } good) window.Pick((CapitaModern.Core.Economy.GoodType)good);
+
             _window = false;
         }
 

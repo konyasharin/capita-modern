@@ -213,7 +213,7 @@ public partial class SelectionPanel : PanelContainer
         var shown = _map.Regions.Regions.FirstOrDefault(region => region.Id == id);
         var core = _loop.World.Regions.FirstOrDefault(region => region.Id == id);
 
-        _region.Text = $"{shown.Name} · {Fmt.Count(shown.Population)} чел.";
+        _region.Text = $"{Names.Region(shown.Name)} · {Fmt.Count(shown.Population)} чел.";
 
         if (core is null)
         {

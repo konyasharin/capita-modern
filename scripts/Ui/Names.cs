@@ -140,25 +140,31 @@ public static class Names
 
     public static string Of(string iso, string fallback) => Countries.GetValueOrDefault(iso, fallback);
 
+    /// <summary>Русское название области. Английские имена в regions.json — ключ сверки
+    /// с нарезкой Natural Earth, поэтому перевод лежит рядом.</summary>
+    public static string Region(string name) => Regions.GetValueOrDefault(name, name);
+
     private static Dictionary<string, string>? _countries;
+    private static Dictionary<string, string>? _regions;
 
-    private static Dictionary<string, string> Countries
+    private static Dictionary<string, string> Regions =>
+        _regions ??= Read("res://data/ui/regions-ru.json");
+
+    private static Dictionary<string, string> Countries =>
+        _countries ??= Read("res://data/ui/countries-ru.json");
+
+    private static Dictionary<string, string> Read(string path)
     {
-        get
+        var json = Godot.FileAccess.GetFileAsString(path);
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+
+        var names = new Dictionary<string, string>();
+        foreach (var item in doc.RootElement.GetProperty("names").EnumerateObject())
         {
-            if (_countries is not null) return _countries;
-
-            var json = Godot.FileAccess.GetFileAsString("res://data/ui/countries-ru.json");
-            using var doc = System.Text.Json.JsonDocument.Parse(json);
-
-            _countries = [];
-            foreach (var item in doc.RootElement.GetProperty("names").EnumerateObject())
-            {
-                _countries[item.Name] = item.Value.GetString() ?? item.Name;
-            }
-
-            return _countries;
+            names[item.Name] = item.Value.GetString() ?? item.Name;
         }
+
+        return names;
     }
 
     public static string Of(Sector sector) => sector switch

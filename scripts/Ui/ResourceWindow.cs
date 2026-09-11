@@ -43,6 +43,8 @@ public partial class ResourceWindow : Control
     private VBoxContainer _plants = null!;
     private VBoxContainer _needs = null!;
     private VBoxContainer _gives = null!;
+    private Flowline _flow = null!;
+    private HashSet<GoodType> _underground = [];
     private Label _deposits = null!;
     private Label _order = null!;
     private Label _sum = null!;
@@ -98,6 +100,13 @@ public partial class ResourceWindow : Control
         // Числа пересчитываются и по тику, а не только четырежды в секунду: иначе цена
         // постройки висит старой до следующего касания мышью.
         _loop.Ticked += () => { if (Visible) Refresh(); };
+
+        // Месторождения бывают не у всякого товара: сталь из земли не копают, и строка
+        // о залежах у неё только сбивает с толку.
+        foreach (var type in Enum.GetValues<BuildingType>())
+        {
+            if (_loop.World.Buildings[type].RequiresDeposit is { } deposit) _underground.Add(deposit);
+        }
 
         Choose(_chosen);
     }
@@ -248,6 +257,8 @@ public partial class ResourceWindow : Control
         _plants.AddThemeConstantOverride("separation", 3);
         column.AddChild(_plants);
 
+        column.AddChild(Works());
+
         var line = new HBoxContainer();
         line.AddThemeConstantOverride("separation", 12);
         column.AddChild(line);
@@ -297,6 +308,36 @@ public partial class ResourceWindow : Control
         return room;
     }
 
+    /// <summary>Что завод берёт и что отдаёт: слева вход, справа выход, между ними
+    /// стрелка с бегущими уголками.</summary>
+    private Control Works()
+    {
+        var row = new HBoxContainer();
+        row.AddThemeConstantOverride("separation", 14);
+
+        row.AddChild(Half("Берёт за день", out _needs));
+
+        _flow = Flowline.Create();
+        row.AddChild(_flow);
+
+        row.AddChild(Half("Даёт за день", out _gives));
+
+        return row;
+    }
+
+    private static Control Half(string title, out VBoxContainer rows)
+    {
+        var side = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        side.AddThemeConstantOverride("separation", 3);
+        side.AddChild(Heading(title));
+
+        rows = new VBoxContainer();
+        rows.AddThemeConstantOverride("separation", 3);
+        side.AddChild(rows);
+
+        return side;
+    }
+
     /// <summary>Половина нижнего ряда: заголовок и полосы под ним.</summary>
     private static Control Side(string title, out Bars bars)
     {
@@ -326,18 +367,6 @@ public partial class ResourceWindow : Control
             _stats.Add(row);
             column.AddChild(row);
         }
-
-        column.AddChild(Heading("Завод берёт за день"));
-
-        _needs = new VBoxContainer();
-        _needs.AddThemeConstantOverride("separation", 3);
-        column.AddChild(_needs);
-
-        column.AddChild(Heading("Завод даёт за день"));
-
-        _gives = new VBoxContainer();
-        _gives.AddThemeConstantOverride("separation", 3);
-        column.AddChild(_gives);
 
         column.AddChild(Ui.Spring());
 
@@ -371,6 +400,10 @@ public partial class ResourceWindow : Control
     }
 
     // --- поведение ------------------------------------------------------------------
+
+    /// <summary>Выбрать товар снаружи. Нужно проверочным снимкам: щёлкнуть по плашке
+    /// подставленным событием не выходит.</summary>
+    public void Pick(GoodType good) => Choose(good);
 
     private void Choose(GoodType good)
     {
@@ -459,8 +492,13 @@ public partial class ResourceWindow : Control
         _sellers.Show(Traffic(who => sim.ExportedOf(who, _chosen), Skin.Output));
         _buyers.Show(Traffic(who => sim.ImportedOf(who, _chosen), Skin.Prices));
 
-        var found = _loop.World.RegionsOf(id).Count(region => region.HasDeposit(_chosen));
-        _deposits.Text = $"Месторождений в стране: {found}";
+        _deposits.Visible = _underground.Contains(_chosen);
+        if (_deposits.Visible)
+        {
+            var found = _loop.World.RegionsOf(id).Count(region => region.HasDeposit(_chosen));
+
+            _deposits.Text = $"Месторождений в стране: {found}";
+        }
 
         var order = sim.OrderOf(id);
         _order.Text = order is { } what
@@ -644,8 +682,9 @@ public partial class ResourceWindow : Control
     {
         var info = _plant is { } type ? _loop.World.Buildings[type] : null;
 
-        Flow(_needs, info?.Inputs, "Ничего: берётся из земли.");
-        Flow(_gives, info?.Outputs, "Ничего.");
+        Flow(_needs, info?.Inputs, "Ничего: берётся из земли");
+        Flow(_gives, info?.Outputs, "Ничего");
+        _flow.Tint(Names.ColourOf(_chosen));
     }
 
     /// <summary>Строки «значок — товар — сколько» для одной стороны обмена.</summary>
@@ -656,7 +695,7 @@ public partial class ResourceWindow : Control
     {
         var list = goods is null
             ? []
-            : goods.Where(pair => pair.Value.Raw > 0).OrderByDescending(pair => pair.Value.Raw).ToList();
+            : goods.Where(pair => pair.Value.Raw > 0).OrderBy(pair => (int)pair.Key).ToList();
 
         // Строки собираются заново, а не правятся: состав меняется целиком при смене
         // завода, и полудюжина узлов четыре раза в секунду ничего не стоит.
@@ -730,15 +769,17 @@ public partial class ResourceWindow : Control
 
         var rows = info.BuildCost
             .Select(pair => (
+                Order: (int)pair.Key,
                 Label: Names.Of(pair.Key),
                 Icon: Names.IconOf(pair.Key),
                 Tint: Names.ColourOf(pair.Key),
                 Amount: Fmt.Amount(pair.Value),
                 Worth: prices.CostOf(pair.Key, pair.Value)))
-            .OrderByDescending(row => row.Worth.Raw)
+            .OrderBy(row => row.Order)
             .ToList();
 
         rows.Add((
+            int.MaxValue,
             "Работа строителей",
             Names.Ui("employment"),
             Skin.Labour,
