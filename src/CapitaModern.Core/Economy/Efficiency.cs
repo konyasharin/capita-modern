@@ -25,19 +25,38 @@ public sealed class Efficiency
     private readonly int[] _tech;
     private readonly int[] _condition;
     private readonly int[] _sensitivity;
+    private readonly bool[] _inOutput;
+    private readonly int[] _outputMean;
 
     /// <param name="sensitivity">Насколько отрасль зависит от умения, в сотых. У добычи
     /// низкая — нефть качают везде примерно одинаково; у электроники высокая.</param>
+    /// <param name="inOutput">Отрасли, где умение оборачивается выпуском, а не экономией
+    /// рук. Остальным оно сокращает штат.</param>
+    /// <param name="outputMean">Средняя по миру в такой отрасли, взвешенная по выпуску.
+    /// На неё выпуск и делится, иначе множитель поднял бы мировой итог.</param>
     public Efficiency(
         IReadOnlyDictionary<byte, (int Skill, int Tech, int Condition)>? byCountry = null,
         IReadOnlyDictionary<Sector, int>? sensitivity = null,
+        IReadOnlySet<Sector>? inOutput = null,
+        IReadOnlyDictionary<Sector, int>? outputMean = null,
         int countries = 256)
     {
         _skill = Filled(countries);
         _tech = Filled(countries);
         _condition = Filled(countries);
         _sensitivity = new int[Enum.GetValues<Sector>().Length];
+        _inOutput = new bool[Enum.GetValues<Sector>().Length];
         Array.Fill(_sensitivity, Scale);
+
+        _outputMean = new int[Enum.GetValues<Sector>().Length];
+        Array.Fill(_outputMean, Scale);
+
+        foreach (var sector in inOutput ?? new HashSet<Sector>()) _inOutput[(int)sector] = true;
+
+        foreach (var (sector, mean) in outputMean ?? new Dictionary<Sector, int>())
+        {
+            if (mean > 0) _outputMean[(int)sector] = mean;
+        }
 
         foreach (var (country, parts) in byCountry ?? new Dictionary<byte, (int, int, int)>())
         {
@@ -79,6 +98,27 @@ public sealed class Efficiency
 
         return (int)Math.Max(Floor, Powers.PowCached(ratio, sensitivity) * Scale / Powers.Scale);
     }
+
+    /// <summary>Чем оборачивается умение в этой отрасли: выпуском или экономией рук.</summary>
+    /// <remarks>
+    /// В производстве — экономией: американская ферма с комбайном и индийская с полусотней
+    /// людей дают одно и то же зерно. В услугах наоборот: американский банк не
+    /// обслуживается втрое меньшим числом людей, в нём работает столько же, просто каждый
+    /// приносит втрое больше. Стрижка в Цюрихе и в Дакке — час работы одного человека,
+    /// разница только в цене.
+    /// </remarks>
+    public bool ShowsInOutput(Sector sector) => _inOutput[(int)sector];
+
+    /// <summary>Сколько рук просит предприятие с таким штатом.</summary>
+    public long HandsFor(byte country, Sector sector, long workers) =>
+        ShowsInOutput(sector) ? workers : workers * Scale / Of(country, sector);
+
+    /// <summary>Во сколько раз больше выпуска даёт то же предприятие, в сотых.</summary>
+    /// <remarks>Делится на среднюю по миру: множитель перераспределяет выпуск между
+    /// странами, а мировой итог оставляет на месте — как и множитель для рук.</remarks>
+    public int OutputTimes(byte country, Sector sector) => ShowsInOutput(sector)
+        ? Math.Max(Floor, Of(country, sector) * Scale / _outputMean[(int)sector])
+        : Scale;
 
     private static int[] Filled(int countries)
     {

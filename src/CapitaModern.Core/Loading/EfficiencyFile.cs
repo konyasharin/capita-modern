@@ -6,7 +6,9 @@ namespace CapitaModern.Core.Loading;
 public record EfficiencyFile
 (
     Dictionary<string, EfficiencyDto> ByIso,
-    Dictionary<Sector, int> Sensitivity
+    Dictionary<Sector, int> Sensitivity,
+    HashSet<Sector> ShowsInOutput,
+    Dictionary<Sector, int> OutputMean
 );
 
 public record EfficiencyDto(int Skill, int Tech, int Condition);

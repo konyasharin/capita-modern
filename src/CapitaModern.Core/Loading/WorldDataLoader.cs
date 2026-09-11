@@ -89,7 +89,9 @@ public static class WorldDataLoader
                     country => efficiencyFile.ByIso[country.Iso] is var dto
                         ? (dto.Skill, dto.Tech, dto.Condition)
                         : default),
-            efficiencyFile.Sensitivity);
+            efficiencyFile.Sensitivity,
+            efficiencyFile.ShowsInOutput,
+            efficiencyFile.OutputMean);
 
         var landlocked = tradeCostsFile.Landlocked.ToHashSet();
         var tradeCosts = new TradeCosts(

@@ -734,21 +734,21 @@
 		"sector": "Services",
 		"requiresDeposit": null,
 		"inputs": {
-			"Electricity": 0.0308,
-			"Fuel": 0.00906,
-			"Materials": 0.0289,
-			"Electronics": 0.00214
+			"Electricity": 0.0191,
+			"Fuel": 0.00561,
+			"Materials": 0.0179,
+			"Electronics": 0.00132
 		},
 		"outputs": {
 			"Services": 2.93
 		},
-		"optimalWorkers": 4029,
+		"optimalWorkers": 2495,
 		"buildCost": {
-			"Materials": 1642,
-			"Metals": 88
+			"Materials": 1669,
+			"Metals": 89
 		},
 		"lifeYears": 25,
-		"buildWorkers": 1862795
+		"buildWorkers": 1891533
 	},
 	{
 		"type": "TransportFirm",
@@ -757,21 +757,21 @@
 		"sector": "Services",
 		"requiresDeposit": null,
 		"inputs": {
-			"Electricity": 0.0141,
-			"Fuel": 0.0404,
-			"Materials": 0.0247,
-			"Electronics": 0.00122
+			"Electricity": 0.015,
+			"Fuel": 0.0431,
+			"Materials": 0.0264,
+			"Electronics": 0.0013
 		},
 		"outputs": {
 			"Services": 2.93
 		},
-		"optimalWorkers": 2339,
+		"optimalWorkers": 2495,
 		"buildCost": {
-			"Materials": 1574,
+			"Materials": 1565,
 			"Metals": 84
 		},
 		"lifeYears": 12,
-		"buildWorkers": 1784145
+		"buildWorkers": 1775978
 	},
 	{
 		"type": "PublicService",
@@ -780,22 +780,22 @@
 		"sector": "Services",
 		"requiresDeposit": null,
 		"inputs": {
-			"Electricity": 0.0282,
-			"Fuel": 0.00155,
-			"Materials": 0.0155,
-			"Electronics": 0.00244,
-			"Medicine": 0.00433
+			"Electricity": 0.0258,
+			"Fuel": 0.00142,
+			"Materials": 0.0141,
+			"Electronics": 0.00223,
+			"Medicine": 0.00396
 		},
 		"outputs": {
 			"Services": 2.93
 		},
-		"optimalWorkers": 2729,
+		"optimalWorkers": 2495,
 		"buildCost": {
-			"Materials": 1585,
+			"Materials": 1596,
 			"Metals": 85
 		},
 		"lifeYears": 40,
-		"buildWorkers": 1798363
+		"buildWorkers": 1808345
 	},
 	{
 		"type": "BusinessFirm",
@@ -804,20 +804,20 @@
 		"sector": "Services",
 		"requiresDeposit": null,
 		"inputs": {
-			"Electricity": 0.0218,
-			"Fuel": 0.00128,
-			"Materials": 0.00764,
-			"Electronics": 0.00603
+			"Electricity": 0.0423,
+			"Fuel": 0.00248,
+			"Materials": 0.0148,
+			"Electronics": 0.0117
 		},
 		"outputs": {
 			"Services": 2.93
 		},
-		"optimalWorkers": 1284,
+		"optimalWorkers": 2495,
 		"buildCost": {
-			"Materials": 1684,
-			"Metals": 90
+			"Materials": 1658,
+			"Metals": 89
 		},
 		"lifeYears": 30,
-		"buildWorkers": 1909380
+		"buildWorkers": 1881550
 	}
 ]

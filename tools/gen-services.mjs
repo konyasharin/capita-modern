@@ -90,11 +90,16 @@ const production = read('data', 'economy', 'production.json')
 const employment = read('data', 'economy', 'employment.json')
 const price = read('data', 'economy', 'prices.json').prices
 
-const old = buildings.find((b) => b.type === OLD)
-if (!old) throw new Error(`${OLD} уже разобран, править нечего`)
+// Запускать можно сколько угодно раз: если услуги уже разобраны, за основу берутся они
+// сами — общее число единиц и выпуск на единицу.
+const made0 = KINDS.map((k) => buildings.find((b) => b.type === k.type)).filter(Boolean)
+const old = buildings.find((b) => b.type === OLD) ?? made0[0]
+if (!old) throw new Error('не нашёл ни старого типа услуг, ни новых')
 
-const oldWorld = production.types[OLD]
-const totalUnits = oldWorld.world
+const totalUnits = buildings.find((b) => b.type === OLD)
+	? production.types[OLD].world
+	: KINDS.reduce((sum, k) => sum + (production.types[k.type]?.world ?? 0), 0)
+
 const perUnitOutput = old.outputs.Services
 
 // Сколько всего товара забирают услуги — от мирового выпуска этого товара.
@@ -117,7 +122,11 @@ const made = []
 
 for (let i = 0; i < KINDS.length; i++) {
 	const kind = KINDS[i]
-	const units = i === KINDS.length - 1 ? unitsLeft : Math.round(totalUnits * kind.value)
+	// Единиц у отрасли столько, сколько в ней занято: штат на единицу выходит один и тот
+	// же, а разную стоимость труда даёт умение страны.
+	const units = i === KINDS.length - 1
+		? unitsLeft
+		: Math.round(totalUnits * kind.workers / workersSum)
 	unitsLeft -= units
 
 	const inputs = {}
@@ -184,12 +193,17 @@ if (!apply) {
 	process.exit(0)
 }
 
-const at = buildings.findIndex((b) => b.type === OLD)
-buildings.splice(at, 1, ...made.map(({ units, workers, ...rest }) => rest))
+const clean = buildings.filter((b) => b.type !== OLD && !KINDS.some((k) => k.type === b.type))
+const at = buildings.findIndex((b) => b.type === OLD || KINDS.some((k) => k.type === b.type))
+clean.splice(at, 0, ...made.map(({ units, workers, ...rest }) => rest))
+buildings.length = 0
+buildings.push(...clean)
 
 delete production.types[OLD]
 for (const kind of made) {
-	production.types[kind.type] = { world: kind.units, tail: 0, byGdp: true, shares: {} }
+	// По людям, а не по ВВП: в услугах штат от умения не зависит, значит единиц у страны
+	// столько, сколько у неё рук. Стоимость этих единиц задаёт уже эффективность.
+	production.types[kind.type] = { world: kind.units, tail: 100, shares: {} }
 }
 
 delete employment.workers[OLD]

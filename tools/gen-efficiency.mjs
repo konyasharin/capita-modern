@@ -48,13 +48,18 @@ const FLOOR = 0.02
  *  везде примерно одинаково, а разрыв в услугах самый широкий — уличный лоток против
  *  супермаркета это разы даже без всякой техники. По оценкам отраслевой производительности
  *  добыча идёт втрое-впятеро, обрабатывающая на порядок, услуги на два. */
+/** Отрасли, где умение оборачивается выпуском, а не экономией рук. */
+const IN_OUTPUT = new Set(['Services'])
+
 const SENSITIVITY = {
 	Mining: 60,
 	Power: 70,
 	Heavy: 110,
 	Civil: 110,
 	Military: 110,
-	Services: 150,
+	// Услуги не растягиваются: у них умение идёт в выпуск, а разрыв в выпуске на
+	// человека между богатыми и бедными и так двадцатикратный.
+	Services: 100,
 	People: 100,
 }
 
@@ -88,6 +93,24 @@ for (const [region, plants] of Object.entries(startIndustry)) {
 	plantsOf.set(owner, bySector)
 }
 
+// Выпуск каждой страны в отраслях, где умение оборачивается выпуском: по нему считается
+// средняя, на которую потом делится множитель.
+const prices = read('data', 'economy', 'prices.json').prices
+const outputOf = new Map(buildings.map((b) =>
+	[b.type, Object.entries(b.outputs).reduce((sum, [g, q]) => sum + (prices[g] ?? 0) * q, 0)]))
+
+const madeIn = new Map()
+for (const [region, plants] of Object.entries(startIndustry)) {
+	const owner = countryOfRegion.get(region)
+	if (owner === undefined) continue
+
+	for (const [type, count] of Object.entries(plants)) {
+		if (!IN_OUTPUT.has(sectorOf.get(type))) continue
+
+		madeIn.set(owner, (madeIn.get(owner) ?? 0) + count * (outputOf.get(type) ?? 0))
+	}
+}
+
 const perCapita = (c) => (c.population > 0 ? (c.gdp * 1e6) / c.population : 0)
 const frontier = perCapita(countries.find((c) => c.iso === FRONTIER))
 
@@ -111,6 +134,12 @@ const handsAt = (divisor) => {
 	for (const country of countries) {
 		const total = raw.get(country.iso) / divisor
 		for (const [sector, workers] of Object.entries(plantsOf.get(country.id) ?? {})) {
+			// Где умение оборачивается выпуском, штат от него не зависит вовсе.
+			if (IN_OUTPUT.has(sector)) {
+				hands += workers
+				continue
+			}
+
 			const sens = (SENSITIVITY[sector] ?? 100) / 100
 			hands += workers / Math.max(0.01, total ** sens)
 		}
@@ -128,6 +157,22 @@ for (let step = 0; step < 60; step++) {
 }
 
 const mean = (low + high) / 2
+
+// Средняя по выпуску: на неё делится множитель, и мировой выпуск услуг не меняется.
+let made = 0
+let weighted = 0
+for (const country of countries) {
+	const output = madeIn.get(country.id) ?? 0
+	if (output === 0) continue
+
+	const total = raw.get(country.iso) / mean
+	made += output
+	weighted += output * Math.max(0.01, total)
+}
+
+const outputMean = made > 0 ? weighted / made : 1
+console.log(`средняя по выпуску в услугах ${outputMean.toFixed(3)}: мировой выпуск не меняется
+`)
 
 const out = {}
 for (const country of countries) {
@@ -182,6 +227,10 @@ const data = {
 	unit: 'сотые доли, 100 — как у передовой страны',
 	sensitivityNote: 'Насколько отрыв страны от среднего растягивается в этой отрасли. Нефть качают везде одинаково, а разрыв в услугах самый широкий: уличный лоток против супермаркета. Нормировка занятости считается уже с учётом этих множителей.',
 	sensitivity: SENSITIVITY,
+	showsInOutputNote: 'Отрасли, где умение оборачивается выпуском, а не экономией рук. Американский банк не обслуживается втрое меньшим числом людей — в нём работает столько же, просто каждый приносит втрое больше.',
+	showsInOutput: [...IN_OUTPUT],
+	outputMeanNote: 'Средняя по миру в этих отраслях, взвешенная по выпуску, в сотых. На неё множитель и делится: он перераспределяет выпуск между странами, а мировой итог оставляет на месте.',
+	outputMean: Object.fromEntries([...IN_OUTPUT].map((x) => [x, Math.round(outputMean * 100)])),
 	byIso: out,
 }
 

@@ -697,27 +697,23 @@
 			}
 		},
 		"RetailFirm": {
-			"world": 153888,
-			"tail": 0,
-			"byGdp": true,
+			"world": 248465,
+			"tail": 100,
 			"shares": {}
 		},
 		"TransportFirm": {
-			"world": 89768,
-			"tail": 0,
-			"byGdp": true,
+			"world": 84158,
+			"tail": 100,
 			"shares": {}
 		},
 		"PublicService": {
-			"world": 179536,
-			"tail": 0,
-			"byGdp": true,
+			"world": 196368,
+			"tail": 100,
 			"shares": {}
 		},
 		"BusinessFirm": {
-			"world": 218008,
-			"tail": 0,
-			"byGdp": true,
+			"world": 112209,
+			"tail": 100,
 			"shares": {}
 		}
 	},

@@ -280,8 +280,8 @@ public sealed class Simulation
 
                 // Отстающей стране тот же завод обходится в большее число рук: комбайн
                 // против полусотни человек с мотыгами.
-                var hands = (long)info.OptimalWorkers * building.Value * Efficiency.Scale /
-                    _world.Efficiency.Of(owner, info.Sector);
+                var hands = _world.Efficiency.HandsFor(
+                    owner, info.Sector, (long)info.OptimalWorkers * building.Value);
 
                 _jobs[owner] = _jobs.GetValueOrDefault(owner) + hands;
                 if (info.Sector == Sector.Services) _serviceJobs += hands;
@@ -600,6 +600,13 @@ public sealed class Simulation
 
     /// <summary>Сколько рук занято на стройке.</summary>
     public long BuildJobs => _buildJobs;
+
+    /// <summary>Загрузка предприятий страны в сотых долях от полной. Меньше единицы —
+    /// значит рук не хватило и всё производство идёт вполсилы.</summary>
+    public long LoadIn(byte country) => _hands.GetValueOrDefault(country, Load.Full);
+
+    /// <summary>Что страна выпустила за тик по одному товару.</summary>
+    public GoodAmount OutputOf(byte country, GoodType good) => _outputs.Get(country, good);
 
     /// <summary>Сколько людей заняты на производстве в стране прямо сейчас.</summary>
     public long EmployedIn(byte country) =>
@@ -1024,8 +1031,7 @@ public sealed class Simulation
 
             // Стройке нужны руки, и берёт она их у заводов: больше, чем свободно, не
             // построишь ни за какие деньги.
-            var perUnit = (long)info.BuildWorkers * Efficiency.Scale /
-                _world.Efficiency.Of(country.Id, info.Sector);
+            var perUnit = _world.Efficiency.HandsFor(country.Id, info.Sector, info.BuildWorkers);
 
             if (perUnit > 0)
             {
@@ -1118,9 +1124,13 @@ public sealed class Simulation
                 _consumed.Add(country, good, amount * runs / Load.Full);
             }
 
+            var times = _world.Efficiency.OutputTimes(country, recipe.Sector);
             foreach (var (good, amount) in recipe.Outputs)
             {
-                _outputs.Add(country, good, amount * runs / Load.Full);
+                var made = amount * runs / Load.Full;
+                _outputs.Add(country, good, times == Efficiency.Scale
+                    ? made
+                    : new GoodAmount(made.Raw * times / Efficiency.Scale));
             }
         }
     }
@@ -1392,8 +1402,8 @@ public sealed class Simulation
                 done++;
             }
 
-            _builders[country.Id] = (long)info.BuildWorkers * done * Efficiency.Scale /
-                _world.Efficiency.Of(country.Id, info.Sector);
+            _builders[country.Id] = _world.Efficiency.HandsFor(
+                country.Id, info.Sector, (long)info.BuildWorkers * done);
         }
     }
 

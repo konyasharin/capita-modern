@@ -513,6 +513,20 @@ foreach (var (iso, realValue) in realOutput)
 
 Console.WriteLine();
 var employedWorld = world.Countries.Sum(c => simulation.EmployedIn(c.Id));
+Console.WriteLine();
+Console.WriteLine("Услуги по странам: выпуск, занятость и загрузка");
+var servicesWorld = world.Countries.Sum(c => simulation.OutputOf(c.Id, GoodType.Services).Exact);
+foreach (var iso in new[] { "USA", "CHN", "DEU", "JPN", "IND", "NGA" })
+{
+    var c = world.Countries.First(x => x.Iso == iso);
+    var made = simulation.OutputOf(c.Id, GoodType.Services).Exact;
+    Console.WriteLine($"  {iso}  выпуск {100 * made / Math.Max(1, servicesWorld),5:F1}% мира, " +
+                      $"занято {simulation.EmployedIn(c.Id) / 1e6,5:F0} млн из просимых " +
+                      $"{simulation.JobsIn(c.Id) / 1e6,5:F0}, загрузка " +
+                      $"{simulation.LoadIn(c.Id) * 100.0 / CapitaModern.Core.Economy.Load.Full,5:F1}%");
+}
+
+Console.WriteLine();
 Console.WriteLine($"Занято в мире: {employedWorld / 1e6:F0} млн, из них в услугах " +
                   $"{simulation.ServiceJobs / 1e6:F0} млн (рабочая сила " +
                   $"{world.Countries.Sum(c => world.WorkersOf(c.Id)) / 1e6:F0} млн, в жизни занято 3240, " +
