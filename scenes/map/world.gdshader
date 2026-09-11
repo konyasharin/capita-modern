@@ -36,7 +36,14 @@ uniform float shadow_alpha = 0.30;
 uniform float far_border_scale = 2.2;
 uniform float far_coast_scale = 2.8;
 
-uniform float region_px = 1.4;
+uniform float region_px = 2.0;
+
+// Однотонная заливка выглядит мёртвой. Зерно привязано к карте, а не к экрану, поэтому
+// при зуме оно не плывёт: у воды крупные разводы, у суши мелкая рябь.
+uniform float water_grain = 0.16;
+uniform float water_grain_scale = 90.0;
+uniform float land_grain = 0.07;
+uniform float land_grain_scale = 700.0;
 uniform vec4 region_line_color : source_color = vec4(0.071, 0.094, 0.110, 0.70);
 
 const vec2 DIRS[8] = vec2[8](
@@ -198,18 +205,19 @@ void fragment() {
 		if (i11 != 0 && s11 > best) { land_id = i11; best = s11; }
 	}
 
-	float shelf = 0.0;
+	// Мелководье у берега. Считается непрерывной маской суши на большом радиусе, а не
+	// пробами по восьми лучам: от лучей вокруг берега шли ступенчатые соты, и на воде
+	// проступала многоугольная сетка.
+	float near_land = 0.0;
 	for (int i = 0; i < 8; i++) {
-		vec2 r = max(px, texel) * shelf_px;
-		if (owner_at(uv + DIRS[i] * r * 0.45) != 0) {
-			shelf += 0.075;
-		}
-		if (owner_at(uv + DIRS[i] * r) != 0) {
-			shelf += 0.05;
-		}
+		near_land += land_mask(uv + DIRS[i] * max(px, texel) * shelf_px, texel) * 0.125;
 	}
 
-	vec3 water = mix(ocean_color.rgb, ocean_shelf_color.rgb, smoothstep(0.0, 0.85, clamp(shelf, 0.0, 1.0)));
+	vec3 water = mix(ocean_color.rgb, ocean_shelf_color.rgb, smoothstep(0.02, 0.55, near_land));
+
+	// Разводы по воде: два масштаба, чтобы не читалась сетка шума.
+	float swell = fbm(UV * water_grain_scale) * 0.65 + fbm(UV * water_grain_scale * 3.1) * 0.35;
+	water *= 1.0 + (swell - 0.5) * water_grain;
 
 	// Суша отбрасывает тень на воду: карта читается как наклейка, а не как заливка.
 	float shadow = edge_fill(land_mask(uv - px * shadow_px * vec2(0.6, 0.8), texel));
@@ -217,12 +225,16 @@ void fragment() {
 
 	vec3 ground = country_color(land_id);
 
+	// Та же рябь по суше, но мельче и слабее: цвет страны должен остаться узнаваемым.
+	float speck = fbm(UV * land_grain_scale) * 0.7 + fbm(UV * land_grain_scale * 2.7) * 0.3;
+	ground *= 1.0 + (speck - 0.5) * land_grain;
+
 	// Берег — изолиния маски суши: гладкий на любом зуме, без лесенки из ячеек.
 	float on_land = edge_fill(land);
 	vec3 col = mix(water, ground, on_land);
 
 	// Условное деление суши на регионы: проступает только вблизи.
-	float regions = 1.0 - smoothstep(0.30, 0.75, cells_per_px);
+	float regions = 1.0 - smoothstep(0.22, 0.45, cells_per_px);
 	if (regions > 0.003 && land > 0.5) {
 		int r00 = region_at(uv00);
 		int r10 = region_at(uv00 + vec2(texel.x, 0.0));
