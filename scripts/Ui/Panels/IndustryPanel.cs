@@ -18,6 +18,7 @@ public partial class IndustryPanel : SidePanel
     private StatRow _building = null!;
     private StatRow _builders = null!;
     private StatRow _investment = null!;
+    private StatRow _purse = null!;
     private StatRow _total = null!;
     private Table _table = null!;
 
@@ -49,7 +50,8 @@ public partial class IndustryPanel : SidePanel
         Section("Стройка", "plants");
         _building = Stat("Строится сейчас", "building");
         _builders = Stat("Занято на стройке", "builders");
-        _investment = Stat("Вложения за день", "investment");
+        _investment = Stat("Откладывается за день", "investment");
+        _purse = Stat("Скопилось на стройку", "purse");
 
         Section("Предприятия по отраслям", "employment");
         _bySector = Columns();
@@ -82,7 +84,16 @@ public partial class IndustryPanel : SidePanel
 
         var builders = sim.BuildersIn(Id);
         _builders.Set(builders > 0 ? Fmt.Count(builders) : "никого", builders > 0 ? Skin.Bright : Skin.Dim);
-        _investment.Set(Fmt.Cash(sim.InvestmentIn(Id).Exact));
+        // InvestmentIn — это кошелёк целиком, а не дневная доля: за день откладывается
+        // четверть добавленной стоимости.
+        var daily = sim.ValueAddedOf(Id).Exact * Construction.InvestmentShare / 100;
+        var purse = sim.InvestmentIn(Id).Exact;
+
+        _investment.Set(Fmt.Cash(daily));
+
+        // Кошелёк копится, когда денег больше, чем материалов. Игроку это надо видеть:
+        // напечатать ещё не значит построить.
+        _purse.Set(Fmt.Cash(purse), daily > 0 && purse > daily * 30 ? Skin.Warn : Skin.Text);
 
         var rows = new List<Cell[]>(AllTypes.Length);
         var bySector = new Dictionary<Sector, long>();

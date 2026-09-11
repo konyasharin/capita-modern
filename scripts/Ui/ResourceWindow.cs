@@ -410,7 +410,7 @@ public partial class ResourceWindow : Control
         ("Заказ за день", null),
         ("Не хватает", "shortage"),
         ("Цена", null),
-        ("К цене старта", "inflation"),
+        ("К мировой цене", "worldprice"),
         ("Рабочих мест", "employment"),
         ("Доля в мировом выпуске", null),
         ("Ввоз за день", "imports"),
@@ -506,9 +506,9 @@ public partial class ResourceWindow : Control
         _world.Show(Shares());
 
         var output = sim.OutputOf(id, _chosen);
-        var world = sim.WorldOutputOf(_chosen);
-        var start = prices.StartOf(_chosen);
-        var times = start.Raw > 0 ? prices.Of(_chosen).Exact / start.Exact : 1;
+        var everywhere = sim.WorldOutputOf(_chosen);
+        var world = _loop.World.Market.Prices.Of(_chosen);
+        var times = world.Raw > 0 ? prices.Of(_chosen).Exact / world.Exact : 0;
 
         _stats[0].Set(Fmt.Amount(stock.Of(_chosen)));
         _stats[1].Set(Fmt.Amount(output));
@@ -517,9 +517,10 @@ public partial class ResourceWindow : Control
         var lack = sim.ShortOf(id, _chosen);
         _stats[3].Set(Fmt.Amount(lack), lack.Raw > 0 ? Skin.Bad : Skin.Good);
         _stats[4].Set(Fmt.Price(prices.Of(_chosen)), Skin.Money);
-        _stats[5].Set($"×{times:0.00}", Fmt.Sign(times - 1, moreIsBetter: false));
+        _stats[5].Set(times > 0 ? $"×{times:0.00}" : "не возят",
+            times > 0 ? Fmt.Sign(times - 1, moreIsBetter: false) : Skin.Dim);
         _stats[6].Set(Fmt.Count(Jobs()));
-        _stats[7].Set(world.Raw > 0 ? Fmt.Percent(output.Raw * 100.0 / world.Raw) : "—");
+        _stats[7].Set(everywhere.Raw > 0 ? Fmt.Percent(output.Raw * 100.0 / everywhere.Raw) : "—");
         _stats[8].Set(Fmt.Cash(prices.CostOf(_chosen, sim.ImportedOf(id, _chosen)).Exact));
         _stats[9].Set(Fmt.Cash(prices.CostOf(_chosen, sim.ExportedOf(id, _chosen)).Exact));
 

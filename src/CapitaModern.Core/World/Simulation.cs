@@ -181,7 +181,6 @@ public sealed class Simulation
     {
         _world = world;
         MapSectors();
-        MeasurePotential();
     }
 
     /// <summary>Сколько лет после отказа платить на рынок не пускают. В жизни
@@ -524,26 +523,6 @@ public sealed class Simulation
         }
     }
 
-    private void MeasurePotential()
-    {
-        foreach (var region in _world.Regions)
-        {
-            var owner = region.LargestOwner;
-            var prices = _world.CountryById(owner).State.Prices;
-
-            foreach (var (type, count) in region.BuildingsCount)
-            {
-                foreach (var (good, amount) in _world.Buildings[type].Outputs)
-                {
-                    var worth = new Money(
-                        (long)((Int128)prices.StartOf(good).Raw * amount.Raw * count / GoodAmount.Scale));
-
-                    _baseReal[owner] = _baseReal.GetValueOrDefault(owner) + worth;
-                }
-            }
-        }
-    }
-
     /// <summary>Держит общий уровень цен у количества денег на единицу выпуска.</summary>
     /// <remarks>Относительные цены не трогаются: их задало покрытие в <see cref="MovePrices"/>,
     /// здесь двигается только уровень — все цены страны разом и в одну сторону.</remarks>
@@ -564,16 +543,27 @@ public sealed class Simulation
             _level[country.Id] = level;
 
             // Своих денег нет — нет и центробанка, тянуть уровень нечем.
-            var supply = country.Bank.Supply;
-            if (supply.Raw <= 0) continue;
+            if (country.Bank.Start.Raw <= 0) continue;
 
-            var realBefore = _baseReal.GetValueOrDefault(country.Id);
+            // Точка отсчёта — выпуск первого тика, а не паспортная мощность зданий. С
+            // мощностью выходило сравнение разного: в первые дни заводы работают вполсилы,
+            // отношение «было к стало» взлетало, и якорь гнал цены вверх, пока выпуск не
+            // догонит. Отсюда и брался всплеск инфляции в первые секунды партии.
+            if (!_baseReal.TryGetValue(country.Id, out var realBefore))
+            {
+                _baseReal[country.Id] = real;
+                continue;
+            }
+
             if (realBefore.Raw <= 0) continue;
 
             // Уровень не подталкивается на долю перекоса, а приравнивается деньгам:
             // покрытие двигает свои цены полным шагом, и подталкивание ему проигрывало.
             // Ограничена только скорость — не больше шага за тик, чтобы не прыгало.
-            var want = PriceLevel.Target(supply, supply - country.Bank.Printed, real, realBefore);
+            // Масса идёт за выпуском, и только напечатанное сверх этого двигает уровень.
+            country.Bank.Follow(new Money((long)((Int128)country.Bank.Start.Raw * real.Raw / realBefore.Raw)));
+
+            var want = PriceLevel.Target(country.Bank.Supply, country.Bank.Start, real, realBefore);
             var step = Math.Clamp(
                 want,
                 level * (100 - Prices.StepPercent) / 100,
@@ -644,7 +634,9 @@ public sealed class Simulation
     /// <summary>Сколько рук занято на стройке в стране.</summary>
     public long BuildersIn(byte country) => _builders.GetValueOrDefault(country);
 
-    /// <summary>Что страна откладывает на стройку за тик.</summary>
+    /// <summary>Сколько денег скопилось на стройку и ещё не потрачено.</summary>
+    /// <remarks>Копится, когда денег больше, чем материалов: купить нечего. Деньги при
+    /// этом всё равно давят на цены — их считает денежная масса.</remarks>
     public Money InvestmentIn(byte country) => _investment.GetValueOrDefault(country);
 
     /// <summary>Вкладывает деньги казны в стройку и назначает, что строить.</summary>

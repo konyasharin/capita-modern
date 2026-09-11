@@ -27,13 +27,13 @@ public static class PriceLevel
         real.Raw <= 0 ? Scale : Capped((Int128)nominal.Raw * Scale / real.Raw);
 
     /// <summary>Куда уровень тянут деньги: сколько их стало на единицу выпуска.</summary>
-    /// <param name="supplyBefore">Масса на старте партии — до всего напечатанного.</param>
+    /// <param name="supplyStart">Масса на начало партии.</param>
     /// <param name="realBefore">Выпуск в стартовых ценах на первом тике.</param>
-    public static int Target(Money supply, Money supplyBefore, Money real, Money realBefore)
+    public static int Target(Money supply, Money supplyStart, Money real, Money realBefore)
     {
-        if (supplyBefore.Raw <= 0 || real.Raw <= 0) return Scale;
+        if (supplyStart.Raw <= 0 || real.Raw <= 0) return Scale;
 
-        return Capped((Int128)supply.Raw * realBefore.Raw * Scale / ((Int128)supplyBefore.Raw * real.Raw));
+        return Capped((Int128)supply.Raw * realBefore.Raw * Scale / ((Int128)supplyStart.Raw * real.Raw));
     }
 
     private static int Capped(Int128 level) => level < 1 ? 1 : level > Ceiling ? Ceiling : (int)level;

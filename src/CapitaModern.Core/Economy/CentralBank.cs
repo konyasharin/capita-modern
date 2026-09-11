@@ -20,11 +20,28 @@ public sealed class CentralBank
     /// <summary>Каким способом печатали в последний раз.</summary>
     public EmissionKind LastKind { get; private set; }
 
+    /// <summary>Масса на начало партии. От неё считается уровень цен: делить на нынешнюю
+    /// нельзя, она сама и есть то, что меняется.</summary>
+    public Money Start { get; }
+
     public CentralBank(Money supply)
     {
         if (supply < default(Money)) throw new ArgumentOutOfRangeException(nameof(supply));
 
         Supply = supply;
+        Start = supply;
+    }
+
+    /// <summary>Ведёт массу за выпуском: выросло производство — стало больше и денег.</summary>
+    /// <remarks>Без этого модель дефляционна по построению. Денег в ней не прибавляется
+    /// ниоткуда, кроме печати, а выпуск за пять лет растёт в полтора раза — по
+    /// количественной теории всё должно на столько же подешеветь. В жизни центробанк
+    /// расширяет массу вместе с хозяйством, и это не инфляция, а её отсутствие.</remarks>
+    public void Follow(Money grown)
+    {
+        if (grown < default(Money)) throw new ArgumentOutOfRangeException(nameof(grown));
+
+        Supply = grown + Printed;
     }
 
     /// <summary>Создаёт деньги и говорит, на сколько сотых выросла масса.</summary>

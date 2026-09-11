@@ -31,6 +31,10 @@ public partial class History : Node
     /// <summary>Дней в году. По нему считается годовая инфляция.</summary>
     public const int Year = 365;
 
+    /// <summary>С какого срока годовую инфляцию считают приведением к году. Раньше — просто
+    /// рост с начала партии.</summary>
+    public const int Enough = 90;
+
     private readonly Dictionary<Line, List<float>> _lines = [];
 
     /// <summary>Кольцо снимков цен: по одному на день, за последний месяц.</summary>
@@ -75,7 +79,12 @@ public partial class History : Node
 
         if (was <= 0 || now <= 0) return 0;
 
-        return (Math.Pow(now / was, (double)Year / days) - 1) * 100;
+        var grew = now / was;
+
+        // Приводить к году можно только с приличного срока. На второй день партии
+        // показатель возводился в триста шестьдесят пятую степень, и процент дневного
+        // движения превращался в тысячи процентов годовых.
+        return (days >= Enough ? Math.Pow(grew, (double)Year / days) - 1 : grew - 1) * 100;
     }
 
     /// <summary>Цена товара по дням за последний месяц.</summary>

@@ -34,7 +34,7 @@ public class PriceLevelTests
     public void MoreMoneyPullsTheLevelUp()
     {
         var target = PriceLevel.Target(
-            supply: Money.FromWhole(200), supplyBefore: Money.FromWhole(100),
+            supply: Money.FromWhole(200), supplyStart: Money.FromWhole(100),
             real: Money.FromWhole(50), realBefore: Money.FromWhole(50));
 
         Assert.Equal(2 * PriceLevel.Scale, target);
@@ -44,7 +44,7 @@ public class PriceLevelTests
     public void MoreOutputPullsTheLevelDown()
     {
         var target = PriceLevel.Target(
-            supply: Money.FromWhole(100), supplyBefore: Money.FromWhole(100),
+            supply: Money.FromWhole(100), supplyStart: Money.FromWhole(100),
             real: Money.FromWhole(200), realBefore: Money.FromWhole(50));
 
         Assert.Equal(PriceLevel.Scale / 4, target);
