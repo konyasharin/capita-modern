@@ -42,6 +42,22 @@ const SHARES = { skill: 0.25, tech: 0.4, condition: 0.35 }
 /** Ниже этого не опускается никто: даже мотыга что-то производит. */
 const FLOOR = 0.02
 
+/** Насколько отрыв страны от среднего растягивается в этой отрасли, в сотых.
+ *
+ *  Разрыв в производительности между богатыми и бедными разный по отраслям: нефть качают
+ *  везде примерно одинаково, а разрыв в услугах самый широкий — уличный лоток против
+ *  супермаркета это разы даже без всякой техники. По оценкам отраслевой производительности
+ *  добыча идёт втрое-впятеро, обрабатывающая на порядок, услуги на два. */
+const SENSITIVITY = {
+	Mining: 60,
+	Power: 70,
+	Heavy: 110,
+	Civil: 110,
+	Military: 110,
+	Services: 150,
+	People: 100,
+}
+
 /** Передовая страна, к которой всё меряется. */
 const FRONTIER = 'USA'
 
@@ -54,15 +70,22 @@ const buildings = read('data', 'economy', 'buildings.json')
 // Взвешивать надо по рабочим, а не по заводам: ферма просит сорок семь тысяч человек,
 // рудник — три. По заводам нормировка промахивается в полтора раза.
 const workersPer = new Map(buildings.map((b) => [b.type, b.optimalWorkers]))
+const sectorOf = new Map(buildings.map((b) => [b.type, b.sector]))
+
+// Считаем по отраслям: у них разная чувствительность, и без разбивки нормировка промахнётся.
 const plantsOf = new Map()
 const countryOfRegion = new Map(regions.map((r) => [String(r.id), r.country]))
 for (const [region, plants] of Object.entries(startIndustry)) {
 	const owner = countryOfRegion.get(region)
 	if (owner === undefined) continue
 
-	let workers = 0
-	for (const [type, count] of Object.entries(plants)) workers += count * (workersPer.get(type) ?? 0)
-	plantsOf.set(owner, (plantsOf.get(owner) ?? 0) + workers)
+	const bySector = plantsOf.get(owner) ?? {}
+	for (const [type, count] of Object.entries(plants)) {
+		const sector = sectorOf.get(type)
+		bySector[sector] = (bySector[sector] ?? 0) + count * (workersPer.get(type) ?? 0)
+	}
+
+	plantsOf.set(owner, bySector)
 }
 
 const perCapita = (c) => (c.population > 0 ? (c.gdp * 1e6) / c.population : 0)
@@ -74,17 +97,37 @@ for (const country of countries) {
 	raw.set(country.iso, own <= 0 ? FLOOR : Math.max(FLOOR, Math.min(1.2, (own / frontier) ** GAP)))
 }
 
-// Нормировка по занятости: сумма (предприятия / эффективность) должна остаться той же,
-// что при эффективности в единицу. Это среднее гармоническое.
+// Нормировка по занятости: сумма (рабочие места / эффективность) должна остаться той же,
+// что при эффективности в единицу. С чувствительностью отраслей это уже не гармоническое
+// среднее — множитель входит нелинейно, — поэтому делитель ищется делением пополам.
 let plants = 0
-let inverse = 0
 for (const country of countries) {
-	const count = plantsOf.get(country.id) ?? 0
-	plants += count
-	inverse += count / raw.get(country.iso)
+	for (const workers of Object.values(plantsOf.get(country.id) ?? {})) plants += workers
 }
 
-const mean = plants / inverse
+/** Во что обойдётся мир по рукам при таком делителе. */
+const handsAt = (divisor) => {
+	let hands = 0
+	for (const country of countries) {
+		const total = raw.get(country.iso) / divisor
+		for (const [sector, workers] of Object.entries(plantsOf.get(country.id) ?? {})) {
+			const sens = (SENSITIVITY[sector] ?? 100) / 100
+			hands += workers / Math.max(0.01, total ** sens)
+		}
+	}
+
+	return hands
+}
+
+let low = 0.01
+let high = 100
+for (let step = 0; step < 60; step++) {
+	const middle = (low + high) / 2
+	if (handsAt(middle) > plants) high = middle
+	else low = middle
+}
+
+const mean = (low + high) / 2
 
 const out = {}
 for (const country of countries) {
@@ -97,8 +140,8 @@ for (const country of countries) {
 	}
 }
 
-console.log(`гармоническая средняя до нормировки ${mean.toFixed(3)}: занятость мира не меняется
-`)
+console.log(`делитель ${mean.toFixed(3)}: рук в мире ${(handsAt(mean) / 1e6).toFixed(0)} млн ` +
+	`против ${(plants / 1e6).toFixed(0)} при эффективности в единицу\n`)
 
 const totalOf = (iso) => {
 	const e = out[iso]
@@ -137,6 +180,8 @@ if (!apply) {
 const data = {
 	note: 'Стартовая эффективность предприятий, в сотых. Выпуск умножается на произведение трёх множителей. Считается tools/gen-efficiency.mjs из подушевого ВВП: завод в модели везде одинаковый, значит вся разница в производительности лежит здесь. Разбивка на три — правило, а не данные: показатели подобраны так, чтобы разброс каждого совпал с настоящим. Дальше каждый заживёт своей жизнью — квалификация от образования, технология от древа, состояние от износа.',
 	unit: 'сотые доли, 100 — как у передовой страны',
+	sensitivityNote: 'Насколько отрыв страны от среднего растягивается в этой отрасли. Нефть качают везде одинаково, а разрыв в услугах самый широкий: уличный лоток против супермаркета. Нормировка занятости считается уже с учётом этих множителей.',
+	sensitivity: SENSITIVITY,
 	byIso: out,
 }
 

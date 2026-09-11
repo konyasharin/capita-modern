@@ -45,6 +45,10 @@ public enum BuildingType
     AirDefencePlant,
     ElectronicWarfarePlant,
 
-    /// <summary>Сфера услуг: сырья не ест, только людей. Две трети мирового ВВП.</summary>
-    ServiceFirm,
+    // Услуги — две трети мирового ВВП и половина занятых. Разные отрасли: банк даёт ту
+    // же стоимость втрое меньшим числом людей, чем магазин, см. tools/gen-services.mjs
+    RetailFirm,
+    TransportFirm,
+    PublicService,
+    BusinessFirm,
 }

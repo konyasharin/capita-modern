@@ -36,6 +36,10 @@
 		"MissilePlant": 1500000,
 		"AircraftPlant": 2500000,
 		"AirDefencePlant": 800000,
-		"ElectronicWarfarePlant": 400000
+		"ElectronicWarfarePlant": 400000,
+		"RetailFirm": 620000000,
+		"TransportFirm": 210000000,
+		"PublicService": 490000000,
+		"BusinessFirm": 280000000
 	}
 }

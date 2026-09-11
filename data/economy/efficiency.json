@@ -1,1006 +1,1016 @@
 {
 	"note": "Стартовая эффективность предприятий, в сотых. Выпуск умножается на произведение трёх множителей. Считается tools/gen-efficiency.mjs из подушевого ВВП: завод в модели везде одинаковый, значит вся разница в производительности лежит здесь. Разбивка на три — правило, а не данные: показатели подобраны так, чтобы разброс каждого совпал с настоящим. Дальше каждый заживёт своей жизнью — квалификация от образования, технология от древа, состояние от износа.",
 	"unit": "сотые доли, 100 — как у передовой страны",
+	"sensitivityNote": "Насколько отрыв страны от среднего растягивается в этой отрасли. Нефть качают везде одинаково, а разрыв в услугах самый широкий: уличный лоток против супермаркета. Нормировка занятости считается уже с учётом этих множителей.",
+	"sensitivity": {
+		"Mining": 60,
+		"Power": 70,
+		"Heavy": 110,
+		"Civil": 110,
+		"Military": 110,
+		"Services": 150,
+		"People": 100
+	},
 	"byIso": {
 		"AFG": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"ALB": {
+			"skill": 92,
+			"tech": 87,
+			"condition": 88
+		},
+		"DZA": {
+			"skill": 85,
+			"tech": 77,
+			"condition": 80
+		},
+		"AND": {
+			"skill": 149,
+			"tech": 189,
+			"condition": 174
+		},
+		"AGO": {
+			"skill": 78,
+			"tech": 67,
+			"condition": 71
+		},
+		"ATG": {
+			"skill": 121,
+			"tech": 136,
+			"condition": 130
+		},
+		"ARG": {
+			"skill": 106,
+			"tech": 110,
+			"condition": 109
+		},
+		"ARM": {
+			"skill": 88,
+			"tech": 82,
+			"condition": 84
+		},
+		"AUS": {
+			"skill": 159,
+			"tech": 211,
+			"condition": 192
+		},
+		"AUT": {
+			"skill": 156,
+			"tech": 203,
+			"condition": 186
+		},
+		"AZE": {
+			"skill": 89,
+			"tech": 84,
+			"condition": 85
+		},
+		"BHR": {
+			"skill": 130,
+			"tech": 151,
+			"condition": 144
+		},
+		"BGD": {
 			"skill": 71,
 			"tech": 58,
 			"condition": 62
 		},
-		"ALB": {
-			"skill": 104,
-			"tech": 107,
-			"condition": 106
+		"BRB": {
+			"skill": 123,
+			"tech": 139,
+			"condition": 133
 		},
-		"DZA": {
+		"BLR": {
 			"skill": 97,
 			"tech": 95,
 			"condition": 96
 		},
-		"AND": {
-			"skill": 169,
-			"tech": 232,
-			"condition": 209
+		"BEL": {
+			"skill": 153,
+			"tech": 198,
+			"condition": 182
 		},
-		"AGO": {
+		"BLZ": {
 			"skill": 89,
 			"tech": 83,
 			"condition": 85
 		},
-		"ATG": {
-			"skill": 137,
-			"tech": 166,
-			"condition": 156
-		},
-		"ARG": {
-			"skill": 121,
-			"tech": 135,
-			"condition": 130
-		},
-		"ARM": {
-			"skill": 101,
-			"tech": 101,
-			"condition": 101
-		},
-		"AUS": {
-			"skill": 181,
-			"tech": 259,
-			"condition": 230
-		},
-		"AUT": {
-			"skill": 177,
-			"tech": 250,
-			"condition": 223
-		},
-		"AZE": {
-			"skill": 102,
-			"tech": 103,
-			"condition": 102
-		},
-		"BHR": {
-			"skill": 147,
-			"tech": 186,
-			"condition": 172
-		},
-		"BGD": {
-			"skill": 81,
-			"tech": 71,
-			"condition": 75
-		},
-		"BRB": {
-			"skill": 139,
-			"tech": 170,
-			"condition": 159
-		},
-		"BLR": {
-			"skill": 110,
-			"tech": 117,
-			"condition": 115
-		},
-		"BEL": {
-			"skill": 174,
-			"tech": 243,
-			"condition": 217
-		},
-		"BLZ": {
-			"skill": 101,
-			"tech": 102,
-			"condition": 102
-		},
 		"BEN": {
-			"skill": 73,
-			"tech": 61,
-			"condition": 65
+			"skill": 64,
+			"tech": 49,
+			"condition": 54
 		},
 		"BTN": {
-			"skill": 93,
-			"tech": 89,
-			"condition": 90
-		},
-		"BOL": {
-			"skill": 94,
-			"tech": 91,
-			"condition": 92
-		},
-		"BIH": {
-			"skill": 108,
-			"tech": 113,
-			"condition": 111
-		},
-		"BWA": {
-			"skill": 114,
-			"tech": 123,
-			"condition": 120
-		},
-		"BRA": {
-			"skill": 117,
-			"tech": 129,
-			"condition": 125
-		},
-		"BRN": {
-			"skill": 158,
-			"tech": 208,
-			"condition": 190
-		},
-		"BGR": {
-			"skill": 121,
-			"tech": 136,
-			"condition": 131
-		},
-		"BFA": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"BDI": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"CPV": {
-			"skill": 95,
-			"tech": 92,
-			"condition": 93
-		},
-		"KHM": {
-			"skill": 79,
-			"tech": 68,
-			"condition": 72
-		},
-		"CMR": {
-			"skill": 77,
-			"tech": 66,
-			"condition": 69
-		},
-		"CAN": {
-			"skill": 174,
-			"tech": 243,
-			"condition": 217
-		},
-		"CAF": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"TCD": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"CHL": {
-			"skill": 133,
-			"tech": 158,
-			"condition": 149
-		},
-		"CHN": {
-			"skill": 123,
-			"tech": 138,
-			"condition": 133
-		},
-		"COL": {
-			"skill": 109,
-			"tech": 115,
-			"condition": 113
-		},
-		"COM": {
-			"skill": 75,
-			"tech": 63,
-			"condition": 67
-		},
-		"CRI": {
-			"skill": 127,
-			"tech": 146,
-			"condition": 140
-		},
-		"HRV": {
-			"skill": 133,
-			"tech": 158,
-			"condition": 149
-		},
-		"CUB": {
-			"skill": 118,
-			"tech": 130,
-			"condition": 126
-		},
-		"CYP": {
-			"skill": 144,
-			"tech": 180,
-			"condition": 167
-		},
-		"CZE": {
-			"skill": 148,
-			"tech": 188,
-			"condition": 174
-		},
-		"COD": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"DNK": {
-			"skill": 187,
-			"tech": 271,
-			"condition": 239
-		},
-		"DJI": {
-			"skill": 93,
-			"tech": 90,
-			"condition": 91
-		},
-		"DMA": {
-			"skill": 115,
-			"tech": 125,
-			"condition": 122
-		},
-		"DOM": {
-			"skill": 116,
-			"tech": 126,
-			"condition": 123
-		},
-		"TLS": {
-			"skill": 78,
-			"tech": 67,
-			"condition": 70
-		},
-		"ECU": {
-			"skill": 108,
-			"tech": 113,
-			"condition": 111
-		},
-		"EGY": {
-			"skill": 91,
-			"tech": 86,
-			"condition": 87
-		},
-		"SLV": {
-			"skill": 98,
-			"tech": 97,
-			"condition": 98
-		},
-		"GNQ": {
-			"skill": 115,
-			"tech": 125,
-			"condition": 122
-		},
-		"ERI": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"EST": {
-			"skill": 150,
-			"tech": 190,
-			"condition": 176
-		},
-		"SWZ": {
-			"skill": 96,
-			"tech": 94,
-			"condition": 94
-		},
-		"ETH": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"FSM": {
-			"skill": 94,
-			"tech": 91,
-			"condition": 92
-		},
-		"FJI": {
-			"skill": 108,
-			"tech": 113,
-			"condition": 111
-		},
-		"FIN": {
-			"skill": 177,
-			"tech": 249,
-			"condition": 222
-		},
-		"FRA": {
-			"skill": 169,
-			"tech": 232,
-			"condition": 209
-		},
-		"GAB": {
-			"skill": 114,
-			"tech": 123,
-			"condition": 120
-		},
-		"GMB": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"GEO": {
-			"skill": 101,
-			"tech": 102,
-			"condition": 102
-		},
-		"DEU": {
-			"skill": 175,
-			"tech": 244,
-			"condition": 218
-		},
-		"GHA": {
-			"skill": 84,
-			"tech": 76,
-			"condition": 79
-		},
-		"GRC": {
-			"skill": 143,
-			"tech": 178,
-			"condition": 165
-		},
-		"GRD": {
-			"skill": 123,
-			"tech": 140,
-			"condition": 134
-		},
-		"GTM": {
-			"skill": 99,
-			"tech": 99,
-			"condition": 99
-		},
-		"GIN": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"GNB": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"GUY": {
-			"skill": 110,
-			"tech": 116,
-			"condition": 114
-		},
-		"HTI": {
-			"skill": 74,
-			"tech": 62,
-			"condition": 66
-		},
-		"HND": {
-			"skill": 88,
-			"tech": 81,
-			"condition": 83
-		},
-		"HUN": {
-			"skill": 137,
-			"tech": 166,
-			"condition": 156
-		},
-		"ISL": {
-			"skill": 191,
-			"tech": 281,
-			"condition": 247
-		},
-		"IND": {
-			"skill": 83,
-			"tech": 75,
-			"condition": 78
-		},
-		"IDN": {
-			"skill": 98,
-			"tech": 97,
-			"condition": 98
-		},
-		"IRN": {
-			"skill": 105,
-			"tech": 108,
-			"condition": 107
-		},
-		"IRQ": {
-			"skill": 107,
-			"tech": 111,
-			"condition": 109
-		},
-		"IRL": {
-			"skill": 197,
-			"tech": 297,
-			"condition": 259
-		},
-		"ISR": {
-			"skill": 175,
-			"tech": 245,
-			"condition": 219
-		},
-		"ITA": {
-			"skill": 162,
-			"tech": 216,
-			"condition": 196
-		},
-		"CIV": {
-			"skill": 85,
-			"tech": 77,
-			"condition": 79
-		},
-		"JAM": {
-			"skill": 105,
-			"tech": 108,
-			"condition": 107
-		},
-		"JPN": {
-			"skill": 169,
-			"tech": 231,
-			"condition": 208
-		},
-		"JOR": {
-			"skill": 100,
-			"tech": 99,
-			"condition": 99
-		},
-		"KAS": {
-			"skill": 87,
-			"tech": 80,
-			"condition": 82
-		},
-		"KAZ": {
-			"skill": 120,
-			"tech": 134,
-			"condition": 129
-		},
-		"KEN": {
-			"skill": 80,
-			"tech": 71,
-			"condition": 74
-		},
-		"KIR": {
-			"skill": 79,
-			"tech": 68,
-			"condition": 72
-		},
-		"KOS": {
-			"skill": 100,
-			"tech": 99,
-			"condition": 100
-		},
-		"KWT": {
-			"skill": 159,
-			"tech": 210,
-			"condition": 191
-		},
-		"KGZ": {
-			"skill": 75,
-			"tech": 63,
-			"condition": 66
-		},
-		"LAO": {
-			"skill": 87,
-			"tech": 80,
-			"condition": 82
-		},
-		"LVA": {
-			"skill": 139,
-			"tech": 170,
-			"condition": 159
-		},
-		"LBN": {
-			"skill": 113,
-			"tech": 122,
-			"condition": 119
-		},
-		"LSO": {
-			"skill": 72,
-			"tech": 59,
-			"condition": 63
-		},
-		"LBR": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"LBY": {
-			"skill": 113,
-			"tech": 122,
-			"condition": 119
-		},
-		"LIE": {
-			"skill": 198,
-			"tech": 298,
-			"condition": 260
-		},
-		"LTU": {
-			"skill": 142,
-			"tech": 175,
-			"condition": 164
-		},
-		"LUX": {
-			"skill": 198,
-			"tech": 298,
-			"condition": 260
-		},
-		"MDG": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"MWI": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"MYS": {
-			"skill": 125,
-			"tech": 142,
-			"condition": 136
-		},
-		"MDV": {
-			"skill": 122,
-			"tech": 138,
-			"condition": 133
-		},
-		"MLI": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"MLT": {
-			"skill": 162,
-			"tech": 217,
-			"condition": 197
-		},
-		"MHL": {
-			"skill": 96,
-			"tech": 94,
-			"condition": 94
-		},
-		"MRT": {
-			"skill": 79,
-			"tech": 69,
-			"condition": 72
-		},
-		"MUS": {
-			"skill": 123,
-			"tech": 140,
-			"condition": 134
-		},
-		"MEX": {
-			"skill": 121,
-			"tech": 135,
-			"condition": 130
-		},
-		"MDA": {
-			"skill": 100,
-			"tech": 100,
-			"condition": 100
-		},
-		"MCO": {
-			"skill": 198,
-			"tech": 298,
-			"condition": 260
-		},
-		"MNG": {
-			"skill": 99,
-			"tech": 98,
-			"condition": 98
-		},
-		"MNE": {
-			"skill": 118,
-			"tech": 130,
-			"condition": 126
-		},
-		"MAR": {
-			"skill": 93,
-			"tech": 89,
-			"condition": 90
-		},
-		"MOZ": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"MMR": {
-			"skill": 76,
-			"tech": 64,
-			"condition": 68
-		},
-		"NAM": {
-			"skill": 103,
-			"tech": 104,
-			"condition": 104
-		},
-		"NRU": {
-			"skill": 119,
-			"tech": 132,
-			"condition": 128
-		},
-		"NPL": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"NLD": {
-			"skill": 180,
-			"tech": 256,
-			"condition": 227
-		},
-		"NZL": {
-			"skill": 169,
-			"tech": 232,
-			"condition": 209
-		},
-		"NIC": {
-			"skill": 82,
-			"tech": 72,
-			"condition": 75
-		},
-		"NER": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"NGA": {
-			"skill": 84,
-			"tech": 76,
-			"condition": 79
-		},
-		"PRK": {
-			"skill": 78,
-			"tech": 67,
-			"condition": 70
-		},
-		"MKD": {
-			"skill": 107,
-			"tech": 112,
-			"condition": 110
-		},
-		"CYN": {
-			"skill": 124,
-			"tech": 141,
-			"condition": 135
-		},
-		"NOR": {
-			"skill": 195,
-			"tech": 292,
-			"condition": 256
-		},
-		"OMN": {
-			"skill": 133,
-			"tech": 159,
-			"condition": 150
-		},
-		"PAK": {
-			"skill": 74,
-			"tech": 62,
-			"condition": 66
-		},
-		"PLW": {
-			"skill": 133,
-			"tech": 158,
-			"condition": 149
-		},
-		"PAN": {
-			"skill": 135,
-			"tech": 161,
-			"condition": 152
-		},
-		"PNG": {
-			"skill": 90,
-			"tech": 84,
-			"condition": 86
-		},
-		"PRY": {
-			"skill": 105,
-			"tech": 107,
-			"condition": 106
-		},
-		"PER": {
-			"skill": 111,
-			"tech": 118,
-			"condition": 116
-		},
-		"PHL": {
-			"skill": 94,
-			"tech": 91,
-			"condition": 92
-		},
-		"POL": {
-			"skill": 135,
-			"tech": 162,
-			"condition": 152
-		},
-		"PRT": {
-			"skill": 148,
-			"tech": 188,
-			"condition": 174
-		},
-		"QAT": {
-			"skill": 186,
-			"tech": 270,
-			"condition": 238
-		},
-		"SRB": {
-			"skill": 113,
-			"tech": 122,
-			"condition": 119
-		},
-		"COG": {
-			"skill": 85,
-			"tech": 77,
-			"condition": 80
-		},
-		"ROU": {
-			"skill": 129,
-			"tech": 150,
-			"condition": 143
-		},
-		"RUS": {
-			"skill": 126,
-			"tech": 144,
-			"condition": 138
-		},
-		"RWA": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"KNA": {
-			"skill": 143,
-			"tech": 176,
-			"condition": 164
-		},
-		"LCA": {
-			"skill": 125,
-			"tech": 144,
-			"condition": 137
-		},
-		"VCT": {
-			"skill": 113,
-			"tech": 121,
-			"condition": 118
-		},
-		"WSM": {
-			"skill": 99,
-			"tech": 99,
-			"condition": 99
-		},
-		"SMR": {
-			"skill": 176,
-			"tech": 248,
-			"condition": 221
-		},
-		"STP": {
 			"skill": 82,
 			"tech": 73,
 			"condition": 76
 		},
-		"SAU": {
-			"skill": 147,
-			"tech": 186,
-			"condition": 172
+		"BOL": {
+			"skill": 83,
+			"tech": 74,
+			"condition": 77
 		},
-		"SEN": {
-			"skill": 76,
-			"tech": 65,
-			"condition": 68
+		"BIH": {
+			"skill": 95,
+			"tech": 92,
+			"condition": 93
 		},
-		"SYC": {
-			"skill": 138,
-			"tech": 168,
-			"condition": 157
+		"BWA": {
+			"skill": 100,
+			"tech": 100,
+			"condition": 100
 		},
-		"SLE": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
+		"BRA": {
+			"skill": 103,
+			"tech": 105,
+			"condition": 104
 		},
-		"SGP": {
-			"skill": 188,
-			"tech": 274,
-			"condition": 242
+		"BRN": {
+			"skill": 139,
+			"tech": 170,
+			"condition": 159
 		},
-		"SVK": {
-			"skill": 141,
-			"tech": 174,
-			"condition": 162
-		},
-		"SVN": {
-			"skill": 152,
-			"tech": 195,
-			"condition": 179
-		},
-		"SLB": {
-			"skill": 86,
-			"tech": 78,
-			"condition": 80
-		},
-		"SOM": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"SOL": {
-			"skill": 94,
-			"tech": 91,
-			"condition": 92
-		},
-		"ZAF": {
-			"skill": 107,
-			"tech": 112,
-			"condition": 110
-		},
-		"KOR": {
-			"skill": 160,
-			"tech": 211,
-			"condition": 192
-		},
-		"SDS": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"ESP": {
-			"skill": 157,
-			"tech": 205,
-			"condition": 187
-		},
-		"LKA": {
-			"skill": 97,
-			"tech": 95,
-			"condition": 95
-		},
-		"SDN": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"SUR": {
-			"skill": 108,
-			"tech": 114,
-			"condition": 112
-		},
-		"SWE": {
-			"skill": 179,
-			"tech": 253,
-			"condition": 225
-		},
-		"CHE": {
-			"skill": 198,
-			"tech": 298,
-			"condition": 260
-		},
-		"SYR": {
+		"BGR": {
 			"skill": 106,
-			"tech": 110,
-			"condition": 108
+			"tech": 111,
+			"condition": 109
 		},
-		"TWN": {
-			"skill": 175,
-			"tech": 246,
-			"condition": 220
+		"BFA": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
 		},
-		"TJK": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
+		"BDI": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
 		},
-		"THA": {
-			"skill": 114,
-			"tech": 124,
-			"condition": 120
+		"CPV": {
+			"skill": 83,
+			"tech": 75,
+			"condition": 77
 		},
-		"BHS": {
-			"skill": 163,
-			"tech": 219,
-			"condition": 198
+		"KHM": {
+			"skill": 69,
+			"tech": 56,
+			"condition": 60
 		},
-		"TGO": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
+		"CMR": {
+			"skill": 68,
+			"tech": 54,
+			"condition": 58
 		},
-		"TON": {
-			"skill": 102,
-			"tech": 103,
-			"condition": 103
+		"CAN": {
+			"skill": 153,
+			"tech": 198,
+			"condition": 182
 		},
-		"TTO": {
-			"skill": 138,
-			"tech": 168,
-			"condition": 157
+		"CAF": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
 		},
-		"TUN": {
-			"skill": 93,
-			"tech": 89,
-			"condition": 90
+		"TCD": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
 		},
-		"TUR": {
-			"skill": 118,
-			"tech": 131,
-			"condition": 127
+		"CHL": {
+			"skill": 117,
+			"tech": 129,
+			"condition": 125
 		},
-		"TKM": {
-			"skill": 111,
-			"tech": 117,
-			"condition": 115
+		"CHN": {
+			"skill": 108,
+			"tech": 113,
+			"condition": 111
 		},
-		"TUV": {
-			"skill": 98,
-			"tech": 96,
-			"condition": 97
-		},
-		"UGA": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"UKR": {
+		"COL": {
 			"skill": 96,
 			"tech": 93,
 			"condition": 94
 		},
-		"ARE": {
-			"skill": 171,
-			"tech": 236,
-			"condition": 212
+		"COM": {
+			"skill": 66,
+			"tech": 52,
+			"condition": 56
 		},
-		"GBR": {
-			"skill": 171,
-			"tech": 236,
-			"condition": 212
+		"CRI": {
+			"skill": 112,
+			"tech": 119,
+			"condition": 117
 		},
-		"TZA": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
+		"HRV": {
+			"skill": 117,
+			"tech": 129,
+			"condition": 125
 		},
-		"USA": {
-			"skill": 189,
-			"tech": 277,
-			"condition": 244
+		"CUB": {
+			"skill": 104,
+			"tech": 106,
+			"condition": 105
 		},
-		"URY": {
-			"skill": 136,
-			"tech": 163,
-			"condition": 153
+		"CYP": {
+			"skill": 127,
+			"tech": 146,
+			"condition": 140
 		},
-		"UZB": {
+		"CZE": {
+			"skill": 131,
+			"tech": 153,
+			"condition": 145
+		},
+		"COD": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"DNK": {
+			"skill": 164,
+			"tech": 221,
+			"condition": 200
+		},
+		"DJI": {
+			"skill": 82,
+			"tech": 73,
+			"condition": 76
+		},
+		"DMA": {
+			"skill": 101,
+			"tech": 102,
+			"condition": 102
+		},
+		"DOM": {
+			"skill": 102,
+			"tech": 103,
+			"condition": 103
+		},
+		"TLS": {
+			"skill": 69,
+			"tech": 55,
+			"condition": 59
+		},
+		"ECU": {
+			"skill": 95,
+			"tech": 92,
+			"condition": 93
+		},
+		"EGY": {
 			"skill": 80,
-			"tech": 69,
+			"tech": 70,
 			"condition": 73
 		},
-		"VUT": {
-			"skill": 92,
-			"tech": 87,
-			"condition": 89
+		"SLV": {
+			"skill": 87,
+			"tech": 79,
+			"condition": 82
 		},
-		"VAT": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
+		"GNQ": {
+			"skill": 101,
+			"tech": 102,
+			"condition": 102
 		},
-		"VEN": {
-			"skill": 137,
-			"tech": 166,
-			"condition": 156
+		"ERI": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
 		},
-		"VNM": {
+		"EST": {
+			"skill": 132,
+			"tech": 155,
+			"condition": 147
+		},
+		"SWZ": {
+			"skill": 84,
+			"tech": 76,
+			"condition": 79
+		},
+		"ETH": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"FSM": {
+			"skill": 83,
+			"tech": 74,
+			"condition": 77
+		},
+		"FJI": {
+			"skill": 95,
+			"tech": 92,
+			"condition": 93
+		},
+		"FIN": {
+			"skill": 156,
+			"tech": 203,
+			"condition": 186
+		},
+		"FRA": {
+			"skill": 149,
+			"tech": 189,
+			"condition": 174
+		},
+		"GAB": {
+			"skill": 100,
+			"tech": 100,
+			"condition": 100
+		},
+		"GMB": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"GEO": {
 			"skill": 89,
 			"tech": 83,
 			"condition": 85
 		},
-		"SAH": {
-			"skill": 77,
-			"tech": 66,
-			"condition": 70
+		"DEU": {
+			"skill": 154,
+			"tech": 199,
+			"condition": 182
 		},
-		"YEM": {
-			"skill": 71,
-			"tech": 58,
-			"condition": 62
-		},
-		"ZMB": {
+		"GHA": {
 			"skill": 74,
 			"tech": 62,
 			"condition": 66
 		},
-		"ZWE": {
-			"skill": 76,
+		"GRC": {
+			"skill": 126,
+			"tech": 145,
+			"condition": 138
+		},
+		"GRD": {
+			"skill": 108,
+			"tech": 114,
+			"condition": 112
+		},
+		"GTM": {
+			"skill": 87,
+			"tech": 80,
+			"condition": 83
+		},
+		"GIN": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"GNB": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"GUY": {
+			"skill": 96,
+			"tech": 94,
+			"condition": 95
+		},
+		"HTI": {
+			"skill": 65,
+			"tech": 50,
+			"condition": 55
+		},
+		"HND": {
+			"skill": 77,
+			"tech": 66,
+			"condition": 69
+		},
+		"HUN": {
+			"skill": 121,
+			"tech": 135,
+			"condition": 130
+		},
+		"ISL": {
+			"skill": 168,
+			"tech": 229,
+			"condition": 206
+		},
+		"IND": {
+			"skill": 73,
+			"tech": 61,
+			"condition": 65
+		},
+		"IDN": {
+			"skill": 87,
+			"tech": 79,
+			"condition": 82
+		},
+		"IRN": {
+			"skill": 92,
+			"tech": 88,
+			"condition": 89
+		},
+		"IRQ": {
+			"skill": 94,
+			"tech": 90,
+			"condition": 91
+		},
+		"IRL": {
+			"skill": 174,
+			"tech": 242,
+			"condition": 216
+		},
+		"ISR": {
+			"skill": 154,
+			"tech": 200,
+			"condition": 183
+		},
+		"ITA": {
+			"skill": 142,
+			"tech": 176,
+			"condition": 164
+		},
+		"CIV": {
+			"skill": 75,
+			"tech": 63,
+			"condition": 66
+		},
+		"JAM": {
+			"skill": 92,
+			"tech": 88,
+			"condition": 90
+		},
+		"JPN": {
+			"skill": 148,
+			"tech": 188,
+			"condition": 174
+		},
+		"JOR": {
+			"skill": 88,
+			"tech": 81,
+			"condition": 83
+		},
+		"KAS": {
+			"skill": 77,
 			"tech": 65,
 			"condition": 69
+		},
+		"KAZ": {
+			"skill": 106,
+			"tech": 109,
+			"condition": 108
+		},
+		"KEN": {
+			"skill": 71,
+			"tech": 57,
+			"condition": 62
+		},
+		"KIR": {
+			"skill": 69,
+			"tech": 56,
+			"condition": 60
+		},
+		"KOS": {
+			"skill": 88,
+			"tech": 81,
+			"condition": 83
+		},
+		"KWT": {
+			"skill": 140,
+			"tech": 171,
+			"condition": 160
+		},
+		"KGZ": {
+			"skill": 66,
+			"tech": 51,
+			"condition": 56
+		},
+		"LAO": {
+			"skill": 77,
+			"tech": 65,
+			"condition": 69
+		},
+		"LVA": {
+			"skill": 123,
+			"tech": 138,
+			"condition": 133
+		},
+		"LBN": {
+			"skill": 100,
+			"tech": 99,
+			"condition": 100
+		},
+		"LSO": {
+			"skill": 64,
+			"tech": 48,
+			"condition": 53
+		},
+		"LBR": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"LBY": {
+			"skill": 100,
+			"tech": 100,
+			"condition": 100
+		},
+		"LIE": {
+			"skill": 174,
+			"tech": 243,
+			"condition": 217
+		},
+		"LTU": {
+			"skill": 125,
+			"tech": 143,
+			"condition": 137
+		},
+		"LUX": {
+			"skill": 174,
+			"tech": 243,
+			"condition": 217
+		},
+		"MDG": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"MWI": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"MYS": {
+			"skill": 110,
+			"tech": 116,
+			"condition": 114
+		},
+		"MDV": {
+			"skill": 108,
+			"tech": 113,
+			"condition": 111
+		},
+		"MLI": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"MLT": {
+			"skill": 143,
+			"tech": 177,
+			"condition": 164
+		},
+		"MHL": {
+			"skill": 84,
+			"tech": 76,
+			"condition": 79
+		},
+		"MRT": {
+			"skill": 70,
+			"tech": 56,
+			"condition": 60
+		},
+		"MUS": {
+			"skill": 109,
+			"tech": 114,
+			"condition": 112
+		},
+		"MEX": {
+			"skill": 106,
+			"tech": 110,
+			"condition": 109
+		},
+		"MDA": {
+			"skill": 88,
+			"tech": 82,
+			"condition": 84
+		},
+		"MCO": {
+			"skill": 174,
+			"tech": 243,
+			"condition": 217
+		},
+		"MNG": {
+			"skill": 87,
+			"tech": 80,
+			"condition": 82
+		},
+		"MNE": {
+			"skill": 104,
+			"tech": 106,
+			"condition": 105
+		},
+		"MAR": {
+			"skill": 82,
+			"tech": 72,
+			"condition": 75
+		},
+		"MOZ": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"MMR": {
+			"skill": 67,
+			"tech": 52,
+			"condition": 57
+		},
+		"NAM": {
+			"skill": 90,
+			"tech": 85,
+			"condition": 87
+		},
+		"NRU": {
+			"skill": 105,
+			"tech": 108,
+			"condition": 107
+		},
+		"NPL": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"NLD": {
+			"skill": 158,
+			"tech": 208,
+			"condition": 190
+		},
+		"NZL": {
+			"skill": 149,
+			"tech": 189,
+			"condition": 174
+		},
+		"NIC": {
+			"skill": 72,
+			"tech": 59,
+			"condition": 63
+		},
+		"NER": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"NGA": {
+			"skill": 74,
+			"tech": 62,
+			"condition": 66
+		},
+		"PRK": {
+			"skill": 68,
+			"tech": 55,
+			"condition": 59
+		},
+		"MKD": {
+			"skill": 94,
+			"tech": 91,
+			"condition": 92
+		},
+		"CYN": {
+			"skill": 109,
+			"tech": 115,
+			"condition": 113
+		},
+		"NOR": {
+			"skill": 172,
+			"tech": 238,
+			"condition": 214
+		},
+		"OMN": {
+			"skill": 117,
+			"tech": 129,
+			"condition": 125
+		},
+		"PAK": {
+			"skill": 65,
+			"tech": 50,
+			"condition": 55
+		},
+		"PLW": {
+			"skill": 117,
+			"tech": 129,
+			"condition": 125
+		},
+		"PAN": {
+			"skill": 118,
+			"tech": 131,
+			"condition": 127
+		},
+		"PNG": {
+			"skill": 79,
+			"tech": 68,
+			"condition": 72
+		},
+		"PRY": {
+			"skill": 92,
+			"tech": 88,
+			"condition": 89
+		},
+		"PER": {
+			"skill": 98,
+			"tech": 96,
+			"condition": 97
+		},
+		"PHL": {
+			"skill": 83,
+			"tech": 74,
+			"condition": 77
+		},
+		"POL": {
+			"skill": 119,
+			"tech": 132,
+			"condition": 127
+		},
+		"PRT": {
+			"skill": 131,
+			"tech": 153,
+			"condition": 145
+		},
+		"QAT": {
+			"skill": 164,
+			"tech": 220,
+			"condition": 199
+		},
+		"SRB": {
+			"skill": 99,
+			"tech": 99,
+			"condition": 99
+		},
+		"COG": {
+			"skill": 75,
+			"tech": 63,
+			"condition": 67
+		},
+		"ROU": {
+			"skill": 114,
+			"tech": 123,
+			"condition": 119
+		},
+		"RUS": {
+			"skill": 110,
+			"tech": 117,
+			"condition": 115
+		},
+		"RWA": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"KNA": {
+			"skill": 125,
+			"tech": 144,
+			"condition": 137
+		},
+		"LCA": {
+			"skill": 110,
+			"tech": 117,
+			"condition": 115
+		},
+		"VCT": {
+			"skill": 99,
+			"tech": 99,
+			"condition": 99
+		},
+		"WSM": {
+			"skill": 87,
+			"tech": 80,
+			"condition": 83
+		},
+		"SMR": {
+			"skill": 155,
+			"tech": 202,
+			"condition": 185
+		},
+		"STP": {
+			"skill": 72,
+			"tech": 59,
+			"condition": 63
+		},
+		"SAU": {
+			"skill": 130,
+			"tech": 152,
+			"condition": 144
+		},
+		"SEN": {
+			"skill": 67,
+			"tech": 53,
+			"condition": 57
+		},
+		"SYC": {
+			"skill": 121,
+			"tech": 137,
+			"condition": 131
+		},
+		"SLE": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"SGP": {
+			"skill": 165,
+			"tech": 223,
+			"condition": 202
+		},
+		"SVK": {
+			"skill": 124,
+			"tech": 142,
+			"condition": 136
+		},
+		"SVN": {
+			"skill": 134,
+			"tech": 159,
+			"condition": 150
+		},
+		"SLB": {
+			"skill": 75,
+			"tech": 63,
+			"condition": 67
+		},
+		"SOM": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"SOL": {
+			"skill": 83,
+			"tech": 74,
+			"condition": 77
+		},
+		"ZAF": {
+			"skill": 94,
+			"tech": 91,
+			"condition": 92
+		},
+		"KOR": {
+			"skill": 140,
+			"tech": 172,
+			"condition": 161
+		},
+		"SDS": {
+			"skill": 63,
+			"tech": 48,
+			"condition": 52
+		},
+		"ESP": {
+			"skill": 138,
+			"tech": 167,
+			"condition": 157
+		},
+		"LKA": {
+			"skill": 85,
+			"tech": 77,
+			"condition": 80
+		},
+		"SDN": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"SUR": {
+			"skill": 95,
+			"tech": 93,
+			"condition": 94
+		},
+		"SWE": {
+			"skill": 157,
+			"tech": 206,
+			"condition": 188
+		},
+		"CHE": {
+			"skill": 174,
+			"tech": 243,
+			"condition": 217
+		},
+		"SYR": {
+			"skill": 93,
+			"tech": 89,
+			"condition": 90
+		},
+		"TWN": {
+			"skill": 154,
+			"tech": 200,
+			"condition": 184
+		},
+		"TJK": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"THA": {
+			"skill": 100,
+			"tech": 101,
+			"condition": 101
+		},
+		"BHS": {
+			"skill": 143,
+			"tech": 178,
+			"condition": 166
+		},
+		"TGO": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"TON": {
+			"skill": 90,
+			"tech": 84,
+			"condition": 86
+		},
+		"TTO": {
+			"skill": 122,
+			"tech": 137,
+			"condition": 131
+		},
+		"TUN": {
+			"skill": 82,
+			"tech": 73,
+			"condition": 76
+		},
+		"TUR": {
+			"skill": 104,
+			"tech": 107,
+			"condition": 106
+		},
+		"TKM": {
+			"skill": 97,
+			"tech": 96,
+			"condition": 96
+		},
+		"TUV": {
+			"skill": 86,
+			"tech": 78,
+			"condition": 81
+		},
+		"UGA": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"UKR": {
+			"skill": 84,
+			"tech": 76,
+			"condition": 79
+		},
+		"ARE": {
+			"skill": 150,
+			"tech": 192,
+			"condition": 177
+		},
+		"GBR": {
+			"skill": 150,
+			"tech": 192,
+			"condition": 177
+		},
+		"TZA": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"USA": {
+			"skill": 166,
+			"tech": 226,
+			"condition": 204
+		},
+		"URY": {
+			"skill": 119,
+			"tech": 133,
+			"condition": 128
+		},
+		"UZB": {
+			"skill": 70,
+			"tech": 57,
+			"condition": 61
+		},
+		"VUT": {
+			"skill": 81,
+			"tech": 71,
+			"condition": 74
+		},
+		"VAT": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"VEN": {
+			"skill": 121,
+			"tech": 136,
+			"condition": 131
+		},
+		"VNM": {
+			"skill": 78,
+			"tech": 67,
+			"condition": 71
+		},
+		"SAH": {
+			"skill": 68,
+			"tech": 54,
+			"condition": 58
+		},
+		"YEM": {
+			"skill": 63,
+			"tech": 47,
+			"condition": 52
+		},
+		"ZMB": {
+			"skill": 65,
+			"tech": 51,
+			"condition": 55
+		},
+		"ZWE": {
+			"skill": 67,
+			"tech": 53,
+			"condition": 57
 		}
 	}
 }

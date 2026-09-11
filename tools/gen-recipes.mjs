@@ -20,7 +20,7 @@ const buildings = read('data', 'economy', 'buildings.json')
 const price = read('data', 'economy', 'prices.json').prices
 
 // доля стоимости выпуска, приходящаяся на сырьё и комплектующие
-const MATERIAL_SHARE = { Mining: 0.35, Power: 0.65, Heavy: 0.68, Civil: 0.6, Military: 0.6 }
+const MATERIAL_SHARE = { Mining: 0.35, Power: 0.65, Heavy: 0.68, Civil: 0.6, Military: 0.6, Services: 0.08 }
 
 const value = (goods) => Object.entries(goods).reduce((sum, [g, q]) => sum + price[g] * q, 0)
 const round = (x) => (x >= 10 ? Math.round(x) : Number(x.toPrecision(2)))

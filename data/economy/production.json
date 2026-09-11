@@ -696,8 +696,26 @@
 				"VEN": 1
 			}
 		},
-		"ServiceFirm": {
-			"world": 641200,
+		"RetailFirm": {
+			"world": 153888,
+			"tail": 0,
+			"byGdp": true,
+			"shares": {}
+		},
+		"TransportFirm": {
+			"world": 89768,
+			"tail": 0,
+			"byGdp": true,
+			"shares": {}
+		},
+		"PublicService": {
+			"world": 179536,
+			"tail": 0,
+			"byGdp": true,
+			"shares": {}
+		},
+		"BusinessFirm": {
+			"world": 218008,
 			"tail": 0,
 			"byGdp": true,
 			"shares": {}

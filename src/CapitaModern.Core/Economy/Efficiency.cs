@@ -63,15 +63,21 @@ public sealed class Efficiency
     /// <summary>То же, но с поправкой на отрасль. Отсюда и берётся специализация.</summary>
     /// <remarks>
     /// Чувствительность растягивает отрыв от среднего в обе стороны: в добыче все ближе
-    /// друг к другу, в электронике разрыв шире. Поэтому бедной стране выгоднее копать, а
-    /// богатой — делать сложное, и никакой отдельной логики для этого не нужно.
+    /// друг к другу, в услугах разрыв шире. Поэтому бедной стране выгоднее копать, а
+    /// богатой — держать банк, и никакой отдельной логики для этого не нужно.
+    ///
+    /// Растягивается степенью, а не в пунктах: отставание в жизни меряется в разах, и от
+    /// прибавки в пунктах отстающая страна уходила в ноль и просила в сто раз больше рук.
     /// </remarks>
     public int Of(byte country, Sector sector)
     {
-        // Средняя по миру — ровно Scale, от неё и считается отрыв.
-        var off = (long)(Of(country) - Scale) * _sensitivity[(int)sector] / Scale;
+        var sensitivity = _sensitivity[(int)sector];
+        if (sensitivity == Scale) return Of(country);
 
-        return (int)Math.Max(Floor, Scale + off);
+        // Средняя по миру — ровно Scale, от неё и считается отрыв.
+        var ratio = (long)Of(country) * Powers.Scale / Scale;
+
+        return (int)Math.Max(Floor, Powers.PowCached(ratio, sensitivity) * Scale / Powers.Scale);
     }
 
     private static int[] Filled(int countries)

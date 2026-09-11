@@ -101,8 +101,10 @@ public sealed class Simulation
     private Money _dealValue;
     private GoodAmount _dealVolume;
 
-    /// <summary>Выпуск в стартовых ценах на первом тике. База для якоря: без неё не
-    /// сказать, во сколько раз выпуск вырос с начала партии.</summary>
+    /// <summary>Выпуск страны при полной загрузке, в стартовых ценах. База для якоря.</summary>
+    /// <remarks>Считается из данных, а не меряется на первом тике: на первом тике склады
+    /// пусты, половина заводов стоит без сырья, и база выходит втрое ниже правды. Якорь
+    /// потом принимал разгон за рост выпуска и давил цены в десятки раз.</remarks>
     private readonly Dictionary<byte, Money> _baseReal = new();
 
     /// <summary>Рабочие места в услугах и на стройке за прошедший тик.</summary>
@@ -153,6 +155,7 @@ public sealed class Simulation
     public Simulation(GameWorld world)
     {
         _world = world;
+        MeasurePotential();
     }
 
     /// <summary>Сколько лет после отказа платить на рынок не пускают. В жизни
@@ -413,6 +416,30 @@ public sealed class Simulation
         PayTransit(deal.Buyer, deal.Seller, deal.Paid);
     }
 
+    /// <summary>Сколько страна выпустила бы при полной загрузке, в стартовых ценах.</summary>
+    /// <remarks>От этого числа якорь и считает, вырос выпуск или упал. Меняться оно
+    /// должно вместе со стройкой и износом, но пока предприятия стоят на месте весь
+    /// расчёт — одного раза хватает.</remarks>
+    private void MeasurePotential()
+    {
+        foreach (var region in _world.Regions)
+        {
+            var owner = region.LargestOwner;
+            var prices = _world.CountryById(owner).State.Prices;
+
+            foreach (var (type, count) in region.BuildingsCount)
+            {
+                foreach (var (good, amount) in _world.Buildings[type].Outputs)
+                {
+                    var worth = new Money(
+                        (long)((Int128)prices.StartOf(good).Raw * amount.Raw * count / GoodAmount.Scale));
+
+                    _baseReal[owner] = _baseReal.GetValueOrDefault(owner) + worth;
+                }
+            }
+        }
+    }
+
     /// <summary>Держит общий уровень цен у количества денег на единицу выпуска.</summary>
     /// <remarks>Относительные цены не трогаются: их задало покрытие в <see cref="MovePrices"/>,
     /// здесь двигается только уровень — все цены страны разом и в одну сторону.</remarks>
@@ -436,11 +463,8 @@ public sealed class Simulation
             var supply = country.Bank.Supply;
             if (supply.Raw <= 0) continue;
 
-            if (!_baseReal.TryGetValue(country.Id, out var realBefore))
-            {
-                _baseReal[country.Id] = real;
-                continue;
-            }
+            var realBefore = _baseReal.GetValueOrDefault(country.Id);
+            if (realBefore.Raw <= 0) continue;
 
             // Уровень не подталкивается на долю перекоса, а приравнивается деньгам:
             // покрытие двигает свои цены полным шагом, и подталкивание ему проигрывало.
@@ -726,15 +750,16 @@ public sealed class Simulation
 
         if (freight == 0) return;
 
-        // Стоимость перевозки в деньгах, переведённая в топливо по его же цене. Топливо —
-        // только часть этой цены: остальное судно, команда и порт.
+        // Считается по стартовым ценам, а не по нынешним: топливо жжёт не стоимость
+        // груза, а его вес и расстояние. По нынешним выходила петля — подешевевшее
+        // топливо жглось щедрее, и перевозка съедала его больше, чем мир добывал.
         var state = _world.CountryById(country).State;
-        var spent = new Money(state.Prices.CostOf(good, brought).Raw * freight / TradeCosts.Scale
-            * TradeCosts.FuelInFreight / 100);
-        var fuelPrice = state.Prices.Of(GoodType.Fuel).Raw;
+        var fuelPrice = state.Prices.StartOf(GoodType.Fuel).Raw;
         if (fuelPrice <= 0) return;
 
-        var burned = new GoodAmount((long)((Int128)spent.Raw * GoodAmount.Scale / fuelPrice));
+        var worth = (Int128)state.Prices.StartOf(good).Raw * brought.Raw / GoodAmount.Scale;
+        var spent = worth * freight / TradeCosts.Scale * TradeCosts.FuelInFreight / 100;
+        var burned = new GoodAmount((long)(spent * GoodAmount.Scale / fuelPrice));
         _burnedFuel.Add(country, GoodType.Fuel, state.Stock.TakeUpTo(GoodType.Fuel, burned));
     }
 
@@ -769,14 +794,17 @@ public sealed class Simulation
     public Money ImportsOf(byte country) => Valued(_imported, country);
 
     /// <summary>Сколько страна вывезла за прошедший тик.</summary>
-    public Money ExportsOf(byte country) => Valued(_exported, country);
+    /// <summary>Что страна вывезла за тик. Без цен на входе — в нынешних мировых, с
+    /// ценами — в них: сравнивать вывоз с ВВП можно только в одной и той же мере.</summary>
+    public Money ExportsOf(byte country, Prices? at = null) => Valued(_exported, country, at);
 
-    private Money Valued(Tally<GoodType, GoodAmount> what, byte country)
+    private Money Valued(Tally<GoodType, GoodAmount> what, byte country, Prices? at = null)
     {
+        var prices = at ?? _world.Market.Prices;
         var total = default(Money);
         foreach (var good in AllGoods)
         {
-            total += _world.Market.Prices.CostOf(good, what.Get(country, good));
+            total += prices.CostOf(good, what.Get(country, good));
         }
 
         return total;

@@ -177,7 +177,7 @@ for (var tick = 1; tick <= 365; tick++)
     foreach (var country in world.Countries)
     {
         realGdp[country.Id] += simulation.ValueAddedOf(country.Id, constant);
-        exports[country.Id] += simulation.ExportsOf(country.Id);
+        exports[country.Id] += simulation.ExportsOf(country.Id, constant);
         wagesYear[country.Id] += simulation.WagesIn(country.Id).Exact / country.ExchangeRate.Exact;
         employedYear[country.Id] += simulation.EmployedIn(country.Id);
         transitYear[country.Id] += simulation.TransitEarnedBy(country.Id);
@@ -221,7 +221,20 @@ Console.WriteLine($"     денег в мире {world.Countries.Sum(c => c.Stat
 
 // --- Г. Что осталось на рельсах и почему ------------------------------------------
 Console.WriteLine();
-Console.WriteLine("=== Г. Товары на границе коридора ===");
+Console.WriteLine("=== Г. Цены и границы коридора ===");
+Console.WriteLine("Во сколько раз медианная цена страны ушла от стартовой:");
+foreach (var good in new[] { GoodType.Services, GoodType.Coal, GoodType.Oil, GoodType.Electricity,
+    GoodType.Materials, GoodType.Metals, GoodType.Food, GoodType.ConsumerGoods })
+{
+    var times = world.Countries
+        .Select(c => c.State.Prices.Of(good).Exact / c.State.Prices.StartOf(good).Exact)
+        .OrderBy(x => x)
+        .ElementAt(world.Countries.Count / 2);
+
+    Console.WriteLine($"  {good,-16} ×{times,8:F3}");
+}
+
+Console.WriteLine();
 
 foreach (var good in goods)
 {
@@ -285,7 +298,7 @@ for (var year = 2; year <= years; year++)
         foreach (var country in world.Countries)
         {
             yearGdp += simulation.ValueAddedOf(country.Id, constant);
-            exports[country.Id] += simulation.ExportsOf(country.Id);
+            exports[country.Id] += simulation.ExportsOf(country.Id, constant);
         }
     }
 
@@ -358,7 +371,7 @@ for (var tick = 0; tick < 365; tick++)
     foreach (var country in rich.Countries)
     {
         richGdp += richSim.ValueAddedOf(country.Id, richConstant);
-        richExport += richSim.ExportsOf(country.Id);
+        richExport += richSim.ExportsOf(country.Id, richConstant);
     }
 }
 
@@ -568,7 +581,7 @@ Console.WriteLine("=== П. Перевозка и пошлины ===");
 var burned = world.Countries.Sum(c => simulation.FuelBurnedIn(c.Id).Exact);
 var fuelMade = simulation.WorldOutputOf(GoodType.Fuel).Exact;
 Console.WriteLine($"Топлива на перевозку: {burned:F0} из {fuelMade:F0} в сутки — {burned / Math.Max(fuelMade, 1),5:P0} " +
-                  "(в жизни на транспорт около четверти нефти)");
+                  "(в жизни международная перевозка грузов берёт 8-10% нефти: море около пяти, авиагруз один, остальное фуры)");
 
 Console.WriteLine("товар             доля перевозки   ввоз в сутки");
 foreach (var good in new[] { GoodType.Materials, GoodType.Coal, GoodType.IronOre, GoodType.Food,

@@ -11,11 +11,11 @@
 		},
 		"optimalWorkers": 25,
 		"buildCost": {
-			"Materials": 70.08,
-			"Metals": 3.75
+			"Materials": 70,
+			"Metals": 4
 		},
 		"lifeYears": 25,
-		"buildWorkers": 145821
+		"buildWorkers": 80465
 	},
 	{
 		"type": "OilRig",
@@ -27,13 +27,13 @@
 		"outputs": {
 			"Oil": 0.15
 		},
-		"optimalWorkers": 7,
+		"optimalWorkers": 8,
 		"buildCost": {
-			"Materials": 269.81,
-			"Metals": 14.45
+			"Materials": 270,
+			"Metals": 14
 		},
 		"lifeYears": 25,
-		"buildWorkers": 561510
+		"buildWorkers": 304315
 	},
 	{
 		"type": "GasField",
@@ -47,11 +47,11 @@
 		},
 		"optimalWorkers": 10,
 		"buildCost": {
-			"Materials": 105.12,
-			"Metals": 5.63
+			"Materials": 105,
+			"Metals": 6
 		},
 		"lifeYears": 25,
-		"buildWorkers": 218770
+		"buildWorkers": 120698
 	},
 	{
 		"type": "IronMine",
@@ -65,11 +65,11 @@
 		},
 		"optimalWorkers": 7,
 		"buildCost": {
-			"Materials": 128.48,
-			"Metals": 6.88
+			"Materials": 128,
+			"Metals": 7
 		},
 		"lifeYears": 25,
-		"buildWorkers": 267377
+		"buildWorkers": 145805
 	},
 	{
 		"type": "CopperMine",
@@ -83,11 +83,11 @@
 		},
 		"optimalWorkers": 36,
 		"buildCost": {
-			"Materials": 72.42,
-			"Metals": 3.88
+			"Materials": 72,
+			"Metals": 4
 		},
 		"lifeYears": 25,
-		"buildWorkers": 150727
+		"buildWorkers": 82280
 	},
 	{
 		"type": "BauxiteMine",
@@ -101,11 +101,11 @@
 		},
 		"optimalWorkers": 7,
 		"buildCost": {
-			"Materials": 21.02,
-			"Metals": 1.13
+			"Materials": 21,
+			"Metals": 1
 		},
 		"lifeYears": 25,
-		"buildWorkers": 43778
+		"buildWorkers": 23293
 	},
 	{
 		"type": "UraniumMine",
@@ -119,11 +119,11 @@
 		},
 		"optimalWorkers": 2,
 		"buildCost": {
-			"Materials": 7.71,
-			"Metals": 0.41
+			"Materials": 8,
+			"Metals": 1
 		},
 		"lifeYears": 25,
-		"buildWorkers": 16023
+		"buildWorkers": 11495
 	},
 	{
 		"type": "RareEarthMine",
@@ -137,11 +137,11 @@
 		},
 		"optimalWorkers": 4,
 		"buildCost": {
-			"Materials": 2.8,
-			"Metals": 0.15
+			"Materials": 3,
+			"Metals": 1
 		},
 		"lifeYears": 25,
-		"buildWorkers": 5828
+		"buildWorkers": 6958
 	},
 	{
 		"type": "LoggingCamp",
@@ -155,11 +155,11 @@
 		},
 		"optimalWorkers": 25,
 		"buildCost": {
-			"Materials": 87.6,
-			"Metals": 4.69
+			"Materials": 88,
+			"Metals": 5
 		},
 		"lifeYears": 25,
-		"buildWorkers": 182295
+		"buildWorkers": 101035
 	},
 	{
 		"type": "Farm",
@@ -174,10 +174,10 @@
 		"optimalWorkers": 9920,
 		"buildCost": {
 			"Materials": 365,
-			"Metals": 19.55
+			"Metals": 20
 		},
 		"lifeYears": 25,
-		"buildWorkers": 759629
+		"buildWorkers": 415938
 	},
 	{
 		"type": "CoalPlant",
@@ -193,11 +193,11 @@
 		},
 		"optimalWorkers": 27,
 		"buildCost": {
-			"Materials": 57.23,
-			"Metals": 3.07
+			"Materials": 57,
+			"Metals": 3
 		},
 		"lifeYears": 35,
-		"buildWorkers": 119142
+		"buildWorkers": 64433
 	},
 	{
 		"type": "GasPlant",
@@ -213,11 +213,11 @@
 		},
 		"optimalWorkers": 21,
 		"buildCost": {
-			"Materials": 70.08,
-			"Metals": 3.75
+			"Materials": 70,
+			"Metals": 4
 		},
 		"lifeYears": 30,
-		"buildWorkers": 145821
+		"buildWorkers": 80465
 	},
 	{
 		"type": "NuclearPlant",
@@ -231,13 +231,13 @@
 		"outputs": {
 			"Electricity": 0.4
 		},
-		"optimalWorkers": 41,
+		"optimalWorkers": 40,
 		"buildCost": {
-			"Materials": 225.89,
-			"Metals": 12.1
+			"Materials": 226,
+			"Metals": 12
 		},
 		"lifeYears": 45,
-		"buildWorkers": 470124
+		"buildWorkers": 255915
 	},
 	{
 		"type": "HydroPlant",
@@ -252,10 +252,10 @@
 		"optimalWorkers": 13,
 		"buildCost": {
 			"Materials": 146,
-			"Metals": 7.82
+			"Metals": 8
 		},
 		"lifeYears": 50,
-		"buildWorkers": 303851
+		"buildWorkers": 166375
 	},
 	{
 		"type": "Refinery",
@@ -270,13 +270,13 @@
 		"outputs": {
 			"Fuel": 0.1
 		},
-		"optimalWorkers": 5,
+		"optimalWorkers": 4,
 		"buildCost": {
-			"Materials": 71.25,
-			"Metals": 3.82
+			"Materials": 71,
+			"Metals": 4
 		},
 		"lifeYears": 18,
-		"buildWorkers": 148313
+		"buildWorkers": 81373
 	},
 	{
 		"type": "SteelMill",
@@ -292,13 +292,13 @@
 		"outputs": {
 			"Metals": 0.1
 		},
-		"optimalWorkers": 25,
+		"optimalWorkers": 24,
 		"buildCost": {
-			"Materials": 279.74,
-			"Metals": 14.99
+			"Materials": 280,
+			"Metals": 15
 		},
 		"lifeYears": 18,
-		"buildWorkers": 582239
+		"buildWorkers": 317625
 	},
 	{
 		"type": "Smelter",
@@ -316,11 +316,11 @@
 		},
 		"optimalWorkers": 60,
 		"buildCost": {
-			"Materials": 102.4,
-			"Metals": 5.49
+			"Materials": 105,
+			"Metals": 6
 		},
 		"lifeYears": 18,
-		"buildWorkers": 213153
+		"buildWorkers": 120698
 	},
 	{
 		"type": "ChemicalPlant",
@@ -338,11 +338,11 @@
 		},
 		"optimalWorkers": 184,
 		"buildCost": {
-			"Materials": 414.64,
-			"Metals": 22.21
+			"Materials": 415,
+			"Metals": 22
 		},
 		"lifeYears": 18,
-		"buildWorkers": 862947
+		"buildWorkers": 469783
 	},
 	{
 		"type": "MaterialsPlant",
@@ -360,11 +360,11 @@
 		},
 		"optimalWorkers": 5,
 		"buildCost": {
-			"Materials": 61.32,
-			"Metals": 3.29
+			"Materials": 61,
+			"Metals": 3
 		},
 		"lifeYears": 18,
-		"buildWorkers": 127661
+		"buildWorkers": 68063
 	},
 	{
 		"type": "ComponentsPlant",
@@ -382,11 +382,11 @@
 		},
 		"optimalWorkers": 111,
 		"buildCost": {
-			"Materials": 83.51,
-			"Metals": 4.47
+			"Materials": 109,
+			"Metals": 6
 		},
 		"lifeYears": 18,
-		"buildWorkers": 173776
+		"buildWorkers": 124328
 	},
 	{
 		"type": "ElectronicsPlant",
@@ -395,22 +395,22 @@
 		"sector": "Heavy",
 		"requiresDeposit": null,
 		"inputs": {
-			"Components": 0.05,
-			"RareEarth": 0.01,
-			"CopperOre": 0.02,
-			"Chemicals": 0.03,
-			"Electricity": 0.05
+			"Components": 0.044,
+			"RareEarth": 0.0089,
+			"CopperOre": 0.018,
+			"Chemicals": 0.027,
+			"Electricity": 0.044
 		},
 		"outputs": {
 			"Electronics": 0.47
 		},
 		"optimalWorkers": 96,
 		"buildCost": {
-			"Materials": 112.09,
-			"Metals": 6.01
+			"Materials": 110,
+			"Metals": 6
 		},
 		"lifeYears": 18,
-		"buildWorkers": 233328
+		"buildWorkers": 125235
 	},
 	{
 		"type": "MicroelectronicsPlant",
@@ -429,11 +429,11 @@
 		},
 		"optimalWorkers": 49,
 		"buildCost": {
-			"Materials": 95.03,
-			"Metals": 5.09
+			"Materials": 111,
+			"Metals": 6
 		},
 		"lifeYears": 18,
-		"buildWorkers": 197774
+		"buildWorkers": 126143
 	},
 	{
 		"type": "FoodPlant",
@@ -451,11 +451,11 @@
 		},
 		"optimalWorkers": 474,
 		"buildCost": {
-			"Materials": 414.64,
-			"Metals": 22.21
+			"Materials": 415,
+			"Metals": 22
 		},
 		"lifeYears": 18,
-		"buildWorkers": 862947
+		"buildWorkers": 469783
 	},
 	{
 		"type": "ConsumerGoodsPlant",
@@ -475,11 +475,11 @@
 		},
 		"optimalWorkers": 1117,
 		"buildCost": {
-			"Materials": 768.08,
-			"Metals": 41.15
+			"Materials": 768,
+			"Metals": 41
 		},
 		"lifeYears": 18,
-		"buildWorkers": 1598589
+		"buildWorkers": 870595
 	},
 	{
 		"type": "PharmaPlant",
@@ -496,11 +496,11 @@
 		},
 		"optimalWorkers": 154,
 		"buildCost": {
-			"Materials": 522.56,
-			"Metals": 27.99
+			"Materials": 523,
+			"Metals": 28
 		},
 		"lifeYears": 18,
-		"buildWorkers": 1087545
+		"buildWorkers": 593203
 	},
 	{
 		"type": "ArmourPlant",
@@ -518,11 +518,11 @@
 		},
 		"optimalWorkers": 750,
 		"buildCost": {
-			"Materials": 115.4,
-			"Metals": 6.18
+			"Materials": 102,
+			"Metals": 5
 		},
 		"lifeYears": 18,
-		"buildWorkers": 240160
+		"buildWorkers": 113740
 	},
 	{
 		"type": "ArtilleryPlant",
@@ -540,11 +540,11 @@
 		},
 		"optimalWorkers": 667,
 		"buildCost": {
-			"Materials": 71.52,
-			"Metals": 3.83
+			"Materials": 85,
+			"Metals": 5
 		},
 		"lifeYears": 18,
-		"buildWorkers": 148840
+		"buildWorkers": 98313
 	},
 	{
 		"type": "SmallArmsPlant",
@@ -562,11 +562,11 @@
 		},
 		"optimalWorkers": 207,
 		"buildCost": {
-			"Materials": 2.35,
-			"Metals": 0.13
+			"Materials": 6,
+			"Metals": 1
 		},
 		"lifeYears": 18,
-		"buildWorkers": 4923
+		"buildWorkers": 9680
 	},
 	{
 		"type": "AmmunitionPlant",
@@ -584,11 +584,11 @@
 		},
 		"optimalWorkers": 500,
 		"buildCost": {
-			"Materials": 18.54,
-			"Metals": 0.99
+			"Materials": 47,
+			"Metals": 3
 		},
 		"lifeYears": 18,
-		"buildWorkers": 38561
+		"buildWorkers": 55358
 	},
 	{
 		"type": "TacticalDronePlant",
@@ -606,11 +606,11 @@
 		},
 		"optimalWorkers": 375,
 		"buildCost": {
-			"Materials": 4.66,
-			"Metals": 0.25
+			"Materials": 12,
+			"Metals": 1
 		},
 		"lifeYears": 18,
-		"buildWorkers": 9701
+		"buildWorkers": 15125
 	},
 	{
 		"type": "StrikeDronePlant",
@@ -630,11 +630,11 @@
 		},
 		"optimalWorkers": 400,
 		"buildCost": {
-			"Materials": 115.14,
-			"Metals": 6.17
+			"Materials": 107,
+			"Metals": 6
 		},
 		"lifeYears": 18,
-		"buildWorkers": 239649
+		"buildWorkers": 122513
 	},
 	{
 		"type": "MissilePlant",
@@ -653,11 +653,11 @@
 		},
 		"optimalWorkers": 1071,
 		"buildCost": {
-			"Materials": 234.03,
-			"Metals": 12.54
+			"Materials": 249,
+			"Metals": 13
 		},
 		"lifeYears": 18,
-		"buildWorkers": 487096
+		"buildWorkers": 281023
 	},
 	{
 		"type": "AircraftPlant",
@@ -676,11 +676,11 @@
 		},
 		"optimalWorkers": 4167,
 		"buildCost": {
-			"Materials": 4172.68,
-			"Metals": 223.54
+			"Materials": 4173,
+			"Metals": 224
 		},
 		"lifeYears": 18,
-		"buildWorkers": 8684418
+		"buildWorkers": 4735638
 	},
 	{
 		"type": "AirDefencePlant",
@@ -699,11 +699,11 @@
 		},
 		"optimalWorkers": 1600,
 		"buildCost": {
-			"Materials": 416.63,
-			"Metals": 22.32
+			"Materials": 417,
+			"Metals": 22
 		},
 		"lifeYears": 18,
-		"buildWorkers": 867115
+		"buildWorkers": 471598
 	},
 	{
 		"type": "ElectronicWarfarePlant",
@@ -721,27 +721,103 @@
 		},
 		"optimalWorkers": 1000,
 		"buildCost": {
-			"Materials": 349.06,
-			"Metals": 18.7
+			"Materials": 349,
+			"Metals": 19
 		},
 		"lifeYears": 18,
-		"buildWorkers": 726484
+		"buildWorkers": 397183
 	},
 	{
-		"type": "ServiceFirm",
-		"name": "Сфера услуг",
-		"icon": "services",
+		"type": "RetailFirm",
+		"name": "Торговля и общепит",
+		"icon": "retail-firm",
 		"sector": "Services",
-		"inputs": {},
+		"requiresDeposit": null,
+		"inputs": {
+			"Electricity": 0.0308,
+			"Fuel": 0.00906,
+			"Materials": 0.0289,
+			"Electronics": 0.00214
+		},
 		"outputs": {
 			"Services": 2.93
 		},
-		"optimalWorkers": 3628,
+		"optimalWorkers": 4029,
 		"buildCost": {
-			"Materials": 1711.12,
-			"Metals": 91.67
+			"Materials": 1642,
+			"Metals": 88
+		},
+		"lifeYears": 25,
+		"buildWorkers": 1862795
+	},
+	{
+		"type": "TransportFirm",
+		"name": "Транспорт и склады",
+		"icon": "transport-firm",
+		"sector": "Services",
+		"requiresDeposit": null,
+		"inputs": {
+			"Electricity": 0.0141,
+			"Fuel": 0.0404,
+			"Materials": 0.0247,
+			"Electronics": 0.00122
+		},
+		"outputs": {
+			"Services": 2.93
+		},
+		"optimalWorkers": 2339,
+		"buildCost": {
+			"Materials": 1574,
+			"Metals": 84
+		},
+		"lifeYears": 12,
+		"buildWorkers": 1784145
+	},
+	{
+		"type": "PublicService",
+		"name": "Здравоохранение, школы и государство",
+		"icon": "public-service",
+		"sector": "Services",
+		"requiresDeposit": null,
+		"inputs": {
+			"Electricity": 0.0282,
+			"Fuel": 0.00155,
+			"Materials": 0.0155,
+			"Electronics": 0.00244,
+			"Medicine": 0.00433
+		},
+		"outputs": {
+			"Services": 2.93
+		},
+		"optimalWorkers": 2729,
+		"buildCost": {
+			"Materials": 1585,
+			"Metals": 85
 		},
 		"lifeYears": 40,
-		"buildWorkers": 3561291
+		"buildWorkers": 1798363
+	},
+	{
+		"type": "BusinessFirm",
+		"name": "Финансы и деловые услуги",
+		"icon": "business-firm",
+		"sector": "Services",
+		"requiresDeposit": null,
+		"inputs": {
+			"Electricity": 0.0218,
+			"Fuel": 0.00128,
+			"Materials": 0.00764,
+			"Electronics": 0.00603
+		},
+		"outputs": {
+			"Services": 2.93
+		},
+		"optimalWorkers": 1284,
+		"buildCost": {
+			"Materials": 1684,
+			"Metals": 90
+		},
+		"lifeYears": 30,
+		"buildWorkers": 1909380
 	}
 ]
