@@ -119,15 +119,22 @@ public partial class Pie : HBoxContainer
             var count = Mathf.Max(2, (int)(Steps * (to - from) / Mathf.Tau) + 2);
             var points = new Vector2[count + 1];
 
+            // Цвет задаётся по вершинам: к середине темнее, к ободу светлее. Дольку
+            // ровного цвета глаз читает как наклейку.
+            var shades = new Color[count + 1];
+
             points[0] = centre;
+            shades[0] = colour.Darkened(0.45f);
+
             for (var step = 0; step < count; step++)
             {
                 var angle = Mathf.Lerp(from, to, (float)step / (count - 1));
 
                 points[step + 1] = centre + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
+                shades[step + 1] = colour.Lightened(0.12f);
             }
 
-            DrawColoredPolygon(points, colour);
+            DrawPolygon(points, shades);
         }
     }
 }

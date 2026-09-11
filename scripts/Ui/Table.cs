@@ -77,6 +77,8 @@ public partial class Table : VBoxContainer
                 Text = column.Title,
                 FocusMode = FocusModeEnum.None,
                 Alignment = column.Right ? HorizontalAlignment.Right : HorizontalAlignment.Left,
+                // Иначе стрелка сортировки расширяет столбец, и вся таблица дёргается.
+                ClipText = true,
                 CustomMinimumSize = new Vector2(column.Width, 0),
                 SizeFlagsHorizontal = column.Width == 0 ? SizeFlags.ExpandFill : SizeFlags.Fill,
             };

@@ -63,6 +63,10 @@ public sealed class Region
         }
     }
     public bool IsSplit => Owned.Count > 1;
+
+    /// <summary>Кто держит в области хоть одну ячейку. Нужен, чтобы разложить постройки
+    /// по владельцам: у разрезанной области их несколько.</summary>
+    public IEnumerable<byte> Owners => Owned.Keys;
     /// <summary>Единственный способ менять владение: держит сумму долей и не даёт уйти
     /// в минус.</summary>
     internal void TransferCells(byte from, byte to, int count)

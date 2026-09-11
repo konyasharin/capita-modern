@@ -47,6 +47,11 @@ public partial class ResourceWindow : Control
     private Label _sum = null!;
     private Bars _sellers = null!;
     private Bars _buyers = null!;
+    private Bars _world = null!;
+    private Label _whose = null!;
+    private Label _enough = null!;
+    private Label _price = null!;
+    private VBoxContainer _breakdown = null!;
     private HSlider _slider = null!;
     private Button _accept = null!;
 
@@ -190,26 +195,33 @@ public partial class ResourceWindow : Control
 
     private Control Middle()
     {
-        var room = new CenterContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
-
+        // Колонка держит свою ширину и стоит посередине свободного места, но прижата
+        // к верху: содержимое короткое, и по центру оно висело в пустоте.
         var column = new VBoxContainer
         {
             CustomMinimumSize = new Vector2(560, 0),
+            SizeFlagsHorizontal = SizeFlags.ShrinkCenter,
             SizeFlagsVertical = SizeFlags.Fill,
         };
 
         column.AddThemeConstantOverride("separation", 10);
-        room.AddChild(column);
 
         _title = Ui.Text("—", 30, 700, Skin.Bright);
         _title.HorizontalAlignment = HorizontalAlignment.Center;
         column.AddChild(_title);
 
-        column.AddChild(Heading("Кто это производит в мире"));
+        column.AddChild(Heading("Чьи предприятия в нашей стране"));
 
         _pie = Pie.Create();
         _pie.SizeFlagsHorizontal = SizeFlags.ShrinkCenter;
         column.AddChild(_pie);
+
+        _whose = Ui.Text(string.Empty, 12, 400, Skin.Dim);
+        column.AddChild(_whose);
+
+        column.AddChild(Heading("Кто производит в мире"));
+        _world = Bars.Create();
+        column.AddChild(_world);
 
         column.AddChild(Heading("Вложиться в производство"));
 
@@ -232,11 +244,26 @@ public partial class ResourceWindow : Control
         _sum = Ui.Number("0$", 18, Skin.Money, 130);
         line.AddChild(_sum);
 
-        _accept = Ui.Act("Вложить", Skin.Good, Invest);
+        _accept = Ui.Act("Вложить", Skin.Good, Invest, 96);
         line.AddChild(_accept);
+
+        _enough = Ui.Text(string.Empty, 13, 600, Skin.Text);
+        column.AddChild(_enough);
 
         _order = Ui.Text(string.Empty, 13, 400, Skin.Dim);
         column.AddChild(_order);
+
+        var head = new HBoxContainer();
+        head.AddChild(Heading("Цена одного предприятия"));
+        head.AddChild(Ui.Spring());
+
+        _price = Ui.Number("—", 14, Skin.Money, 110);
+        head.AddChild(_price);
+        column.AddChild(head);
+
+        _breakdown = new VBoxContainer();
+        _breakdown.AddThemeConstantOverride("separation", 2);
+        column.AddChild(_breakdown);
 
         var traffic = new HBoxContainer();
         traffic.AddThemeConstantOverride("separation", 24);
@@ -248,7 +275,7 @@ public partial class ResourceWindow : Control
 
         column.AddChild(Ui.Spring());
 
-        return room;
+        return column;
     }
 
     /// <summary>Половина нижнего ряда: заголовок и полосы под ним.</summary>
@@ -345,20 +372,20 @@ public partial class ResourceWindow : Control
     {
         if (_plant is not { } type) return;
 
-        var amount = new Money((long)(_money * 100));
-        var price = Cost(type);
-        var count = price.Raw > 0 ? (int)(amount.Raw / price.Raw) : 0;
+        var amount = new Money((long)(Math.Min(_money, Purse()) * 100));
+        if (amount.Raw <= 0) return;
 
-        if (count <= 0) return;
-
-        _loop.Simulation.Invest(_loop.Player, type, count, amount);
+        _loop.Simulation.Invest(_loop.Player, type, amount);
         _money = 0;
         _slider.Value = 0;
         Refresh();
     }
 
+    /// <summary>Во что обходится одна постройка: материалы по нынешним ценам плюс работа
+    /// строителей. Ровно эту сумму снимает стройка за каждое здание.</summary>
     private Money Cost(BuildingType type) =>
-        Construction.CostOf(_loop.World.Buildings[type].BuildCost, _loop.PlayerCountry.State.Prices);
+        Construction.CostOf(_loop.World.Buildings[type].BuildCost, _loop.PlayerCountry.State.Prices)
+        + _loop.Simulation.BuildWageOf(_loop.Player, type);
 
     // --- обновление -----------------------------------------------------------------
 
@@ -379,7 +406,14 @@ public partial class ResourceWindow : Control
         _title.Text = Names.Of(_chosen);
         _title.AddThemeColorOverride("font_color", Names.ColourOf(_chosen).Lightened(0.35f));
 
-        _pie.Show(Shares());
+        var owners = Owners();
+
+        _pie.Show(owners);
+        _whose.Text = owners.Count == 0
+            ? "В стране нет предприятий, делающих этот товар."
+            : "Раздел по долям области: где граница разрезала область, часть предприятий числится за соседом.";
+
+        _world.Show(Shares());
 
         var output = sim.OutputOf(id, _chosen);
         var world = sim.WorldOutputOf(_chosen);
@@ -410,7 +444,7 @@ public partial class ResourceWindow : Control
 
         var order = sim.OrderOf(id);
         _order.Text = order is { } what
-            ? $"Заказано: {Names.Of(what.Type)}, осталось построить {what.Left}"
+            ? $"Заказано: {Names.Of(what.Type)}, вложенного осталось {Fmt.Cash(what.Left.Exact)}"
             : "Заказа нет — страна строит то, что выгоднее.";
 
         ShowSum();
@@ -433,41 +467,63 @@ public partial class ResourceWindow : Control
         };
     }
 
-    /// <summary>Доли стран в мировом выпуске товара: семь крупнейших и остальные одним
-    /// куском.</summary>
-    private List<Wedge> Shares()
+    /// <summary>Кому принадлежат предприятия, делающие этот товар в нашей стране.</summary>
+    /// <remarks>Своих предприятий у частника и у чужих стран пока нет: всё производство
+    /// государственное. Другой владелец появляется только там, где граница разрезала
+    /// область — тогда часть построек числится за соседом по доле ячеек.</remarks>
+    private List<Wedge> Owners()
+    {
+        var types = Producers().ToList();
+        var mine = new Dictionary<byte, long>();
+
+        foreach (var region in _loop.World.RegionsOf(_loop.Player))
+        {
+            foreach (var type in types)
+            {
+                if (region.BuildingsOf(type) == 0) continue;
+
+                foreach (var owner in region.Owners)
+                {
+                    var count = region.BuildingsOf(type, owner);
+                    if (count > 0) mine[owner] = mine.GetValueOrDefault(owner) + count;
+                }
+            }
+        }
+
+        var total = mine.Values.Sum();
+        if (total <= 0) return [];
+
+        return mine
+            .OrderByDescending(pair => pair.Value)
+            .Take(8)
+            .Select((pair, index) => new Wedge(
+                pair.Key == _loop.Player ? "Наше государство" : Names.Of(_loop.World.CountryById(pair.Key)),
+                (double)pair.Value / total,
+                $"{Fmt.Count(pair.Value)} шт.",
+                pair.Key == _loop.Player
+                    ? Names.ColourOf(_chosen).Lightened(0.25f)
+                    : Slices[(index + 1) % Slices.Length]))
+            .ToList();
+    }
+
+    /// <summary>Доли стран в мировом выпуске товара: пятёрка крупнейших.</summary>
+    private List<Slice> Shares()
     {
         var sim = _loop.Simulation;
         var total = sim.WorldOutputOf(_chosen).Raw;
         if (total <= 0) return [];
 
-        var made = _loop.World.Countries
+        return _loop.World.Countries
             .Select(country => (Country: country, Raw: sim.OutputOf(country.Id, _chosen).Raw))
             .Where(pair => pair.Raw > 0)
             .OrderByDescending(pair => pair.Raw)
+            .Take(5)
+            .Select(pair => new Slice(
+                Names.Of(pair.Country),
+                pair.Raw,
+                Fmt.Percent(pair.Raw * 100.0 / total),
+                pair.Country.Id == _loop.Player ? Skin.Bright : Names.ColourOf(_chosen).Lightened(0.3f)))
             .ToList();
-
-        var wedges = new List<Wedge>();
-        var shown = 0L;
-
-        foreach (var (country, raw) in made.Take(7))
-        {
-            wedges.Add(new Wedge(
-                Names.Of(country),
-                (double)raw / total,
-                Fmt.Amount(new GoodAmount(raw)),
-                country.Id == _loop.Player ? Skin.Bright : Slices[wedges.Count % Slices.Length]));
-
-            shown += raw;
-        }
-
-        if (total > shown)
-        {
-            wedges.Add(new Wedge("Прочие", (double)(total - shown) / total,
-                Fmt.Amount(new GoodAmount(total - shown)), Skin.Soft));
-        }
-
-        return wedges;
     }
 
     /// <summary>Цвета долек. Оттенки одного цвета сливались, поэтому набор разный, а
@@ -603,14 +659,79 @@ public partial class ResourceWindow : Control
 
     private void ShowSum()
     {
-        var purse = Purse();
-        var amount = Math.Min(_money, purse);
+        var amount = Math.Min(_money, Purse());
         var price = _plant is { } type ? Cost(type).Exact : 0;
-        var count = price > 0 ? (int)(amount / price) : 0;
 
         _sum.Text = Fmt.Cash(amount);
-        _accept.Disabled = count <= 0;
-        _accept.Text = count > 0 ? $"Вложить · {count} шт." : "Вложить";
+        _accept.Disabled = amount <= 0 || _plant is null;
+
+        _enough.Text = price > 0
+            ? $"Хватит на {amount / price:0.00} предприятия"
+            : "Выберите, что строить";
+
+        _enough.AddThemeColorOverride("font_color", price > 0 && amount >= price ? Skin.Good : Skin.Dim);
+        _price.Text = price > 0 ? Fmt.Cash(price) : "—";
+
+        ShowBreakdown();
+    }
+
+    /// <summary>Из чего складывается цена постройки прямо сейчас.</summary>
+    private void ShowBreakdown()
+    {
+        if (_plant is not { } type)
+        {
+            Ui.Trim(_breakdown, 0);
+            return;
+        }
+
+        var prices = _loop.PlayerCountry.State.Prices;
+        var info = _loop.World.Buildings[type];
+
+        var rows = info.BuildCost
+            .Select(pair => (
+                Label: Names.Of(pair.Key),
+                Icon: Names.IconOf(pair.Key),
+                Tint: Names.ColourOf(pair.Key),
+                Amount: Fmt.Amount(pair.Value),
+                Worth: prices.CostOf(pair.Key, pair.Value)))
+            .OrderByDescending(row => row.Worth.Raw)
+            .ToList();
+
+        rows.Add((
+            "Работа строителей",
+            Names.Ui("employment"),
+            Skin.Labour,
+            $"{Fmt.Count(info.BuildWorkers)} чел.",
+            _loop.Simulation.BuildWageOf(_loop.Player, type)));
+
+        Ui.Trim(_breakdown, rows.Count);
+
+        for (var index = 0; index < rows.Count; index++)
+        {
+            if (index >= _breakdown.GetChildCount()) _breakdown.AddChild(CostRow());
+
+            var row = _breakdown.GetChild(index);
+
+            row.GetChild<TextureRect>(0).Texture = GD.Load<Texture2D>(rows[index].Icon);
+            row.GetChild<TextureRect>(0).Modulate = rows[index].Tint;
+            row.GetChild<Label>(1).Text = rows[index].Label;
+            row.GetChild<Label>(3).Text = rows[index].Amount;
+            row.GetChild<Label>(4).Text = Fmt.Cash(rows[index].Worth.Exact);
+        }
+    }
+
+    private static Control CostRow()
+    {
+        var row = new HBoxContainer { MouseFilter = MouseFilterEnum.Ignore };
+        row.AddThemeConstantOverride("separation", 8);
+
+        row.AddChild(Ui.Icon("res://assets/icons/ui/close.svg", 14, Skin.Text));
+        row.AddChild(Ui.Text(string.Empty, 13, 400, Skin.Text));
+        row.AddChild(Ui.Spring());
+        row.AddChild(Ui.Number(string.Empty, 13, Skin.Dim, 84));
+        row.AddChild(Ui.Number(string.Empty, 13, Skin.Money, 96));
+
+        return row;
     }
 
     /// <summary>Круглая плашка товара.</summary>
@@ -648,7 +769,7 @@ public partial class ResourceWindow : Control
 
             badge.AddChild(disc);
 
-            var icon = Ui.Icon(Names.IconOf(good), 28, new Color(0.06f, 0.08f, 0.09f, 0.92f));
+            var icon = Ui.Icon(Names.IconOf(good), 28, Contrast(Names.ColourOf(good)));
             icon.Position = new Vector2(1 + (Circle - 28) / 2f, (Circle - 28) / 2f);
             icon.Size = new Vector2(28, 28);
             badge.AddChild(icon);
@@ -660,6 +781,15 @@ public partial class ResourceWindow : Control
             badge.AddChild(badge._under);
 
             return badge;
+        }
+
+        /// <summary>Цвет значка под цвет кружка: на тёмном светлый, на светлом тёмный.
+        /// Один чёрный на всех сливался с половиной палитры.</summary>
+        private static Color Contrast(Color disc)
+        {
+            var light = disc.R * 0.30f + disc.G * 0.59f + disc.B * 0.11f;
+
+            return light > 0.55f ? disc.Darkened(0.78f) : disc.Lightened(0.86f);
         }
 
         public void Show(bool chosen, string under)

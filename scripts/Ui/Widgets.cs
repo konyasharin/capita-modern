@@ -76,13 +76,17 @@ public static class Ui
 
     /// <summary>Кнопка действия. Цвет говорит о последствиях: связь — обычное,
     /// красное — необратимое.</summary>
-    public static Button Act(string text, Color colour, Action? pressed)
+    /// <param name="width">Ширина кнопки. Обязательна там, где подпись меняется: иначе
+    /// кнопка растёт вместе с текстом и весь ряд рядом с ней прыгает.</param>
+    public static Button Act(string text, Color colour, Action? pressed, int width = 0)
     {
         var button = new Button
         {
             Text = text,
             FocusMode = Control.FocusModeEnum.None,
             MouseFilter = Control.MouseFilterEnum.Stop,
+            ClipText = width > 0,
+            CustomMinimumSize = new Vector2(width, 0),
         };
 
         button.AddThemeFontOverride("font", Skin.Weight(600));
@@ -272,6 +276,7 @@ public partial class Bar : VBoxContainer
         groove.AddChild(back);
 
         bar._fill = new ColorRect { Color = colour, MouseFilter = MouseFilterEnum.Ignore };
+        bar._fill.Material = Skin.Fill(colour);
         bar._fill.SetAnchorsPreset(LayoutPreset.FullRect);
         bar._fill.AnchorRight = 0f;
         groove.AddChild(bar._fill);
@@ -290,6 +295,7 @@ public partial class Bar : VBoxContainer
         _value.AddThemeColorOverride("font_color", colour ?? _colour);
 
         _fill.Color = colour ?? _colour;
+        ((ShaderMaterial)_fill.Material).SetShaderParameter("tint", _fill.Color);
         _fill.AnchorRight = (float)Mathf.Clamp(share, 0.0, 1.0);
     }
 }

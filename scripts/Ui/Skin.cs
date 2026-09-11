@@ -168,12 +168,30 @@ public static class Skin
     {
         var box = Box(new Color(colour, hover ? 0.34f : 0.15f), new Color(colour, 0.7f), 3);
 
+        // Светлая кромка сверху и тёмная снизу: ровная рамка со всех сторон делает кнопку
+        // плоской наклейкой, а скос читается как выпуклость.
+        box.BorderColor = new Color(colour, hover ? 0.95f : 0.6f);
+        box.BorderWidthTop = 2;
+        box.BorderWidthBottom = 1;
+        box.ShadowColor = new Color(0f, 0f, 0f, 0.35f);
+        box.ShadowSize = hover ? 5 : 3;
+        box.ShadowOffset = new Vector2(0, 1);
+
         box.ContentMarginLeft = 10;
         box.ContentMarginRight = 10;
         box.ContentMarginTop = 4;
         box.ContentMarginBottom = 5;
 
         return box;
+    }
+
+    /// <summary>Материал для заливок: градиент, косые полосы и зерно вместо ровного цвета.</summary>
+    public static ShaderMaterial Fill(Color colour)
+    {
+        var paint = new ShaderMaterial { Shader = GD.Load<Shader>("res://scenes/ui/fill.gdshader") };
+        paint.SetShaderParameter("tint", colour);
+
+        return paint;
     }
 
     /// <summary>Полоса прокрутки под общий вид: у стандартной светло-серый ползунок,

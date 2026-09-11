@@ -9,6 +9,10 @@ public partial class Chart : VBoxContainer
 {
     private const int PlotHeight = 84;
 
+    /// <summary>Место под подпись ряда. Задаётся, иначе при смене числа соседняя подпись
+    /// уезжает вбок вместе с ним.</summary>
+    private const int LegendWidth = 132;
+
     private Label _title = null!;
     private HBoxContainer _legend = null!;
     private Plot _plot = null!;
@@ -96,7 +100,15 @@ public partial class Chart : VBoxContainer
 
         for (var index = 0; index < traces.Length; index++)
         {
-            if (index >= _legend.GetChildCount()) _legend.AddChild(Ui.Text(string.Empty, 12, 600));
+            if (index >= _legend.GetChildCount())
+            {
+                var fresh = Ui.Text(string.Empty, 12, 600);
+
+                fresh.CustomMinimumSize = new Vector2(LegendWidth, 0);
+                fresh.HorizontalAlignment = HorizontalAlignment.Right;
+                fresh.ClipText = true;
+                _legend.AddChild(fresh);
+            }
 
             var label = _legend.GetChild<Label>(index);
             var points = traces[index].Points;
@@ -154,7 +166,14 @@ public partial class Chart : VBoxContainer
             under[width] = new Vector2(width - 1, Size.Y);
             under[width + 1] = new Vector2(0, Size.Y);
 
-            DrawColoredPolygon(under, new Color(trace.Colour, 0.13f));
+            // Заливка под линией гаснет книзу: ровная плашка цвета спорит с самой линией.
+            var shades = new Color[width + 2];
+            for (var at = 0; at < width; at++) shades[at] = new Color(trace.Colour, 0.26f);
+
+            shades[width] = new Color(trace.Colour, 0.02f);
+            shades[width + 1] = new Color(trace.Colour, 0.02f);
+
+            DrawPolygon(under, shades);
             DrawPolyline(points, trace.Colour, 1.6f, antialiased: true);
         }
 

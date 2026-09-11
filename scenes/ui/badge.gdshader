@@ -23,6 +23,11 @@ void fragment() {
 	// Внутренняя тень у края добавляет глубины.
 	body *= 1.0 - 0.45 * smoothstep(0.55, 1.0, radius);
 
+	// Блик сверху и зерно: без них кружок остаётся плоским пятном.
+	float gloss = smoothstep(0.55, 0.0, length(middle - vec2(-0.14, -0.18)));
+	body += tint.rgb * gloss * 0.35 + vec3(gloss * gloss * 0.10);
+	body += (fract(sin(dot(FRAGCOORD.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) * 0.045;
+
 	vec3 edge = mix(tint.rgb * 1.5, vec3(1.0), chosen * 0.6);
 	vec3 col = mix(body, edge, ring * (0.55 + chosen * 0.45));
 

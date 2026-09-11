@@ -112,9 +112,14 @@ public partial class FinancePanel : SidePanel
             .ToList());
         _reserves.Set(Fmt.Cash(reserves.Value.Exact));
         _frozen.Set(Fmt.Cash(reserves.Frozen.Exact), reserves.Frozen.Raw > 0 ? Skin.Bad : Skin.Good);
-        _frozenBy.Set(reserves.FrozenBy.Count == 0
-            ? "никем"
-            : string.Join(", ", reserves.FrozenBy.Select(who => Loop.World.CountryById(who).Iso)));
+        // Перечисляем троих: длинный список вылезал за строку и наезжал на подпись.
+        var froze = reserves.FrozenBy.Select(who => Loop.World.CountryById(who).Iso).ToList();
+        _frozenBy.Set(froze.Count switch
+        {
+            0 => "никем",
+            <= 3 => string.Join(", ", froze),
+            _ => $"{string.Join(", ", froze.Take(3))} и ещё {froze.Count - 3}",
+        });
 
         var debt = treasury.Debt;
         var owed = debt.Owed(LoanSource.Foreign);

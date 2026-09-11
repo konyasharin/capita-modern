@@ -79,7 +79,11 @@ public partial class Bars : VBoxContainer
             row._groove.OffsetBottom = -6;
             row.AddChild(row._groove);
 
-            row._fill = new ColorRect { MouseFilter = MouseFilterEnum.Ignore };
+            row._fill = new ColorRect
+            {
+                MouseFilter = MouseFilterEnum.Ignore,
+                Material = Skin.Fill(Skin.Link),
+            };
             row._fill.SetAnchorsPreset(LayoutPreset.FullRect);
             row._fill.AnchorRight = 0;
             row._groove.AddChild(row._fill);
@@ -108,6 +112,7 @@ public partial class Bars : VBoxContainer
             }
 
             _fill.Color = slice.Colour;
+            ((ShaderMaterial)_fill.Material).SetShaderParameter("tint", slice.Colour);
             _fill.AnchorRight = top > 0 ? (float)Mathf.Clamp(Math.Abs(slice.Value) / top, 0.0, 1.0) : 0f;
         }
     }
