@@ -60,6 +60,8 @@ public partial class ResourceWindow : Control
     private Bars _world = null!;
     private Label _whose = null!;
     private Label _enough = null!;
+    private Label _spill = null!;
+    private ColorRect _notch = null!;
     private Label _price = null!;
     private VBoxContainer _breakdown = null!;
     private HSlider _slider = null!;
@@ -277,6 +279,20 @@ public partial class ResourceWindow : Control
             ShowSum();
         });
 
+        // Засечка показывает, где кончается безопасная сумма: дальше материалы дорожают.
+        _notch = new ColorRect
+        {
+            Color = Skin.Warn,
+            MouseFilter = MouseFilterEnum.Ignore,
+            Visible = false,
+        };
+
+        _notch.AnchorTop = 0;
+        _notch.AnchorBottom = 1;
+        _notch.OffsetLeft = -1;
+        _notch.OffsetRight = 1;
+        _slider.AddChild(_notch);
+
         line.AddChild(_slider);
 
         _sum = Ui.Number("0$", 18, Skin.Money, 130);
@@ -287,6 +303,9 @@ public partial class ResourceWindow : Control
 
         _enough = Wrapped(13, Skin.Text, 600);
         column.AddChild(_enough);
+
+        _spill = Wrapped(13, Skin.Warn);
+        column.AddChild(_spill);
 
         _order = Wrapped(13);
         column.AddChild(_order);
@@ -784,7 +803,8 @@ public partial class ResourceWindow : Control
 
     private void ShowSum()
     {
-        var amount = Math.Min(_money, Purse());
+        var purse = Purse();
+        var amount = Math.Min(_money, purse);
         var price = _plant is { } type ? Cost(type).Exact : 0;
 
         _sum.Text = Fmt.Cash(amount);
@@ -801,7 +821,54 @@ public partial class ResourceWindow : Control
         _enough.AddThemeColorOverride("font_color", price > 0 && amount >= price ? Skin.Good : Skin.Dim);
         _price.Text = price > 0 ? Fmt.Cash(price) : "—";
 
+        Spill(price, amount, purse);
         ShowBreakdown();
+    }
+
+    /// <summary>Засечка безопасной суммы и предупреждение, когда ползунок ушёл за неё.</summary>
+    private void Spill(double price, double amount, double purse)
+    {
+        if (_plant is not { } type || price <= 0 || purse <= 0)
+        {
+            _notch.Visible = false;
+            _spill.Text = string.Empty;
+
+            return;
+        }
+
+        var (safe, tight) = _loop.Simulation.SafeToBuild(_loop.Player, type);
+        var money = safe * price;
+
+        _notch.Visible = money < purse;
+        _notch.AnchorLeft = _notch.AnchorRight = (float)Mathf.Clamp(money / purse, 0.0, 1.0);
+
+        if (amount <= money)
+        {
+            _spill.Text = safe > 0
+                ? $"Не двигая цены можно вложить до {Fmt.Cash(money)} — это {Fmt.Count(safe)} предприятий."
+                : "Склад уже пуст: любая стройка поднимет цены на материалы.";
+
+            _spill.AddThemeColorOverride("font_color", safe > 0 ? Skin.Dim : Skin.Warn);
+
+            return;
+        }
+
+        _spill.AddThemeColorOverride("font_color", Skin.Warn);
+        _spill.Text = tight is { } good
+            ? $"Сверх {Fmt.Cash(money)} подорожает {Names.Of(good).ToLowerInvariant()}. {Ship(good)}"
+            : $"Сверх {Fmt.Cash(money)} материалы подорожают.";
+    }
+
+    /// <summary>Привезут ли нехватку из-за границы и во что обойдётся дорога.</summary>
+    private string Ship(GoodType good)
+    {
+        if (good == GoodType.Services) return "Услуги не возят — дорожать будут, пока не построим своё.";
+
+        var markup = _loop.Simulation.MarkupOn(_loop.Player, good);
+
+        return markup > 0
+            ? $"Довезут из-за границы, дорога добавит {Fmt.Rate(markup)} к мировой цене."
+            : "Довезут из-за границы.";
     }
 
     /// <summary>Из чего складывается цена постройки прямо сейчас.</summary>

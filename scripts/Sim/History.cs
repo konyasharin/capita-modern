@@ -87,6 +87,28 @@ public partial class History : Node
         return (days >= Enough ? Math.Pow(grew, (double)Year / days) - 1 : grew - 1) * 100;
     }
 
+    /// <summary>Годовая инфляция по дням — тем же правилом, что и сегодняшняя.</summary>
+    public IReadOnlyList<float> YearlyLine()
+    {
+        var points = _lines[Line.Inflation];
+        var line = new float[points.Count];
+
+        for (var day = 0; day < points.Count; day++)
+        {
+            var back = Math.Min(day, Year);
+            if (back == 0) continue;
+
+            var now = 1 + points[day] / 100.0;
+            var was = 1 + points[day - back] / 100.0;
+            if (was <= 0 || now <= 0) continue;
+
+            var grew = now / was;
+            line[day] = (float)((back >= Enough ? Math.Pow(grew, (double)Year / back) - 1 : grew - 1) * 100);
+        }
+
+        return line;
+    }
+
     /// <summary>Цена товара по дням за последний месяц.</summary>
     public IReadOnlyList<float> PricesOf(GoodType good)
     {

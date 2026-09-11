@@ -107,7 +107,7 @@ public partial class SelectionPanel : PanelContainer
         ("Население", "population"),
         ("ВВП за год", "output"),
         ("Инфляция", "inflation"),
-        ("Курс к доллару", "rate"),
+        ("Курс валюты к старту", "rate"),
         ("Ключевая ставка", "keyrate"),
         ("Отношение к нам", "attitude"),
         ("Ввоз от нас", "imports"),
@@ -180,7 +180,7 @@ public partial class SelectionPanel : PanelContainer
         var inflation = (sim.PriceLevelOf(they) - PriceLevel.Scale) * 100.0 / PriceLevel.Scale;
         _stats[2].Set(Fmt.Percent(inflation, signed: true), Fmt.Sign(inflation, moreIsBetter: false));
 
-        _stats[3].Set($"{country.ExchangeRate.Exact:0.00}");
+        _stats[3].Set($"×{country.ExchangeRate.Exact:0.00}");
         _stats[4].Set(Fmt.Rate(country.KeyRate));
 
         var attitude = world.Relations.Between(_loop.Player, they);

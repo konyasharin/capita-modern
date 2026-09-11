@@ -80,10 +80,13 @@ public partial class OverviewPanel : SidePanel
         Section("Деньги", "rate");
         _supply = Stat("Денежная масса", "supply");
         _printed = Stat("Напечатано за партию", "printed");
-        _priceYear = Stat("Инфляция за год", "inflation");
+        _priceYear = Stat("Инфляция за год", "inflation", () => TrendCard.Of(
+            "inflation", "Инфляция за год",
+            value => Fmt.Percent(value, signed: true),
+            new Trace("инфляция", Skin.Prices, Past.YearlyLine())));
         _level = Stat("Уровень цен к старту", "pricelevel");
-        _rate = Stat("Курс к доллару", "rate", () => TrendCard.Of(
-            "rate", "Курс к доллару за год", value => $"{value:0.00}",
+        _rate = Stat("Курс валюты к старту", "rate", () => TrendCard.Of(
+            "rate", "Курс валюты за год", value => $"×{value:0.00}",
             new Trace("курс", Skin.Rate, Past.Of(History.Line.Rate))));
     }
 
@@ -145,7 +148,7 @@ public partial class OverviewPanel : SidePanel
 
         var level = Loop.Inflation;
         _level.Set(Fmt.Percent(level, signed: true), Fmt.Sign(level, moreIsBetter: false));
-        _rate.Set($"{Me.ExchangeRate.Exact:0.00}");
+        _rate.Set($"×{Me.ExchangeRate.Exact:0.00}");
     }
 
     /// <summary>Сколько рук занято в каждой отрасли.</summary>

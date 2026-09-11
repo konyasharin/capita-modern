@@ -658,6 +658,43 @@ public sealed class Simulation
         return true;
     }
 
+    /// <summary>Сколько таких зданий можно заказать, не сдвинув цены на материалы, и во
+    /// что это упирается.</summary>
+    /// <remarks>
+    /// Цена товара ходит от покрытия: пока на складе лежит запас на <see
+    /// cref="Prices.TargetCoverDays"/> дней спроса, она стоит на месте. Стройка добавляет
+    /// спрос наравне с заводами, поэтому запас для неё — это то, что лежит сверх нормы.
+    ///
+    /// Считается по вчерашнему спросу: сегодняшний ещё не собран, а вчерашний уже включает
+    /// и стройку, и заводы, и население.
+    /// </remarks>
+    public (int Count, GoodType? Tight) SafeToBuild(byte country, BuildingType type)
+    {
+        var stock = _world.CountryById(country).State.Stock;
+        var most = int.MaxValue;
+        GoodType? tight = null;
+
+        foreach (var (good, amount) in _world.Buildings[type].BuildCost)
+        {
+            if (amount.Raw <= 0) continue;
+
+            var norm = _inputs.Get(country, good).Raw * Prices.TargetCoverDays;
+            var spare = stock.Of(good).Raw - norm;
+            var fits = spare <= 0 ? 0 : (int)Math.Min(int.MaxValue, spare / amount.Raw);
+
+            if (fits >= most) continue;
+
+            most = fits;
+            tight = good;
+        }
+
+        return (most == int.MaxValue ? 0 : most, tight);
+    }
+
+    /// <summary>Наценка на ввоз товара в сотых долях процента: дорога и пошлины по пути.</summary>
+    public int MarkupOn(byte country, GoodType good) =>
+        _world.TradeCosts.ImportMarkup(country, good, _world.Routes.CostTo(country));
+
     /// <summary>Сколько таких зданий страна поднимет за один тик по нынешнему складу.</summary>
     /// <remarks>Хотя бы одно можно всегда: иначе дорогое здание в маленькой стране не
     /// построилось бы никогда, сколько ни копи.</remarks>

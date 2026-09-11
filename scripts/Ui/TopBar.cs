@@ -59,11 +59,14 @@ public partial class TopBar : Control
 
         middle.AddChild(Flag());
 
-        _inflation = Add(middle, "inflation", Skin.Prices, 52);
+        _inflation = Add(middle, "inflation", Skin.Prices, 52, () => TrendCard.Of(
+            "inflation", "Инфляция за год",
+            value => Fmt.Percent(value, signed: true),
+            new Trace("инфляция", Skin.Prices, _past.YearlyLine())));
         _treasury = Add(middle, "treasury", Skin.Money, 64);
         _debt = Add(middle, "debt", Skin.Owed, 58);
         _rate = Add(middle, "rate", Skin.Rate, 46, () => TrendCard.Of(
-            "rate", "Курс к доллару за год", value => $"{value:0.00}",
+            "rate", "Курс валюты за год", value => $"×{value:0.00}",
             new Trace("курс", Skin.Rate, _past.Of(History.Line.Rate))));
 
         _date = new Label { MouseFilter = MouseFilterEnum.Ignore };
@@ -109,7 +112,7 @@ public partial class TopBar : Control
         var debt = _loop.ExternalDebt;
         _debt.Set(Fmt.Cash(debt), debt > 0 ? Skin.Bright : Skin.Dim);
 
-        _rate.Set($"{_loop.Rate:0.00}");
+        _rate.Set($"×{_loop.Rate:0.00}");
 
         _date.Text = _loop.Today.ToString("dd.MM.yyyy");
 
