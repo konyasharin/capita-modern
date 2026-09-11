@@ -28,20 +28,29 @@ public partial class Popover : PanelContainer
     /// <summary>Термин, над которым сейчас курсор. Пустая строка — ни над каким.</summary>
     public string HotTerm { get; set; } = string.Empty;
 
-    private RichTextLabel _body = null!;
+    private RichTextLabel? _body;
 
     /// <summary>Что дописано к статье по месту. Хранится, чтобы не пересоздавать
     /// подсказку, пока подробность не изменилась.</summary>
     public string? Extra { get; private set; }
 
-    public static Popover Create(Control source, string key, Article article, string? extra = null)
+    /// <summary>Подсказка из собранного виджета: заголовок и всё прочее рисует он сам.
+    /// Текстом не всё расскажешь — цену за месяц удобнее показать графиком.</summary>
+    public static Popover Create(Control source, string key, Control body)
+    {
+        var popover = Frame(source, key, null);
+        popover.GetChild(0).AddChild(body);
+
+        return popover;
+    }
+
+    private static Popover Frame(Control source, string key, string? extra)
     {
         var popover = new Popover
         {
             Source = source,
             Key = key,
             Extra = extra,
-            CustomMinimumSize = new Vector2(Width, 0),
             MouseFilter = MouseFilterEnum.Stop,
         };
 
@@ -51,6 +60,15 @@ public partial class Popover : PanelContainer
         rows.AddThemeConstantOverride("separation", 6);
         popover.AddChild(rows);
 
+        return popover;
+    }
+
+    public static Popover Create(Control source, string key, Article article, string? extra = null)
+    {
+        var popover = Frame(source, key, extra);
+        popover.CustomMinimumSize = new Vector2(Width, 0);
+
+        var rows = popover.GetChild<VBoxContainer>(0);
         var title = new Label { Text = article.Title, MouseFilter = MouseFilterEnum.Ignore };
         title.AddThemeFontOverride("font", Skin.Weight(600));
         title.AddThemeColorOverride("font_color", Skin.Bright);
@@ -77,8 +95,8 @@ public partial class Popover : PanelContainer
         return popover;
     }
 
-    /// <summary>Кого сейчас показывает подсказка внутри текста.</summary>
-    public RichTextLabel Body => _body;
+    /// <summary>Текст подсказки, если она текстовая. У собранной из виджетов его нет.</summary>
+    public RichTextLabel? Body => _body;
 
     /// <summary>Ставится один раз и больше не двигается: подсказка, которая ездит за
     /// курсором, не даёт себя прочитать.</summary>

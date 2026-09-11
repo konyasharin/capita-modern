@@ -6,15 +6,23 @@ public partial class Metric : HBoxContainer
     private Label _value = null!;
     private string _key = string.Empty;
     private PopoverStack _stack = null!;
+    private Func<(string Key, Control Body)?>? _card;
 
     /// <param name="width">Ширина места под число: иначе при смене «9.9M» на «10.1M»
     /// весь ряд дёргается вбок.</param>
-    public static Metric Create(PopoverStack stack, string key, Texture2D icon, Color tint, int width)
+    public static Metric Create(
+        PopoverStack stack,
+        string key,
+        Texture2D icon,
+        Color tint,
+        int width,
+        Func<(string Key, Control Body)?>? card = null)
     {
         var metric = new Metric
         {
             _key = key,
             _stack = stack,
+            _card = card,
             MouseFilter = MouseFilterEnum.Stop,
         };
 
@@ -52,7 +60,10 @@ public partial class Metric : HBoxContainer
     /// приходится — подсказка так же и закрывается.</summary>
     public override void _Process(double delta)
     {
-        if (GetGlobalRect().HasPoint(GetGlobalMousePosition())) _stack.Open(this, _key, 0);
+        if (!GetGlobalRect().HasPoint(GetGlobalMousePosition())) return;
+
+        if (_card?.Invoke() is { } card) _stack.Open(this, card.Key, 0, card: () => card.Body);
+        else _stack.Open(this, _key, 0);
     }
 
     public void Set(string text) => _value.Text = text;

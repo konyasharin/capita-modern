@@ -26,8 +26,8 @@ public partial class GoodsPanel : SidePanel
         Rows.AddChild(_top);
 
         Section("По товарам", "tab-goods");
-        Note("Выпуск и заказ — за сутки, склад — остаток на начало дня. Столбец «к старту» " +
-            "показывает, во сколько раз цена ушла от начала партии.");
+        Note("Выпуск и заказ — за сутки, склад — остаток на начало дня. Столбец «к миру» — " +
+            "наша цена к среднемировой: она складывается из настоящих сделок между странами.");
 
         _table = Table.Create(
         [
@@ -36,10 +36,10 @@ public partial class GoodsPanel : SidePanel
             new Column("Заказ", 52),
             new Column("Склад", 52),
             new Column("Цена", 54),
-            new Column("К старту", 52),
+            new Column("К миру", 52),
         ],
             stack: Stack,
-            about: row => GoodCard.Of(Loop, AllGoods[row]));
+            about: row => GoodCard.Of(Loop, Past, AllGoods[row]));
 
         Rows.AddChild(_table);
     }
@@ -60,13 +60,13 @@ public partial class GoodsPanel : SidePanel
             var input = sim.InputOf(Id, good);
             var held = stock.Of(good);
             var price = prices.Of(good);
-            var start = prices.StartOf(good);
+            var world = Loop.World.Market.Prices.Of(good);
             var lack = sim.ShortOf(Id, good);
 
             made += prices.CostOf(good, output);
             missing += prices.CostOf(good, lack);
 
-            var times = start.Raw > 0 ? price.Exact / start.Exact : 1;
+            var times = world.Raw > 0 ? price.Exact / world.Exact : 0;
 
             rows.Add(
             [
@@ -75,7 +75,8 @@ public partial class GoodsPanel : SidePanel
                 new Cell(Fmt.Amount(input), input.Exact, lack.Raw > 0 ? Skin.Bad : Skin.Text),
                 new Cell(Fmt.Amount(held), held.Exact, held.Raw > 0 ? Skin.Text : Skin.Dim),
                 new Cell(Fmt.Price(price), price.Exact, Skin.Money),
-                new Cell($"×{times:0.00}", times, Fmt.Sign(times - 1, moreIsBetter: false)),
+                new Cell(times > 0 ? $"×{times:0.00}" : "—", times,
+                    times > 0 ? Fmt.Sign(times - 1, moreIsBetter: false) : Skin.Dim),
             ]);
         }
 
@@ -86,7 +87,7 @@ public partial class GoodsPanel : SidePanel
             .Take(8)
             .Select(pair => new Slice(
                 Names.Of(pair.Good), pair.Worth.Exact, Fmt.Cash(pair.Worth.Exact),
-                Skin.Output, Names.IconOf(pair.Good), () => GoodCard.Of(Loop, pair.Good)))
+                Skin.Output, Names.IconOf(pair.Good), () => GoodCard.Of(Loop, Past, pair.Good)))
             .ToList());
 
         _made.Set(Fmt.Cash(made.Exact));

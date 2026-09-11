@@ -34,7 +34,7 @@ public partial class FinancePanel : SidePanel
     protected override void Build()
     {
         Section("Как идут деньги", "treasury");
-        _purse = Graph("Казна и внешний долг", Fmt.Cash);
+        _purse = Graph("Казна и внешний долг", Fmt.Cash).Ranged();
 
         Section("Казна", "treasury");
         _balance = Stat("Остаток", "treasury");
@@ -78,7 +78,7 @@ public partial class FinancePanel : SidePanel
         var line = new HBoxContainer();
         line.AddThemeConstantOverride("separation", 8);
 
-        _emit = Ui.Act("Напечатать 1% массы", Skin.Warn, Emit);
+        _emit = Ui.Act("Напечатать 1% массы", Skin.Warn, Emit, 168);
         _repudiate = Ui.Act("Отказаться платить", Skin.Bad, Repudiate);
 
         line.AddChild(_emit);
@@ -172,10 +172,10 @@ public partial class FinancePanel : SidePanel
         Rows.AddChild(knob);
     }
 
-    /// <summary>Печатает процент денежной массы и кладёт в казну.</summary>
+    /// <summary>Печатает процент денежной массы и кладёт в казну. Ctrl и Shift множат.</summary>
     private void Emit()
     {
-        var amount = new Money(Me.Bank.Supply.Raw / 100);
+        var amount = new Money(Me.Bank.Supply.Raw * Ui.Louder() / 100);
         if (amount.Raw <= 0) return;
 
         Me.Bank.Emit(amount, EmissionKind.Open);

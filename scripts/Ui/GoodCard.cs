@@ -1,50 +1,164 @@
-using System.Text;
 using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
+using Godot;
 
-/// <summary>Карточка товара для подсказки: цена, что с ним у нас сейчас и где он нужен.
-/// Собирается на месте — в словаре такого не напишешь, всё зависит от состояния игры.</summary>
+/// <summary>Карточка товара для подсказки: кружок с цветом, четыре числа, цена за месяц
+/// графиком и рецепт значками. Собирается на месте — в словаре такого не напишешь, всё
+/// зависит от состояния игры.</summary>
 public static class GoodCard
 {
-    /// <summary>Сколько заводов перечислять поимённо, прежде чем писать «и ещё N».</summary>
-    private const int Listed = 5;
+    private const int Wide = 330;
 
-    public static Article Of(GameLoop loop, GoodType good)
+    /// <summary>Ключ и виджет. Ключ нужен подсказке, чтобы заметить смену товара.</summary>
+    public static (string Key, Control Body) Of(GameLoop loop, History past, GoodType good)
+    {
+        var card = new VBoxContainer { CustomMinimumSize = new Vector2(Wide, 0) };
+        card.AddThemeConstantOverride("separation", 7);
+
+        card.AddChild(Head(loop, good));
+        card.AddChild(Numbers(loop, good));
+        card.AddChild(Price(loop, past, good));
+        card.AddChild(Recipe(loop, good));
+
+        return ($"good:{good}", card);
+    }
+
+    private static Control Head(GameLoop loop, GoodType good)
+    {
+        var head = new HBoxContainer();
+        head.AddThemeConstantOverride("separation", 10);
+
+        head.AddChild(Badge(good));
+
+        var name = Ui.Text(Names.Of(good), 18, 700, Names.ColourOf(good).Lightened(0.35f));
+        name.SizeFlagsVertical = Control.SizeFlags.ShrinkCenter;
+        head.AddChild(name);
+        head.AddChild(Ui.Spring());
+
+        var world = loop.World.Market.Prices.Of(good);
+        var times = world.Raw > 0 ? loop.PlayerCountry.State.Prices.Of(good).Exact / world.Exact : 0;
+
+        head.AddChild(times > 0
+            ? Ui.Chip($"×{times:0.00} к миру", Fmt.Sign(times - 1, moreIsBetter: false))
+            : Ui.Chip("не возят", Skin.Dim));
+
+        return head;
+    }
+
+    /// <summary>Тот же кружок, что и в сетке окна производства: товар узнают по нему.</summary>
+    private static Control Badge(GoodType good)
+    {
+        const int size = 38;
+
+        var holder = new Control
+        {
+            CustomMinimumSize = new Vector2(size, size),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+
+        var paint = new ShaderMaterial { Shader = GD.Load<Shader>("res://scenes/ui/badge.gdshader") };
+        paint.SetShaderParameter("tint", Names.ColourOf(good));
+
+        var disc = new ColorRect
+        {
+            Material = paint,
+            Size = new Vector2(size, size),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+
+        holder.AddChild(disc);
+
+        var icon = Ui.Icon(Names.IconOf(good), 22, Colors.White);
+        icon.Material = Skin.Glyph(Names.ColourOf(good));
+        icon.Position = new Vector2((size - 22) / 2f, (size - 22) / 2f);
+        icon.Size = new Vector2(22, 22);
+        holder.AddChild(icon);
+
+        return holder;
+    }
+
+    private static Control Numbers(GameLoop loop, GoodType good)
     {
         var sim = loop.Simulation;
         var id = loop.Player;
         var state = loop.PlayerCountry.State;
-        var start = state.Prices.StartOf(good);
-        var times = start.Raw > 0 ? state.Prices.Of(good).Exact / start.Exact : 1;
 
-        var text = new StringBuilder();
+        var grid = new GridContainer { Columns = 2 };
+        grid.AddThemeConstantOverride("h_separation", 18);
+        grid.AddThemeConstantOverride("v_separation", 2);
 
-        text.Append($"Цена [b]{Fmt.Price(state.Prices.Of(good))}[/b], к началу партии ×{times:0.00}.\n\n");
-        text.Append($"У нас за день: выпуск [b]{Fmt.Amount(sim.OutputOf(id, good))}[/b], ");
-        text.Append($"заказ [b]{Fmt.Amount(sim.InputOf(id, good))}[/b], ");
-        text.Append($"на складе [b]{Fmt.Amount(state.Stock.Of(good))}[/b].");
+        Put(grid, "Цена", Fmt.Price(state.Prices.Of(good)), Skin.Money);
+        Put(grid, "На складе", Fmt.Amount(state.Stock.Of(good)), Skin.Bright);
+        Put(grid, "Выпуск за день", Fmt.Amount(sim.OutputOf(id, good)), Skin.Output);
+        Put(grid, "Заказ за день", Fmt.Amount(sim.InputOf(id, good)), Skin.Text);
 
         var lack = sim.ShortOf(id, good);
-        if (lack.Raw > 0) text.Append($" Не хватило [b]{Fmt.Amount(lack)}[/b].");
+        if (lack.Raw > 0) Put(grid, "Не хватило", Fmt.Amount(lack), Skin.Bad);
 
-        Line(loop, text, "Делают", info => info.Outputs.ContainsKey(good));
-        Line(loop, text, "Идёт в", info => info.Inputs.ContainsKey(good));
-        Line(loop, text, "Идёт в стройку", info => info.BuildCost.ContainsKey(good));
-
-        return new Article(Names.Of(good), text.ToString());
+        return grid;
     }
 
-    private static void Line(GameLoop loop, StringBuilder text, string title, Func<BuildingInfo, bool> fits)
+    private static void Put(GridContainer grid, string label, string value, Color colour)
     {
-        var found = Enum.GetValues<BuildingType>()
-            .Where(type => fits(loop.World.Buildings[type]))
-            .ToList();
+        var row = new HBoxContainer { CustomMinimumSize = new Vector2((Wide - 18) / 2, 0) };
+        row.AddThemeConstantOverride("separation", 6);
 
-        if (found.Count == 0) return;
+        row.AddChild(Ui.Text(label, 13, 400, Skin.Dim));
+        row.AddChild(Ui.Spring());
+        row.AddChild(Ui.Number(value, 13, colour));
 
-        var names = found.Take(Listed).Select(Names.Of);
-        var tail = found.Count > Listed ? $" и ещё {found.Count - Listed}" : string.Empty;
+        grid.AddChild(row);
+    }
 
-        text.Append($"\n\n[b]{title}:[/b] {string.Join(", ", names)}{tail}.");
+    /// <summary>Цена за последний месяц. По одному числу не видно, дорожает товар или нет.</summary>
+    private static Control Price(GameLoop loop, History past, GoodType good)
+    {
+        var chart = Chart.Create("Цена за месяц", value => Fmt.Price(new Money((long)(value * 100))));
+
+        chart.Show(new Trace("цена", Names.ColourOf(good).Lightened(0.2f), past.PricesOf(good)));
+
+        return chart;
+    }
+
+    /// <summary>Рецепт значками: что съедает завод и что отдаёт. Берётся первый завод,
+    /// который этот товар делает; если товар только едят — показывается, кто.</summary>
+    private static Control Recipe(GameLoop loop, GoodType good)
+    {
+        var maker = Enum.GetValues<BuildingType>()
+            .FirstOrDefault(type => loop.World.Buildings[type].Outputs.ContainsKey(good));
+
+        var info = loop.World.Buildings[maker];
+        var makes = info.Outputs.ContainsKey(good);
+
+        var block = new VBoxContainer();
+        block.AddThemeConstantOverride("separation", 3);
+
+        block.AddChild(Ui.Text(
+            makes ? $"Делает {Names.Of(maker)}" : "Никто не делает",
+            12, 600, Skin.Dim));
+
+        if (!makes) return block;
+
+        var row = new HBoxContainer();
+        row.AddThemeConstantOverride("separation", 6);
+        block.AddChild(row);
+
+        foreach (var (input, _) in info.Inputs.OrderBy(pair => (int)pair.Key))
+        {
+            row.AddChild(Ui.Icon(Names.IconOf(input), 20, Names.ColourOf(input)));
+        }
+
+        if (info.Inputs.Count == 0) row.AddChild(Ui.Text("из земли", 13, 400, Skin.Dim));
+
+        row.AddChild(Ui.Text("→", 15, 700, Skin.Link));
+        row.AddChild(Ui.Icon(Names.IconOf(good), 20, Names.ColourOf(good)));
+        row.AddChild(Ui.Spring());
+
+        var eaters = Enum.GetValues<BuildingType>()
+            .Count(type => loop.World.Buildings[type].Inputs.ContainsKey(good));
+
+        if (eaters > 0) row.AddChild(Ui.Text($"идёт в {eaters} произв.", 12, 400, Skin.Dim));
+
+        return block;
     }
 }

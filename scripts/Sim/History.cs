@@ -28,6 +28,9 @@ public partial class History : Node
     /// достаточный срок, чтобы отличить скачок от дневной ряби.</summary>
     public const int Month = 30;
 
+    /// <summary>Дней в году. По нему считается годовая инфляция.</summary>
+    public const int Year = 365;
+
     private readonly Dictionary<Line, List<float>> _lines = [];
 
     /// <summary>Кольцо снимков цен: по одному на день, за последний месяц.</summary>
@@ -55,6 +58,33 @@ public partial class History : Node
         if (points.Count == 0) return 0;
 
         return points[Math.Max(0, points.Count - 1 - days)];
+    }
+
+    /// <summary>Годовая инфляция в процентах. Не «с начала партии»: за пять лет то число
+    /// уходит в сотни процентов и перестаёт что-либо значить.</summary>
+    /// <remarks>Когда года ещё не прошло, берётся весь срок и приводится к году сложным
+    /// процентом — иначе первые месяцы показывали бы почти ноль.</remarks>
+    public double Yearly()
+    {
+        var points = _lines[Line.Inflation];
+        if (points.Count < 2) return 0;
+
+        var days = Math.Min(points.Count - 1, Year);
+        var now = 1 + points[^1] / 100.0;
+        var was = 1 + points[points.Count - 1 - days] / 100.0;
+
+        if (was <= 0 || now <= 0) return 0;
+
+        return (Math.Pow(now / was, (double)Year / days) - 1) * 100;
+    }
+
+    /// <summary>Цена товара по дням за последний месяц.</summary>
+    public IReadOnlyList<float> PricesOf(GoodType good)
+    {
+        var line = new float[_prices.Count];
+        for (var day = 0; day < _prices.Count; day++) line[day] = _prices[day][(int)good];
+
+        return line;
     }
 
     /// <summary>Во сколько раз цена товара ушла за месяц. Единица — не менялась.</summary>

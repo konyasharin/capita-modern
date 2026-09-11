@@ -33,6 +33,7 @@ public partial class OverviewPanel : SidePanel
 
     private StatRow _supply = null!;
     private StatRow _printed = null!;
+    private StatRow _priceYear = null!;
     private StatRow _level = null!;
     private StatRow _rate = null!;
 
@@ -40,7 +41,9 @@ public partial class OverviewPanel : SidePanel
     {
         Section("Как идут дела", "output");
         _wealth = Graph("ВВП за год, постоянные цены", Fmt.Cash);
+        _wealth.Ranged();
         _prices = Graph("Уровень цен к старту", value => Fmt.Percent(value, signed: true));
+        _prices.Ranged();
         _work = Graph("Занятость и загрузка", value => Fmt.Percent(value));
 
         Section("Люди", "population");
@@ -77,8 +80,11 @@ public partial class OverviewPanel : SidePanel
         Section("Деньги", "rate");
         _supply = Stat("Денежная масса", "supply");
         _printed = Stat("Напечатано за партию", "printed");
-        _level = Stat("Уровень цен к старту", "inflation");
-        _rate = Stat("Курс к доллару", "rate");
+        _priceYear = Stat("Инфляция за год", "inflation");
+        _level = Stat("Уровень цен к старту", "pricelevel");
+        _rate = Stat("Курс к доллару", "rate", () => TrendCard.Of(
+            "rate", "Курс к доллару за год", value => $"{value:0.00}",
+            new Trace("курс", Skin.Rate, Past.Of(History.Line.Rate))));
     }
 
     public override void Refresh()
@@ -133,6 +139,9 @@ public partial class OverviewPanel : SidePanel
 
         _supply.Set(Fmt.Cash(Me.Bank.Supply.Exact));
         _printed.Set(Fmt.Cash(Me.Bank.Printed.Exact), Me.Bank.Printed.Raw > 0 ? Skin.Warn : Skin.Text);
+
+        var yearly = Past.Yearly();
+        _priceYear.Set(Fmt.Percent(yearly, signed: true), Fmt.Sign(yearly, moreIsBetter: false));
 
         var level = Loop.Inflation;
         _level.Set(Fmt.Percent(level, signed: true), Fmt.Sign(level, moreIsBetter: false));

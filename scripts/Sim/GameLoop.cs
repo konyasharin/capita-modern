@@ -110,7 +110,8 @@ public partial class GameLoop : Node
         .SelectMany(region => region.BuildingsCount)
         .Sum(pair => (long)pair.Value);
 
-    /// <summary>Во сколько раз цены ушли от начала партии, в процентах.</summary>
+    /// <summary>Во сколько раз цены ушли от начала партии, в процентах. Для графиков и
+    /// сравнений; на виду держат годовую, <see cref="History.Yearly"/>.</summary>
     public double Inflation => (Simulation.PriceLevelOf(Player) - PriceLevel.Scale) * 100.0 / PriceLevel.Scale;
 
     /// <summary>Что лежит в казне, в местных деньгах.</summary>

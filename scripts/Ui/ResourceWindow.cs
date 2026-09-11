@@ -31,6 +31,7 @@ public partial class ResourceWindow : Control
 
     private GameLoop _loop = null!;
     private PopoverStack _stack = null!;
+    private History _past = null!;
 
     private readonly Dictionary<GoodType, Badge> _badges = [];
     private readonly List<Button> _modes = [];
@@ -70,6 +71,7 @@ public partial class ResourceWindow : Control
     {
         _loop = GetNode<GameLoop>("/root/Game/GameLoop");
         _stack = GetNode<PopoverStack>("/root/Game/Overlay/PopoverStack");
+        _past = GetNode<History>("/root/Game/History");
 
         Visible = false;
         MouseFilter = MouseFilterEnum.Stop;
@@ -770,12 +772,14 @@ public partial class ResourceWindow : Control
         row.AddChild(Ui.Spring());
         row.AddChild(Ui.Number(string.Empty, 14, Skin.Bright, 80));
 
-        return row.Hover(_stack, "good", () => Told(row));
+        return row.Hover(_stack, "good", card: () => Told(row));
     }
 
     /// <summary>Карточка товара, записанного в узле. Пусто — рассказывать нечего.</summary>
-    private Article? Told(Node row) =>
-        row.HasMeta("good") ? GoodCard.Of(_loop, (GoodType)(int)row.GetMeta("good")) : null;
+    private (string Key, Control Body)? Told(Node row) =>
+        row.HasMeta("good")
+            ? GoodCard.Of(_loop, _past, (GoodType)(int)row.GetMeta("good"))
+            : null;
 
     private void ShowSum()
     {
@@ -863,7 +867,7 @@ public partial class ResourceWindow : Control
         row.AddChild(Ui.Number(string.Empty, 13, Skin.Dim, 84));
         row.AddChild(Ui.Number(string.Empty, 13, Skin.Money, 96));
 
-        return row.Hover(_stack, "good", () => Told(row));
+        return row.Hover(_stack, "good", card: () => Told(row));
     }
 
     /// <summary>Круглая плашка товара.</summary>

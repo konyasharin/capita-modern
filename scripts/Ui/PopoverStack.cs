@@ -25,7 +25,15 @@ public partial class PopoverStack : Control
     /// зависит от состояния игры: какой именно товар подорожал и на сколько.</param>
     /// <param name="ready">Готовая статья вместо словарной. Нужна там, где текст зависит
     /// от состояния игры целиком: карточка товара, например.</param>
-    public void Open(Control source, string key, int depth, string? extra = null, Article? ready = null)
+    /// <param name="card">Собранный виджет вместо статьи. Заголовок и содержимое он
+    /// рисует сам.</param>
+    public void Open(
+        Control source,
+        string key,
+        int depth,
+        string? extra = null,
+        Article? ready = null,
+        Func<Control>? card = null)
     {
         if (_open.Count > depth && _open[depth].Key == key && _open[depth].Extra == extra)
         {
@@ -34,13 +42,15 @@ public partial class PopoverStack : Control
 
         CloseFrom(depth);
 
-        var article = ready ?? Glossary.Any(key);
-        if (article is null)
+        var article = card is null ? ready ?? Glossary.Any(key) : null;
+        if (article is null && card is null)
         {
             return;
         }
 
-        var popover = Popover.Create(source, key, article, extra);
+        var popover = card is null
+            ? Popover.Create(source, key, article!, extra)
+            : Popover.Create(source, key, card());
         AddChild(popover);
         popover.PlaceNear(source, GetViewportRect());
 
@@ -50,16 +60,19 @@ public partial class PopoverStack : Control
         popover.Alive = parent is null ? () => Under(source) : () => parent.HotTerm == key;
 
         var level = _open.Count;
-        popover.Body.MetaHoverStarted += meta =>
+        if (popover.Body is { } body)
         {
-            popover.HotTerm = meta.AsString();
-            Open(popover.Body, popover.HotTerm, level + 1);
-        };
+            body.MetaHoverStarted += meta =>
+            {
+                popover.HotTerm = meta.AsString();
+                Open(body, popover.HotTerm, level + 1);
+            };
 
-        popover.Body.MetaHoverEnded += meta =>
-        {
-            if (popover.HotTerm == meta.AsString()) popover.HotTerm = string.Empty;
-        };
+            body.MetaHoverEnded += meta =>
+            {
+                if (popover.HotTerm == meta.AsString()) popover.HotTerm = string.Empty;
+            };
+        }
 
         _open.Add(popover);
     }

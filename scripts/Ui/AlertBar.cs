@@ -28,8 +28,8 @@ public partial class AlertBar : HBoxContainer
     /// <summary>Насколько цены должны уйти за месяц, чтобы это считалось рывком.</summary>
     private const double PriceJump = 1.5;
 
-    /// <summary>На сколько процентных пунктов уровень цен должен вырасти за месяц.</summary>
-    private const double InflationJump = 5;
+    /// <summary>Какая годовая инфляция считается разгоном.</summary>
+    private const double YearlyJump = 25;
 
     /// <summary>Насколько должен ослабнуть курс за месяц.</summary>
     private const double RateSlide = 1.15;
@@ -144,8 +144,7 @@ public partial class AlertBar : HBoxContainer
             new Alert("alert-spike", "spike", Skin.Warn, 1, () => Spiked().Count > 0, SpikeText),
 
             new Alert("alert-inflation", "runaway", Skin.Bad, 4,
-                () => _loop.Inflation - _past.Ago(History.Line.Inflation, History.Month) > InflationJump,
-                RunawayText),
+                () => _past.Yearly() > YearlyJump, RunawayText),
 
             new Alert("alert-currency", "slide", Skin.Warn, 3, () => Slide() > RateSlide, SlideText),
         ];
@@ -177,14 +176,10 @@ public partial class AlertBar : HBoxContainer
         return $"[b]Подорожали за месяц:[/b] {string.Join(", ", worst)}.";
     }
 
-    private string? RunawayText()
-    {
-        var grew = _loop.Inflation - _past.Ago(History.Line.Inflation, History.Month);
-
-        return $"[b]За месяц цены выросли на {grew:0.0} пункта.[/b] " +
-            $"Ключевая ставка сейчас {Fmt.Rate(_loop.PlayerCountry.KeyRate)}, " +
-            $"доля труда {_loop.PlayerCountry.LabourShare}%.";
-    }
+    private string? RunawayText() =>
+        $"[b]Годовая инфляция {Fmt.Percent(_past.Yearly(), signed: true)}.[/b] " +
+        $"Ключевая ставка сейчас {Fmt.Rate(_loop.PlayerCountry.KeyRate)}, " +
+        $"доля труда {_loop.PlayerCountry.LabourShare}%.";
 
     /// <summary>Во сколько раз ослаб курс за месяц. Больше единицы — своя валюта дешевеет.</summary>
     private double Slide()

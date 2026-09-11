@@ -22,7 +22,7 @@ public partial class Table : VBoxContainer
     private bool _ascending;
     private Action<int>? _clicked;
     private PopoverStack? _stack;
-    private Func<int, Article?>? _about;
+    private Func<int, (string Key, Control Body)?>? _about;
 
     /// <param name="about">Что рассказать о строке при наведении. Номер тот же, что и у
     /// щелчка: порядковый в исходном списке, а не в отсортированном.</param>
@@ -30,7 +30,7 @@ public partial class Table : VBoxContainer
         Column[] columns,
         Action<int>? clicked = null,
         PopoverStack? stack = null,
-        Func<int, Article?>? about = null)
+        Func<int, (string Key, Control Body)?>? about = null)
     {
         var table = new Table
         {
@@ -150,7 +150,7 @@ public partial class Table : VBoxContainer
             int index,
             Action<int>? clicked,
             PopoverStack? stack,
-            Func<int, Article?>? about)
+            Func<int, (string Key, Control Body)?>? about)
         {
             var row = new TableRow
             {
@@ -161,7 +161,7 @@ public partial class Table : VBoxContainer
                     : MouseFilterEnum.Stop,
             };
 
-            if (stack is not null && about is not null) row.Hover(stack, "row", () => about(row._source));
+            if (stack is not null && about is not null) row.Hover(stack, "row", card: () => about(row._source));
 
             row.AddThemeStyleboxOverride("panel", Skin.RowBox(index % 2 == 1));
 

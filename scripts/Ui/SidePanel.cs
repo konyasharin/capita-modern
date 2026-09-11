@@ -80,9 +80,9 @@ public abstract partial class SidePanel : PanelContainer
     public abstract void Refresh();
 
     /// <summary>Строка «название — число» сразу в теле панели.</summary>
-    protected StatRow Stat(string label, string? key = null)
+    protected StatRow Stat(string label, string? key = null, Func<(string Key, Control Body)?>? card = null)
     {
-        var row = StatRow.Create(label, Stack, key);
+        var row = StatRow.Create(label, Stack, key, card);
         Rows.AddChild(row);
 
         return row;

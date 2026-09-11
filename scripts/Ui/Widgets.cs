@@ -209,6 +209,16 @@ public static class Ui
         }
     }
 
+    /// <summary>Во сколько раз усилить действие. Ctrl — вдесятеро, Shift — всотеро.</summary>
+    /// <remarks>Ставку от нуля до тридцати процентов шагом в четверть пункта иначе крутить
+    /// сто двадцать раз.</remarks>
+    public static int Louder()
+    {
+        if (Input.IsKeyPressed(Key.Shift)) return 100;
+
+        return Input.IsKeyPressed(Key.Ctrl) ? 10 : 1;
+    }
+
     /// <summary>Плашка-метка: блок страны, вид ставки, состояние товара.</summary>
     public static PanelContainer Chip(string text, Color colour)
     {
@@ -221,11 +231,16 @@ public static class Ui
 
     /// <summary>Подсказка по наведению. Проверяется прямоугольником каждый кадр: сигналы
     /// входа-выхода врут на щелях между соседними элементами.</summary>
-    public static T Hover<T>(this T node, PopoverStack stack, string key, Func<Article?>? about = null)
+    public static T Hover<T>(
+        this T node,
+        PopoverStack stack,
+        string key,
+        Func<Article?>? about = null,
+        Func<(string Key, Control Body)?>? card = null)
         where T : Control
     {
         node.MouseFilter = Control.MouseFilterEnum.Stop;
-        node.AddChild(new HoverProbe { Stack = stack, Key = key, About = about });
+        node.AddChild(new HoverProbe { Stack = stack, Key = key, About = about, Card = card });
 
         return node;
     }
@@ -245,11 +260,21 @@ public partial class HoverProbe : Node
     /// каждый из тридцати двух в словаре не напишешь, она зависит от хода партии.</summary>
     public Func<Article?>? About;
 
+    /// <summary>Собранный виджет вместо текста. Ключ нужен, чтобы подсказка заметила, что
+    /// мышь переехала на другой товар, и пересобралась.</summary>
+    public Func<(string Key, Control Body)?>? Card;
+
     public override void _Process(double delta)
     {
         var owner = GetParent<Control>();
         if (!owner.IsVisibleInTree()) return;
         if (!owner.GetGlobalRect().HasPoint(owner.GetGlobalMousePosition())) return;
+
+        if (Card?.Invoke() is { } card)
+        {
+            Stack.Open(owner, card.Key, 0, card: () => card.Body);
+            return;
+        }
 
         var ready = About?.Invoke();
 
@@ -262,7 +287,11 @@ public partial class StatRow : HBoxContainer
 {
     private Label _value = null!;
 
-    public static StatRow Create(string label, PopoverStack? stack = null, string? key = null)
+    public static StatRow Create(
+        string label,
+        PopoverStack? stack = null,
+        string? key = null,
+        Func<(string Key, Control Body)?>? card = null)
     {
         var row = new StatRow { MouseFilter = MouseFilterEnum.Ignore };
         row.AddThemeConstantOverride("separation", 6);
@@ -272,7 +301,7 @@ public partial class StatRow : HBoxContainer
         row._value = Ui.Number("—", 14);
         row.AddChild(row._value);
 
-        if (stack is not null && key is not null) row.Hover(stack, key);
+        if (stack is not null && key is not null) row.Hover(stack, key, card: card);
 
         return row;
     }
@@ -395,7 +424,7 @@ public partial class Stepper : HBoxContainer
     {
         var button = Ui.Act(text, Skin.Link, () =>
         {
-            _write(Mathf.Clamp(_read() + direction * _step, _min, _max));
+            _write(Mathf.Clamp(_read() + direction * _step * Ui.Louder(), _min, _max));
             Refresh();
         });
 

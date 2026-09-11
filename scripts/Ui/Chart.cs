@@ -21,6 +21,19 @@ public partial class Chart : VBoxContainer
 
     private Func<double, string> _show = value => $"{value:0.##}";
 
+    private static readonly (string Label, int Days)[] Windows =
+    [
+        ("нед", 7),
+        ("мес", 30),
+        ("год", 365),
+        ("всё", 0),
+    ];
+
+    private readonly List<Button> _windows = [];
+    private HBoxContainer _picker = null!;
+    private Trace[] _shown = [];
+    private int _window = 365;
+
     public static Chart Create(string title, Func<double, string>? show = null)
     {
         var chart = new Chart { MouseFilter = MouseFilterEnum.Ignore };
@@ -40,6 +53,10 @@ public partial class Chart : VBoxContainer
         head.AddChild(chart._legend);
         chart.AddChild(head);
 
+        chart._picker = new HBoxContainer();
+        chart._picker.AddThemeConstantOverride("separation", 4);
+        chart.AddChild(chart._picker);
+
         chart._plot = new Plot { CustomMinimumSize = new Vector2(0, PlotHeight) };
         chart.AddChild(chart._plot);
 
@@ -55,10 +72,56 @@ public partial class Chart : VBoxContainer
         return chart;
     }
 
+    /// <summary>Добавляет переключатель отрезка: неделя, месяц, год, всё время.</summary>
+    /// <remarks>Отдельная кнопка «день» не нужна: точка на ряду и есть день, из одной
+    /// точки графика не выйдет.</remarks>
+    public Chart Ranged()
+    {
+        foreach (var (label, days) in Windows)
+        {
+            var which = days;
+            var button = Ui.Act(label, Skin.Link, () => Cut(which), 44);
+
+            button.AddThemeFontSizeOverride("font_size", 12);
+            _windows.Add(button);
+            _picker.AddChild(button);
+        }
+
+        Cut(_window);
+
+        return this;
+    }
+
+    private void Cut(int days)
+    {
+        _window = days;
+
+        for (var index = 0; index < _windows.Count; index++)
+        {
+            Ui.Paint(_windows[index], Windows[index].Days == days ? Skin.Bright : Skin.Link);
+        }
+
+        if (_shown.Length > 0) Show(_shown);
+    }
+
+    /// <summary>Хвост ряда длиной в окно. Ноль — весь ряд.</summary>
+    private IReadOnlyList<float> Tail(IReadOnlyList<float> points)
+    {
+        if (_window <= 0 || points.Count <= _window) return points;
+
+        var tail = new float[_window];
+        for (var at = 0; at < _window; at++) tail[at] = points[points.Count - _window + at];
+
+        return tail;
+    }
+
     /// <summary>Обновляет данные. Ряды делят одну шкалу, поэтому в один график кладут
     /// только сравнимое: вывоз с ввозом, но не ВВП с инфляцией.</summary>
     public void Show(params Trace[] traces)
     {
+        _shown = traces;
+        traces = traces.Select(trace => trace with { Points = Tail(trace.Points) }).ToArray();
+
         _plot.Traces = traces;
 
         var low = float.MaxValue;

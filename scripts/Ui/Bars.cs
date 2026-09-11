@@ -8,7 +8,7 @@ public readonly record struct Slice(
     string Text,
     Color Colour,
     string? Icon = null,
-    Func<Article?>? About = null);
+    Func<(string Key, Control Body)?>? About = null);
 
 /// <summary>Столбик горизонтальных полос. Там, где важно не точное число, а кто больше
 /// кого, полосы читаются с одного взгляда, а колонка цифр — нет.</summary>
@@ -70,7 +70,7 @@ public partial class Bars : VBoxContainer
         private ColorRect _groove = null!;
         private ColorRect _fill = null!;
 
-        private Func<Article?>? _about;
+        private Func<(string Key, Control Body)?>? _about;
 
         public static BarRow Create(PopoverStack? stack)
         {
@@ -80,7 +80,7 @@ public partial class Bars : VBoxContainer
                 MouseFilter = MouseFilterEnum.Ignore,
             };
 
-            if (stack is not null) row.Hover(stack, "bar", () => row._about?.Invoke());
+            if (stack is not null) row.Hover(stack, "bar", card: () => row._about?.Invoke());
 
             row._icon = Ui.Icon("res://assets/icons/ui/close.svg", 14, Skin.Dim);
             row._icon.Position = new Vector2(0, 3);

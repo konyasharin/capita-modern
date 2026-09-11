@@ -30,7 +30,7 @@ public partial class TradePanel : SidePanel
     protected override void Build()
     {
         Section("Как идёт торговля", "tab-trade");
-        _flow = Graph("Вывоз и ввоз за день", Fmt.Cash);
+        _flow = Graph("Вывоз и ввоз за день", Fmt.Cash).Ranged();
 
         Section("За день", "output");
         _exports = Stat("Вывоз", "exports");
@@ -67,7 +67,7 @@ public partial class TradePanel : SidePanel
             ],
             row => Toggle(AllGoods[row]),
             Stack,
-            row => GoodCard.Of(Loop, AllGoods[row]));
+            row => GoodCard.Of(Loop, Past, AllGoods[row]));
 
         Rows.AddChild(_table);
     }

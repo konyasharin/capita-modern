@@ -17,6 +17,7 @@ public partial class TopBar : Control
 
     private GameLoop _loop = null!;
     private PopoverStack _stack = null!;
+    private History _past = null!;
 
     private Metric _population = null!;
     private Metric _employment = null!;
@@ -34,6 +35,7 @@ public partial class TopBar : Control
     {
         _loop = GetNode<GameLoop>("/root/Game/GameLoop");
         _stack = GetNode<PopoverStack>("/root/Game/Overlay/PopoverStack");
+        _past = GetNode<History>("/root/Game/History");
 
         MouseFilter = MouseFilterEnum.Ignore;
         AddChild(Background());
@@ -60,7 +62,9 @@ public partial class TopBar : Control
         _inflation = Add(middle, "inflation", Skin.Prices, 52);
         _treasury = Add(middle, "treasury", Skin.Money, 64);
         _debt = Add(middle, "debt", Skin.Owed, 58);
-        _rate = Add(middle, "rate", Skin.Rate, 46);
+        _rate = Add(middle, "rate", Skin.Rate, 46, () => TrendCard.Of(
+            "rate", "Курс к доллару за год", value => $"{value:0.00}",
+            new Trace("курс", Skin.Rate, _past.Of(History.Line.Rate))));
 
         _date = new Label { MouseFilter = MouseFilterEnum.Ignore };
         _date.AddThemeFontOverride("font", Skin.Digits());
@@ -96,8 +100,8 @@ public partial class TopBar : Control
         _output.Set(Fmt.Cash(_loop.YearlyOutput));
         _plants.Set(Fmt.Count(_loop.Plants));
 
-        var inflation = _loop.Inflation;
-        _inflation.Set(Fmt.Percent(inflation, signed: true), inflation > 0.05 ? Skin.Bad : Skin.Bright);
+        var inflation = _past.Yearly();
+        _inflation.Set(Fmt.Percent(inflation, signed: true), inflation > 4 ? Skin.Bad : Skin.Bright);
 
         var treasury = _loop.Treasury;
         _treasury.Set(Fmt.Cash(treasury), treasury >= 0 ? Skin.Bright : Skin.Bad);
@@ -112,10 +116,15 @@ public partial class TopBar : Control
         if (_flag.GetGlobalRect().HasPoint(_flag.GetGlobalMousePosition())) _stack.Open(_flag, "flag", 0);
     }
 
-    private Metric Add(Node parent, string key, Color tint, int width)
+    private Metric Add(
+        Node parent,
+        string key,
+        Color tint,
+        int width,
+        Func<(string Key, Control Body)?>? card = null)
     {
         var icon = GD.Load<Texture2D>($"res://assets/icons/ui/{key}.svg");
-        var metric = Metric.Create(_stack, key, icon, tint, width);
+        var metric = Metric.Create(_stack, key, icon, tint, width, card);
         parent.AddChild(metric);
 
         return metric;

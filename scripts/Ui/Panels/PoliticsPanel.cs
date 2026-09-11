@@ -135,7 +135,9 @@ public partial class PoliticsPanel : SidePanel
 
         var relations = Loop.World.Relations;
 
-        relations.Set(Id, _chosen.Id, Mathf.Clamp(relations.Between(Id, _chosen.Id) + by, -100, 100));
+        var step = by * Ui.Louder();
+
+        relations.Set(Id, _chosen.Id, Mathf.Clamp(relations.Between(Id, _chosen.Id) + step, -100, 100));
         Loop.World.Routes.Recompute(relations.Between, null);
         Refresh();
     }
