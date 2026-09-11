@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Godot;
 
 /// <summary>Цвета карты из data/map/palette.json.</summary>
@@ -9,6 +9,10 @@ public sealed class MapPalette
     public required Color OceanShelf { get; init; }
     public required Color Coast { get; init; }
     public required Color Border { get; init; }
+
+    /// <summary>Линия между областями внутри страны. Того же цвета, что граница страны,
+    /// но рисуется тоньше и полупрозрачной.</summary>
+    public required Color RegionLine { get; init; }
     public required Color BorderWar { get; init; }
     public required Color Selected { get; init; }
     public required Color[] Countries { get; init; }
@@ -42,6 +46,7 @@ public sealed class MapPalette
             OceanShelf = Read("oceanShelf"),
             Coast = Read("coast"),
             Border = Read("border"),
+            RegionLine = Read("regionLine"),
             BorderWar = Read("borderWar"),
             Selected = Read("selected"),
             Countries = countries,

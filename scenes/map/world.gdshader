@@ -14,11 +14,11 @@ uniform sampler2D control_tex : filter_nearest, repeat_disable;
 uniform sampler2D palette_tex : filter_nearest, repeat_disable;
 uniform vec2 map_size = vec2(2048.0, 800.0);
 
-uniform vec4 ocean_color : source_color = vec4(0.455, 0.761, 0.910, 1.0);
-uniform vec4 ocean_deep_color : source_color = vec4(0.310, 0.624, 0.820, 1.0);
-uniform vec4 ocean_shelf_color : source_color = vec4(0.663, 0.875, 0.961, 1.0);
-uniform vec4 coast_color : source_color = vec4(0.184, 0.392, 0.533, 1.0);
-uniform vec4 border_color : source_color = vec4(1.0, 1.0, 1.0, 1.0);
+uniform vec4 ocean_color : source_color = vec4(0.114, 0.200, 0.231, 1.0);
+uniform vec4 ocean_deep_color : source_color = vec4(0.071, 0.141, 0.169, 1.0);
+uniform vec4 ocean_shelf_color : source_color = vec4(0.184, 0.329, 0.376, 1.0);
+uniform vec4 coast_color : source_color = vec4(0.043, 0.078, 0.094, 1.0);
+uniform vec4 border_color : source_color = vec4(0.071, 0.094, 0.110, 1.0);
 uniform vec4 select_color : source_color = vec4(1.0, 0.945, 0.659, 1.0);
 
 // Крупная форма берётся из сетки, мелкие изгибы — отсюда. Шум привязан к карте,
@@ -26,18 +26,18 @@ uniform vec4 select_color : source_color = vec4(1.0, 0.945, 0.659, 1.0);
 uniform float warp_amp = 0.75;
 uniform float warp_scale = 420.0;
 
-uniform float border_px = 2.2;
-uniform float coast_px = 2.6;
-uniform float shelf_px = 26.0;
+uniform float border_px = 3.2;
+uniform float coast_px = 2.8;
+uniform float shelf_px = 22.0;
 uniform float shadow_px = 5.0;
-uniform float shadow_alpha = 0.22;
+uniform float shadow_alpha = 0.30;
 
 // Издалека тонкая линия рвётся и рябит: границы утолщаются по мере отдаления.
 uniform float far_border_scale = 2.2;
 uniform float far_coast_scale = 2.8;
 
-uniform float region_px = 1.1;
-uniform vec4 region_line_color : source_color = vec4(0.0, 0.0, 0.0, 0.22);
+uniform float region_px = 1.0;
+uniform vec4 region_line_color : source_color = vec4(0.071, 0.094, 0.110, 0.45);
 
 uniform int hover_id = 0;
 
@@ -226,7 +226,7 @@ void fragment() {
 	vec3 col = mix(water, ground, on_land);
 
 	// Условное деление суши на регионы: проступает только вблизи.
-	float regions = 1.0 - smoothstep(0.3, 0.85, cells_per_px);
+	float regions = 1.0 - smoothstep(0.7, 1.8, cells_per_px);
 	if (regions > 0.003 && land > 0.5) {
 		int r00 = region_at(uv00);
 		int r10 = region_at(uv00 + vec2(texel.x, 0.0));
@@ -254,7 +254,8 @@ void fragment() {
 			border(region_own - region_rival, region_px) * regions * region_line_color.a * on_land);
 	}
 
-	// Толстая тёмная обводка по берегу и белые границы внутри суши.
+	// Обводка по берегу и границы стран одного цвета — почти чёрного. Разделяет их
+	// только толщина: страна толще области, берег толще страны.
 	col = mix(col, coast_color.rgb, contour(land, coast_px * mix(1.0, far_coast_scale, far)));
 
 	float rival = 0.0;

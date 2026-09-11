@@ -1,4 +1,4 @@
-using Godot;
+﻿using Godot;
 
 /// <summary>
 /// Рисует поле владения. Вся геометрия границ живёт в шейдере, здесь только
@@ -11,6 +11,9 @@ public partial class WorldMapView : Sprite2D
     private const string RegionsBinPath = "res://data/map/regions.bin";
     private const string CountriesPath = "res://data/map/countries.json";
     private const string PalettePath = "res://data/map/palette.json";
+
+    /// <summary>Насколько линия области бледнее границы страны.</summary>
+    private const float RegionLineAlpha = 0.45f;
 
     private ShaderMaterial _material = null!;
     private ImageTexture _ownerTex = null!;
@@ -66,6 +69,8 @@ public partial class WorldMapView : Sprite2D
         _material.SetShaderParameter("ocean_shelf_color", Palette.OceanShelf);
         _material.SetShaderParameter("coast_color", Palette.Coast);
         _material.SetShaderParameter("border_color", Palette.Border);
+        _material.SetShaderParameter("region_line_color",
+            new Color(Palette.RegionLine, RegionLineAlpha));
         _material.SetShaderParameter("select_color", Palette.Selected);
 
         GD.Print($"map {Map.Width}x{Map.Height}, стран: {Countries.All.Count}, "
