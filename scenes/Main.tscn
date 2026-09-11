@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/Game.cs" id="1_game"]
 [ext_resource type="Script" path="res://scripts/Map/WorldMapView.cs" id="2_map"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://scripts/Ui/PopoverStack.cs" id="10_pop"]
 [ext_resource type="Script" path="res://scripts/Audio/Music.cs" id="11_music"]
 [ext_resource type="Script" path="res://scripts/Sim/History.cs" id="12_hist"]
+[ext_resource type="Script" path="res://scripts/Ui/ResourceWindow.cs" id="13_res"]
 
 [node name="Game" type="Node2D"]
 script = ExtResource("1_game")
@@ -52,6 +53,10 @@ script = ExtResource("9_pick")
 
 [node name="Overlay" type="CanvasLayer" parent="."]
 layer = 2
+
+[node name="ResourceWindow" type="Control" parent="Overlay"]
+anchors_preset = 0
+script = ExtResource("13_res")
 
 [node name="PopoverStack" type="Control" parent="Overlay"]
 anchors_preset = 0

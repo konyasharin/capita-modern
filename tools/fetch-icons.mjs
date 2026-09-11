@@ -106,6 +106,7 @@ const UI = {
 	'tab-trade': 'delapouite/cargo-ship',
 	'tab-finance': 'delapouite/bank',
 	'tab-politics': 'lorc/globe',
+	'tab-resources': 'delapouite/mine-wagon',
 
 	// Тревоги
 	'alert-hands': 'lorc/hand',

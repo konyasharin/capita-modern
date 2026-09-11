@@ -59,7 +59,38 @@ public partial class SideTabs : Control
             column.AddChild(tab);
         }
 
+        // Окно производства открывается той же полосой, но панелью не является: оно на
+        // весь экран, и место в ряду вкладок ему нужно только под кнопку.
+        column.AddChild(Ui.Gap(10));
+        column.AddChild(Big(stack));
+
         Paint();
+    }
+
+    private Button Big(PopoverStack stack)
+    {
+        var window = GetNode<ResourceWindow>("/root/Game/Overlay/ResourceWindow");
+
+        var button = new Button
+        {
+            CustomMinimumSize = new Vector2(Skin.RailWidth, 40),
+            FocusMode = FocusModeEnum.None,
+            TooltipText = "Производство",
+        };
+
+        button.AddThemeStyleboxOverride("normal", Skin.TabBox(false));
+        button.AddThemeStyleboxOverride("hover", Skin.TabBox(true));
+        button.AddThemeStyleboxOverride("pressed", Skin.TabBox(true));
+        button.AddChild(new HoverProbe { Stack = stack, Key = "tab-resources" });
+
+        var icon = Ui.Icon(Names.Ui("tab-resources"), 22, Skin.Money);
+        icon.SetAnchorsPreset(LayoutPreset.Center);
+        icon.Position = new Vector2(-11, -11);
+        button.AddChild(icon);
+
+        button.Pressed += window.Toggle;
+
+        return button;
     }
 
     /// <summary>Открывает вкладку с номером. Минус один — закрыть всё.</summary>

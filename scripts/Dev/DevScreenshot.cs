@@ -10,11 +10,15 @@ public partial class DevScreenshot : Node
     private string? _path;
     private int _framesLeft = 30;
     private int _total = 30;
+
+    /// <summary>Сколько игровых суток прокручивается за один кадр.</summary>
+    private const int DaysPerFrame = 20;
     private Vector2? _focus;
     private float _zoom = 1f;
     private readonly List<Vector2> _mouse = [];
     private Vector2? _click;
     private int? _tab;
+    private bool _window;
     private int _days;
 
     public override void _Ready()
@@ -50,6 +54,10 @@ public partial class DevScreenshot : Node
             {
                 _days = days;
             }
+            else if (arg == "--shot-window")
+            {
+                _window = true;
+            }
             else if (arg.StartsWith("--shot-tab=", StringComparison.Ordinal)
                 && int.TryParse(arg["--shot-tab=".Length..], out var tab))
             {
@@ -83,8 +91,9 @@ public partial class DevScreenshot : Node
             return;
         }
 
-        // Замер имеет смысл только без вертикальной синхронизации.
-        DisplayServer.WindowSetVsyncMode(DisplayServer.VSyncMode.Disabled);
+        // Кадры ограничены. Без ограничения игра молотит под четыреста кадров в секунду
+        // и без нужды греет видеокарту: снимку хватает и шестидесяти.
+        Engine.MaxFps = 60;
     }
 
     public override void _Process(double delta)
@@ -97,12 +106,24 @@ public partial class DevScreenshot : Node
             _focus = null;
         }
 
-        if (_days > 0 && _framesLeft == _total - 5)
+        // Прокрутка идёт порциями, и счётчик кадров при этом стоит. Разом нельзя: сотня
+        // тиков в одном кадре вешает его на секунды, а зависший кадр Windows считает
+        // отказом видеодрайвера и сбрасывает его вместе с игрой.
+        if (_days > 0)
         {
             var loop = GetParent().GetNode<GameLoop>("GameLoop");
-            for (var day = 0; day < _days; day++) loop.Advance();
+            var step = Math.Min(_days, DaysPerFrame);
 
-            _days = 0;
+            for (var day = 0; day < step; day++) loop.Advance();
+            _days -= step;
+
+            return;
+        }
+
+        if (_window && _framesLeft == _total - 8)
+        {
+            GetParent().GetNode<ResourceWindow>("Overlay/ResourceWindow").Toggle();
+            _window = false;
         }
 
         if (_tab is { } which && _framesLeft == _total - 8)

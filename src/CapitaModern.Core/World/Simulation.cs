@@ -146,6 +146,10 @@ public sealed class Simulation
     /// за тик такого не накопить — поэтому копится.</summary>
     private readonly Dictionary<byte, Money> _investment = new();
 
+    /// <summary>Что страна велела строить в обход выбора по прибыли. Держится, пока
+    /// заказ не выполнен: за один тик столько не построить.</summary>
+    private readonly Dictionary<byte, (BuildingType Type, int Left)> _ordered = new();
+
     /// <summary>Сколько тиков прошло с начала партии. Нужно, чтобы помнить, когда кто
     /// отказался платить.</summary>
     private int _day;
@@ -636,6 +640,27 @@ public sealed class Simulation
     /// <summary>Что страна откладывает на стройку за тик.</summary>
     public Money InvestmentIn(byte country) => _investment.GetValueOrDefault(country);
 
+    /// <summary>Вкладывает деньги казны в стройку и назначает, что строить.</summary>
+    /// <remarks>Обычно страна сама выбирает, что выгоднее. Заказ эту выборку обходит, но
+    /// дальше идёт общим путём: те же материалы, те же руки, та же цена.</remarks>
+    /// <returns>Ложь, если в казне столько нет.</returns>
+    public bool Invest(byte country, BuildingType type, int count, Money amount)
+    {
+        if (count <= 0 || amount.Raw <= 0) return false;
+        if (!_world.CountryById(country).State.Treasury.TrySpend(amount)) return false;
+
+        _investment[country] = _investment.GetValueOrDefault(country) + amount;
+        _ordered[country] = (type, count);
+
+        return true;
+    }
+
+    /// <summary>Что заказано и сколько ещё не построено.</summary>
+    public (BuildingType Type, int Left)? OrderOf(byte country) =>
+        _ordered.TryGetValue(country, out var order) ? order : null;
+
+    public void Cancel(byte country) => _ordered.Remove(country);
+
     /// <summary>Что строится прямо сейчас: тип, регион и сколько штук.</summary>
     public (BuildingType Type, Region Where, int Count)? PlanOf(byte country) =>
         _plan.TryGetValue(country, out var plan) ? plan : null;
@@ -1051,19 +1076,23 @@ public sealed class Simulation
         foreach (var country in _world.Countries)
         {
             var purse = _investment.GetValueOrDefault(country.Id);
-            var best = BestBuild(country, purse);
+            var best = Ordered(country) ?? BestBuild(country, purse);
             if (best is null) continue;
 
             var info = _world.Buildings[best.Value.Type];
             var price = Construction.CostOf(info.BuildCost, country.State.Prices) + WagesFor(country, info);
             if (price.Raw <= 0) continue;
 
-            // Копить больше, чем на пару единиц, незачем: не найдя материалов, страна
-            // накапливала бы на сотни и заявляла спрос, которого мир не выдержит.
-            var ceiling = new Money(price.Raw * MaxBuildsPerTick);
-            if (purse > ceiling) _investment[country.Id] = purse = ceiling;
+            // За тик строится не больше потолка: не найдя материалов, страна заявляла бы
+            // спрос, которого мир не выдержит. Режется именно число, а не кошелёк —
+            // раньше лишние деньги пропадали, и вложенное игроком исчезало бы, не дойдя
+            // до стройки.
+            var count = (int)Math.Min(purse.Raw / price.Raw, MaxBuildsPerTick);
 
-            var count = (int)(purse.Raw / price.Raw);
+            if (_ordered.TryGetValue(country.Id, out var order) && order.Type == best.Value.Type)
+            {
+                count = Math.Min(count, order.Left);
+            }
 
             // Стройке нужны руки, и берёт она их у заводов: больше, чем свободно, не
             // построишь ни за какие деньги.
@@ -1440,10 +1469,25 @@ public sealed class Simulation
 
             _builders[country.Id] = _world.Efficiency.HandsFor(
                 country.Id, info.Sector, (long)info.BuildWorkers * done);
+
+            if (!_ordered.TryGetValue(country.Id, out var order) || order.Type != plan.Type) continue;
+
+            if (order.Left > done) _ordered[country.Id] = (order.Type, order.Left - done);
+            else _ordered.Remove(country.Id);
         }
     }
 
     /// <summary>Что и где стране строить по средствам. Пусто, если ничего не подходит.</summary>
+    /// <summary>Заказанное игроком, если его есть где поставить.</summary>
+    private (BuildingType Type, Region Where)? Ordered(Country country)
+    {
+        if (!_ordered.TryGetValue(country.Id, out var order) || order.Left <= 0) return null;
+
+        var where = PlaceFor(country, _world.Buildings[order.Type]);
+
+        return where is null ? null : (order.Type, where);
+    }
+
     private (BuildingType Type, Region Where)? BestBuild(Country country, Money purse)
     {
         (BuildingType Type, Region Where)? best = null;

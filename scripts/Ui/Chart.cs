@@ -92,7 +92,7 @@ public partial class Chart : VBoxContainer
 
     private void Legend(Trace[] traces)
     {
-        while (_legend.GetChildCount() > traces.Length) _legend.GetChild(_legend.GetChildCount() - 1).QueueFree();
+        Ui.Trim(_legend, traces.Length);
 
         for (var index = 0; index < traces.Length; index++)
         {

@@ -46,6 +46,50 @@ public static class Names
         _ => good.ToString(),
     };
 
+    /// <summary>Свой цвет каждому товару: в сетке из тридцати двух плашек различают не
+    /// значок, а пятно. Оттенки идут по переделам — сырьё землистое, переделы стальные,
+    /// потребление тёплое, военное красное.</summary>
+    public static Color ColourOf(GoodType good) => good switch
+    {
+        GoodType.Coal => new Color("6b6b78"),
+        GoodType.Oil => new Color("5b4a6e"),
+        GoodType.Gas => new Color("4f7fa8"),
+        GoodType.IronOre => new Color("8a6a55"),
+        GoodType.CopperOre => new Color("b4703c"),
+        GoodType.Bauxite => new Color("a8887a"),
+        GoodType.Uranium => new Color("74c46a"),
+        GoodType.RareEarth => new Color("9a6fc4"),
+        GoodType.Timber => new Color("6d8f4a"),
+        GoodType.Agriculture => new Color("c2a63c"),
+
+        GoodType.Electricity => new Color("e8d24a"),
+        GoodType.Fuel => new Color("d1843c"),
+        GoodType.Metals => new Color("9aa7b4"),
+        GoodType.Chemicals => new Color("5fbfa8"),
+        GoodType.Materials => new Color("b09a7e"),
+        GoodType.Components => new Color("7f96c4"),
+        GoodType.Electronics => new Color("4fb3d9"),
+        GoodType.Microelectronics => new Color("6fd4e8"),
+
+        GoodType.Food => new Color("d95f5f"),
+        GoodType.ConsumerGoods => new Color("d97fb0"),
+        GoodType.Medicine => new Color("e4e4ec"),
+        GoodType.Services => new Color("8fb8e0"),
+
+        GoodType.Armour => new Color("7a6a4a"),
+        GoodType.Artillery => new Color("8f5a3c"),
+        GoodType.SmallArms => new Color("a35c4a"),
+        GoodType.Ammunition => new Color("c46a3c"),
+        GoodType.TacticalDrones => new Color("6aa3a3"),
+        GoodType.StrikeDrones => new Color("4a8f8f"),
+        GoodType.Missiles => new Color("c44a4a"),
+        GoodType.Aircraft => new Color("5f7fa8"),
+        GoodType.AirDefence => new Color("7f6ac4"),
+        GoodType.ElectronicWarfare => new Color("a35fc4"),
+
+        _ => Skin.Dim,
+    };
+
     public static string Of(BuildingType type) => type switch
     {
         BuildingType.CoalMine => "Угольная шахта",

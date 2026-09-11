@@ -106,6 +106,74 @@ public static class Ui
         button.AddThemeColorOverride("font_disabled_color", Skin.Dim);
     }
 
+    /// <summary>Ползунок доли от нуля до единицы. Ползунок, а не ступеньки: сумму
+    /// вложения задают на глаз, точное число тут никому не нужно.</summary>
+    public static HSlider Rail(Action<double> share)
+    {
+        var slider = new HSlider
+        {
+            MinValue = 0,
+            MaxValue = 1,
+            Step = 0.01,
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+            SizeFlagsVertical = Control.SizeFlags.ShrinkCenter,
+            CustomMinimumSize = new Vector2(160, 20),
+            FocusMode = Control.FocusModeEnum.None,
+        };
+
+        slider.AddThemeStyleboxOverride("slider", Skin.BarBox(new Color(Skin.Soft, 0.7f)));
+        slider.AddThemeStyleboxOverride("grabber_area", Skin.BarBox(Skin.Link));
+        slider.AddThemeStyleboxOverride("grabber_area_highlight", Skin.BarBox(Skin.Bright));
+        slider.AddThemeIconOverride("grabber", Grabber());
+        slider.AddThemeIconOverride("grabber_highlight", Grabber());
+        slider.ValueChanged += value => share(value);
+
+        return slider;
+    }
+
+    private static ImageTexture? _grabber;
+
+    /// <summary>Кругляш ползунка. Рисуется в памяти: заводить ради него файл не стоит.</summary>
+    private static ImageTexture Grabber()
+    {
+        if (_grabber is not null) return _grabber;
+
+        const int size = 14;
+        var image = Image.CreateEmpty(size, size, false, Image.Format.Rgba8);
+        var middle = (size - 1) / 2f;
+
+        for (var y = 0; y < size; y++)
+        {
+            for (var x = 0; x < size; x++)
+            {
+                var away = new Vector2(x - middle, y - middle).Length();
+                var inside = Mathf.Clamp(middle - away, 0f, 1f);
+                var colour = away > middle - 2 ? Skin.Bright : Skin.Link;
+
+                image.SetPixel(x, y, new Color(colour, inside));
+            }
+        }
+
+        _grabber = ImageTexture.CreateFromImage(image);
+
+        return _grabber;
+    }
+
+    /// <summary>Оставить у узла не больше заданного числа детей.</summary>
+    /// <remarks>Лишние сначала вынимаются из дерева и только потом освобождаются:
+    /// QueueFree удаляет в конце кадра, и цикл «пока детей больше нужного» на нём
+    /// крутился бы вечно — кадр не кончается, и видеодрайвер считает это отказом.</remarks>
+    public static void Trim(Node parent, int keep)
+    {
+        for (var index = parent.GetChildCount() - 1; index >= keep; index--)
+        {
+            var child = parent.GetChild(index);
+
+            parent.RemoveChild(child);
+            child.QueueFree();
+        }
+    }
+
     /// <summary>Плашка-метка: блок страны, вид ставки, состояние товара.</summary>
     public static PanelContainer Chip(string text, Color colour)
     {
