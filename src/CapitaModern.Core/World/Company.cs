@@ -22,7 +22,18 @@ public sealed class Company
     public string Name { get; }
 
     /// <summary>В каких отраслях работает. Одна у большинства, несколько у крупных.</summary>
-    public IReadOnlyList<Sector> Focus { get; }
+    public IReadOnlyList<Sector> Focus => _focus;
+
+    private readonly List<Sector> _focus;
+
+    /// <summary>Берётся за новую отрасль. Так и растут конгломераты: скопив денег, идут в
+    /// соседний передел, а не в самый прибыльный на свете.</summary>
+    public void Expand(Sector sector)
+    {
+        if (_focus.Contains(sector)) return;
+
+        _focus.Add(sector);
+    }
 
     /// <summary>Свои деньги. Из них строит и с них платит налоги.</summary>
     public Money Cash { get; private set; }
@@ -30,13 +41,24 @@ public sealed class Company
     /// <summary>Сколько чего у неё есть, по областям.</summary>
     private readonly Dictionary<(int Region, BuildingType Type), int> _buildings = [];
 
-    public Company(int id, byte country, string name, IReadOnlyList<Sector> focus, Money cash = default)
+    /// <summary>Знают ли её по имени. У названных настоящее имя из жизни, у прочих —
+    /// «RUS добыча 3»: показывать их вперемешку не стоит.</summary>
+    public bool Known { get; }
+
+    public Company(
+        int id,
+        byte country,
+        string name,
+        IReadOnlyList<Sector> focus,
+        Money cash = default,
+        bool known = false)
     {
         Id = id;
         Country = country;
         Name = name;
-        Focus = focus;
+        _focus = [.. focus];
         Cash = cash;
+        Known = known;
     }
 
     public IReadOnlyDictionary<(int Region, BuildingType Type), int> Buildings => _buildings;
@@ -82,6 +104,53 @@ public sealed class Company
     /// <remarks>Считается на лету, а не перебором: прибыль делится каждый тик, и перебор
     /// всех зданий всех компаний стоил втрое дороже самого тика.</remarks>
     public int Size { get; private set; }
+
+    /// <summary>Сколько компания должна банкам своей страны.</summary>
+    public Money Debt { get; private set; }
+
+    /// <summary>На какой день она разорилась. Ноль — не разорялась.</summary>
+    public int BrokeOnDay { get; private set; }
+
+    /// <summary>Жива ли: разорившаяся не строит, не занимает и ничего не стоит.</summary>
+    public bool Alive => BrokeOnDay == 0;
+
+    /// <summary>Берёт в долг: деньги сразу в дело, долг на себя.</summary>
+    public void Borrow(Money amount)
+    {
+        if (amount.Raw <= 0) return;
+
+        Cash += amount;
+        Debt += amount;
+    }
+
+    /// <summary>Гасит сколько может и говорит, сколько отдала.</summary>
+    public Money Repay(Money wanted)
+    {
+        var paid = wanted < Cash ? wanted : Cash;
+        if (paid > Debt) paid = Debt;
+        if (paid.Raw <= 0) return default;
+
+        Cash -= paid;
+        Debt -= paid;
+
+        return paid;
+    }
+
+    /// <summary>Проценты, которые нечем заплатить, уходят в тело долга.</summary>
+    public void Capitalise(Money interest)
+    {
+        if (interest.Raw <= 0) return;
+
+        Debt += interest;
+    }
+
+    /// <summary>Разорилась: долг списан, здания уходят тому, кто их подберёт.</summary>
+    public void Break(int day)
+    {
+        BrokeOnDay = day;
+        Debt = default;
+        Cash = default;
+    }
 
     public void Earn(Money amount)
     {

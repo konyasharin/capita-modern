@@ -1,0 +1,291 @@
+{
+	"note": "Крупнейшие компании стран на 2020 год: название и отрасль. Отрасли — те же, что у зданий: Mining, Power, Heavy, Civil, Military, Services. Список неполный и полным не будет: он нужен, чтобы у главных игроков страны было узнаваемое имя, а всё остальное достаётся безымянным мелким фирмам. Wikidata и Forbes тут не годятся — там выручка в разных валютах и годах, отрасли навалены кучей, а половина компаний давно не существует.",
+	"companies": {
+		"USA": [
+			{ "name": "ExxonMobil", "sector": "Mining" },
+			{ "name": "Chevron", "sector": "Mining" },
+			{ "name": "NextEra Energy", "sector": "Power" },
+			{ "name": "Nucor", "sector": "Heavy" },
+			{ "name": "Dow", "sector": "Heavy" },
+			{ "name": "Apple", "sector": "Civil" },
+			{ "name": "Intel", "sector": "Civil" },
+			{ "name": "Procter & Gamble", "sector": "Civil" },
+			{ "name": "Pfizer", "sector": "Civil" },
+			{ "name": "Lockheed Martin", "sector": "Military" },
+			{ "name": "Raytheon", "sector": "Military" },
+			{ "name": "Walmart", "sector": "Services" },
+			{ "name": "Amazon", "sector": "Services" },
+			{ "name": "UPS", "sector": "Services" }
+		],
+		"CHN": [
+			{ "name": "Шэньхуа", "sector": "Mining" },
+			{ "name": "PetroChina", "sector": "Mining" },
+			{ "name": "State Grid", "sector": "Power" },
+			{ "name": "Baowu Steel", "sector": "Heavy" },
+			{ "name": "Sinopec", "sector": "Heavy" },
+			{ "name": "Huawei", "sector": "Civil" },
+			{ "name": "Foxconn Zhengzhou", "sector": "Civil" },
+			{ "name": "BYD", "sector": "Civil" },
+			{ "name": "Norinco", "sector": "Military" },
+			{ "name": "AVIC", "sector": "Military" },
+			{ "name": "Alibaba", "sector": "Services" },
+			{ "name": "China Railway", "sector": "Services" }
+		],
+		"RUS": [
+			{ "name": "Газпром", "sector": "Mining" },
+			{ "name": "Роснефть", "sector": "Mining" },
+			{ "name": "Лукойл", "sector": "Mining" },
+			{ "name": "Русал", "sector": "Heavy" },
+			{ "name": "Норникель", "sector": "Mining" },
+			{ "name": "Росатом", "sector": "Power" },
+			{ "name": "РусГидро", "sector": "Power" },
+			{ "name": "Северсталь", "sector": "Heavy" },
+			{ "name": "Сибур", "sector": "Heavy" },
+			{ "name": "АвтоВАЗ", "sector": "Civil" },
+			{ "name": "Ростех", "sector": "Military" },
+			{ "name": "Алмаз-Антей", "sector": "Military" },
+			{ "name": "РЖД", "sector": "Services" },
+			{ "name": "Магнит", "sector": "Services" }
+		],
+		"DEU": [
+			{ "name": "RWE", "sector": "Power" },
+			{ "name": "Thyssenkrupp", "sector": "Heavy" },
+			{ "name": "BASF", "sector": "Heavy" },
+			{ "name": "Volkswagen", "sector": "Civil" },
+			{ "name": "Siemens", "sector": "Civil" },
+			{ "name": "Bosch", "sector": "Civil" },
+			{ "name": "Bayer", "sector": "Civil" },
+			{ "name": "Rheinmetall", "sector": "Military" },
+			{ "name": "Deutsche Bahn", "sector": "Services" },
+			{ "name": "Aldi", "sector": "Services" }
+		],
+		"JPN": [
+			{ "name": "JERA", "sector": "Power" },
+			{ "name": "Nippon Steel", "sector": "Heavy" },
+			{ "name": "Toyota", "sector": "Civil" },
+			{ "name": "Sony", "sector": "Civil" },
+			{ "name": "Panasonic", "sector": "Civil" },
+			{ "name": "Takeda", "sector": "Civil" },
+			{ "name": "Mitsubishi Heavy", "sector": "Military" },
+			{ "name": "Japan Post", "sector": "Services" },
+			{ "name": "Seven & i", "sector": "Services" }
+		],
+		"IND": [
+			{ "name": "Coal India", "sector": "Mining" },
+			{ "name": "ONGC", "sector": "Mining" },
+			{ "name": "NTPC", "sector": "Power" },
+			{ "name": "Tata Steel", "sector": "Heavy" },
+			{ "name": "Reliance", "sector": "Heavy" },
+			{ "name": "Mahindra", "sector": "Civil" },
+			{ "name": "Sun Pharma", "sector": "Civil" },
+			{ "name": "HAL", "sector": "Military" },
+			{ "name": "Indian Railways", "sector": "Services" }
+		],
+		"GBR": [
+			{ "name": "BP", "sector": "Mining" },
+			{ "name": "Shell UK", "sector": "Mining" },
+			{ "name": "National Grid", "sector": "Power" },
+			{ "name": "Ineos", "sector": "Heavy" },
+			{ "name": "Rolls-Royce", "sector": "Civil" },
+			{ "name": "GSK", "sector": "Civil" },
+			{ "name": "BAE Systems", "sector": "Military" },
+			{ "name": "Tesco", "sector": "Services" }
+		],
+		"FRA": [
+			{ "name": "TotalEnergies", "sector": "Mining" },
+			{ "name": "EDF", "sector": "Power" },
+			{ "name": "ArcelorMittal France", "sector": "Heavy" },
+			{ "name": "Air Liquide", "sector": "Heavy" },
+			{ "name": "Renault", "sector": "Civil" },
+			{ "name": "Sanofi", "sector": "Civil" },
+			{ "name": "Dassault", "sector": "Military" },
+			{ "name": "Thales", "sector": "Military" },
+			{ "name": "Carrefour", "sector": "Services" }
+		],
+		"KOR": [
+			{ "name": "KEPCO", "sector": "Power" },
+			{ "name": "POSCO", "sector": "Heavy" },
+			{ "name": "LG Chem", "sector": "Heavy" },
+			{ "name": "Samsung Electronics", "sector": "Civil" },
+			{ "name": "Hyundai", "sector": "Civil" },
+			{ "name": "SK Hynix", "sector": "Civil" },
+			{ "name": "Hanwha", "sector": "Military" },
+			{ "name": "Lotte", "sector": "Services" }
+		],
+		"ITA": [
+			{ "name": "Eni", "sector": "Mining" },
+			{ "name": "Enel", "sector": "Power" },
+			{ "name": "Stellantis Italia", "sector": "Civil" },
+			{ "name": "Leonardo", "sector": "Military" },
+			{ "name": "Ferrovie dello Stato", "sector": "Services" }
+		],
+		"BRA": [
+			{ "name": "Vale", "sector": "Mining" },
+			{ "name": "Petrobras", "sector": "Mining" },
+			{ "name": "Eletrobras", "sector": "Power" },
+			{ "name": "Gerdau", "sector": "Heavy" },
+			{ "name": "Embraer", "sector": "Civil" },
+			{ "name": "JBS", "sector": "Civil" },
+			{ "name": "Magazine Luiza", "sector": "Services" }
+		],
+		"CAN": [
+			{ "name": "Suncor", "sector": "Mining" },
+			{ "name": "Barrick Gold", "sector": "Mining" },
+			{ "name": "Hydro-Québec", "sector": "Power" },
+			{ "name": "Bombardier", "sector": "Civil" },
+			{ "name": "Canadian National", "sector": "Services" }
+		],
+		"AUS": [
+			{ "name": "BHP", "sector": "Mining" },
+			{ "name": "Rio Tinto", "sector": "Mining" },
+			{ "name": "Fortescue", "sector": "Mining" },
+			{ "name": "AGL Energy", "sector": "Power" },
+			{ "name": "Woolworths", "sector": "Services" }
+		],
+		"SAU": [
+			{ "name": "Saudi Aramco", "sector": "Mining" },
+			{ "name": "SABIC", "sector": "Heavy" },
+			{ "name": "Maaden", "sector": "Mining" },
+			{ "name": "Saudi Electricity", "sector": "Power" }
+		],
+		"MEX": [
+			{ "name": "Pemex", "sector": "Mining" },
+			{ "name": "CFE", "sector": "Power" },
+			{ "name": "Cemex", "sector": "Heavy" },
+			{ "name": "Grupo Bimbo", "sector": "Civil" },
+			{ "name": "Walmex", "sector": "Services" }
+		],
+		"IDN": [
+			{ "name": "Pertamina", "sector": "Mining" },
+			{ "name": "Adaro", "sector": "Mining" },
+			{ "name": "PLN", "sector": "Power" },
+			{ "name": "Krakatau Steel", "sector": "Heavy" },
+			{ "name": "Astra International", "sector": "Civil" }
+		],
+		"TUR": [
+			{ "name": "Tüpraş", "sector": "Heavy" },
+			{ "name": "Erdemir", "sector": "Heavy" },
+			{ "name": "Ford Otosan", "sector": "Civil" },
+			{ "name": "Aselsan", "sector": "Military" },
+			{ "name": "BIM", "sector": "Services" }
+		],
+		"ESP": [
+			{ "name": "Repsol", "sector": "Mining" },
+			{ "name": "Iberdrola", "sector": "Power" },
+			{ "name": "SEAT", "sector": "Civil" },
+			{ "name": "Navantia", "sector": "Military" },
+			{ "name": "Inditex", "sector": "Services" }
+		],
+		"NLD": [
+			{ "name": "Shell", "sector": "Mining" },
+			{ "name": "ASML", "sector": "Civil" },
+			{ "name": "Philips", "sector": "Civil" },
+			{ "name": "Ahold", "sector": "Services" }
+		],
+		"POL": [
+			{ "name": "PKN Orlen", "sector": "Heavy" },
+			{ "name": "PGE", "sector": "Power" },
+			{ "name": "JSW", "sector": "Mining" },
+			{ "name": "KGHM", "sector": "Mining" }
+		],
+		"ZAF": [
+			{ "name": "Anglo American", "sector": "Mining" },
+			{ "name": "Sasol", "sector": "Heavy" },
+			{ "name": "Eskom", "sector": "Power" },
+			{ "name": "Denel", "sector": "Military" }
+		],
+		"IRN": [
+			{ "name": "NIOC", "sector": "Mining" },
+			{ "name": "Mobarakeh Steel", "sector": "Heavy" },
+			{ "name": "Iran Khodro", "sector": "Civil" }
+		],
+		"UKR": [
+			{ "name": "Метинвест", "sector": "Heavy" },
+			{ "name": "Энергоатом", "sector": "Power" },
+			{ "name": "ДТЭК", "sector": "Power" },
+			{ "name": "Укрзалізниця", "sector": "Services" }
+		],
+		"KAZ": [
+			{ "name": "КазМунайГаз", "sector": "Mining" },
+			{ "name": "Казатомпром", "sector": "Mining" },
+			{ "name": "ERG", "sector": "Heavy" }
+		],
+		"ARE": [
+			{ "name": "ADNOC", "sector": "Mining" },
+			{ "name": "Emirates Global Aluminium", "sector": "Heavy" },
+			{ "name": "EDGE", "sector": "Military" },
+			{ "name": "Emirates", "sector": "Services" }
+		],
+		"VNM": [
+			{ "name": "Petrovietnam", "sector": "Mining" },
+			{ "name": "EVN", "sector": "Power" },
+			{ "name": "Hoa Phat", "sector": "Heavy" },
+			{ "name": "Vingroup", "sector": "Services" }
+		],
+		"THA": [
+			{ "name": "PTT", "sector": "Mining" },
+			{ "name": "SCG", "sector": "Heavy" },
+			{ "name": "CP All", "sector": "Services" }
+		],
+		"ARG": [
+			{ "name": "YPF", "sector": "Mining" },
+			{ "name": "Techint", "sector": "Heavy" },
+			{ "name": "Arcor", "sector": "Civil" }
+		],
+		"EGY": [
+			{ "name": "EGPC", "sector": "Mining" },
+			{ "name": "Ezz Steel", "sector": "Heavy" },
+			{ "name": "Orascom", "sector": "Services" }
+		],
+		"NGA": [
+			{ "name": "NNPC", "sector": "Mining" },
+			{ "name": "Dangote", "sector": "Heavy" },
+			{ "name": "MTN Nigeria", "sector": "Services" }
+		],
+		"MYS": [
+			{ "name": "Petronas", "sector": "Mining" },
+			{ "name": "Tenaga", "sector": "Power" },
+			{ "name": "Sime Darby", "sector": "Civil" }
+		],
+		"SWE": [
+			{ "name": "LKAB", "sector": "Mining" },
+			{ "name": "Vattenfall", "sector": "Power" },
+			{ "name": "Volvo", "sector": "Civil" },
+			{ "name": "Saab", "sector": "Military" }
+		],
+		"NOR": [
+			{ "name": "Equinor", "sector": "Mining" },
+			{ "name": "Statkraft", "sector": "Power" },
+			{ "name": "Norsk Hydro", "sector": "Heavy" },
+			{ "name": "Kongsberg", "sector": "Military" }
+		],
+		"CHE": [
+			{ "name": "Glencore", "sector": "Mining" },
+			{ "name": "Novartis", "sector": "Civil" },
+			{ "name": "Nestlé", "sector": "Civil" },
+			{ "name": "ABB", "sector": "Civil" }
+		],
+		"TWN": [
+			{ "name": "TSMC", "sector": "Civil" },
+			{ "name": "Foxconn", "sector": "Civil" },
+			{ "name": "Formosa Plastics", "sector": "Heavy" },
+			{ "name": "Taipower", "sector": "Power" }
+		],
+		"CHL": [
+			{ "name": "Codelco", "sector": "Mining" },
+			{ "name": "Antofagasta", "sector": "Mining" },
+			{ "name": "Enel Chile", "sector": "Power" }
+		],
+		"PAK": [
+			{ "name": "PSO", "sector": "Mining" },
+			{ "name": "Fauji Fertilizer", "sector": "Heavy" },
+			{ "name": "POF", "sector": "Military" }
+		],
+		"ISR": [
+			{ "name": "Israel Chemicals", "sector": "Heavy" },
+			{ "name": "Elbit Systems", "sector": "Military" },
+			{ "name": "Israel Aerospace", "sector": "Military" },
+			{ "name": "Teva", "sector": "Civil" }
+		]
+	}
+}

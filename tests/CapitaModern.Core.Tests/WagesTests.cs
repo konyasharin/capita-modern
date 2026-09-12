@@ -11,6 +11,9 @@ public class WagesTests
 {
     private const BuildingType Farm = BuildingType.Farm;
 
+    /// <summary>Все деньги населения: на руках и во вкладе.</summary>
+    private static Money Wallet(Country country) => country.Households.Savings + country.Banks.Deposits;
+
     /// <summary>Ферма делает еду из ничего, население её ест. Цены единичные, чтобы
     /// считалось в уме: выпуск 10 еды — это добавленная стоимость в десятку.</summary>
     private static GameWorld Ready(long treasury, long savings, int labourShare = 55)
@@ -43,7 +46,8 @@ public class WagesTests
 
         // Выпуск 10 по цене 1, доля труда 55% — это 5.5 в кошелёк. Купить в первый тик
         // нечего: урожай ложится на склад уже после того, как население отоварилось.
-        Assert.Equal(new Money(550), country.Households.Savings);
+        // Часть кошелька лежит во вкладе: у людей две копилки, а деньги те же.
+        Assert.Equal(new Money(550), Wallet(country));
         Assert.Equal(Money.FromWhole(10_000) - new Money(550), country.State.Treasury.Balance);
     }
 
@@ -58,7 +62,7 @@ public class WagesTests
         new Simulation(world).Tick();
 
         Assert.Equal(default, country.State.Treasury.Balance);
-        Assert.Equal(Money.FromWhole(1), country.Households.Savings);
+        Assert.Equal(Money.FromWhole(1), Wallet(country));
     }
 
     /// <summary>Ради этого всё и делалось: без денег еду не купить.</summary>
@@ -101,7 +105,7 @@ public class WagesTests
 
         var simulation = new Simulation(world);
 
-        long All() => country.State.Treasury.Balance.Raw + country.Households.Savings.Raw;
+        long All() => country.State.Treasury.Balance.Raw + Wallet(country).Raw;
 
         var before = All();
 

@@ -26,7 +26,8 @@ public static class WorldDataLoader
         string tradeCostsJson,
         string neighboursJson,
         string basinsJson,
-        string currenciesJson)
+        string currenciesJson,
+        string companiesJson)
     {
         var consumptionFile = LoadConsumptionFile(consumptionJson);
         var needs = new Needs(consumptionFile.UnitPerMillionPeople, consumptionFile.IncomeElasticity);
@@ -140,7 +141,7 @@ public static class WorldDataLoader
             new WorldMarket(new Prices(startPrices)), elasticity, relations, efficiency, tradeCosts, routes);
 
         FillStores(world);
-        world.Settle(Founders.Found(world));
+        world.Settle(Founders.Found(world, JsonReader.Read<CompaniesFile>(companiesJson)));
 
         return world;
     }

@@ -41,6 +41,10 @@ public partial class FinancePanel : SidePanel
 
     private StatRow _rate = null!;
     private StatRow _budget2 = null!;
+    private StatRow _deposits = null!;
+    private StatRow _lent = null!;
+    private StatRow _free = null!;
+    private StatRow _loanRate = null!;
     private StatRow _collected = null!;
     private readonly Dictionary<TaxKind, StatRow> _taxes = [];
     private StatRow _swapped = null!;
@@ -132,6 +136,16 @@ public partial class FinancePanel : SidePanel
             Knob(label, min, max, 100,
                 () => RateOf(which), value => SetRate(which, value), Fmt.Rate, "sales");
         }
+
+        Section("Банки", "treasury");
+        Note("Банк не печатает денег: он раздаёт вклады населения, оставляя десятую часть " +
+            "резервом. Ставка по кредиту — ключевая плюс три с половиной процента, и эта " +
+            "разница возвращается вкладчикам. Оттого в бедной стране и занять не у кого.");
+
+        _deposits = Stat("Вклады населения", "treasury");
+        _lent = Stat("Роздано компаниям", "debt");
+        _free = Stat("Свободно к выдаче", "sales");
+        _loanRate = Stat("Ставка по кредиту", "keyrate");
 
         Section("Валютное окно", "rate");
         Note("Вывоз приносит чужую валюту, ввоз её тратит, и заём приходит тоже ею — " +
@@ -264,6 +278,12 @@ public partial class FinancePanel : SidePanel
 
         _budget2.Set(Fmt.Cash(Me.Budget.Balance.Exact), Fmt.Sign(Me.Budget.Balance.Exact));
         _collected.Set(Fmt.Cash(Me.Budget.Collected.Exact), Skin.Good);
+
+        var bank = Me.Banks;
+        _deposits.Set(Fmt.Cash(bank.Deposits.Exact), Skin.Bright);
+        _lent.Set(Fmt.Cash(bank.Lent.Exact), Skin.Text);
+        _free.Set(Fmt.Cash(bank.Free.Exact), bank.Free.Raw > 0 ? Skin.Good : Skin.Bad);
+        _loanRate.Set(Fmt.Rate(Math.Max(CreditMarket.BaseRate, Me.KeyRate + Bank.Margin)));
 
         foreach (var (kind, row) in _taxes) row.Set(Fmt.Cash(Me.Budget.IncomeFrom(kind).Exact));
 

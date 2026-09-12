@@ -1,6 +1,7 @@
 using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
 using CapitaModern.Core.Politics;
+using CapitaModern.Core.World;
 using Godot;
 
 /// <summary>Предприятия и стройка. Здесь же приоритеты снабжения — единственный рычаг,
@@ -16,6 +17,9 @@ public partial class IndustryPanel : SidePanel
 
     private Bars _bySector = null!;
     private StatRow _building = null!;
+    private StatRow _firms = null!;
+    private StatRow _ruined = null!;
+    private Table _companies = null!;
     private StatRow _builders = null!;
     private StatRow _investment = null!;
     private StatRow _purse = null!;
@@ -69,6 +73,23 @@ public partial class IndustryPanel : SidePanel
         ]);
 
         Rows.AddChild(_table);
+
+        Section("Компании", "plants");
+        _firms = Stat("Живых", "plants");
+        _ruined = Stat("Разорилось", "debt");
+        Note("Компания строит только в своих отраслях и только на свои. Не хватает — " +
+            "берёт в банке; долг перевалил за три годовых выручки — распродаёт дело, " +
+            "за пять — разоряется, и здания достаются соседу по отрасли.");
+
+        _companies = Table.Create(
+        [
+            new Column("Компания", 0, Right: false),
+            new Column("Зданий", 58),
+            new Column("Деньги", 62),
+            new Column("Долг", 62),
+        ]);
+
+        Rows.AddChild(_companies);
     }
 
     public override void Refresh()
@@ -127,5 +148,36 @@ public partial class IndustryPanel : SidePanel
 
         _total.Set(Fmt.Count(total));
         _table.Set(rows);
+
+        ShowCompanies(sim);
+    }
+
+    /// <summary>Кто в стране чем владеет. Крупнейшие сверху: мелких сотни, и все они
+    /// одинаковые.</summary>
+    private void ShowCompanies(Simulation sim)
+    {
+        var mine = Loop.World.CompaniesOf(Id);
+        var alive = mine.Count(company => company.Alive);
+
+        _firms.Set($"{alive} из {mine.Count}", Skin.Bright);
+
+        var ruined = sim.RuinedIn(Id);
+        _ruined.Set(ruined > 0 ? $"{ruined}, продано зданий {sim.SoldIn(Id)}" : "никто",
+            ruined > 0 ? Skin.Bad : Skin.Good);
+
+        _companies.Set(mine
+            .Where(company => company.Alive)
+            .OrderByDescending(company => company.Size)
+            .Take(20)
+            .Select(company => new Cell[]
+            {
+                new($"{company.Name} ({string.Join(", ", company.Focus.Select(Names.Of))})",
+                    company.Size, company.Known ? Skin.Bright : Skin.Text),
+                new(Fmt.Count(company.Size), company.Size, Skin.Text),
+                new(Fmt.Cash(company.Cash.Exact), company.Cash.Exact, Skin.Good),
+                new(Fmt.Cash(company.Debt.Exact), company.Debt.Exact,
+                    company.Debt.Raw > 0 ? Skin.Warn : Skin.Dim),
+            })
+            .ToList());
     }
 }

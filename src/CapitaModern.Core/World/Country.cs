@@ -41,6 +41,9 @@ public sealed class Country
     /// <summary>Какие налоги берёт государство и по какой ставке.</summary>
     public TaxCode Taxes { get; } = TaxCode.Default();
 
+    /// <summary>Банк страны: держит вклады населения и кредитует компании.</summary>
+    public Bank Banks { get; } = new();
+
     /// <summary>Печатный станок и денежная масса.</summary>
     public CentralBank Bank { get; init; } = new(default);
 

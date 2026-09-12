@@ -247,6 +247,7 @@ public sealed class Simulation
         AnchorPrices();
         PullPrices();
         Wear();
+        Banking();
         Build();
         PayProfits();
         UpdateDemographics();
@@ -923,6 +924,15 @@ public sealed class Simulation
         {
             country.NoteExports(ExportsOf(country.Id), DaysInYear);
             country.NoteImports(ImportsOf(country.Id), DaysInYear);
+
+            // Пошлина уже сидит в цене ввоза — платит её покупатель на границе. Досюда
+            // она доходила только как удорожание товара, а деньги не получал никто.
+            var duty = ImportsOf(country.Id);
+            if (duty.Raw <= 0) continue;
+
+            country.Budget.Collect(
+                TaxKind.Tariff,
+                InLocal(country, new Money(duty.Raw * _world.TradeCosts.TariffOf(country.Id) / 10_000)));
         }
     }
 
@@ -1862,7 +1872,10 @@ public sealed class Simulation
         }
 
         var total = 0L;
-        foreach (var company in companies) total += company.Size;
+        foreach (var company in companies)
+        {
+            if (company.Alive) total += company.Size;
+        }
 
         if (total <= 0)
         {
@@ -1874,6 +1887,8 @@ public sealed class Simulation
         var kept = default(Money);
         foreach (var company in companies)
         {
+            if (!company.Alive) continue;
+
             var share = new Money((long)((Int128)earned.Raw * company.Size / total));
 
             // Сперва налог на прибыль, и только с остатка компания копит на стройку.
@@ -1891,6 +1906,233 @@ public sealed class Simulation
         _saved[country.Id] = kept;
         country.Households.Earn(earned - kept);
     }
+
+    /// <summary>Банковский день: вклады, кредиты компаниям, проценты и разорения.</summary>
+    /// <remarks>
+    /// Компания берёт в долг, когда своих денег на стройку не хватает, а дело выгодно.
+    /// Отдаёт по графику из выручки; нечем — проценты уходят в тело, долг растёт сам себя,
+    /// и рано или поздно она разоряется. Её здания при этом не пропадают: их подбирает
+    /// сосед по отрасли, как и бывает при банкротстве.
+    ///
+    /// Банк не печатает денег: он раздаёт вклады населения, оставляя норму резерва. Оттого
+    /// в бедной стране и занять не у кого — вкладов нет.
+    /// </remarks>
+    private void Banking()
+    {
+        foreach (var country in _world.Countries)
+        {
+            var bank = country.Banks;
+
+            // Во вкладах люди держат долю всего, что у них есть, — и доносят, и забирают.
+            // Раньше только доносили: каждый день пятую часть остатка, и вклады росли сами
+            // себя до величин, которых в хозяйстве нет.
+            var wealth = country.Households.Savings + bank.Deposits;
+            var want = new Money(wealth.Raw * DepositShare / 100);
+
+            if (want > bank.Deposits)
+            {
+                bank.Take(country.Households.SpendUpTo(want - bank.Deposits));
+            }
+            else if (bank.Deposits > want)
+            {
+                // Отдать можно только то, что не роздано: остальное лежит в чужих заводах.
+                var loose = bank.Deposits > bank.Lent ? bank.Deposits - bank.Lent : default;
+                var back = bank.Deposits - want;
+
+                country.Households.Earn(bank.Give(back < loose ? back : loose));
+            }
+
+            country.Households.Earn(bank.PayOut());
+
+            var rate = Math.Max(CreditMarket.BaseRate, country.KeyRate + Bank.Margin);
+
+            foreach (var company in _world.CompaniesOf(country.Id))
+            {
+                if (!company.Alive) continue;
+
+                Service(country, company, bank, rate);
+            }
+        }
+    }
+
+    /// <summary>Какую долю сбережений люди держат в банке, в процентах.</summary>
+    private const int DepositShare = 20;
+
+    /// <summary>Во сколько раз долг должен превысить годовую выручку, чтобы компания
+    /// считалась безнадёжной.</summary>
+    private const int BrokeAt = 5;
+
+    private void Service(Country country, Company company, Bank bank, int rate)
+    {
+        // Проценты за сутки по годовой ставке.
+        var due = new Money(company.Debt.Raw * rate / (100 * 100 * DaysInYear));
+        var paid = company.Repay(due);
+
+        if (paid < due) company.Capitalise(due - paid);
+
+        // Тело гасится по графику, как и внешний долг страны.
+        var body = new Money(company.Debt.Raw / (Bank.LoanYears * DaysInYear));
+        var back = company.Repay(body);
+
+        bank.Returned(back, paid);
+
+        // Выручку компании считают не каждый день: это перебор всех её зданий, а банк
+        // смотрит на дело раз в декаду, как и сама она решает, что строить.
+        if (_day % ChooseEvery != company.Id % ChooseEvery) return;
+
+        var yearly = Worth(country, company);
+
+        // Сперва распродажа, и только если она не спасла — разорение. Так и делают: завод
+        // продают соседу, пока он ещё чего-то стоит, а не после суда.
+        if (yearly.Raw > 0 && company.Debt.Raw > yearly.Raw * SellAt
+            && SellOff(country, company, bank, yearly))
+        {
+            yearly = Worth(country, company);
+        }
+
+        if (company.Debt.Raw > yearly.Raw * BrokeAt && yearly.Raw > 0)
+        {
+            Ruin(country, company, bank);
+
+            return;
+        }
+
+        // Скопила на год вперёд и долгов почти нет — берётся за соседний передел. Это и
+        // есть рост конгломерата: вверх по цепочке, а не в самую прибыльную отрасль света.
+        if (company.Focus.Count < WidestFocus && company.Cash > yearly
+            && company.Debt.Raw * 2 < yearly.Raw)
+        {
+            company.Expand(Founders.Next(company.Focus[^1]));
+        }
+
+        // Занимает, если на стройку не хватает своего, а дело того стоит.
+        if (!_choice.TryGetValue(company.Id, out var plan)) return;
+
+        var price = Construction.CostOf(_world.Buildings[plan.Type].BuildCost, country.State.Prices);
+        if (price.Raw <= 0 || company.Cash >= price) return;
+
+        var want = price - company.Cash;
+        if (want > bank.Free) want = bank.Free;
+
+        // Больше пяти годовых выручек никто не даст: это и есть черта безнадёжности.
+        var room = new Money(yearly.Raw * BrokeAt) - company.Debt;
+        if (want > room) want = room;
+
+        if (want.Raw > 0 && bank.Lend(want)) company.Borrow(want);
+    }
+
+    /// <summary>Больше скольких отраслей компания не берёт. Даже у настоящих
+    /// конгломератов дел наперечёт, а не по всему хозяйству.</summary>
+    private const int WidestFocus = 3;
+
+    /// <summary>Во сколько раз долг должен превысить годовую выручку, чтобы компания
+    /// начала распродавать дело.</summary>
+    private const int SellAt = 3;
+
+    /// <summary>Почём уходит чужое здание, в процентах от стоимости постройки. Бывшее в
+    /// работе дешевле нового, а продают его в спешке и с долгом на шее.</summary>
+    private const int UsedPrice = 70;
+
+    /// <summary>Продаёт часть дела соседу по отрасли и гасит вырученным долг.</summary>
+    private bool SellOff(Country country, Company seller, Bank bank, Money yearly)
+    {
+        var keep = new Money(yearly.Raw * SellAt);
+        var any = false;
+
+        foreach (var ((region, type), count) in seller.Buildings.ToArray())
+        {
+            if (seller.Debt <= keep) break;
+
+            var full = Construction.CostOf(_world.Buildings[type].BuildCost, country.State.Prices);
+            var price = new Money(full.Raw * UsedPrice / 100);
+            if (price.Raw <= 0) continue;
+
+            var buyer = BuyerFor(country, seller, _world.Buildings[type].Sector, price);
+            if (buyer is null) continue;
+
+            // Продаёт не больше, чем нужно закрыть долг, и не больше, чем у покупателя денег.
+            var need = (int)((seller.Debt - keep).Raw / price.Raw) + 1;
+            var sold = Math.Min(count, Math.Min(need, (int)(buyer.Cash.Raw / price.Raw)));
+            if (sold <= 0) continue;
+
+            var paid = new Money(price.Raw * sold);
+            if (!buyer.TrySpend(paid)) continue;
+
+            seller.Remove(region, type, sold);
+            buyer.Add(region, type, sold);
+            seller.Earn(paid);
+            bank.Returned(seller.Repay(paid), default);
+
+            _sold[country.Id] = _sold.GetValueOrDefault(country.Id) + sold;
+            any = true;
+        }
+
+        return any;
+    }
+
+    /// <summary>Кто в стране возьмётся за такое здание и у кого хватит денег.</summary>
+    private Company? BuyerFor(Country country, Company seller, Sector sector, Money price)
+    {
+        Company? best = null;
+
+        foreach (var company in _world.CompaniesOf(country.Id))
+        {
+            if (!company.Alive || company.Id == seller.Id) continue;
+            if (!company.Works(sector) || company.Cash < price) continue;
+            if (best is null || company.Cash > best.Cash) best = company;
+        }
+
+        return best;
+    }
+
+    /// <summary>Сколько зданий сменило хозяина через продажу за партию.</summary>
+    public int SoldIn(byte country) => _sold.GetValueOrDefault(country);
+
+    private readonly Dictionary<byte, int> _sold = new();
+
+    /// <summary>Во что обходится годовой выпуск компании в её же ценах.</summary>
+    private Money Worth(Country country, Company company)
+    {
+        var daily = default(Money);
+
+        foreach (var ((_, type), count) in company.Buildings)
+        {
+            foreach (var (good, amount) in _world.Buildings[type].Outputs)
+            {
+                daily += new Money(
+                    (long)((Int128)country.State.Prices.Of(good).Raw * amount.Raw * count / GoodAmount.Scale));
+            }
+        }
+
+        return new Money(daily.Raw * DaysInYear);
+    }
+
+    /// <summary>Компания разорилась: долг списан, здания достаются соседу по отрасли.</summary>
+    private void Ruin(Country country, Company broke, Bank bank)
+    {
+        bank.WriteOff(broke.Debt);
+
+        Company? heir = null;
+        foreach (var company in _world.CompaniesOf(country.Id))
+        {
+            if (!company.Alive || company.Id == broke.Id) continue;
+            if (!company.Works(broke.Focus[0])) continue;
+            if (heir is null || company.Cash > heir.Cash) heir = company;
+        }
+
+        if (heir is not null)
+        {
+            foreach (var ((region, type), count) in broke.Buildings) heir.Add(region, type, count);
+        }
+
+        broke.Break(_day);
+        _ruined[country.Id] = _ruined.GetValueOrDefault(country.Id) + 1;
+    }
+
+    /// <summary>Сколько компаний разорилось в стране за партию.</summary>
+    public int RuinedIn(byte country) => _ruined.GetValueOrDefault(country);
+
+    private readonly Dictionary<byte, int> _ruined = new();
 
     /// <summary>Что компания решила строить. Решение держится декаду.</summary>
     /// <remarks>
@@ -1928,6 +2170,7 @@ public sealed class Simulation
         Company? best = null;
         foreach (var company in _world.CompaniesOf(country))
         {
+            if (!company.Alive) continue;
             if (best is null || company.Cash > best.Cash) best = company;
         }
 

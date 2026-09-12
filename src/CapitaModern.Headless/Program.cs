@@ -21,7 +21,8 @@ GameWorld Load() => WorldDataLoader.LoadWorld(
     Data("trade-costs.json"),
     File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "map", "neighbours.json")),
     File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "map", "basins.json")),
-    File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "economy", "currencies.json")));
+    File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "economy", "currencies.json")),
+    File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "economy", "companies.json")));
 
 var goods = Enum.GetValues<GoodType>();
 
@@ -652,7 +653,7 @@ Console.WriteLine($"  всего за год: {transitYear.Values.Sum(m => m.Exa
 // --- У. Налоги ------------------------------------------------------------------------
 Console.WriteLine();
 Console.WriteLine("=== У. Налоги ===");
-Console.WriteLine("страна   собрано за год   к ВВП   в жизни   НДС    НДФЛ   взносы прибыль добыча акциз");
+Console.WriteLine("страна   собрано за год   к ВВП   в жизни   НДС    НДФЛ   взносы прибыль добыча акциз  пошлина");
 
 foreach (var (iso, inLife) in new[] { ("RUS", 33.0), ("USA", 27.0), ("DEU", 40.0), ("CHN", 21.0), ("IND", 18.0) })
 {
@@ -669,7 +670,8 @@ foreach (var (iso, inLife) in new[] { ("RUS", 33.0), ("USA", 27.0), ("DEU", 40.0
 
     Console.WriteLine($"{iso}  {year / 1e9,14:F2} трлн {(gdp > 0 ? 100 * year / gdp : 0),6:F1}% {inLife,8:F0}% "
         + $"{Share(TaxKind.Vat)} {Share(TaxKind.Income)} {Share(TaxKind.Payroll)} "
-        + $"{Share(TaxKind.Profit)} {Share(TaxKind.Extraction)} {Share(TaxKind.Excise)}");
+        + $"{Share(TaxKind.Profit)} {Share(TaxKind.Extraction)} {Share(TaxKind.Excise)} "
+        + $"{Share(TaxKind.Tariff)}");
 }
 
 // --- Т. Компании ---------------------------------------------------------------------
@@ -682,15 +684,102 @@ foreach (var iso in new[] { "RUS", "USA", "CHN" })
     var whose = world.Countries.First(c => c.Iso == iso);
     var mine = world.CompaniesOf(whose.Id);
 
-    Console.WriteLine($"{iso}: {mine.Count} компаний, зданий {mine.Sum(c => c.Size)}, "
+    Console.WriteLine($"{iso}: {mine.Count} компаний ({mine.Count(c => c.Known)} известных), "
+        + $"зданий {mine.Sum(c => c.Size)}, "
         + $"денег {mine.Sum(c => c.Cash.Exact) / 1e6:F0} млн, "
         + $"многопрофильных {mine.Count(c => c.Focus.Count > 1)}");
 
-    foreach (var company in mine.OrderByDescending(c => c.Size).Take(4))
+    foreach (var company in mine.OrderByDescending(c => c.Size).Take(5))
     {
         Console.WriteLine($"   {company.Name,-26} зданий {company.Size,8} "
-            + $"денег {company.Cash.Exact / 1e6,10:F0} млн  отрасли {company.Focus.Count}");
+            + $"денег {company.Cash.Exact / 1e6,10:F0} млн  отрасли {company.Focus.Count}"
+            + (company.Known ? "  известная" : string.Empty));
     }
+}
+
+Console.WriteLine();
+Console.WriteLine($"Живых компаний: {world.Companies.Count(c => c.Alive)}, "
+    + $"разорилось за {years} лет: {world.Countries.Sum(c => simulation.RuinedIn(c.Id))}, "
+    + $"продано зданий {world.Countries.Sum(c => simulation.SoldIn(c.Id))}");
+Console.WriteLine($"Вклады в банках: {world.Countries.Sum(c => c.Banks.Deposits.Exact) / 1e9:F1} трлн, "
+    + $"роздано компаниям {world.Countries.Sum(c => c.Banks.Lent.Exact) / 1e9:F1} трлн, "
+    + $"долг компаний {world.Companies.Sum(c => c.Debt.Exact) / 1e9:F1} трлн");
+
+foreach (var iso in new[] { "RUS", "USA", "CHN", "DEU" })
+{
+    var whose = world.Countries.First(c => c.Iso == iso);
+    var mine = world.CompaniesOf(whose.Id);
+
+    Console.WriteLine($"{iso}: живых {mine.Count(c => c.Alive)} из {mine.Count}, "
+        + $"разорилось {simulation.RuinedIn(whose.Id)}, "
+        + $"вклады {whose.Banks.Deposits.Exact / 1e6:F0} млн, "
+        + $"роздано {whose.Banks.Lent.Exact / 1e6:F0} млн");
+}
+
+// --- Ф. Выбросы ----------------------------------------------------------------------
+Console.WriteLine();
+Console.WriteLine("=== Ф. Выбросы ===");
+Console.WriteLine("Где цены ушли дальше всего и что их туда двинуло. Масса — во сколько раз");
+Console.WriteLine("выросла денежная масса, печать — сколько из неё напечатано.");
+Console.WriteLine();
+Console.WriteLine("страна  уровень цен   масса   печать   курс    на рельсах");
+
+foreach (var country in world.Countries
+             .OrderByDescending(c => simulation.PriceLevelOf(c.Id))
+             .Take(8))
+{
+    var level = simulation.PriceLevelOf(country.Id) / (double)PriceLevel.Scale;
+    var supply = country.Bank.Start.Raw > 0
+        ? country.Bank.Supply.Exact / country.Bank.Start.Exact
+        : 0;
+    var printed = 100.0 * country.Bank.Printed.Exact / Math.Max(1, country.Bank.Supply.Exact);
+    var rails = goods.Count(good =>
+    {
+        var times = country.State.Prices.Of(good).Exact / country.State.Prices.StartOf(good).Exact;
+        return times >= Prices.MaxSwingTimes || times <= 1.0 / Prices.MaxSwingTimes;
+    });
+
+    Console.WriteLine($"{country.Iso}   x{level,10:F1} x{supply,6:F1} {printed,7:F1}% "
+        + $"x{country.ExchangeRate.Exact,6:F2} {rails,6} из {goods.Length}");
+}
+
+Console.WriteLine();
+Console.WriteLine("Сбережения населения: во сколько годовых закупок еды они выросли.");
+Console.WriteLine("В жизни у людей на руках лежит меньше годового дохода, а не сотни.");
+Console.WriteLine();
+Console.WriteLine("страна   сбережения    вклады   к годовой еде");
+
+foreach (var country in world.Countries
+             .OrderByDescending(c => c.Households.Savings.Exact + c.Banks.Deposits.Exact)
+             .Take(6))
+{
+    var all = country.Households.Savings + country.Banks.Deposits;
+    var foodYear = country.State.Prices.CostOf(
+        GoodType.Food, simulation.PeopleWantOf(country.Id, GoodType.Food)).Exact * 365;
+
+    Console.WriteLine($"{country.Iso}  {country.Households.Savings.Exact / 1e6,10:F0} млн "
+        + $"{country.Banks.Deposits.Exact / 1e6,10:F0} млн "
+        + $"{(foodYear > 0 ? all.Exact / foodYear : 0),10:F1}");
+}
+
+Console.WriteLine();
+Console.WriteLine("Какие товары чаще всего упираются в коридор:");
+
+foreach (var good in goods
+             .OrderByDescending(good => world.Countries.Count(c =>
+             {
+                 var times = c.State.Prices.Of(good).Exact / c.State.Prices.StartOf(good).Exact;
+                 return times >= Prices.MaxSwingTimes || times <= 1.0 / Prices.MaxSwingTimes;
+             }))
+             .Take(8))
+{
+    var up = world.Countries.Count(c =>
+        c.State.Prices.Of(good).Exact / c.State.Prices.StartOf(good).Exact >= Prices.MaxSwingTimes);
+    var down = world.Countries.Count(c =>
+        c.State.Prices.Of(good).Exact / c.State.Prices.StartOf(good).Exact <= 1.0 / Prices.MaxSwingTimes);
+    if (up + down == 0) continue;
+
+    Console.WriteLine($"  {good,-18} в потолок {up,4} стран, в пол {down,4}");
 }
 
 // --- С. Свои цены против мировых ---------------------------------------------------

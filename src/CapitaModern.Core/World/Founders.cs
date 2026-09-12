@@ -1,65 +1,49 @@
 using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
+using CapitaModern.Core.Loading;
 
 namespace CapitaModern.Core.World;
 
 /// <summary>Раздаёт стартовые здания компаниям.</summary>
 /// <remarks>
-/// Данных о том, кому что принадлежит, у нас нет и не будет: списка всех заводов мира с
-/// владельцами не существует. Поэтому компании не берутся из справочника, а нарезаются из
-/// того, что в стране есть.
+/// Кто именно владеет каждым заводом мира, не знает никто: такого списка не существует.
+/// Поэтому компании не берутся из справочника целиком, а нарезаются из того, что в стране
+/// есть, — но имена у главных настоящие. Газпром, Toyota, Apple: страну узнают по ним, и
+/// новость «Норникель закрыл рудник» читается иначе, чем «RUS-Добыча-3».
 ///
-/// Нарезка не равномерная. В любой отрасли несколько крупных игроков и длинный хвост
-/// мелких: первая компания получает примерно половину отрасли, вторая половину остатка и
-/// так далее. Так и устроена настоящая концентрация — доля первой пятёрки в добыче или
-/// металлургии обычно больше половины.
+/// Нарезка неравномерная, и это не украшение. В любой отрасли несколько крупных игроков и
+/// длинный хвост мелких: доля первой пятёрки в добыче или металлургии обычно больше
+/// половины. Мелкие фирмы не бутафория — они держат хвост выпуска, разоряются первыми и
+/// первыми же лезут в новые дела.
 /// </remarks>
 public static class Founders
 {
-    /// <summary>Сколько компаний на отрасль в стране. Больше плодить незачем: хвост из
-    /// сотни фирм с долей в тысячную ничего не решает, а тик считает их все.</summary>
-    public const int PerSector = 4;
+    /// <summary>Сколько безымянных фирм на отрасль сверх названных по имени.</summary>
+    public const int SmallPerSector = 12;
 
     /// <summary>Какую долю оставшегося берёт очередная компания, в сотых.</summary>
-    public const int BiggestShare = 50;
+    public const int BiggestShare = 45;
 
     /// <summary>Каждая столькая компания берётся за вторую отрасль. Многопрофильных
     /// меньшинство, но они есть: чеболи, конгломераты, госкорпорации.</summary>
-    public const int WideEvery = 7;
+    public const int WideEvery = 9;
 
     /// <summary>Сколько денег у компании на старте, в днях её же выпуска.</summary>
     public const int CashDays = 30;
 
-    public static List<Company> Found(GameWorld world)
+    public static List<Company> Found(GameWorld world, CompaniesFile? known = null)
     {
         var companies = new List<Company>();
         var next = 1;
 
         foreach (var country in world.Countries)
         {
-            // Здания страны по отраслям: что есть, то и делим.
-            var byRegion = new Dictionary<Sector, List<(int Region, BuildingType Type, int Count)>>();
+            var named = known?.Companies.GetValueOrDefault(country.Iso) ?? [];
+            var holdings = Holdings(world, country);
 
-            foreach (var region in world.RegionsOf(country.Id))
+            foreach (var (sector, inSector) in holdings)
             {
-                foreach (var (type, count) in region.BuildingsCount)
-                {
-                    var owned = region.BuildingsOf(type, country.Id);
-                    if (owned <= 0) continue;
-
-                    var sector = world.Buildings[type].Sector;
-                    if (sector == Sector.People) continue;
-
-                    if (!byRegion.TryGetValue(sector, out var list)) byRegion[sector] = list = [];
-
-                    list.Add((region.Id, type, owned));
-                }
-            }
-
-            foreach (var (sector, holdings) in byRegion)
-            {
-                var made = Share(world, country, sector, holdings, ref next);
-                companies.AddRange(made);
+                companies.AddRange(Share(world, country, sector, inSector, named, ref next));
             }
         }
 
@@ -68,18 +52,52 @@ public static class Founders
         return companies;
     }
 
-    /// <summary>Режет отрасль между несколькими компаниями: первой больше всех.</summary>
+    /// <summary>Что у страны есть, разложенное по отраслям.</summary>
+    private static Dictionary<Sector, List<(int Region, BuildingType Type, int Count)>> Holdings(
+        GameWorld world, Country country)
+    {
+        var byRegion = new Dictionary<Sector, List<(int Region, BuildingType Type, int Count)>>();
+
+        foreach (var region in world.RegionsOf(country.Id))
+        {
+            foreach (var (type, _) in region.BuildingsCount)
+            {
+                var owned = region.BuildingsOf(type, country.Id);
+                if (owned <= 0) continue;
+
+                var sector = world.Buildings[type].Sector;
+                if (sector == Sector.People) continue;
+
+                if (!byRegion.TryGetValue(sector, out var list)) byRegion[sector] = list = [];
+
+                list.Add((region.Id, type, owned));
+            }
+        }
+
+        return byRegion;
+    }
+
+    /// <summary>Режет отрасль: сперва названные по имени, за ними безымянный хвост.</summary>
     private static List<Company> Share(
         GameWorld world,
         Country country,
         Sector sector,
         List<(int Region, BuildingType Type, int Count)> holdings,
+        NamedCompanyDto[] named,
         ref int next)
     {
-        var made = new List<Company>(PerSector);
-        for (var i = 0; i < PerSector; i++)
+        var made = new List<Company>();
+
+        foreach (var dto in named)
         {
-            made.Add(new Company(next++, country.Id, $"{country.Iso}-{Names.Of(sector)}-{i + 1}", [sector]));
+            if (!Enum.TryParse<Sector>(dto.Sector, out var theirs) || theirs != sector) continue;
+
+            made.Add(new Company(next++, country.Id, dto.Name, [sector], known: true));
+        }
+
+        for (var i = 0; i < SmallPerSector; i++)
+        {
+            made.Add(new Company(next++, country.Id, $"{country.Iso} {Names.Of(sector)} {i + 1}", [sector]));
         }
 
         foreach (var (region, type, count) in holdings)
@@ -103,7 +121,7 @@ public static class Founders
         return made;
     }
 
-    /// <summary>Каждая седьмая берётся за соседнюю отрасль.</summary>
+    /// <summary>Каждая девятая берётся за соседнюю отрасль.</summary>
     private static void Widen(List<Company> companies)
     {
         for (var i = WideEvery - 1; i < companies.Count; i += WideEvery)
@@ -111,19 +129,19 @@ public static class Founders
             var company = companies[i];
             var second = Next(company.Focus[0]);
 
-            companies[i] = new Company(
-                company.Id, company.Country, company.Name, [company.Focus[0], second], company.Cash);
+            var wider = new Company(
+                company.Id, company.Country, company.Name, [company.Focus[0], second],
+                company.Cash, company.Known);
 
-            foreach (var ((region, type), count) in company.Buildings)
-            {
-                companies[i].Add(region, type, count);
-            }
+            foreach (var ((region, type), count) in company.Buildings) wider.Add(region, type, count);
+
+            companies[i] = wider;
         }
     }
 
     /// <summary>Соседняя отрасль по переделу: добыча тянется в тяжёлую, тяжёлая в
     /// гражданскую. Так и растут конгломераты — вверх по цепочке, а не куда попало.</summary>
-    private static Sector Next(Sector sector) => sector switch
+    public static Sector Next(Sector sector) => sector switch
     {
         Sector.Mining => Sector.Heavy,
         Sector.Power => Sector.Mining,
@@ -150,18 +168,18 @@ public static class Founders
         return new Money(daily.Raw * CashDays);
     }
 
-    /// <summary>Короткое имя отрасли для названия компании.</summary>
+    /// <summary>Короткое имя отрасли для безымянных фирм.</summary>
     private static class Names
     {
         public static string Of(Sector sector) => sector switch
         {
-            Sector.Mining => "Добыча",
-            Sector.Power => "Энергия",
-            Sector.Heavy => "Тяжпром",
-            Sector.Civil => "Гражданпром",
-            Sector.Military => "Оборонпром",
-            Sector.Services => "Услуги",
-            _ => "Прочее",
+            Sector.Mining => "добыча",
+            Sector.Power => "энергетика",
+            Sector.Heavy => "тяжпром",
+            Sector.Civil => "гражданпром",
+            Sector.Military => "оборонпром",
+            Sector.Services => "услуги",
+            _ => "прочее",
         };
     }
 }
