@@ -44,6 +44,17 @@ public sealed class CentralBank
         Supply = grown + Printed;
     }
 
+    /// <summary>Изымает деньги из обращения: столько же, сколько создала покупка валюты
+    /// с другой стороны сделки.</summary>
+    /// <remarks>Считается отдельно от печати: «напечатано за партию» должно показывать
+    /// дыру в бюджете, а не оборот валютного окна.</remarks>
+    public void Withdraw(Money amount)
+    {
+        if (amount < default(Money)) throw new ArgumentOutOfRangeException(nameof(amount));
+
+        Supply = Supply - amount < default(Money) ? default : Supply - amount;
+    }
+
     /// <summary>Создаёт деньги и говорит, на сколько сотых выросла масса.</summary>
     /// <returns>Рост в сотых: 5 означает, что всё подорожает на пять процентов.</returns>
     public int Emit(Money amount, EmissionKind kind)
@@ -53,8 +64,10 @@ public sealed class CentralBank
 
         var before = Supply;
         Supply += amount;
-        Printed += amount;
         LastKind = kind;
+
+        // Обмен валюты — не дыра в бюджете: за этими деньгами стоит привезённый товар.
+        if (kind != EmissionKind.ForCurrency) Printed += amount;
 
         if (before.Raw <= 0) return 100;
 

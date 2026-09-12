@@ -150,6 +150,8 @@ public sealed class Simulation
     private readonly Dictionary<byte, Money> _investment = new();
     private readonly Dictionary<byte, Money> _profits = new();
     private readonly Dictionary<byte, Money> _saved = new();
+    private readonly Dictionary<byte, Money> _soldCurrency = new();
+    private readonly Dictionary<byte, Money> _boughtCurrency = new();
 
     /// <summary>Добавленная стоимость за тик. Считается в PayWages и переиспользуется:
     /// перебор всех товаров на каждую страну стоит дороже самого тика.</summary>
@@ -267,6 +269,8 @@ public sealed class Simulation
         _sales.Clear();
         _profits.Clear();
         _saved.Clear();
+        _soldCurrency.Clear();
+        _boughtCurrency.Clear();
         _added.Clear();
         _build.Clear();
         _plan.Clear();
@@ -523,6 +527,7 @@ public sealed class Simulation
         seller.State.Treasury.Reserves.Add(
             Reserves.Incoming((byte)seller.State.Id, seller.State.Custody, deal.Paid));
 
+
         _imported.Add(deal.Buyer, _trading, deal.Amount);
         _exported.Add(deal.Seller, _trading, deal.Amount);
         _dealValue += deal.Paid;
@@ -531,6 +536,63 @@ public sealed class Simulation
         BurnFuel(deal.Buyer, deal.Seller, _trading, deal.Amount);
         PayTransit(deal.Buyer, deal.Seller, deal.Paid);
     }
+
+    /// <summary>Сумма в мировой мере, пересчитанная в деньги страны.</summary>
+    public Money InLocal(Country country, Money world) =>
+        new((long)((Int128)world.Raw * country.ExchangeRate.Raw / Money.Scale));
+
+    /// <summary>Продаёт валюту из резервов за местные деньги. Возвращает, сколько своих
+    /// денег получено.</summary>
+    /// <remarks>
+    /// Валютное окно центробанка: скупая валюту, он создаёт местные деньги, продавая —
+    /// изымает. Занятое и выручка за вывоз приходят резервами, а зарплаты и стройка идут
+    /// на свои, и без обмена одно с другим не связано вовсе.
+    ///
+    /// Сам по себе, каждый тик, обмен пока не идёт. Пробовал менять сальдо за тик: у
+    /// страны с вывозом казна полнеет, деньги расходятся по людям, те покупают больше,
+    /// цены растут — и паритет тянет её валюту вниз. Выходит «голландская болезнь» вместо
+    /// простого «профицит укрепляет», и знак у главного правила меняется на обратный.
+    /// Автоматическому окну нужна стерилизация — чтобы интервенция не разгоняла цены, — а
+    /// это отдельный шаг.
+    /// </remarks>
+    public Money SellCurrency(byte country, Money world)
+    {
+        var state = _world.CountryById(country);
+        var have = state.State.Treasury.Reserves.Liquid;
+        var take = world < have ? world : have;
+
+        if (take.Raw <= 0 || !state.State.Treasury.Reserves.TrySpend(take)) return default;
+
+        var local = InLocal(state, take);
+        state.Bank.Emit(local, EmissionKind.ForCurrency);
+        state.State.Treasury.Receive(local);
+        _soldCurrency[country] = _soldCurrency.GetValueOrDefault(country) + local;
+
+        return local;
+    }
+
+    /// <summary>Покупает валюту за местные деньги. Возвращает, сколько валюты куплено.</summary>
+    public Money BuyCurrency(byte country, Money world)
+    {
+        var state = _world.CountryById(country);
+        var local = InLocal(state, world);
+
+        if (local.Raw <= 0 || !state.State.Treasury.TrySpend(local)) return default;
+
+        state.Bank.Withdraw(local);
+        state.State.Treasury.Reserves.Add(
+            Reserves.Incoming(country, state.State.Custody, world));
+
+        _boughtCurrency[country] = _boughtCurrency.GetValueOrDefault(country) + local;
+
+        return world;
+    }
+
+    /// <summary>Сколько валюты страна сдала за тик, в своих деньгах.</summary>
+    public Money SoldCurrencyOf(byte country) => _soldCurrency.GetValueOrDefault(country);
+
+    /// <summary>Сколько валюты страна купила за тик, в своих деньгах.</summary>
+    public Money BoughtCurrencyOf(byte country) => _boughtCurrency.GetValueOrDefault(country);
 
     /// <summary>Сколько страна выпустила бы при полной загрузке, в стартовых ценах.</summary>
     /// <remarks>От этого числа якорь и считает, вырос выпуск или упал. Меняться оно

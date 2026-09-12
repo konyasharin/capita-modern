@@ -12,8 +12,11 @@ public class ExchangeRateTests
     private const BuildingType Mine = BuildingType.CoalMine;
     private const BuildingType Mill = BuildingType.SteelMill;
 
+    /// <param name="buyerMoney">Резервы покупателя. Не миллиард: правило достаточности
+    /// смотрит на запас против сорокадневного ввоза, и при бездонных резервах курс
+    /// укрепляется, сколько бы страна ни ввозила.</param>
     /// <summary>Страна 1 копает уголь и ничего не потребляет, страна 2 наоборот.</summary>
-    private static GameWorld TwoCountries(long buyerMoney = 1_000_000_000) => Build.World(
+    private static GameWorld TwoCountries(long buyerMoney = 200_000) => Build.World(
         [
             Build.Region(1, 1, new Dictionary<BuildingType, int> { [Mine] = 100 }),
             Build.Region(2, 2, new Dictionary<BuildingType, int> { [Mill] = 1 }),

@@ -36,6 +36,14 @@ public partial class FinancePanel : SidePanel
     /// <summary>Сколько просим в долг, в миллиардах долларов.</summary>
     private int _ask;
 
+    /// <summary>Сколько валюты меняем, в миллиардах долларов.</summary>
+    private int _swap;
+
+    private StatRow _rate = null!;
+    private StatRow _swapped = null!;
+    private Button _sell = null!;
+    private Button _buy = null!;
+
     private VBoxContainer _offers = null!;
     private Label _noOffers = null!;
     private Table _table = null!;
@@ -86,10 +94,12 @@ public partial class FinancePanel : SidePanel
         Rows.AddChild(_table);
 
         Section("Занять", "debt");
-        Note("Государство само в долг не лезет — заявку подаёте вы. Условия считаются по " +
-            "тем же правилам, что и весь кредитный рынок: ставка растёт с долговой " +
-            "нагрузкой, идёт за ключевой ставкой кредитора и зависит от отношений с ним. " +
-            "Враждебные не дадут ни под какой процент.");
+        Note("Государство само в долг не лезет — заявку подаёте вы. Занятое приходит " +
+            "чужой валютой, в резервы, а не в казну: своё покупается своими деньгами, и " +
+            "валюта на это не нужна. Чтобы платить занятым зарплаты или строить, продайте " +
+            "валюту в окне ниже. Условия считаются по тем же правилам, что и весь " +
+            "кредитный рынок: ставка растёт с долговой нагрузкой, идёт за ключевой ставкой " +
+            "кредитора и зависит от отношений — враждебные не дадут ни под какой процент.");
 
         Knob("Просим в долг", 0, 2000, 10,
             () => _ask, value => _ask = value, value => $"{value} млрд $", "debt");
@@ -102,6 +112,27 @@ public partial class FinancePanel : SidePanel
         _noOffers.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         _noOffers.CustomMinimumSize = new Vector2(Skin.PanelWidth - 46, 0);
         Rows.AddChild(_noOffers);
+
+        Section("Валютное окно", "rate");
+        Note("Вывоз приносит чужую валюту, ввоз её тратит, и заём приходит тоже ею — " +
+            "резервами. Зарплаты и стройка идут на свои деньги, поэтому валюту меняют: " +
+            "центробанк скупает её и печатает под неё местные, а продавая — изымает.");
+
+        _rate = Stat("Курс валюты", "rate", Trends.Rate(Past));
+        _swapped = Stat("Обменяно за день", "reserves");
+
+        Knob("Меняем", 0, 2000, 10,
+            () => _swap, value => _swap = value, value => $"{value} млрд $", "reserves");
+
+        var window = new HBoxContainer();
+        window.AddThemeConstantOverride("separation", 8);
+
+        _sell = Ui.Act("Продать валюту", Skin.Good, () => Swap(sell: true), 150);
+        _buy = Ui.Act("Купить валюту", Skin.Link, () => Swap(sell: false), 140);
+
+        window.AddChild(_sell);
+        window.AddChild(_buy);
+        Rows.AddChild(window);
 
         Section("Рычаги", "tab-finance");
         Knob("Ключевая ставка", 0, 3000, 25,
@@ -210,8 +241,34 @@ public partial class FinancePanel : SidePanel
 
         ShowOffers();
 
+        _rate.Set($"×{Me.ExchangeRate.Exact:0.00}");
+
+        var sold = sim.SoldCurrencyOf(Id);
+        var bought = sim.BoughtCurrencyOf(Id);
+        _swapped.Set($"+{Fmt.Cash(sold.Exact)} / −{Fmt.Cash(bought.Exact)}",
+            sold > bought ? Skin.Good : Skin.Text);
+
+        _sell.Disabled = _swap <= 0 || Me.State.Treasury.Reserves.Liquid.Raw <= 0;
+        _buy.Disabled = _swap <= 0 || Me.State.Treasury.Balance.Raw <= 0;
+
         _repudiate.Disabled = owed.Raw == 0;
     }
+
+    /// <summary>Меняет валюту через центробанк. Ctrl и Shift множат сумму.</summary>
+    private void Swap(bool sell)
+    {
+        var amount = Sum(_swap * Ui.Louder());
+        if (amount.Raw <= 0) return;
+
+        if (sell) Loop.Simulation.SellCurrency(Id, amount);
+        else Loop.Simulation.BuyCurrency(Id, amount);
+
+        Refresh();
+    }
+
+    /// <summary>Миллиарды долларов в деньги модели.</summary>
+    private static Money Sum(long billions) =>
+        new(billions * 1_000_000_000 / (long)Fmt.Dollar * Money.Scale);
 
     /// <summary>Кто даст в долг под нашу заявку и на каких условиях.</summary>
     /// <remarks>Список пересобирается каждый кадр: условия меняются вместе с ключевыми
@@ -227,7 +284,7 @@ public partial class FinancePanel : SidePanel
             return;
         }
 
-        var want = new Money((long)_ask * 1_000_000_000 / (long)Fmt.Dollar * Money.Scale);
+        var want = Sum(_ask);
         var offers = Loop.Simulation.OffersFor(Id, want).Take(6).ToList();
 
         _noOffers.Text = offers.Count > 0
