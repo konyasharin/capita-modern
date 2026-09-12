@@ -25,7 +25,8 @@ public static class WorldDataLoader
         string moneySupplyJson,
         string tradeCostsJson,
         string neighboursJson,
-        string basinsJson)
+        string basinsJson,
+        string currenciesJson)
     {
         var consumptionFile = LoadConsumptionFile(consumptionJson);
         var needs = new Needs(consumptionFile.UnitPerMillionPeople, consumptionFile.IncomeElasticity);
@@ -38,6 +39,7 @@ public static class WorldDataLoader
         var tradeCostsFile = JsonReader.Read<TradeCostsFile>(tradeCostsJson);
         var neighbours = JsonReader.Read<NeighboursFile>(neighboursJson);
         var basins = JsonReader.Read<BasinsFile>(basinsJson);
+        var currencies = JsonReader.Read<CurrenciesFile>(currenciesJson).Currencies;
         var goodDtos = JsonReader.Read<GoodDto[]>(goodsJson);
         var elasticity = new Elasticity(
             goodDtos.ToDictionary(dto => dto.Id, dto => dto.DemandElasticity),
@@ -63,6 +65,7 @@ public static class WorldDataLoader
         var idByIso = countriesFile.Countries.ToDictionary(dto => dto.Iso, dto => dto.Id);
         Country[] countries = countriesFile.Countries
             .Select(dto => ToCountry(dto, startPrices, reserves, idByIso, populations.GetValueOrDefault(dto.Id),
+                currencies.GetValueOrDefault(dto.Iso),
                 moneySupply))
             .ToArray();
 
@@ -217,9 +220,8 @@ public static class WorldDataLoader
         Math.Max(0, dto.Gdp) * 1000 *
         supply.ByIso.GetValueOrDefault(dto.Iso, supply.DefaultShareOfGdp) / 100);
 
-    /// <summary>Половина денег лежит у населения: вклады граждан — примерно столько же в
-    /// денежной массе, сколько всё остальное.</summary>
-    private static Money Savings(CountryDto dto, MoneySupplyFile supply) => new(MoneyOf(dto, supply).Raw / 2);
+    // Половина денег лежит у населения: вклады граждан — примерно столько же в денежной
+    // массе, сколько всё остальное. Делится это уже в ToCountry, после пересчёта по курсу.
 
     /// <summary>Раскладывает сумму по валютам. Доли нормируются по своей сумме: часть
     /// мировых резервов лежит в валютах, которых у нас нет.</summary>
@@ -260,28 +262,58 @@ public static class WorldDataLoader
         return held;
     }
 
+    /// <summary>Страна со своей валютой: цены и деньги пересчитаны из долларов по курсу.</summary>
+    /// <remarks>
+    /// В данных всё в долларах — и цены товаров, и ВВП, из которого считается масса. У
+    /// страны они должны быть в её деньгах, иначе на старте рубль равен доллару, а цена
+    /// стройматериалов в России выходит в семьдесят раз ниже мировой.
+    ///
+    /// Резервы не трогаем: это чужая валюта, и она так и остаётся в мировой мере.
+    /// </remarks>
     private static Country ToCountry(
         CountryDto dto,
         IReadOnlyDictionary<GoodType, Money> startPrices,
         ReservesFile reserves,
         IReadOnlyDictionary<string, byte> idByIso,
         Population population,
-        MoneySupplyFile moneySupply) => new(
-        dto.Id,
-        dto.Name,
-        dto.Iso,
-        // Номер продавца пока совпадает с номером страны: государство одно на страну.
-        // Цены у каждого свои, поэтому копия, а не общий объект.
-        new Producer(
+        CurrencyDto? currency,
+        MoneySupplyFile moneySupply)
+    {
+        var rate = Money.FromWhole(1);
+        var money = Currency.Dollar;
+
+        if (currency is { } about)
+        {
+            rate = new Money((long)(about.Rate * Money.Scale));
+            money = new Currency(about.Code, about.Symbol, about.Name);
+        }
+
+        var local = startPrices.ToDictionary(pair => pair.Key, pair => InLocal(pair.Value, rate));
+        var supply = InLocal(MoneyOf(dto, moneySupply), rate);
+        var savings = new Money(supply.Raw / 2);
+
+        return new Country(
             dto.Id,
-            new Stock(new Dictionary<GoodType, GoodAmount>()),
-            new Treasury(
-                Split(dto, ReservesOf(dto, reserves, population), reserves, idByIso),
-                // Местные деньги: без них государству нечем платить зарплату, а населению
-                // не на что покупать — круг внутреннего оборота не с чего начать.
-                MoneyOf(dto, moneySupply) - Savings(dto, moneySupply)),
-            new Prices(startPrices)),
-        new Priorities(),
-        Savings(dto, moneySupply)
-    ) { Bank = new CentralBank(MoneyOf(dto, moneySupply)) }; // склад - заглушка
+            dto.Name,
+            dto.Iso,
+            // Номер продавца пока совпадает с номером страны: государство одно на страну.
+            // Цены у каждого свои, поэтому копия, а не общий объект.
+            new Producer(
+                dto.Id,
+                new Stock(new Dictionary<GoodType, GoodAmount>()),
+                new Treasury(
+                    Split(dto, ReservesOf(dto, reserves, population), reserves, idByIso),
+                    // Местные деньги: без них государству нечем платить зарплату, а населению
+                    // не на что покупать — круг внутреннего оборота не с чего начать.
+                    supply - savings),
+                new Prices(local)),
+            new Priorities(),
+            savings,
+            rate
+        ) { Bank = new CentralBank(supply), Currency = money }; // склад - заглушка
+    }
+
+    /// <summary>Долларовую величину в деньги страны.</summary>
+    private static Money InLocal(Money dollars, Money rate) =>
+        new((long)((Int128)dollars.Raw * rate.Raw / Money.Scale));
 }

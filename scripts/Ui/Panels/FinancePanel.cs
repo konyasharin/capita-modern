@@ -53,7 +53,7 @@ public partial class FinancePanel : SidePanel
     protected override void Build()
     {
         Section("Как идут деньги", "treasury");
-        _purse = Graph("Казна и внешний долг", Fmt.Cash).Ranged();
+        _purse = Graph("Казна", Fmt.Cash).Ranged();
 
         Section("Казна", "treasury");
         _balance = Stat("Остаток", "treasury", Trends.Treasury(Past));
@@ -187,10 +187,10 @@ public partial class FinancePanel : SidePanel
             .Where(pair => pair.Sum > 0)
             .OrderByDescending(pair => pair.Sum)
             .Take(6)
-            .Select(pair => new Slice(pair.Iso, pair.Sum, Fmt.Cash(pair.Sum), Skin.Rate))
+            .Select(pair => new Slice(pair.Iso, pair.Sum, Fmt.World(pair.Sum), Skin.Rate))
             .ToList());
-        _reserves.Set(Fmt.Cash(reserves.Value.Exact));
-        _frozen.Set(Fmt.Cash(reserves.Frozen.Exact), reserves.Frozen.Raw > 0 ? Skin.Bad : Skin.Good);
+        _reserves.Set(Fmt.World(reserves.Value.Exact));
+        _frozen.Set(Fmt.World(reserves.Frozen.Exact), reserves.Frozen.Raw > 0 ? Skin.Bad : Skin.Good);
         // Перечисляем троих: длинный список вылезал за строку и наезжал на подпись.
         var froze = reserves.FrozenBy.Select(who => Loop.World.CountryById(who).Iso).ToList();
         _frozenBy.Set(froze.Count switch
@@ -203,7 +203,7 @@ public partial class FinancePanel : SidePanel
         var debt = treasury.Debt;
         var owed = debt.Owed(LoanSource.Foreign);
 
-        _debt.Set(Fmt.Cash(owed.Exact), owed.Raw > 0 ? Skin.Owed : Skin.Good);
+        _debt.Set(Fmt.World(owed.Exact), owed.Raw > 0 ? Skin.Owed : Skin.Good);
 
         var burden = debt.BurdenToExports(Me.ExportsPerDay * 365);
         _burden.Set($"{burden / 100.0:0.0}×", burden >= Simulation.DefaultBurden ? Skin.Bad : Skin.Text);
@@ -223,12 +223,12 @@ public partial class FinancePanel : SidePanel
             [
                 new Cell(loan.Lender is { } id ? Names.Of(Loop.World.CountryById(id)) : Names.Of(loan.Source),
                     loan.Principal.Exact, Skin.Text),
-                new Cell(Fmt.Cash(loan.Principal.Exact), loan.Principal.Exact, Skin.Owed),
+                new Cell(Fmt.World(loan.Principal.Exact), loan.Principal.Exact, Skin.Owed),
                 new Cell(Fmt.Rate(rate), rate, rate > 1500 ? Skin.Bad : Skin.Text),
             ]);
         }
 
-        _interest.Set(Fmt.Cash(interest.Exact));
+        _interest.Set(Fmt.World(interest.Exact));
 
         var locked = Me.DefaultedOnDay > 0
             ? Me.DefaultedOnDay + Simulation.DefaultLockYears * 365 - sim.Day
@@ -306,7 +306,7 @@ public partial class FinancePanel : SidePanel
         name.CustomMinimumSize = new Vector2(120, 0);
         row.AddChild(name);
 
-        row.AddChild(Ui.Number(Fmt.Cash(offer.Amount.Exact), 13, Skin.Money, 76));
+        row.AddChild(Ui.Number(Fmt.World(offer.Amount.Exact), 13, Skin.Money, 76));
         row.AddChild(Ui.Number(Fmt.Rate(offer.Rate), 13,
             offer.Rate > 1500 ? Skin.Bad : Skin.Text, 58));
         row.AddChild(Ui.Spring());

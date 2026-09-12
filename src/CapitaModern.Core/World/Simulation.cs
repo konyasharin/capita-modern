@@ -537,6 +537,10 @@ public sealed class Simulation
         PayTransit(deal.Buyer, deal.Seller, deal.Paid);
     }
 
+    /// <summary>Местную сумму в мировую меру.</summary>
+    public static Money InWorld(Country country, Money local) =>
+        new((long)((Int128)local.Raw * Money.Scale / Math.Max(1, country.ExchangeRate.Raw)));
+
     /// <summary>Сумма в мировой мере, пересчитанная в деньги страны.</summary>
     public Money InLocal(Country country, Money world) =>
         new((long)((Int128)world.Raw * country.ExchangeRate.Raw / Money.Scale));
@@ -621,8 +625,11 @@ public sealed class Simulation
             var (nominal, real) = OutputValue(country);
             if (real.Raw <= 0) continue;
 
-            nominalWorld += nominal;
-            realWorld += real;
+            // В мировую меру: складывать рубли с иенами и боливарами нельзя, а мировой
+            // уровень цен — это сумма по всем. Без деления на курс в нём перевешивала
+            // страна с самой дешёвой валютой, и курс тянулся неведомо куда.
+            nominalWorld += InWorld(country, nominal);
+            realWorld += InWorld(country, real);
 
             var level = PriceLevel.Of(nominal, real);
             _level[country.Id] = level;

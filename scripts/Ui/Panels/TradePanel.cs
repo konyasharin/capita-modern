@@ -30,7 +30,7 @@ public partial class TradePanel : SidePanel
     protected override void Build()
     {
         Section("Как идёт торговля", "tab-trade");
-        _flow = Graph("Вывоз и ввоз за день", Fmt.Cash).Ranged();
+        _flow = Graph("Вывоз и ввоз за день", Fmt.World).Ranged();
 
         Section("За день", "output");
         _exports = Stat("Вывоз", "exports");
@@ -81,11 +81,11 @@ public partial class TradePanel : SidePanel
         var imports = sim.ImportsOf(Id);
         var balance = exports - imports;
 
-        _exports.Set(Fmt.Cash(exports.Exact));
-        _imports.Set(Fmt.Cash(imports.Exact));
-        _balance.Set(Fmt.Cash(balance.Exact), Fmt.Sign(balance.Exact));
-        _yearly.Set(Fmt.Cash(Me.ExportsPerDay.Exact * 365));
-        _transit.Set(Fmt.Cash(sim.TransitEarnedBy(Id).Exact));
+        _exports.Set(Fmt.World(exports.Exact));
+        _imports.Set(Fmt.World(imports.Exact));
+        _balance.Set(Fmt.World(balance.Exact), Fmt.Sign(balance.Exact));
+        _yearly.Set(Fmt.World(Me.ExportsPerDay.Exact * 365));
+        _transit.Set(Fmt.World(sim.TransitEarnedBy(Id).Exact));
         _fuel.Set(Fmt.Amount(sim.FuelBurnedIn(Id)));
 
         _flow.Show(
@@ -122,9 +122,9 @@ public partial class TradePanel : SidePanel
             rows.Add(
             [
                 new Cell(Names.Of(good), (double)good, Skin.Text, Names.IconOf(good)),
-                new Cell(Fmt.Cash(brought.Exact), brought.Exact, brought.Raw > 0 ? Skin.Text : Skin.Dim),
-                new Cell(Fmt.Cash(sent.Exact), sent.Exact, sent.Raw > 0 ? Skin.Text : Skin.Dim),
-                new Cell(Fmt.Cash(net.Exact), net.Exact, Fmt.Sign(net.Exact)),
+                new Cell(Fmt.World(brought.Exact), brought.Exact, brought.Raw > 0 ? Skin.Text : Skin.Dim),
+                new Cell(Fmt.World(sent.Exact), sent.Exact, sent.Raw > 0 ? Skin.Text : Skin.Dim),
+                new Cell(Fmt.World(net.Exact), net.Exact, Fmt.Sign(net.Exact)),
                 new Cell(open ? "—" : "закрыт", open ? 0 : 1, open ? Skin.Dim : Skin.Bad),
             ]);
         }
@@ -139,7 +139,7 @@ public partial class TradePanel : SidePanel
         .OrderByDescending(pair => pair.Worth.Raw)
         .Take(6)
         .Select(pair => new Slice(
-            Names.Of(pair.Good), pair.Worth.Exact, Fmt.Cash(pair.Worth.Exact), colour, Names.IconOf(pair.Good)))
+            Names.Of(pair.Good), pair.Worth.Exact, Fmt.World(pair.Worth.Exact), colour, Names.IconOf(pair.Good)))
         .ToList();
 
     private void Toggle(GoodType good)

@@ -20,7 +20,8 @@ GameWorld Load() => WorldDataLoader.LoadWorld(
     Data("money-supply.json"),
     Data("trade-costs.json"),
     File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "map", "neighbours.json")),
-    File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "map", "basins.json")));
+    File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "map", "basins.json")),
+    File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "economy", "currencies.json")));
 
 var goods = Enum.GetValues<GoodType>();
 

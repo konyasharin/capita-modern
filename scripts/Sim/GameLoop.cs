@@ -45,6 +45,7 @@ public partial class GameLoop : Node
         Simulation = new Simulation(World);
         Player = World.Countries.First(country => country.Iso == "RUS").Id;
         Simulation.HandsOff = Player;
+        Fmt.Symbol = PlayerCountry.Currency.Symbol;
     }
 
     /// <summary>Ставит скорость. Пауза помнит, с какой скорости её включили.</summary>
@@ -164,7 +165,8 @@ public partial class GameLoop : Node
             Read("economy", "money-supply.json"),
             Read("economy", "trade-costs.json"),
             Read("map", "neighbours.json"),
-            Read("map", "basins.json"));
+            Read("map", "basins.json"),
+            Read("economy", "currencies.json"));
 
         // Постоянные цены снимаются на старте: по ним потом и меряется выпуск.
         _constant = new Prices(Enum.GetValues<GoodType>().ToDictionary(good => good, world.Market.Prices.Of));

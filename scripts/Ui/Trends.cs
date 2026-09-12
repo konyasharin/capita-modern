@@ -31,7 +31,7 @@ public static class Trends
         "treasury", "Казна за год", Fmt.Cash, "казна", Skin.Money, past, History.Line.Treasury);
 
     public static Func<(string Key, Func<Control> Body)?> Debt(History past) => One(
-        "debt", "Внешний долг за год", Fmt.Cash, "долг", Skin.Owed, past, History.Line.Debt);
+        "debt", "Внешний долг за год", Fmt.World, "долг", Skin.Owed, past, History.Line.Debt);
 
     public static Func<(string Key, Func<Control> Body)?> Supply(History past) => One(
         "supply", "Денежная масса за год", Fmt.Cash, "масса", Skin.Money, past, History.Line.Supply);

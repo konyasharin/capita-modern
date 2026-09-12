@@ -255,22 +255,31 @@ public static class Fmt
     /// в Money с его сотыми долями. Наружу показываем доллары.</remarks>
     public const double Dollar = 1000;
 
-    /// <summary>Деньги модели в подпись. На вход идут внутренние единицы, не доллары.</summary>
-    public static string Cash(double units) => $"{Count(units * Dollar)}$";
+    /// <summary>Знак валюты страны игрока. Ставится один раз при загрузке мира.</summary>
+    /// <remarks>Деньги в модели у каждой страны свои, и подписывать их долларом нельзя:
+    /// зарплата в России считается в рублях, а в Японии в иенах.</remarks>
+    public static string Symbol { get; set; } = "$";
+
+    /// <summary>Местные деньги в подпись. На вход идут внутренние единицы.</summary>
+    public static string Cash(double units) => $"{Count(units * Dollar)}{Symbol}";
+
+    /// <summary>Мировые деньги в подпись: резервы, внешний долг, внешняя торговля. Они
+    /// считаются в долларах у всех стран, и знак у них всегда долларовый.</summary>
+    public static string World(double units) => $"{Count(units * Dollar)}$";
 
     public static string Amount(GoodAmount amount) => Count(amount.Exact);
 
     /// <summary>Цена: у дешёвого сырья значащие цифры за запятой, у дорогого — нет.</summary>
     public static string Price(Money price)
     {
-        var dollars = price.Exact * Dollar;
+        var whole = price.Exact * Dollar;
 
-        return dollars switch
+        return whole switch
         {
             >= 100_000 => Cash(price.Exact),
-            >= 100 => $"{dollars:0}$",
-            >= 1 => $"{dollars:0.0}$",
-            _ => $"{dollars:0.000}$",
+            >= 100 => $"{whole:0}{Symbol}",
+            >= 1 => $"{whole:0.0}{Symbol}",
+            _ => $"{whole:0.000}{Symbol}",
         };
     }
 

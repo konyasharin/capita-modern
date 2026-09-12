@@ -23,13 +23,16 @@ public sealed class Country
 
     /// <summary>Сколько местных денег за одну мировую единицу. Дороже — валюта слабее.</summary>
     /// <remarks>
-    /// Все стартуют с единицы: настоящие курсы понадобятся, когда цены начнут показывать
-    /// игроку в местных деньгах. Пока важны только движения относительно старта.
+    /// Мировая единица — доллар: цены мирового рынка и резервы считаются в нём. Стартовый
+    /// курс берётся из жизни, поэтому в России цены сразу в рублях, а в Японии в иенах.
     ///
     /// Двигает его сальдо: у страны с дефицитом валюта дешевеет, импортное дорожает в
     /// местных деньгах, заявка через эластичность срезается, дефицит закрывается сам.
     /// </remarks>
     public Money ExchangeRate { get; private set; } = Money.FromWhole(1);
+
+    /// <summary>Валюта страны: код и знак для подписей.</summary>
+    public Currency Currency { get; init; } = Currency.Dollar;
 
     /// <summary>Печатный станок и денежная масса.</summary>
     public CentralBank Bank { get; init; } = new(default);
@@ -82,15 +85,18 @@ public sealed class Country
     /// отказа на рынок несколько лет не пускают.</summary>
     public int DefaultedOnDay { get; set; }
 
+    /// <summary>Курс на старте партии. От него считается коридор.</summary>
+    public Money StartRate { get; private init; } = Money.FromWhole(1);
+
     /// <summary>Курс не может ни исчезнуть, ни улететь: коридор тот же, что у цен.</summary>
     public void MoveRate(Money to)
     {
-        var start = Money.FromWhole(1);
-        ExchangeRate = new Money(Math.Clamp(to.Raw, start.Raw / Prices.MaxSwingTimes, start.Raw * Prices.MaxSwingTimes));
+        ExchangeRate = new Money(Math.Clamp(
+            to.Raw, StartRate.Raw / Prices.MaxSwingTimes, StartRate.Raw * Prices.MaxSwingTimes));
     }
 
     public Country(byte id, string name, string iso, Producer state, Priorities priorities,
-        Money savings = default)
+        Money savings = default, Money rate = default)
     {
         Households = new Households(savings);
         Id = id;
@@ -98,5 +104,10 @@ public sealed class Country
         Iso = iso;
         State = state;
         Priorities = priorities;
+
+        if (rate.Raw <= 0) rate = Money.FromWhole(1);
+
+        ExchangeRate = rate;
+        StartRate = rate;
     }
 }

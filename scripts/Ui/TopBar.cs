@@ -105,7 +105,7 @@ public partial class TopBar : Control
         _treasury.Set(Fmt.Cash(treasury), treasury >= 0 ? Skin.Bright : Skin.Bad);
 
         var debt = _loop.ExternalDebt;
-        _debt.Set(Fmt.Cash(debt), debt > 0 ? Skin.Bright : Skin.Dim);
+        _debt.Set(Fmt.World(debt), debt > 0 ? Skin.Bright : Skin.Dim);
 
         _rate.Set($"×{_loop.Rate:0.00}");
 

@@ -186,8 +186,8 @@ public partial class SelectionPanel : PanelContainer
         var attitude = world.Relations.Between(_loop.Player, they);
         _stats[5].Set(attitude.ToString(), Fmt.Sign(attitude));
 
-        _stats[6].Set(Fmt.Cash(country.ImportsPerDay.Exact));
-        _stats[7].Set(Fmt.Cash(country.ExportsPerDay.Exact));
+        _stats[6].Set(Fmt.World(country.ImportsPerDay.Exact));
+        _stats[7].Set(Fmt.World(country.ExportsPerDay.Exact));
 
         var owed = default(Money);
         foreach (var loan in country.State.Treasury.Debt.Loans)
@@ -195,7 +195,7 @@ public partial class SelectionPanel : PanelContainer
             if (loan.Lender == _loop.Player) owed += loan.Principal;
         }
 
-        _stats[8].Set(Fmt.Cash(owed.Exact), owed.Raw > 0 ? Skin.Money : Skin.Dim);
+        _stats[8].Set(Fmt.World(owed.Exact), owed.Raw > 0 ? Skin.Money : Skin.Dim);
 
         var reachable = world.Routes.CanReach(_loop.Player, they);
         _stats[9].Set(reachable ? "есть" : "нет", reachable ? Skin.Good : Skin.Bad);

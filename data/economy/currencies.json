@@ -1,0 +1,1205 @@
+{
+	"note": "Валюта страны: курс — единиц за доллар, средний за 2020 год (Всемирный банк); код и знак — справочник mledoze/countries.",
+	"currencies": {
+		"AFG": {
+			"rate": 76.8,
+			"code": "AFN",
+			"symbol": "؋",
+			"name": "Afghan afghani"
+		},
+		"ALB": {
+			"rate": 109,
+			"code": "ALL",
+			"symbol": "L",
+			"name": "Albanian lek"
+		},
+		"DZA": {
+			"rate": 127,
+			"code": "DZD",
+			"symbol": "د.ج",
+			"name": "Algerian dinar"
+		},
+		"AND": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"AGO": {
+			"rate": 578,
+			"code": "AOA",
+			"symbol": "Kz",
+			"name": "Angolan kwanza"
+		},
+		"ATG": {
+			"rate": 2.7,
+			"code": "XCD",
+			"symbol": "$",
+			"name": "Eastern Caribbean dollar"
+		},
+		"ARG": {
+			"rate": 70.5,
+			"code": "ARS",
+			"symbol": "$",
+			"name": "Argentine peso"
+		},
+		"ARM": {
+			"rate": 489,
+			"code": "AMD",
+			"symbol": "֏",
+			"name": "Armenian dram"
+		},
+		"AUS": {
+			"rate": 1.45,
+			"code": "AUD",
+			"symbol": "$",
+			"name": "Australian dollar"
+		},
+		"AUT": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"AZE": {
+			"rate": 1.7,
+			"code": "AZN",
+			"symbol": "₼",
+			"name": "Azerbaijani manat"
+		},
+		"BHR": {
+			"rate": 0.376,
+			"code": "BHD",
+			"symbol": ".د.ب",
+			"name": "Bahraini dinar"
+		},
+		"BGD": {
+			"rate": 84.9,
+			"code": "BDT",
+			"symbol": "৳",
+			"name": "Bangladeshi taka"
+		},
+		"BRB": {
+			"rate": 2,
+			"code": "BBD",
+			"symbol": "$",
+			"name": "Barbadian dollar"
+		},
+		"BLR": {
+			"rate": 2.44,
+			"code": "BYN",
+			"symbol": "Br",
+			"name": "Belarusian ruble"
+		},
+		"BEL": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"BLZ": {
+			"rate": 2,
+			"code": "BZD",
+			"symbol": "$",
+			"name": "Belize dollar"
+		},
+		"BEN": {
+			"rate": 574,
+			"code": "XOF",
+			"symbol": "Fr",
+			"name": "West African CFA franc"
+		},
+		"BTN": {
+			"rate": 74.1,
+			"code": "BTN",
+			"symbol": "Nu.",
+			"name": "Bhutanese ngultrum"
+		},
+		"BOL": {
+			"rate": 6.91,
+			"code": "BOB",
+			"symbol": "Bs.",
+			"name": "Bolivian boliviano"
+		},
+		"BIH": {
+			"rate": 1.72,
+			"code": "BAM",
+			"symbol": "KM",
+			"name": "Bosnia and Herzegovina convertible mark"
+		},
+		"BWA": {
+			"rate": 11.5,
+			"code": "BWP",
+			"symbol": "P",
+			"name": "Botswana pula"
+		},
+		"BRA": {
+			"rate": 5.16,
+			"code": "BRL",
+			"symbol": "R$",
+			"name": "Brazilian real"
+		},
+		"BRN": {
+			"rate": 1.38,
+			"code": "BND",
+			"symbol": "$",
+			"name": "Brunei dollar"
+		},
+		"BGR": {
+			"rate": 1.72,
+			"code": "BGN",
+			"symbol": "лв",
+			"name": "Bulgarian lev"
+		},
+		"BFA": {
+			"rate": 576,
+			"code": "XOF",
+			"symbol": "Fr",
+			"name": "West African CFA franc"
+		},
+		"BDI": {
+			"rate": 1920,
+			"code": "BIF",
+			"symbol": "Fr",
+			"name": "Burundian franc"
+		},
+		"CPV": {
+			"rate": 96.8,
+			"code": "CVE",
+			"symbol": "Esc",
+			"name": "Cape Verdean escudo"
+		},
+		"KHM": {
+			"rate": 4090,
+			"code": "KHR",
+			"symbol": "៛",
+			"name": "Cambodian riel"
+		},
+		"CMR": {
+			"rate": 576,
+			"code": "XAF",
+			"symbol": "Fr",
+			"name": "Central African CFA franc"
+		},
+		"CAN": {
+			"rate": 1.34,
+			"code": "CAD",
+			"symbol": "$",
+			"name": "Canadian dollar"
+		},
+		"CAF": {
+			"rate": 576,
+			"code": "XAF",
+			"symbol": "Fr",
+			"name": "Central African CFA franc"
+		},
+		"TCD": {
+			"rate": 576,
+			"code": "XAF",
+			"symbol": "Fr",
+			"name": "Central African CFA franc"
+		},
+		"CHL": {
+			"rate": 793,
+			"code": "CLP",
+			"symbol": "$",
+			"name": "Chilean peso"
+		},
+		"CHN": {
+			"rate": 6.9,
+			"code": "CNY",
+			"symbol": "¥",
+			"name": "Chinese yuan"
+		},
+		"COL": {
+			"rate": 3690,
+			"code": "COP",
+			"symbol": "$",
+			"name": "Colombian peso"
+		},
+		"COM": {
+			"rate": 431,
+			"code": "KMF",
+			"symbol": "Fr",
+			"name": "Comorian franc"
+		},
+		"CRI": {
+			"rate": 585,
+			"code": "CRC",
+			"symbol": "₡",
+			"name": "Costa Rican colón"
+		},
+		"HRV": {
+			"rate": 6.61,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"CUB": {
+			"rate": 24,
+			"code": "CUC",
+			"symbol": "$",
+			"name": "Cuban convertible peso"
+		},
+		"CYP": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"CZE": {
+			"rate": 23.2,
+			"code": "CZK",
+			"symbol": "Kč",
+			"name": "Czech koruna"
+		},
+		"COD": {
+			"rate": 1850,
+			"code": "CDF",
+			"symbol": "FC",
+			"name": "Congolese franc"
+		},
+		"DNK": {
+			"rate": 6.54,
+			"code": "DKK",
+			"symbol": "kr",
+			"name": "Danish krone"
+		},
+		"DJI": {
+			"rate": 178,
+			"code": "DJF",
+			"symbol": "Fr",
+			"name": "Djiboutian franc"
+		},
+		"DMA": {
+			"rate": 2.7,
+			"code": "XCD",
+			"symbol": "$",
+			"name": "Eastern Caribbean dollar"
+		},
+		"DOM": {
+			"rate": 56.5,
+			"code": "DOP",
+			"symbol": "$",
+			"name": "Dominican peso"
+		},
+		"TLS": {
+			"rate": 1,
+			"code": "USD",
+			"symbol": "$",
+			"name": "United States dollar"
+		},
+		"ECU": {
+			"rate": 1,
+			"code": "USD",
+			"symbol": "$",
+			"name": "United States dollar"
+		},
+		"EGY": {
+			"rate": 15.8,
+			"code": "EGP",
+			"symbol": "£",
+			"name": "Egyptian pound"
+		},
+		"SLV": {
+			"rate": 1,
+			"code": "USD",
+			"symbol": "$",
+			"name": "United States dollar"
+		},
+		"GNQ": {
+			"rate": 576,
+			"code": "XAF",
+			"symbol": "Fr",
+			"name": "Central African CFA franc"
+		},
+		"ERI": {
+			"rate": 15.1,
+			"code": "ERN",
+			"symbol": "Nfk",
+			"name": "Eritrean nakfa"
+		},
+		"EST": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"SWZ": {
+			"rate": 16.5,
+			"code": "SZL",
+			"symbol": "L",
+			"name": "Swazi lilangeni"
+		},
+		"ETH": {
+			"rate": 34.9,
+			"code": "ETB",
+			"symbol": "Br",
+			"name": "Ethiopian birr"
+		},
+		"FSM": {
+			"rate": 1,
+			"code": "USD",
+			"symbol": "$",
+			"name": "United States dollar"
+		},
+		"FJI": {
+			"rate": 2.17,
+			"code": "FJD",
+			"symbol": "$",
+			"name": "Fijian dollar"
+		},
+		"FIN": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"FRA": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"GAB": {
+			"rate": 576,
+			"code": "XAF",
+			"symbol": "Fr",
+			"name": "Central African CFA franc"
+		},
+		"GMB": {
+			"rate": 51.5,
+			"code": "GMD",
+			"symbol": "D",
+			"name": "dalasi"
+		},
+		"GEO": {
+			"rate": 3.11,
+			"code": "GEL",
+			"symbol": "₾",
+			"name": "lari"
+		},
+		"DEU": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"GHA": {
+			"rate": 5.6,
+			"code": "GHS",
+			"symbol": "₵",
+			"name": "Ghanaian cedi"
+		},
+		"GRC": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"GRD": {
+			"rate": 2.7,
+			"code": "XCD",
+			"symbol": "$",
+			"name": "Eastern Caribbean dollar"
+		},
+		"GTM": {
+			"rate": 7.72,
+			"code": "GTQ",
+			"symbol": "Q",
+			"name": "Guatemalan quetzal"
+		},
+		"GIN": {
+			"rate": 9570,
+			"code": "GNF",
+			"symbol": "Fr",
+			"name": "Guinean franc"
+		},
+		"GNB": {
+			"rate": 576,
+			"code": "XOF",
+			"symbol": "Fr",
+			"name": "West African CFA franc"
+		},
+		"GUY": {
+			"rate": 209,
+			"code": "GYD",
+			"symbol": "$",
+			"name": "Guyanese dollar"
+		},
+		"HTI": {
+			"rate": 93.5,
+			"code": "HTG",
+			"symbol": "G",
+			"name": "Haitian gourde"
+		},
+		"HND": {
+			"rate": 24.6,
+			"code": "HNL",
+			"symbol": "L",
+			"name": "Honduran lempira"
+		},
+		"HUN": {
+			"rate": 308,
+			"code": "HUF",
+			"symbol": "Ft",
+			"name": "Hungarian forint"
+		},
+		"ISL": {
+			"rate": 135,
+			"code": "ISK",
+			"symbol": "kr",
+			"name": "Icelandic króna"
+		},
+		"IND": {
+			"rate": 74.1,
+			"code": "INR",
+			"symbol": "₹",
+			"name": "Indian rupee"
+		},
+		"IDN": {
+			"rate": 14600,
+			"code": "IDR",
+			"symbol": "Rp",
+			"name": "Indonesian rupiah"
+		},
+		"IRN": {
+			"rate": 42000,
+			"code": "IRR",
+			"symbol": "﷼",
+			"name": "Iranian rial"
+		},
+		"IRQ": {
+			"rate": 1190,
+			"code": "IQD",
+			"symbol": "ع.د",
+			"name": "Iraqi dinar"
+		},
+		"IRL": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"ISR": {
+			"rate": 3.44,
+			"code": "ILS",
+			"symbol": "₪",
+			"name": "Israeli new shekel"
+		},
+		"ITA": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"CIV": {
+			"rate": 576,
+			"code": "XOF",
+			"symbol": "Fr",
+			"name": "West African CFA franc"
+		},
+		"JAM": {
+			"rate": 142,
+			"code": "JMD",
+			"symbol": "$",
+			"name": "Jamaican dollar"
+		},
+		"JPN": {
+			"rate": 107,
+			"code": "JPY",
+			"symbol": "¥",
+			"name": "Japanese yen"
+		},
+		"JOR": {
+			"rate": 0.71,
+			"code": "JOD",
+			"symbol": "د.ا",
+			"name": "Jordanian dinar"
+		},
+		"KAS": {
+			"rate": 74.1,
+			"code": "INR",
+			"symbol": "₹",
+			"name": "Indian rupee"
+		},
+		"KAZ": {
+			"rate": 413,
+			"code": "KZT",
+			"symbol": "₸",
+			"name": "Kazakhstani tenge"
+		},
+		"KEN": {
+			"rate": 106,
+			"code": "KES",
+			"symbol": "Sh",
+			"name": "Kenyan shilling"
+		},
+		"KIR": {
+			"rate": 1.45,
+			"code": "AUD",
+			"symbol": "$",
+			"name": "Australian dollar"
+		},
+		"KOS": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"KWT": {
+			"rate": 0.306,
+			"code": "KWD",
+			"symbol": "د.ك",
+			"name": "Kuwaiti dinar"
+		},
+		"KGZ": {
+			"rate": 77.3,
+			"code": "KGS",
+			"symbol": "с",
+			"name": "Kyrgyzstani som"
+		},
+		"LAO": {
+			"rate": 9050,
+			"code": "LAK",
+			"symbol": "₭",
+			"name": "Lao kip"
+		},
+		"LVA": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"LBN": {
+			"rate": 1510,
+			"code": "LBP",
+			"symbol": "ل.ل",
+			"name": "Lebanese pound"
+		},
+		"LSO": {
+			"rate": 16.5,
+			"code": "LSL",
+			"symbol": "L",
+			"name": "Lesotho loti"
+		},
+		"LBR": {
+			"rate": 192,
+			"code": "LRD",
+			"symbol": "$",
+			"name": "Liberian dollar"
+		},
+		"LBY": {
+			"rate": 1.39,
+			"code": "LYD",
+			"symbol": "ل.د",
+			"name": "Libyan dinar"
+		},
+		"LIE": {
+			"rate": 0.939,
+			"code": "CHF",
+			"symbol": "Fr",
+			"name": "Swiss franc"
+		},
+		"LTU": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"LUX": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"MDG": {
+			"rate": 3790,
+			"code": "MGA",
+			"symbol": "Ar",
+			"name": "Malagasy ariary"
+		},
+		"MWI": {
+			"rate": 750,
+			"code": "MWK",
+			"symbol": "MK",
+			"name": "Malawian kwacha"
+		},
+		"MYS": {
+			"rate": 4.2,
+			"code": "MYR",
+			"symbol": "RM",
+			"name": "Malaysian ringgit"
+		},
+		"MDV": {
+			"rate": 15.4,
+			"code": "MVR",
+			"symbol": ".ރ",
+			"name": "Maldivian rufiyaa"
+		},
+		"MLI": {
+			"rate": 576,
+			"code": "XOF",
+			"symbol": "Fr",
+			"name": "West African CFA franc"
+		},
+		"MLT": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"MHL": {
+			"rate": 1,
+			"code": "USD",
+			"symbol": "$",
+			"name": "United States dollar"
+		},
+		"MRT": {
+			"rate": 37.2,
+			"code": "MRU",
+			"symbol": "UM",
+			"name": "Mauritanian ouguiya"
+		},
+		"MUS": {
+			"rate": 39.3,
+			"code": "MUR",
+			"symbol": "₨",
+			"name": "Mauritian rupee"
+		},
+		"MEX": {
+			"rate": 21.5,
+			"code": "MXN",
+			"symbol": "$",
+			"name": "Mexican peso"
+		},
+		"MDA": {
+			"rate": 17.3,
+			"code": "MDL",
+			"symbol": "L",
+			"name": "Moldovan leu"
+		},
+		"MCO": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"MNG": {
+			"rate": 2810,
+			"code": "MNT",
+			"symbol": "₮",
+			"name": "Mongolian tögrög"
+		},
+		"MNE": {
+			"rate": 0.877,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"MAR": {
+			"rate": 9.5,
+			"code": "MAD",
+			"symbol": "د.م.",
+			"name": "Moroccan dirham"
+		},
+		"MOZ": {
+			"rate": 69.5,
+			"code": "MZN",
+			"symbol": "MT",
+			"name": "Mozambican metical"
+		},
+		"MMR": {
+			"rate": 1380,
+			"code": "MMK",
+			"symbol": "Ks",
+			"name": "Burmese kyat"
+		},
+		"NAM": {
+			"rate": 16.5,
+			"code": "NAD",
+			"symbol": "$",
+			"name": "Namibian dollar"
+		},
+		"NRU": {
+			"rate": 1.45,
+			"code": "AUD",
+			"symbol": "$",
+			"name": "Australian dollar"
+		},
+		"NPL": {
+			"rate": 118,
+			"code": "NPR",
+			"symbol": "₨",
+			"name": "Nepalese rupee"
+		},
+		"NLD": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"NZL": {
+			"rate": 1.54,
+			"code": "NZD",
+			"symbol": "$",
+			"name": "New Zealand dollar"
+		},
+		"NIC": {
+			"rate": 34.3,
+			"code": "NIO",
+			"symbol": "C$",
+			"name": "Nicaraguan córdoba"
+		},
+		"NER": {
+			"rate": 576,
+			"code": "XOF",
+			"symbol": "Fr",
+			"name": "West African CFA franc"
+		},
+		"NGA": {
+			"rate": 359,
+			"code": "NGN",
+			"symbol": "₦",
+			"name": "Nigerian naira"
+		},
+		"PRK": {
+			"rate": 900,
+			"code": "KPW",
+			"symbol": "₩",
+			"name": "North Korean won"
+		},
+		"MKD": {
+			"rate": 54.1,
+			"code": "MKD",
+			"symbol": "den",
+			"name": "denar"
+		},
+		"CYN": {
+			"rate": 7.01,
+			"code": "TRY",
+			"symbol": "₺",
+			"name": "Turkish lira"
+		},
+		"NOR": {
+			"rate": 9.42,
+			"code": "NOK",
+			"symbol": "kr",
+			"name": "Norwegian krone"
+		},
+		"OMN": {
+			"rate": 0.385,
+			"code": "OMR",
+			"symbol": "ر.ع.",
+			"name": "Omani rial"
+		},
+		"PAK": {
+			"rate": 162,
+			"code": "PKR",
+			"symbol": "₨",
+			"name": "Pakistani rupee"
+		},
+		"PLW": {
+			"rate": 1,
+			"code": "USD",
+			"symbol": "$",
+			"name": "United States dollar"
+		},
+		"PAN": {
+			"rate": 1,
+			"code": "PAB",
+			"symbol": "B/.",
+			"name": "Panamanian balboa"
+		},
+		"PNG": {
+			"rate": 3.46,
+			"code": "PGK",
+			"symbol": "K",
+			"name": "Papua New Guinean kina"
+		},
+		"PRY": {
+			"rate": 6770,
+			"code": "PYG",
+			"symbol": "₲",
+			"name": "Paraguayan guaraní"
+		},
+		"PER": {
+			"rate": 3.49,
+			"code": "PEN",
+			"symbol": "S/.",
+			"name": "Peruvian sol"
+		},
+		"PHL": {
+			"rate": 49.6,
+			"code": "PHP",
+			"symbol": "₱",
+			"name": "Philippine peso"
+		},
+		"POL": {
+			"rate": 3.9,
+			"code": "PLN",
+			"symbol": "zł",
+			"name": "Polish złoty"
+		},
+		"PRT": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"QAT": {
+			"rate": 3.64,
+			"code": "QAR",
+			"symbol": "ر.ق",
+			"name": "Qatari riyal"
+		},
+		"SRB": {
+			"rate": 103,
+			"code": "RSD",
+			"symbol": "дин.",
+			"name": "Serbian dinar"
+		},
+		"COG": {
+			"rate": 576,
+			"code": "XAF",
+			"symbol": "Fr",
+			"name": "Central African CFA franc"
+		},
+		"ROU": {
+			"rate": 4.24,
+			"code": "RON",
+			"symbol": "lei",
+			"name": "Romanian leu"
+		},
+		"RUS": {
+			"rate": 72.1,
+			"code": "RUB",
+			"symbol": "₽",
+			"name": "Russian ruble"
+		},
+		"RWA": {
+			"rate": 943,
+			"code": "RWF",
+			"symbol": "Fr",
+			"name": "Rwandan franc"
+		},
+		"KNA": {
+			"rate": 2.7,
+			"code": "XCD",
+			"symbol": "$",
+			"name": "Eastern Caribbean dollar"
+		},
+		"LCA": {
+			"rate": 2.7,
+			"code": "XCD",
+			"symbol": "$",
+			"name": "Eastern Caribbean dollar"
+		},
+		"VCT": {
+			"rate": 2.7,
+			"code": "XCD",
+			"symbol": "$",
+			"name": "Eastern Caribbean dollar"
+		},
+		"WSM": {
+			"rate": 2.66,
+			"code": "WST",
+			"symbol": "T",
+			"name": "Samoan tālā"
+		},
+		"SMR": {
+			"rate": 0.877,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"STP": {
+			"rate": 21.5,
+			"code": "STN",
+			"symbol": "Db",
+			"name": "São Tomé and Príncipe dobra"
+		},
+		"SAU": {
+			"rate": 3.75,
+			"code": "SAR",
+			"symbol": "ر.س",
+			"name": "Saudi riyal"
+		},
+		"SEN": {
+			"rate": 576,
+			"code": "XOF",
+			"symbol": "Fr",
+			"name": "West African CFA franc"
+		},
+		"SYC": {
+			"rate": 17.6,
+			"code": "SCR",
+			"symbol": "₨",
+			"name": "Seychellois rupee"
+		},
+		"SLE": {
+			"rate": 9.83,
+			"code": "SLL",
+			"symbol": "Le",
+			"name": "Sierra Leonean leone"
+		},
+		"SGP": {
+			"rate": 1.38,
+			"code": "SGD",
+			"symbol": "$",
+			"name": "Singapore dollar"
+		},
+		"SVK": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"SVN": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"SLB": {
+			"rate": 8.21,
+			"code": "SBD",
+			"symbol": "$",
+			"name": "Solomon Islands dollar"
+		},
+		"SOM": {
+			"rate": 580,
+			"code": "SOS",
+			"symbol": "Sh",
+			"name": "Somali shilling"
+		},
+		"SOL": {
+			"rate": 8500,
+			"code": "SLSH",
+			"symbol": "Sl",
+			"name": "Somaliland shilling"
+		},
+		"ZAF": {
+			"rate": 16.5,
+			"code": "ZAR",
+			"symbol": "R",
+			"name": "South African rand"
+		},
+		"KOR": {
+			"rate": 1180,
+			"code": "KRW",
+			"symbol": "₩",
+			"name": "South Korean won"
+		},
+		"SDS": {
+			"rate": 165,
+			"code": "SSP",
+			"symbol": "£",
+			"name": "South Sudanese pound"
+		},
+		"ESP": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"LKA": {
+			"rate": 186,
+			"code": "LKR",
+			"symbol": "Rs රු",
+			"name": "Sri Lankan rupee"
+		},
+		"SDN": {
+			"rate": 54,
+			"code": "SDG",
+			"symbol": "PT",
+			"name": "Sudanese pound"
+		},
+		"SUR": {
+			"rate": 9.31,
+			"code": "SRD",
+			"symbol": "$",
+			"name": "Surinamese dollar"
+		},
+		"SWE": {
+			"rate": 9.21,
+			"code": "SEK",
+			"symbol": "kr",
+			"name": "Swedish krona"
+		},
+		"CHE": {
+			"rate": 0.939,
+			"code": "CHF",
+			"symbol": "Fr.",
+			"name": "Swiss franc"
+		},
+		"SYR": {
+			"rate": 878,
+			"code": "SYP",
+			"symbol": "£",
+			"name": "Syrian pound"
+		},
+		"TWN": {
+			"rate": 29.5,
+			"code": "TWD",
+			"symbol": "$",
+			"name": "New Taiwan dollar"
+		},
+		"TJK": {
+			"rate": 10.3,
+			"code": "TJS",
+			"symbol": "ЅМ",
+			"name": "Tajikistani somoni"
+		},
+		"THA": {
+			"rate": 31.3,
+			"code": "THB",
+			"symbol": "฿",
+			"name": "Thai baht"
+		},
+		"BHS": {
+			"rate": 1,
+			"code": "BSD",
+			"symbol": "$",
+			"name": "Bahamian dollar"
+		},
+		"TGO": {
+			"rate": 576,
+			"code": "XOF",
+			"symbol": "Fr",
+			"name": "West African CFA franc"
+		},
+		"TON": {
+			"rate": 2.3,
+			"code": "TOP",
+			"symbol": "T$",
+			"name": "Tongan paʻanga"
+		},
+		"TTO": {
+			"rate": 6.75,
+			"code": "TTD",
+			"symbol": "$",
+			"name": "Trinidad and Tobago dollar"
+		},
+		"TUN": {
+			"rate": 2.81,
+			"code": "TND",
+			"symbol": "د.ت",
+			"name": "Tunisian dinar"
+		},
+		"TUR": {
+			"rate": 7.01,
+			"code": "TRY",
+			"symbol": "₺",
+			"name": "Turkish lira"
+		},
+		"TKM": {
+			"rate": 3.5,
+			"code": "TMT",
+			"symbol": "m",
+			"name": "Turkmenistan manat"
+		},
+		"TUV": {
+			"rate": 1.45,
+			"code": "AUD",
+			"symbol": "$",
+			"name": "Australian dollar"
+		},
+		"UGA": {
+			"rate": 3720,
+			"code": "UGX",
+			"symbol": "Sh",
+			"name": "Ugandan shilling"
+		},
+		"UKR": {
+			"rate": 27,
+			"code": "UAH",
+			"symbol": "₴",
+			"name": "Ukrainian hryvnia"
+		},
+		"ARE": {
+			"rate": 3.67,
+			"code": "AED",
+			"symbol": "د.إ",
+			"name": "United Arab Emirates dirham"
+		},
+		"GBR": {
+			"rate": 0.78,
+			"code": "GBP",
+			"symbol": "£",
+			"name": "British pound"
+		},
+		"TZA": {
+			"rate": 2290,
+			"code": "TZS",
+			"symbol": "Sh",
+			"name": "Tanzanian shilling"
+		},
+		"USA": {
+			"rate": 1,
+			"code": "USD",
+			"symbol": "$",
+			"name": "United States dollar"
+		},
+		"URY": {
+			"rate": 42,
+			"code": "UYU",
+			"symbol": "$",
+			"name": "Uruguayan peso"
+		},
+		"UZB": {
+			"rate": 10100,
+			"code": "UZS",
+			"symbol": "so'm",
+			"name": "Uzbekistani soʻm"
+		},
+		"VUT": {
+			"rate": 115,
+			"code": "VUV",
+			"symbol": "Vt",
+			"name": "Vanuatu vatu"
+		},
+		"VAT": {
+			"rate": 0.876,
+			"code": "EUR",
+			"symbol": "€",
+			"name": "Euro"
+		},
+		"VEN": {
+			"rate": 236000,
+			"code": "VES",
+			"symbol": "Bs.S.",
+			"name": "Venezuelan bolívar soberano"
+		},
+		"VNM": {
+			"rate": 23200,
+			"code": "VND",
+			"symbol": "₫",
+			"name": "Vietnamese đồng"
+		},
+		"SAH": {
+			"rate": 9.5,
+			"code": "MAD",
+			"symbol": "MAD",
+			"name": "Moroccan dirham"
+		},
+		"YEM": {
+			"rate": 743,
+			"code": "YER",
+			"symbol": "﷼",
+			"name": "Yemeni rial"
+		},
+		"ZMB": {
+			"rate": 18.3,
+			"code": "ZMW",
+			"symbol": "ZK",
+			"name": "Zambian kwacha"
+		},
+		"ZWE": {
+			"rate": 51.3,
+			"code": "BWP",
+			"symbol": "P",
+			"name": "Botswana pula"
+		}
+	}
+}
