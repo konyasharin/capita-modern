@@ -301,6 +301,26 @@ public sealed class Company
         Cash += amount;
     }
 
+    /// <summary>Отдаёт сколько может и говорит, сколько отдала. В отличие от
+    /// <see cref="TrySpend"/> платит и неполностью: зарплату платят и частями.</summary>
+    public Money Give(Money amount)
+    {
+        var paid = amount < Cash ? amount : Cash;
+        if (paid.Raw <= 0) return default;
+
+        Cash -= paid;
+
+        return paid;
+    }
+
+    /// <summary>Во что обошлось купленное за этот тик. Вместе с проданным даёт добавленную
+    /// стоимость компании — то, из чего платят зарплату и берут прибыль.</summary>
+    public Money BoughtToday { get; private set; }
+
+    public void NoteBought(Money worth) => BoughtToday += worth;
+
+    public void ForgetBought() => BoughtToday = default;
+
     /// <summary>Тратит, если хватает. Не хватило — не тратит вовсе.</summary>
     public bool TrySpend(Money amount)
     {

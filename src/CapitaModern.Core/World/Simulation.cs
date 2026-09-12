@@ -250,6 +250,7 @@ public sealed class Simulation
         Run(nameof(Wear), Wear);
         Run(nameof(Banking), Banking);
         Run(nameof(Build), Build);
+        Run(nameof(Settle), Settle);
         Run(nameof(PayProfits), PayProfits);
         Run(nameof(NoteDemand), NoteDemand);
         Run(nameof(Balance), Balance);
@@ -1727,24 +1728,49 @@ public sealed class Simulation
 
             if (runs == 0) continue;
 
+            var owner = _world.CountryById(country);
+            var prices = owner.State.Prices;
+            var owners = _world.Holdings.OwnersIn(country, building);
+
+            // Доли хозяев одни на все товары рецепта — считаем их раз, а не на каждый.
+            var total = 0L;
+            foreach (var company in owners) total += company.CountOf(building);
+
+            // Сырьё покупают, а не берут даром. Не хватает денег — завод работает вполсилы:
+            // это и есть настоящее ограничение для компании, у которой пусто в кассе.
+            if (owners.Count > 0 && total > 0)
+            {
+                var bill = default(Money);
+                foreach (var (good, amount) in recipe.Inputs)
+                {
+                    bill += prices.CostOf(good, amount * runs / Load.Full);
+                }
+
+                if (bill.Raw > 0)
+                {
+                    var purse = default(Money);
+                    foreach (var company in owners) purse += company.Cash;
+
+                    if (purse < bill) runs = (long)((Int128)runs * purse.Raw / bill.Raw);
+                    if (runs <= 0) continue;
+                }
+            }
+
             // Приведение безопасно: runs не может превысить count, с которого начали.
-            var consumed = _world.CountryById(country).State.Stock.TryConsume(recipe.Inputs, runs);
+            var consumed = owner.State.Stock.TryConsume(recipe.Inputs, runs);
             if (!consumed) throw new InvalidOperationException("Не получилось потратить предметы " +
                                                                "со склада, ошибка в расчетах в коде");
 
             foreach (var (good, amount) in recipe.Inputs)
             {
                 // То же выражение, что внутри TryConsume: расход должен совпасть до доли.
-                _consumed.Add(country, good, amount * runs / Load.Full);
+                var used = amount * runs / Load.Full;
+                _consumed.Add(country, good, used);
+
+                if (owners.Count > 0 && total > 0) Draw(owner, good, used, ask => Share(owners, building, total, ask));
             }
 
             var times = _world.Efficiency.OutputTimes(country, recipe.Sector);
-            var owners = _world.Holdings.OwnersIn(country, building);
-            var prices = _world.CountryById(country).State.Prices;
-
-            // Доли хозяев одни на все товары рецепта — считаем их раз, а не на каждый.
-            var total = 0L;
-            foreach (var company in owners) total += company.CountOf(building);
 
             foreach (var (good, amount) in recipe.Outputs)
             {
@@ -1755,6 +1781,24 @@ public sealed class Simulation
                 Credit(owners, building, total, good, made, prices.Of(good));
             }
         }
+    }
+
+    /// <summary>Хозяева заводов складываются на покупку сырья, каждый по своей доле.</summary>
+    private static Money Share(IReadOnlyList<Company> owners, BuildingType building, long total, Money ask)
+    {
+        if (ask.Raw <= 0 || total <= 0) return default;
+
+        var paid = default(Money);
+        foreach (var company in owners)
+        {
+            var mine = new Money((long)((Int128)ask.Raw * company.CountOf(building) / total));
+            var gave = company.Give(mine);
+
+            company.NoteBought(gave);
+            paid += gave;
+        }
+
+        return paid;
     }
 
     /// <summary>Записывает сделанное на счёт тех, чьи это здания.</summary>
@@ -1801,6 +1845,10 @@ public sealed class Simulation
             // кассу не принесло, и зарплату из него взять неоткуда — оттого касса и уходила
             // в минус, а станок печатал каждый день. В первый тик продавать ещё нечего:
             // считаем по выпуску, дальше по вчерашней выручке.
+            // Компании есть — платят они сами, из своей выручки. Касса страны остаётся
+            // только для внешней торговли.
+            if (_world.CompaniesOf(country.Id).Count > 0) continue;
+
             var basis = _demand.TryGetValue(country.Id, out var sold) ? sold : made;
             var owed = new Money(basis.Raw * country.LabourShare / 100);
             var paid = owed;
@@ -1906,35 +1954,25 @@ public sealed class Simulation
                 if (wanted.Raw == 0) continue;
 
                 var state = country.State;
-                var (offered, cost) = Draw(country, good, wanted);
 
-                var bought = offered;
-                if (cost.Raw > 0)
+                // Налоги сидят в цене: человек платит их, сам того не замечая, а продавцу
+                // достаётся меньше. Оттого высокий НДС и бьёт по спросу — на те же деньги
+                // покупают меньше. Акциз берём здесь же, поверх НДС.
+                var toll = Excisable(good) ? country.Taxes.Excise : 0;
+                var (bought, cost) = Draw(country, good, wanted, ask =>
                 {
-                    // Налоги сидят в цене: человек платит их, сам того не замечая, а
-                    // продавцу достаётся меньше. Оттого высокий НДС и бьёт по спросу — на
-                    // те же деньги покупают меньше.
-                    var vat = TaxCode.Take(cost, country.Taxes.Vat);
-                    var excise = Excisable(good) ? TaxCode.Take(cost, country.Taxes.Excise) : default;
-                    var full = cost + vat + excise;
+                    var excise = TaxCode.Take(ask, toll);
+                    var paid = country.Households.SpendUpTo(ask + excise);
+                    var got = ask.Raw + excise.Raw > 0
+                        ? new Money((long)((Int128)excise.Raw * paid.Raw / (ask + excise).Raw))
+                        : default;
 
-                    var paid = country.Households.SpendUpTo(full);
-                    if (paid < full) bought = new GoodAmount((long)((Int128)offered.Raw * paid.Raw / full.Raw));
+                    country.Budget.Collect(TaxKind.Excise, got);
 
-                    // Собранное делится в той же пропорции: заплатил половину — половину
-                    // и налогов.
-                    var share = full.Raw > 0 ? (Int128)paid.Raw * 10_000 / full.Raw : 0;
-                    var gotVat = new Money((long)((Int128)vat.Raw * share / 10_000));
-                    var gotExcise = new Money((long)((Int128)excise.Raw * share / 10_000));
+                    return paid - got;
+                }, taxed: true);
 
-                    country.Budget.Collect(TaxKind.Vat, gotVat);
-                    country.Budget.Collect(TaxKind.Excise, gotExcise);
-
-                    var toSeller = paid - gotVat - gotExcise;
-                    state.Treasury.Receive(toSeller);
-                    _sales[country.Id] = _sales.GetValueOrDefault(country.Id) + toSeller;
-                }
-
+                _sales[country.Id] = _sales.GetValueOrDefault(country.Id) + cost;
                 state.Stock.TakeUpTo(good, bought);
                 _bought.Add(country.Id, good, bought);
 
@@ -2041,31 +2079,13 @@ public sealed class Simulation
     {
         if (wanted.Raw <= 0) return default;
 
-        // Берём у самых дешёвых, а не по средней цене: продавцов в стране много.
-        var (take, cost) = Draw(country, good, wanted);
+        // Берём у самых дешёвых и платим каждому его цену: продавцов в стране много.
+        var (take, cost) = Draw(country, good, wanted, purse, taxed);
         if (take.Raw <= 0) return default;
 
-        var vat = taxed ? TaxCode.Take(cost, country.Taxes.Vat) : default;
-        var full = cost + vat;
-
-        var paid = purse(full);
-        if (paid.Raw <= 0) return default;
-
-        // Заплатили меньше — и взяли меньше: в долг у завода никто не берёт. Товар при
-        // этом уже списан у продавцов; недобранное вернёт Balance на следующем тике.
-        if (paid < full) take = new GoodAmount((long)((Int128)take.Raw * paid.Raw / full.Raw));
-        if (take.Raw <= 0) return default;
-
-        // Налог делится в той же доле, что и покупка.
-        var got = full.Raw > 0 ? new Money((long)((Int128)vat.Raw * paid.Raw / full.Raw)) : default;
-        var toSeller = paid - got;
-
-        country.Budget.Collect(TaxKind.Vat, got);
         country.State.Stock.TakeUpTo(good, take);
-        country.State.Treasury.Receive(toSeller);
-
         _bought.Add(country.Id, good, take);
-        _sales[country.Id] = _sales.GetValueOrDefault(country.Id) + toSeller;
+        _sales[country.Id] = _sales.GetValueOrDefault(country.Id) + cost;
 
         return take;
     }
@@ -2344,6 +2364,65 @@ public sealed class Simulation
         }
     }
 
+    /// <summary>Компании рассчитываются за день: зарплата, налоги, дивиденды.</summary>
+    /// <remarks>
+    /// Здесь и замыкается круг. Компания знает, сколько продала и сколько купила, — разница
+    /// и есть то, что она добавила. Доля труда из неё идёт рабочим, с остатка берётся налог
+    /// на прибыль, четверть чистого она оставляет на развитие, остальное отдаёт владельцам.
+    ///
+    /// Не хватило денег на зарплату — платит сколько есть. Это не ошибка, а задержка выплат:
+    /// в жизни так и бывает у фирмы, чей товар не покупают.
+    ///
+    /// Идёт после стройки: стройка тоже покупка, и её надо учесть в дневном расходе.
+    /// </remarks>
+    private void Settle()
+    {
+        foreach (var country in _world.Countries)
+        {
+            var companies = _world.CompaniesOf(country.Id);
+            if (companies.Count == 0) continue;
+
+            var wages = default(Money);
+
+            foreach (var company in companies)
+            {
+                if (!company.Alive) continue;
+
+                var added = company.SoldToday - company.BoughtToday;
+                if (added.Raw <= 0) continue;
+
+                // Труд стоит работодателю всё, что он на него потратил: и зарплату, и
+                // взносы, и удержанный подоходный. Делится эта сумма, а не прибавляется
+                // сверху — иначе взносы упирались бы в пустую кассу.
+                var given = company.Give(new Money(added.Raw * country.LabourShare / 100));
+                var dues = TaxCode.Take(given, country.Taxes.Payroll);
+                var onHand = given - dues;
+                var income = TaxCode.Take(onHand, country.Taxes.Income);
+
+                country.Budget.Collect(TaxKind.Payroll, dues);
+                country.Budget.Collect(TaxKind.Income, income);
+                country.Households.Earn(onHand - income);
+                wages += given;
+
+                var profit = added - given;
+                if (profit.Raw <= 0) continue;
+
+                country.Budget.Collect(
+                    TaxKind.Profit, company.Give(TaxCode.Take(profit, country.Taxes.Profit)));
+
+                // Четверть чистого — на развитие, остальное владельцам. Владелец —
+                // население: акций и биржи пока нет.
+                var net = profit - TaxCode.Take(profit, country.Taxes.Profit);
+                var keep = new Money(net.Raw * Construction.InvestmentShare / 100);
+
+                country.Households.Earn(company.Give(net - keep));
+            }
+
+            _wages[country.Id] = wages;
+            country.Payroll = wages;
+        }
+    }
+
     /// <summary>Прибыль сверх дневного запаса уходит владельцам — тем же людям.</summary>
     /// <remarks>
     /// Без этого шага деньги утекали из оборота навсегда: казна собирала с населения
@@ -2358,6 +2437,9 @@ public sealed class Simulation
     {
         foreach (var country in _world.Countries)
         {
+            // Где есть компании, там прибыль делят они сами — см. Settle.
+            if (_world.CompaniesOf(country.Id).Count > 0) continue;
+
             // Делится заработанное за сутки, а не весь остаток казны: остаток — это
             // оборотные деньги страны, и раздать их в первый же тик значит пустить
             // стартовый капитал на потребление.
@@ -2385,7 +2467,8 @@ public sealed class Simulation
     /// и прибыль делится по этому.
     /// </remarks>
     /// <returns>Сколько взято и сколько это стоит по ценам продавцов.</returns>
-    private (GoodAmount Took, Money Cost) Draw(Country country, GoodType good, GoodAmount want)
+    private (GoodAmount Took, Money Cost) Draw(
+        Country country, GoodType good, GoodAmount want, Func<Money, Money> purse, bool taxed = false)
     {
         var usual = country.State.Prices.Of(good);
         if (want.Raw <= 0 || usual.Raw <= 0) return (default, default);
@@ -2393,11 +2476,21 @@ public sealed class Simulation
         var sellers = _sellersOf[Slot(country.Id, good)];
         if (sellers.Count == 0)
         {
-            // Хозяев нет — берём со склада по общей цене, как было до компаний.
+            // Хозяев нет — берём со склада по общей цене, как было до компаний. Так живут
+            // тестовые миры и страны, у которых компании все разорились.
             var plain = country.State.Stock.Of(good);
             var takePlain = want < plain ? want : plain;
+            var askPlain = country.State.Prices.CostOf(good, takePlain);
+            var gotPlain = purse(askPlain);
 
-            return (takePlain, country.State.Prices.CostOf(good, takePlain));
+            if (gotPlain < askPlain && askPlain.Raw > 0)
+            {
+                takePlain = new GoodAmount((long)((Int128)takePlain.Raw * gotPlain.Raw / askPlain.Raw));
+            }
+
+            country.State.Treasury.Receive(gotPlain);
+
+            return (takePlain, gotPlain);
         }
 
         var left = want.Raw;
@@ -2413,14 +2506,28 @@ public sealed class Simulation
 
             var mine = Math.Min(left, have);
             var price = new Money(usual.Raw * seller.Edge(good) / Company.Even);
-            var paid = new Money((long)((Int128)price.Raw * mine / GoodAmount.Scale));
+            var ask = new Money((long)((Int128)price.Raw * mine / GoodAmount.Scale));
+            var vat = taxed ? TaxCode.Take(ask, country.Taxes.Vat) : default;
 
+            var paid = purse(ask + vat);
+            if (paid.Raw <= 0) break;
+
+            // Заплатили меньше — и взяли меньше: в долг продавец не отпускает.
+            if (paid < ask + vat) mine = (long)((Int128)mine * paid.Raw / (ask + vat).Raw);
+            if (mine <= 0) break;
+
+            var got = new Money((long)((Int128)vat.Raw * paid.Raw / (ask + vat).Raw));
+
+            country.Budget.Collect(TaxKind.Vat, got);
             seller.Take(good, new GoodAmount(mine));
-            seller.NoteSold(paid);
+            seller.NoteSold(paid - got);
+            seller.Earn(paid - got);
 
             took += mine;
             left -= mine;
             cost += paid;
+
+            if (paid < ask + vat) break;
         }
 
         return (new GoodAmount(took), cost);
@@ -2550,6 +2657,7 @@ public sealed class Simulation
             foreach (var company in companies)
             {
                 company.ForgetMade();
+                company.ForgetBought();
                 company.AddTo(mine);
             }
 
