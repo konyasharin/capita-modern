@@ -61,6 +61,17 @@ public sealed class Exchange
     private byte[] _whoOf = new byte[256];
 
     /// <summary>Цена с доставкой и вес каждого продавца для нынешнего покупателя.</summary>
+    private long[] _askOf = new long[256];
+    private long[] _qualityOf = new long[256];
+    private long[] _keyOf = new long[256];
+
+    /// <summary>Сравнение по заранее посчитанному ключу. Одно на всю жизнь обмена.</summary>
+    private readonly Comparison<int> _byKey;
+
+    public Exchange() =>
+        _byKey = (a, b) => _keyOf[a] != _keyOf[b]
+            ? _keyOf[b].CompareTo(_keyOf[a])
+            : _whoOf[a] - _whoOf[b];
     private long[] _priceOf = new long[256];
     private long[] _weightOf = new long[256];
     private long[] _stockOf = new long[256];
@@ -72,15 +83,20 @@ public sealed class Exchange
     /// <summary>Сколько не взяли потому, что ни у кого не осталось товара.</summary>
     public GoodAmount Empty { get; private set; }
 
+
     /// <summary>Сводит заявки по одному товару.</summary>
-    /// <param name="delivered">Во что обойдётся единица от продавца покупателю: цена
-    /// продавца плюс дорога и пошлина. Ею только выбирают, у кого брать — продавцу
-    /// достаётся его цена, а дорога сгорает топливом и уходит хозяевам звеньев.</param>
+    /// <param name="markup">Во сколько сотых дороже обходится дорога от продавца к
+    /// покупателю: перевозка плюс пошлина. Отрицательное значит, что пути нет вовсе.
+    /// Наценкой только выбирают, у кого брать — продавцу достаётся его цена, а дорога
+    /// сгорает топливом и уходит хозяевам звеньев.</param>
+    /// <remarks>Наценка, а не готовая цена: заявку пришлось бы передавать целиком, а пар
+    /// за тик больше миллиона, и копирование двух структур на каждую стоило трети тика.
+    /// </remarks>
     /// <param name="onDeal">Что делать со сделкой: списать, довезти, заплатить за проход.</param>
     /// <returns>Сколько товара перешло из рук в руки.</returns>
     public GoodAmount Settle(
         Span<MarketOrder> orders,
-        Func<MarketOrder, MarketOrder, Money> delivered,
+        Func<byte, byte, int> markup,
         Action<Deal> onDeal)
     {
         _buyers.Clear();
@@ -111,8 +127,23 @@ public sealed class Exchange
         Span<long> left = stackalloc long[orders.Length];
         for (var i = 0; i < orders.Length; i++) left[i] = orders[i].Offer.Raw;
 
+        // Продавцов сортируем по цене один раз на товар: покупатель идёт по ним снизу
+        // вверх и обрывает перебор, как только цена перевалила за его потолок. Дорога
+        // цену только поднимает, значит дальше смотреть нечего.
+        var ask = _askOf;
+        for (var i = 0; i < orders.Length; i++)
+        {
+            ask[i] = orders[i].Ask.Raw;
+
+            // Поправка на качество не зависит от покупателя — считаем её раз на продавца.
+            // Через пары она проходила сто двадцать тысяч раз за тик вместо двухсот.
+            _qualityOf[i] = QualityFactor(orders[i].Quality);
+        }
+
+        _sellers.Sort((a, b) => ask[a] != ask[b] ? ask[a].CompareTo(ask[b]) : who[a] - who[b]);
+
         var traded = default(GoodAmount);
-        foreach (var b in _buyers) traded += Serve(orders, b, left, delivered, onDeal);
+        foreach (var b in _buyers) traded += Serve(orders, b, left, markup, onDeal);
 
         return traded;
     }
@@ -122,7 +153,7 @@ public sealed class Exchange
         Span<MarketOrder> orders,
         int buyer,
         Span<long> left,
-        Func<MarketOrder, MarketOrder, Money> delivered,
+        Func<byte, byte, int> markup,
         Action<Deal> onDeal)
     {
         var want = orders[buyer].Want.Raw;
@@ -134,20 +165,23 @@ public sealed class Exchange
 
         foreach (var s in _sellers)
         {
+            // Список отсортирован по цене: дальше все дороже потолка, смотреть нечего.
+            if (orders[s].Ask.Raw > ceiling) break;
             if (left[s] <= 0 && orders[s].Country != home) continue;
 
-            // Дорога и пошлина цену только поднимают, так что дорогого отсеиваем сразу,
-            // не считая маршрута: это отсекает большую часть пар.
-            if (orders[s].Ask.Raw > ceiling) continue;
+            var road = markup(orders[s].Country, home);
+            if (road < 0) continue;
 
-            var price = delivered(orders[s], orders[buyer]).Raw;
+            var price = orders[s].Ask.Raw * (TradeCosts.Scale + road) / TradeCosts.Scale;
 
-            // Ноль означает, что пути нет вовсе; дороже своей цены покупатель не берёт.
+            // Дороже своей цены покупатель не берёт.
             if (price <= 0 || price > ceiling) continue;
 
             // Сравнивают не цену, а цену за качество: немецкий станок берут не потому,
             // что он дешевле. Платят при этом полную цену — качество только выбирает.
-            _priceOf[s] = QualityAdjusted(price, orders[s].Quality);
+            _priceOf[s] = _qualityOf[s] == Powers.Scale
+                ? price
+                : Math.Max(1, price * Powers.Scale / _qualityOf[s]);
             _fit.Add(s);
             if (_priceOf[s] < cheapest) cheapest = _priceOf[s];
         }
@@ -160,9 +194,11 @@ public sealed class Exchange
         }
 
         // Доля продавца падает степенью от того, во сколько раз он дороже самого дешёвого.
+        // Считаем в long, а не в Int128: цена с запасом влезает, а деление Int128 идёт
+        // программно и стоило половины всей торговли.
         foreach (var s in _fit)
         {
-            var ratio = (long)((Int128)cheapest * Powers.Scale / _priceOf[s]);
+            var ratio = Ratio(cheapest, _priceOf[s]);
             _weightOf[s] = Weights[ratio < 0 ? 0 : ratio > Powers.Scale ? Powers.Scale : ratio];
         }
 
@@ -174,13 +210,16 @@ public sealed class Exchange
             var stock = _stockOf;
             foreach (var s in _fit) stock[s] = orders[s].Country == home ? want : left[s];
 
-            _fit.Sort((a, b) => (weight[b] * Math.Min(stock[b], want))
-                .CompareTo(weight[a] * Math.Min(stock[a], want)));
+            // Ключ считаем заранее, а сравнение берём готовое: замыкание на каждый вызов
+            // выходило в тысячи объектов за тик.
+            foreach (var s in _fit) _keyOf[s] = weight[s] * Math.Min(stock[s], want);
 
+            _fit.Sort(_byKey);
             _fit.RemoveRange(MaxOrigins, _fit.Count - MaxOrigins);
         }
 
-        var weights = (Int128)0;
+        // Весов не больше MaxOrigins, каждый не больше Powers.Scale — сумма в long влезает.
+        var weights = 0L;
         foreach (var s in _fit) weights += _weightOf[s];
 
         if (weights == 0) return default;
@@ -195,7 +234,7 @@ public sealed class Exchange
             {
                 if (want <= 0) break;
 
-                var share = pass == 0 ? (long)((Int128)want * _weightOf[s] / weights) : want;
+                var share = pass == 0 ? Part(want, _weightOf[s], weights) : want;
                 if (pass > 0 && orders[s].Country == home) continue;
 
                 // Своя доля никуда не едет: этот кусок потребления страна закрывает сама,
@@ -227,14 +266,35 @@ public sealed class Exchange
         return taken;
     }
 
-    /// <summary>Во что обходится покупателю единица качества, а не единица товара.</summary>
-    private static long QualityAdjusted(long price, int quality)
+    /// <summary>Во сколько раз первый дешевле второго, в долях <see cref="Powers.Scale"/>.
+    /// </summary>
+    private static long Ratio(long cheapest, long price)
     {
-        if (quality <= 0 || quality == Efficiency.Scale) return price;
+        if (price <= 0) return 0;
 
-        var ratio = (long)quality * Powers.Scale / Efficiency.Scale;
+        return cheapest <= long.MaxValue / Powers.Scale
+            ? cheapest * Powers.Scale / price
+            : (long)((Int128)cheapest * Powers.Scale / price);
+    }
 
-        return Math.Max(1, price * Powers.Scale / Powers.PowCached(ratio, QualityFromSkill));
+    /// <summary>Доля заявки, приходящаяся на этого продавца.</summary>
+    private static long Part(long want, long weight, long weights)
+    {
+        if (weights <= 0) return 0;
+
+        return weight == 0 || want <= long.MaxValue / weight
+            ? want * weight / weights
+            : (long)((Int128)want * weight / weights);
+    }
+
+    /// <summary>Во сколько раз товар этой страны лучше обычного, в долях
+    /// <see cref="Powers.Scale"/>. На это и делится цена: сравнивают цену за качество, а
+    /// не за штуку.</summary>
+    private static long QualityFactor(int quality)
+    {
+        if (quality <= 0 || quality == Efficiency.Scale) return Powers.Scale;
+
+        return Powers.PowCached((long)quality * Powers.Scale / Efficiency.Scale, QualityFromSkill);
     }
 
     private static long[] BuildWeights()
@@ -251,6 +311,9 @@ public sealed class Exchange
 
         _bidOf = new long[size];
         _whoOf = new byte[size];
+        _askOf = new long[size];
+        _qualityOf = new long[size];
+        _keyOf = new long[size];
         _priceOf = new long[size];
         _weightOf = new long[size];
         _stockOf = new long[size];

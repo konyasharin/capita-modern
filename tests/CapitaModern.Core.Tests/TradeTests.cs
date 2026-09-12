@@ -25,18 +25,17 @@ public class TradeTests
         new(country, Trader(country, coal: coal), Build.Whole(coal), default, Money.FromWhole(price), default);
 
     /// <summary>Дорога ничего не стоит: остаётся чистая цена продавца.</summary>
-    private static Money AtSellerPrice(MarketOrder seller, MarketOrder buyer) => seller.Ask;
+    private static int NoRoad(byte seller, byte buyer) => 0;
 
     /// <summary>Сколько всего куплено у этой страны.</summary>
     private static GoodAmount From(List<Deal> deals, byte seller) =>
         deals.Where(deal => deal.Seller == seller)
             .Aggregate(default(GoodAmount), (sum, deal) => sum + deal.Amount);
 
-    private static List<Deal> Run(
-        MarketOrder[] orders, Func<MarketOrder, MarketOrder, Money>? delivered = null)
+    private static List<Deal> Run(MarketOrder[] orders, Func<byte, byte, int>? markup = null)
     {
         var deals = new List<Deal>();
-        new Exchange().Settle(orders, delivered ?? AtSellerPrice, deals.Add);
+        new Exchange().Settle(orders, markup ?? NoRoad, deals.Add);
 
         return deals;
     }
@@ -62,7 +61,8 @@ public class TradeTests
         MarketOrder[] orders = [Sells(1, coal: 10, price: 50), Sells(2, coal: 10, price: 90), Buys(3, coal: 10, upTo: 200)];
 
         // У первого уголь вдвое дешевле, но дорога от него дороже втрое.
-        var deals = Run(orders, (seller, _) => new Money(seller.Ask.Raw * (seller.Country == 1 ? 3 : 1)));
+        // Первому дорога втрое дороже цены: наценка в двести процентов.
+        var deals = Run(orders, (seller, _) => seller == 1 ? 2 * TradeCosts.Scale : 0);
 
         Assert.True(From(deals, 2) > From(deals, 1), "ближний продавец не взял большую долю");
     }
@@ -98,7 +98,7 @@ public class TradeTests
     {
         MarketOrder[] orders = [Sells(1, coal: 10, price: 100), Sells(2, coal: 10, price: 150), Buys(3, coal: 10, upTo: 200)];
 
-        var deals = Run(orders, (seller, _) => seller.Country == 1 ? default : seller.Ask);
+        var deals = Run(orders, (seller, _) => seller == 1 ? -1 : 0);
 
         Assert.Equal(2, Assert.Single(deals).Seller);
     }

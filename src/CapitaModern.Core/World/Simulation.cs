@@ -226,35 +226,50 @@ public sealed class Simulation
     public void Tick()
     {
         _day++;
-        Prepare();
-        CollectInputs();
-        PlanBuilds();
-        CountHands();
-        Trade();
-        NoteTrade();
-        Borrow();
-        PayInterest();
-        Repay();
-        CheckDefaults();
-        MoveRates();
-        CollectAvailable();
-        CollectOutputs();
-        PayWages();
-        FeedPeople();
-        Store();
-        Tax();
-        BuildEstate();
-        Dole();
-        MovePrices();
-        AnchorPrices();
-        PullPrices();
-        Wear();
-        Banking();
-        Build();
-        PayProfits();
-        NoteDemand();
-        UpdateDemographics();
+        Run(nameof(Prepare), Prepare);
+        Run(nameof(CollectInputs), CollectInputs);
+        Run(nameof(PlanBuilds), PlanBuilds);
+        Run(nameof(CountHands), CountHands);
+        Run(nameof(Trade), Trade);
+        Run(nameof(NoteTrade), NoteTrade);
+        Run(nameof(Borrow), Borrow);
+        Run(nameof(PayInterest), PayInterest);
+        Run(nameof(Repay), Repay);
+        Run(nameof(CheckDefaults), CheckDefaults);
+        Run(nameof(MoveRates), MoveRates);
+        Run(nameof(CollectAvailable), CollectAvailable);
+        Run(nameof(CollectOutputs), CollectOutputs);
+        Run(nameof(PayWages), PayWages);
+        Run(nameof(FeedPeople), FeedPeople);
+        Run(nameof(Store), Store);
+        Run(nameof(Tax), Tax);
+        Run(nameof(BuildEstate), BuildEstate);
+        Run(nameof(Dole), Dole);
+        Run(nameof(MovePrices), MovePrices);
+        Run(nameof(AnchorPrices), AnchorPrices);
+        Run(nameof(PullPrices), PullPrices);
+        Run(nameof(Wear), Wear);
+        Run(nameof(Banking), Banking);
+        Run(nameof(Build), Build);
+        Run(nameof(PayProfits), PayProfits);
+        Run(nameof(NoteDemand), NoteDemand);
+        Run(nameof(UpdateDemographics), UpdateDemographics);
     }
+
+    /// <summary>Сколько тактов ушло на каждый шаг тика за всю партию.</summary>
+    /// <remarks>Считается всегда: тридцать отметок времени на тик ничего не стоят, а без
+    /// них узкое место ищется гаданием — и находится не с первого раза.</remarks>
+    public IReadOnlyDictionary<string, long> Steps => _steps;
+
+    private readonly Dictionary<string, long> _steps = new();
+
+    private void Run(string name, Action step)
+    {
+        var from = System.Diagnostics.Stopwatch.GetTimestamp();
+        step();
+        _steps[name] = _steps.GetValueOrDefault(name) + System.Diagnostics.Stopwatch.GetTimestamp() - from;
+    }
+
 
     /// <summary>Счётчики живут один тик. Чистим в начале, чтобы прошлые числа можно было
     /// посмотреть.</summary>
@@ -544,7 +559,10 @@ public sealed class Simulation
             _dealValue = default;
             _dealVolume = default;
 
+            var from = System.Diagnostics.Stopwatch.GetTimestamp();
             _exchange.Settle(CollectionsMarshal.AsSpan(_market), Delivered, Close);
+            _steps["Trade.Settle"] = _steps.GetValueOrDefault("Trade.Settle")
+                + System.Diagnostics.Stopwatch.GetTimestamp() - from;
 
             // Цена рынка — средняя из настоящих сделок, а не выдуманная одна на всех.
             // Не сошлось ни одной — двигаем прежним правилом, по перекосу заявок.
@@ -623,14 +641,13 @@ public sealed class Simulation
     /// <remarks>Цена продавца плюс дорога от него до покупателя плюс пошлина покупателя.
     /// Отсюда и берётся то, чего в общем котле быть не могло: дальний дешёвый товар
     /// проигрывает ближнему дорогому.</remarks>
-    private Money Delivered(MarketOrder seller, MarketOrder buyer)
+    private int Delivered(byte seller, byte buyer)
     {
-        var route = _world.Routes.CostBetween(seller.Country, buyer.Country);
-        if (route >= Politics.Routes.Unreachable) return default;
+        var route = _world.Routes.CostBetween(seller, buyer);
 
-        var markup = _world.TradeCosts.ImportMarkup(buyer.Country, _trading, route);
-
-        return new Money(seller.Ask.Raw * (TradeCosts.Scale + markup) / TradeCosts.Scale);
+        return route >= Politics.Routes.Unreachable
+            ? -1
+            : _world.TradeCosts.ImportMarkup(buyer, _trading, route);
     }
 
     /// <summary>Проводит сделку: деньги, товар, топливо и плата за проход.</summary>
@@ -1014,6 +1031,7 @@ public sealed class Simulation
     /// <summary>Сколько мир не купил из-за дорогой доставки и сколько — из-за того, что
     /// товара ни у кого не осталось.</summary>
     public (GoodAmount Refused, GoodAmount Empty) UnfilledBids => (_exchange.Refused, _exchange.Empty);
+
 
     /// <summary>Что мир выпустил за прошедший тик.</summary>
     public GoodAmount WorldOutputOf(GoodType good) => WorldSum(_outputs, good);

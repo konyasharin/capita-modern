@@ -200,6 +200,14 @@ for (var tick = 1; tick <= 365; tick++)
 }
 
 Console.WriteLine($"  тик: {clock.Elapsed.TotalMilliseconds / 365:F2} мс");
+Console.WriteLine("  куда уходит тик:");
+foreach (var (step, ticks) in simulation.Steps.OrderByDescending(pair => pair.Value).Take(8))
+{
+    var ms = 1000.0 * ticks / System.Diagnostics.Stopwatch.Frequency / 365;
+
+    Console.WriteLine($"    {step,-18} {ms,6:F2} мс "
+        + $"{100.0 * ms / (clock.Elapsed.TotalMilliseconds / 365),5:F1}%");
+}
 
 Console.WriteLine();
 Console.WriteLine("Страна   ВВП год 1   в жизни    экспорт   в жизни    сальдо   в жизни");
