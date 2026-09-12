@@ -502,6 +502,61 @@ Console.WriteLine();
 Console.WriteLine($"Стран с внешним долгом: {withDebt.Length} из {world.Countries.Count}");
 Console.WriteLine($"Займов всего: {allLoans.Length}, средний размер {allLoans.Average(l => l.Principal.Exact) / 1e6:F0} млн $");
 Console.WriteLine($"Отказались платить хоть раз: {world.Countries.Count(c => c.DefaultedOnDay > 0)}");
+
+// --- Ч. Откуда берутся отказы ---------------------------------------------------------
+Console.WriteLine();
+Console.WriteLine("=== Ч. Откуда берутся отказы платить ===");
+Console.WriteLine("Число их к пятому году гуляет от сорока до ста десяти при неизменных");
+Console.WriteLine("правилах. Смотрим не на итог, а на то, как страна к нему приходит.");
+Console.WriteLine();
+
+var refusals = simulation.Refusals;
+Console.WriteLine($"Всего отказов: {refusals.Count}");
+
+if (refusals.Count > 0)
+{
+    Console.Write("По годам:");
+    for (var year = 1; year <= years; year++)
+    {
+        var inYear = refusals.Count(r => r.Day > (year - 1) * 365 && r.Day <= year * 365);
+        Console.Write($"  {year}-й {inYear}");
+    }
+
+    Console.WriteLine();
+
+    // Чем страна была в момент отказа: нагрузка, покрытие резервами, сальдо.
+    var burdens = refusals
+        .Select(r => r.Capacity.Raw > 0 ? 100.0 * r.Owed.Exact / r.Capacity.Exact : double.PositiveInfinity)
+        .Where(double.IsFinite)
+        .OrderBy(x => x)
+        .ToArray();
+
+    var noCapacity = refusals.Count(r => r.Capacity.Raw <= 0);
+    var dry = refusals.Count(r => r.Reserves.Raw <= 0);
+    var deficit = refusals.Count(r => r.ImportsPerDay > r.ExportsPerDay);
+
+    Console.WriteLine($"  без всякой возможности платить (вывоза нет вовсе): {noCapacity}");
+    Console.WriteLine($"  с пустыми резервами: {dry}");
+    Console.WriteLine($"  с ввозом больше вывоза: {deficit}");
+
+    if (burdens.Length > 0)
+    {
+        Console.WriteLine($"  нагрузка в момент отказа: медиана {burdens[burdens.Length / 2]:F0}%, "
+            + $"от {burdens[0]:F0}% до {burdens[^1]:F0}%");
+    }
+
+    Console.WriteLine();
+    Console.WriteLine("Первые десять отказов:");
+    Console.WriteLine("день  страна    долг      мог платить   резервы   ввоз/сут  вывоз/сут");
+
+    foreach (var refusal in refusals.Take(10))
+    {
+        Console.WriteLine($"{refusal.Day,5} {refusal.Iso,-6} "
+            + $"{refusal.Owed.Exact / 1e6,10:F1} млн {refusal.Capacity.Exact / 1e6,10:F1} млн "
+            + $"{refusal.Reserves.Exact / 1e6,9:F1} {refusal.ImportsPerDay.Exact / 1e3,9:F1} "
+            + $"{refusal.ExportsPerDay.Exact / 1e3,9:F1}");
+    }
+}
 Console.WriteLine($"Плавающих займов: {allLoans.Count(l => l.RateKind == RateKind.Floating)} из {allLoans.Length}");
 
 // --- К. Производительность: главный замер этого шага ------------------------------

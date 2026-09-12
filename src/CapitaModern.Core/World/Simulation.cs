@@ -1465,6 +1465,16 @@ public sealed class Simulation
             // своими деньгами, и по вывозу его судить нельзя.
             if (debt.BurdenToExports(DebtCapacity(country)) < DefaultBurden) continue;
 
+            _refusals.Add(new Refusal(
+                _day,
+                country.Iso,
+                debt.Owed(LoanSource.Foreign),
+                DebtCapacity(country),
+                country.State.Treasury.Reserves.Liquid,
+                country.ImportsPerDay,
+                country.ExportsPerDay,
+                country.ExchangeRate));
+
             debt.Default(LoanSource.Foreign);
             country.DefaultedOnDay = _day;
             _missedInARow.Remove(country.Id);
@@ -1981,6 +1991,27 @@ public sealed class Simulation
 
     /// <summary>Сколько страна продала за прошлый тик населению, стройке и за границу.</summary>
     public Money DemandOf(byte country) => _demand.GetValueOrDefault(country);
+
+    /// <summary>Запись об отказе платить: когда, кто и с какими числами.</summary>
+    /// <param name="Owed">Внешний долг на день отказа.</param>
+    /// <param name="Capacity">Чем страна могла платить за год.</param>
+    /// <param name="Reserves">Что оставалось в резервах.</param>
+    public readonly record struct Refusal(
+        int Day,
+        string Iso,
+        Money Owed,
+        Money Capacity,
+        Money Reserves,
+        Money ImportsPerDay,
+        Money ExportsPerDay,
+        Money Rate);
+
+    /// <summary>Все отказы платить за партию. Нужны, чтобы понять, откуда они берутся:
+    /// само число их к пятому году гуляет от сорока до ста десяти при неизменных
+    /// правилах, и чинить его вслепую нечего.</summary>
+    public IReadOnlyList<Refusal> Refusals => _refusals;
+
+    private readonly List<Refusal> _refusals = [];
 
     /// <summary>Занять не вышло, платить надо — печатают недостающее.</summary>
     /// <remarks>Цена немедленная: местные цены растут на столько же, на сколько выросла
