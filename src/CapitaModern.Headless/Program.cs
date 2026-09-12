@@ -755,6 +755,34 @@ foreach (var (good, amount) in world.Countries.First(c => c.Iso == "RUS").Army.K
     Console.WriteLine($"  {good,-18} {amount.Exact,12:F1}");
 }
 
+// --- Ц. Жильё и дороги ---------------------------------------------------------------
+Console.WriteLine();
+Console.WriteLine("=== Ц. Жильё и дороги ===");
+Console.WriteLine("Главные покупатели стройматериалов и леса. Жильё люди строят на свои,");
+Console.WriteLine("дороги государство из бюджета — и больше, чем в бюджете есть, не построит.");
+Console.WriteLine();
+Console.WriteLine("страна   жильё к выпуску   дороги к выпуску   в жизни 5.0% и 3.3%");
+
+foreach (var iso in new[] { "USA", "CHN", "RUS", "DEU", "IND", "BRA", "JPN", "NGA" })
+{
+    var whose = world.Countries.First(c => c.Iso == iso);
+    var added = simulation.ValueAddedOf(whose.Id).Exact;
+    var houses = added > 0 ? 100 * simulation.HousingOf(whose.Id).Exact / added : 0;
+    var roads = added > 0 ? 100 * simulation.RoadsOf(whose.Id).Exact / added : 0;
+
+    Console.WriteLine($"{iso}  {houses,14:F2}% {roads,17:F2}%");
+}
+
+Console.WriteLine();
+Console.WriteLine("Жилой фонд и дороги, в материалах:");
+foreach (var iso in new[] { "USA", "CHN", "RUS", "IND" })
+{
+    var whose = world.Countries.First(c => c.Iso == iso);
+
+    Console.WriteLine($"  {iso}: жильё {whose.Estate.Housing.Exact,14:F0}, "
+        + $"дороги {whose.Estate.Roads.Exact,14:F0}");
+}
+
 // --- Ф. Выбросы ----------------------------------------------------------------------
 Console.WriteLine();
 Console.WriteLine("=== Ф. Выбросы ===");

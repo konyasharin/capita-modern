@@ -47,6 +47,9 @@ public sealed class Country
     /// <summary>Что стоит на вооружении. Покупатель военных товаров и есть.</summary>
     public Army Army { get; } = new();
 
+    /// <summary>Жилой фонд и дороги. Главные покупатели стройматериалов и леса.</summary>
+    public Estate Estate { get; } = new();
+
     /// <summary>Сколько страна хочет тратить на оборону, в сотых долях процента от
     /// выпуска. На старте — настоящая доля 2020 года из data/politics/defence.json.</summary>
     public int DefenceShare { get; set; } = 150;

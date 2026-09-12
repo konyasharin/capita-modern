@@ -243,6 +243,8 @@ public sealed class Simulation
         FeedPeople();
         Store();
         Tax();
+        BuildEstate();
+        Dole();
         MovePrices();
         AnchorPrices();
         PullPrices();
@@ -276,6 +278,10 @@ public sealed class Simulation
         _sales.Clear();
         _armsWants.Clear();
         _armsBought.Clear();
+        _houseWants.Clear();
+        _roadWants.Clear();
+        _housing.Clear();
+        _roads.Clear();
         _profits.Clear();
         _saved.Clear();
         _builder.Clear();
@@ -352,6 +358,7 @@ public sealed class Simulation
             }
 
             OrderArms(country);
+            OrderEstate(country);
         }
     }
 
@@ -388,6 +395,58 @@ public sealed class Simulation
             _claims.Add(country.Id, good, wanted * weight / Priorities.NormalWeight);
         }
     }
+
+    /// <summary>Сколько жилья и дорог страна хочет построить за сутки.</summary>
+    /// <remarks>
+    /// Доли настоящие: жилищное строительство в мире около пяти процентов ВВП, казённые
+    /// вложения в дороги и сети — около трёх. Считаются они от выпуска, а платят за
+    /// построенное разные карманы: за жильё люди, за дороги бюджет.
+    /// </remarks>
+    private void OrderEstate(Country country)
+    {
+        var added = _added.GetValueOrDefault(country.Id);
+        if (added.Raw <= 0) return;
+
+        Want(country, GoodType.Materials, new Money(added.Raw * HousingShare / 10_000 * 2 / 3), _houseWants);
+        Want(country, GoodType.Timber, new Money(added.Raw * HousingShare / 10_000 / 3), _houseWants);
+        Want(country, GoodType.Materials, new Money(added.Raw * RoadShare / 10_000 * 3 / 4), _roadWants);
+        Want(country, GoodType.Metals, new Money(added.Raw * RoadShare / 10_000 / 4), _roadWants);
+    }
+
+    /// <summary>Кладёт заявку на столько-то денег в общий спрос.</summary>
+    private void Want(Country country, GoodType good, Money money, Tally<GoodType, GoodAmount> into)
+    {
+        if (money.Raw <= 0) return;
+
+        var price = country.State.Prices.Of(good);
+        if (price.Raw <= 0) return;
+
+        var wanted = new GoodAmount((long)((Int128)money.Raw * GoodAmount.Scale / price.Raw));
+        if (wanted.Raw <= 0) return;
+
+        into.Add(country.Id, good, wanted);
+        _inputs.Add(country.Id, good, wanted);
+        _claims.Add(country.Id, good, wanted);
+    }
+
+    /// <summary>Доля выпуска на жильё, в сотых процента. В жизни жилищное строительство —
+    /// около пяти процентов ВВП.</summary>
+    private const int HousingShare = 500;
+
+    /// <summary>Доля выпуска на дороги и сети. В жизни казённые вложения — около трёх с
+    /// третью процентов ВВП.</summary>
+    private const int RoadShare = 330;
+
+    private readonly Tally<GoodType, GoodAmount> _houseWants = new();
+    private readonly Tally<GoodType, GoodAmount> _roadWants = new();
+
+    /// <summary>Сколько жильё и дороги забрали за тик, в деньгах.</summary>
+    public Money HousingOf(byte country) => _housing.GetValueOrDefault(country);
+
+    public Money RoadsOf(byte country) => _roads.GetValueOrDefault(country);
+
+    private readonly Dictionary<byte, Money> _housing = new();
+    private readonly Dictionary<byte, Money> _roads = new();
 
     /// <summary>Что покупает армия. Всё, что делают оборонные заводы.</summary>
     private static readonly GoodType[] Arms =
@@ -1752,15 +1811,100 @@ public sealed class Simulation
         or GoodType.Agriculture;
 
     /// <summary>Государство тратит собранное: бюджетникам и пособиями.</summary>
-    private void Spend(Country country)
+    private void Spend(Country country) => Arm(country);
+
+    /// <summary>Что осталось в бюджете после закупок, уходит бюджетникам и на пособия.</summary>
+    /// <remarks>Идёт последним: сперва государство покупает оружие и строит дороги, и
+    /// только не потраченное раздаёт людям. Раньше раздача стояла первой, и на дороги не
+    /// оставалось ни копейки ни у одной страны.</remarks>
+    private void Dole()
     {
-        Arm(country);
+        foreach (var country in _world.Countries)
+        {
+            var paid = country.Budget.SpendUpTo(country.Budget.Balance);
+            if (paid.Raw <= 0) continue;
 
-        var paid = country.Budget.SpendUpTo(country.Budget.Balance);
-        if (paid.Raw <= 0) return;
-
-        country.Households.Earn(paid);
+            country.Households.Earn(paid);
+        }
     }
+
+    /// <summary>Покупает заказанное и говорит, на сколько купило.</summary>
+    /// <remarks>Одна и та же работа у армии, жилья и дорог: взять со склада сколько есть,
+    /// заплатить сколько можешь, и деньги отдать тому, кто товар сделал.</remarks>
+    private GoodAmount Buy(Country country, GoodType good, GoodAmount wanted, Func<Money, Money> purse)
+    {
+        if (wanted.Raw <= 0) return default;
+
+        var onShelf = country.State.Stock.Of(good);
+        var take = wanted < onShelf ? wanted : onShelf;
+        if (take.Raw <= 0) return default;
+
+        var cost = country.State.Prices.CostOf(good, take);
+        var paid = purse(cost);
+        if (paid.Raw <= 0) return default;
+
+        // Заплатили меньше — и взяли меньше: в долг у завода никто не берёт.
+        if (paid < cost) take = new GoodAmount((long)((Int128)take.Raw * paid.Raw / cost.Raw));
+        if (take.Raw <= 0) return default;
+
+        country.State.Stock.TakeUpTo(good, take);
+        country.State.Treasury.Receive(paid);
+
+        _bought.Add(country.Id, good, take);
+        _sales[country.Id] = _sales.GetValueOrDefault(country.Id) + paid;
+
+        return take;
+    }
+
+    /// <summary>Люди строят себе жильё, государство — дороги. И то и другое ветшает.</summary>
+    /// <remarks>
+    /// Без этого у стройматериалов и леса был один покупатель — стройка заводов, и цена их
+    /// лежала на полу коридора у сорока пяти стран из двухсот. В жизни главный потребитель
+    /// цемента и доски это жильё, а второй — казённое строительство.
+    /// </remarks>
+    private void BuildEstate()
+    {
+        foreach (var country in _world.Countries)
+        {
+            country.Estate.Wear(DaysInYear);
+
+            var built = default(GoodAmount);
+            var spent = default(Money);
+
+            foreach (var good in EstateGoods)
+            {
+                var before = _sales.GetValueOrDefault(country.Id);
+                var take = Buy(country, good, _houseWants.Get(country.Id, good),
+                    cost => country.Households.SpendUpTo(cost));
+
+                built += take;
+                spent += _sales.GetValueOrDefault(country.Id) - before;
+            }
+
+            country.Estate.Settle(built);
+            _housing[country.Id] = spent;
+
+            built = default;
+            spent = default;
+
+            foreach (var good in EstateGoods)
+            {
+                var before = _sales.GetValueOrDefault(country.Id);
+                var take = Buy(country, good, _roadWants.Get(country.Id, good),
+                    cost => country.Budget.SpendUpTo(cost));
+
+                built += take;
+                spent += _sales.GetValueOrDefault(country.Id) - before;
+            }
+
+            country.Estate.Pave(built);
+            _roads[country.Id] = spent;
+        }
+    }
+
+    /// <summary>Из чего строят жильё и дороги.</summary>
+    private static readonly GoodType[] EstateGoods =
+        [GoodType.Materials, GoodType.Timber, GoodType.Metals];
 
     /// <summary>Государство покупает оружие и списывает отслужившее.</summary>
     /// <remarks>
@@ -1781,33 +1925,19 @@ public sealed class Simulation
             // Отслужившее списывается всегда, куплено новое или нет.
             country.Army.Wear(good, DaysInYear);
 
-            var wanted = _armsWants.Get(country.Id, good);
-            if (wanted.Raw <= 0) continue;
+            var before = _sales.GetValueOrDefault(country.Id);
+            var take = Buy(country, good, _armsWants.Get(country.Id, good),
+                cost => country.Budget.SpendUpTo(cost));
 
-            var onShelf = country.State.Stock.Of(good);
-            var take = wanted < onShelf ? wanted : onShelf;
             if (take.Raw <= 0) continue;
 
-            var cost = country.State.Prices.CostOf(good, take);
-            var paid = country.Budget.SpendUpTo(cost);
-            if (paid.Raw <= 0) continue;
-
-            // Заплатили меньше — и взяли меньше: бюджет не берёт в долг у завода.
-            if (paid < cost) take = new GoodAmount((long)((Int128)take.Raw * paid.Raw / cost.Raw));
-            if (take.Raw <= 0) continue;
-
-            country.State.Stock.TakeUpTo(good, take);
             country.Army.Add(good, take);
-            country.State.Treasury.Receive(paid);
-
-            _bought.Add(country.Id, good, take);
-            spent += paid;
+            spent += _sales.GetValueOrDefault(country.Id) - before;
         }
 
         if (spent.Raw <= 0) return;
 
         _armsBought[country.Id] = spent;
-        _sales[country.Id] = _sales.GetValueOrDefault(country.Id) + spent;
     }
 
     /// <summary>С чего берут акциз: с того, что вредно, дорого возить или незаменимо.

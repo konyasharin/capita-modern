@@ -18,6 +18,10 @@ public partial class IndustryPanel : SidePanel
     private Bars _bySector = null!;
     private StatRow _building = null!;
     private StatRow _firms = null!;
+    private StatRow _housing = null!;
+    private StatRow _roads = null!;
+    private StatRow _housingSpend = null!;
+    private StatRow _roadSpend = null!;
     private StatRow _ruined = null!;
     private Table _companies = null!;
     private StatRow _builders = null!;
@@ -73,6 +77,16 @@ public partial class IndustryPanel : SidePanel
         ]);
 
         Rows.AddChild(_table);
+
+        Section("Жильё и дороги", "plants");
+        Note("Главные покупатели стройматериалов и леса. Жильё люди строят на свои, " +
+            "дороги государство из бюджета — и больше, чем в бюджете есть, не построит. " +
+            "Дом стоит полвека, дорога тридцать лет, потом их надо обновлять.");
+
+        _housing = Stat("Жилой фонд", "plants");
+        _housingSpend = Stat("Построено жилья за день", "sales");
+        _roads = Stat("Дороги", "plants");
+        _roadSpend = Stat("Построено дорог за день", "sales");
 
         Section("Компании", "plants");
         _firms = Stat("Живых", "plants");
@@ -150,6 +164,13 @@ public partial class IndustryPanel : SidePanel
         _table.Set(rows);
 
         ShowCompanies(sim);
+
+        _housing.Set(Fmt.Amount(Me.Estate.Housing), Skin.Bright);
+        _housingSpend.Set(Fmt.Cash(sim.HousingOf(Id).Exact),
+            sim.HousingOf(Id).Raw > 0 ? Skin.Good : Skin.Dim);
+        _roads.Set(Fmt.Amount(Me.Estate.Roads), Skin.Bright);
+        _roadSpend.Set(Fmt.Cash(sim.RoadsOf(Id).Exact),
+            sim.RoadsOf(Id).Raw > 0 ? Skin.Good : Skin.Dim);
     }
 
     /// <summary>Кто в стране чем владеет. Крупнейшие сверху: мелких сотни, и все они
