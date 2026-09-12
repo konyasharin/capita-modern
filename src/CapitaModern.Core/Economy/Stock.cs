@@ -1,23 +1,28 @@
-﻿namespace CapitaModern.Core.Economy;
+namespace CapitaModern.Core.Economy;
 
 /// <summary>Склад страны: что накоплено и как это тратится.</summary>
+/// <remarks>Внутри плоский массив, а не словарь: к складу обращаются отовсюду — торговля,
+/// выпуск, покупки, износ, — и за тик это выходит в миллионы раз. На хешировании товара
+/// уходило больше времени, чем на самой работе со складом.</remarks>
 public sealed class Stock
 {
-    private readonly Dictionary<GoodType, GoodAmount> _amounts;
+    private static readonly int Kinds = Enum.GetValues<GoodType>().Length;
+
+    private readonly GoodAmount[] _amounts = new GoodAmount[Kinds];
 
     public Stock(IReadOnlyDictionary<GoodType, GoodAmount> amounts)
     {
-        _amounts = new(amounts);
+        foreach (var (good, amount) in amounts) _amounts[(int)good] = amount;
     }
 
     /// <summary>Чего нет на складе, того ноль.</summary>
-    public GoodAmount Of(GoodType good) => _amounts.GetValueOrDefault(good);
+    public GoodAmount Of(GoodType good) => _amounts[(int)good];
 
     public void Store(GoodType good, GoodAmount amount)
     {
         if (amount < default(GoodAmount)) throw new ArgumentOutOfRangeException(nameof(amount));
 
-        _amounts[good] = Of(good) + amount;
+        _amounts[(int)good] += amount;
     }
 
     /// <summary>Списывает рецепт целиком или ничего: если руда есть, а угля нет, руда
@@ -29,12 +34,12 @@ public sealed class Stock
 
         foreach (var (good, amount) in recipe)
         {
-            if (Of(good) < amount * load / Load.Full) return false;
+            if (_amounts[(int)good] < amount * load / Load.Full) return false;
         }
 
         foreach (var (good, amount) in recipe)
         {
-            _amounts[good] = Of(good) - amount * load / Load.Full;
+            _amounts[(int)good] -= amount * load / Load.Full;
         }
 
         return true;
@@ -46,8 +51,9 @@ public sealed class Stock
     {
         if (wanted < default(GoodAmount)) throw new ArgumentOutOfRangeException(nameof(wanted));
 
-        var taken = wanted < Of(good) ? wanted : Of(good);
-        _amounts[good] = Of(good) - taken;
+        var have = _amounts[(int)good];
+        var taken = wanted < have ? wanted : have;
+        _amounts[(int)good] = have - taken;
 
         return taken;
     }

@@ -26,11 +26,13 @@ public sealed class Reserves
     public IReadOnlyCollection<byte> FrozenBy => _frozenBy;
 
     /// <summary>Чем можно заплатить прямо сейчас.</summary>
-    public Money Liquid => Total(frozen: false);
+    /// <remarks>Считается по ходу, а не перебором вложений: спрашивают его на каждой
+    /// сделке, а сделок за тик двадцать шесть тысяч.</remarks>
+    public Money Liquid { get; private set; }
 
     /// <summary>Сколько отнято. Показывать игроку это надо отдельно: деньги как бы есть,
     /// а тратить нельзя.</summary>
-    public Money Frozen => Total(frozen: true);
+    public Money Frozen { get; private set; }
 
     /// <summary>Сколько всего, вместе с отнятым.</summary>
     public Money Value => Liquid + Frozen;
@@ -49,17 +51,28 @@ public sealed class Reserves
         if (amount < default(Money)) throw new ArgumentOutOfRangeException(nameof(amount));
         if (amount.Raw == 0) return;
 
-        var at = _held.FindIndex(held =>
-            held.Kind == kind && held.Issuer == issuer && held.Custodian == custodian);
+        // Обычным перебором, а не FindIndex: тот создаёт замыкание на каждый вызов, а
+        // вызовов за тик по одному на сделку — двадцать шесть тысяч.
+        for (var i = 0; i < _held.Count; i++)
+        {
+            var held = _held[i];
+            if (held.Kind != kind || held.Issuer != issuer || held.Custodian != custodian) continue;
 
-        if (at < 0) _held.Add(new Reserve(kind, issuer, custodian, amount));
-        else _held[at] = _held[at] with { Amount = _held[at].Amount + amount };
+            _held[i] = held with { Amount = held.Amount + amount };
+            Note(custodian, amount);
+
+            return;
+        }
+
+        _held.Add(new Reserve(kind, issuer, custodian, amount));
+        Note(custodian, amount);
     }
 
     /// <summary>Тратит с любого доступного места. Не хватило — не тронуто ничего.</summary>
     public bool TrySpend(Money amount)
     {
         if (amount < default(Money)) throw new ArgumentOutOfRangeException(nameof(amount));
+        if (amount.Raw == 0) return true;
         if (Liquid < amount) return false;
 
         var left = amount;
@@ -72,15 +85,37 @@ public sealed class Reserves
             left -= taken;
         }
 
+        Liquid -= amount;
+
         return true;
     }
 
     /// <summary>Хранитель перестал пускать к тому, что у него лежит.</summary>
     /// <remarks>Морозит именно хранитель: отнять можно только своими руками. Присоединиться
     /// к чужим санкциям — это самому позвать <see cref="Freeze"/> у себя.</remarks>
-    public void Freeze(byte custodian) => _frozenBy.Add(custodian);
+    public void Freeze(byte custodian)
+    {
+        if (_frozenBy.Add(custodian)) Recount();
+    }
 
-    public void Unfreeze(byte custodian) => _frozenBy.Remove(custodian);
+    public void Unfreeze(byte custodian)
+    {
+        if (_frozenBy.Remove(custodian)) Recount();
+    }
+
+    /// <summary>Относит пришедшее к доступному или к отнятому.</summary>
+    private void Note(byte custodian, Money amount)
+    {
+        if (_frozenBy.Contains(custodian)) Frozen += amount;
+        else Liquid += amount;
+    }
+
+    /// <summary>Пересчитывает оба итога заново. Нужно только при заморозке: она редкая.</summary>
+    private void Recount()
+    {
+        Liquid = Total(frozen: false);
+        Frozen = Total(frozen: true);
+    }
 
     /// <summary>Своё хранилище: у себя не отнимут.</summary>
     public static byte HomeVault(byte owner) => owner;

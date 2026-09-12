@@ -96,7 +96,7 @@ public sealed class Company
     /// вместо этого раз в тик доли ужимаются или растягиваются под настоящий остаток. Кто
     /// сколько внёс, тот столько и потерял — как и должно быть в общем бункере.
     /// </remarks>
-    public void FitAll(long[] have, long[] mine)
+    public void FitAll(ReadOnlySpan<long> have, ReadOnlySpan<long> mine)
     {
         for (var i = 0; i < _goods.Length; i++)
         {
@@ -108,7 +108,7 @@ public sealed class Company
     }
 
     /// <summary>Добавляет свои доли к общему счёту.</summary>
-    public void AddTo(long[] totals)
+    public void AddTo(Span<long> totals)
     {
         for (var i = 0; i < _goods.Length; i++) totals[i] += _goods[i];
     }

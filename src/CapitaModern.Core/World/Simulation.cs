@@ -595,7 +595,10 @@ public sealed class Simulation
             _dealValue = default;
             _dealVolume = default;
 
+            var from = System.Diagnostics.Stopwatch.GetTimestamp();
             foreach (var deal in _deals[(int)good]) Close(deal);
+            _steps["Trade.Close"] = _steps.GetValueOrDefault("Trade.Close")
+                + System.Diagnostics.Stopwatch.GetTimestamp() - from;
 
             // Цена рынка — средняя из настоящих сделок, а не выдуманная одна на всех.
             // Не сошлось ни одной — двигаем прежним правилом, по перекосу заявок.
@@ -1713,12 +1716,22 @@ public sealed class Simulation
         }
     }
 
-    private void CollectOutputs()
+    /// <summary>Выпуск считается по странам сразу: они друг другу не мешают.</summary>
+    /// <remarks>Склады, кассы, компании и счётчики у каждой страны свои — а Tally внутри
+    /// плоский массив, и ячейки разных стран не пересекаются. Единственное общее здесь —
+    /// справочники зданий и умений, а их только читают.</remarks>
+    private void CollectOutputs() => Parallel.ForEach(_world.Countries, MakeIn);
+
+    private void MakeIn(Country owner)
     {
-        foreach (var (country, building, count) in _working)
+        foreach (var building in AllBuildings)
         {
+            var country = owner.Id;
+            var count = _working.Get(country, building);
+            if (count == 0) continue;
+
             var recipe = _world.Buildings[building];
-            var weight = _world.CountryById(country).Priorities.WeightOf(recipe.Sector);
+            var weight = owner.Priorities.WeightOf(recipe.Sector);
 
             // Доля общая на всех, поэтому расход рецепта в ней сокращается.
             // Умножаем до деления, иначе целые числа дадут ноль.
@@ -1745,7 +1758,6 @@ public sealed class Simulation
 
             if (runs == 0) continue;
 
-            var owner = _world.CountryById(country);
             var prices = owner.State.Prices;
             var owners = _world.Holdings.OwnersIn(country, building);
 
@@ -2710,32 +2722,29 @@ public sealed class Simulation
     /// <remarks>Один проход по компаниям вместо учёта в каждом месте, откуда берут со
     /// склада: заводы, население, стройка, армия, жильё, дороги и вывоз — семь мест, и
     /// протягивать через все именной учёт значило бы переписать пол-модели.</remarks>
-    private void Balance()
+    private void Balance() => Parallel.ForEach(_world.Countries, FitIn);
+
+    private void FitIn(Country country)
     {
-        foreach (var country in _world.Countries)
+        var companies = _world.CompaniesOf(country.Id);
+        if (companies.Count == 0) return;
+
+        // На стеке, а не в поле: страны считаются разом, и общий буфер они бы затёрли.
+        Span<long> mine = stackalloc long[AllGoods.Length];
+        Span<long> have = stackalloc long[AllGoods.Length];
+
+        foreach (var good in AllGoods) have[(int)good] = country.State.Stock.Of(good).Raw;
+
+        foreach (var company in companies)
         {
-            var companies = _world.CompaniesOf(country.Id);
-            if (companies.Count == 0) continue;
-
-            var mine = _sharesOf;
-            var have = _stockOf;
-            Array.Clear(mine);
-
-            foreach (var good in AllGoods) have[(int)good] = country.State.Stock.Of(good).Raw;
-
-            foreach (var company in companies)
-            {
-                company.ForgetMade();
-                company.ForgetBought();
-                company.AddTo(mine);
-            }
-
-            foreach (var company in companies) company.FitAll(have, mine);
+            company.ForgetMade();
+            company.ForgetBought();
+            company.AddTo(mine);
         }
+
+        foreach (var company in companies) company.FitAll(have, mine);
     }
 
-    private readonly long[] _sharesOf = new long[Enum.GetValues<GoodType>().Length];
-    private readonly long[] _stockOf = new long[Enum.GetValues<GoodType>().Length];
 
     /// <summary>Что за тик ушло владельцам.</summary>
     public Money ProfitOf(byte country) => _profits.GetValueOrDefault(country);

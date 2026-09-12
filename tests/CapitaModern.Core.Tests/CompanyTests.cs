@@ -86,8 +86,8 @@ public class CompanyTests
         var company = Made();
         company.Store(GoodType.Coal, GoodAmount.FromWhole(100));
 
-        var have = new long[Enum.GetValues<GoodType>().Length];
-        var mine = new long[have.Length];
+        Span<long> have = stackalloc long[Enum.GetValues<GoodType>().Length];
+        Span<long> mine = stackalloc long[have.Length];
         have[(int)GoodType.Coal] = GoodAmount.FromWhole(60).Raw;
         mine[(int)GoodType.Coal] = GoodAmount.FromWhole(120).Raw;
 
