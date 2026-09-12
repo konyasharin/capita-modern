@@ -250,6 +250,7 @@ public sealed class Simulation
         Banking();
         Build();
         PayProfits();
+        NoteDemand();
         UpdateDemographics();
     }
 
@@ -459,10 +460,12 @@ public sealed class Simulation
         var exports = country.ExportsPerDay * DaysInYear;
 
         var share = _reserveShare.GetValueOrDefault(country.Id);
-        if (share <= 0 || country.LabourShare <= 0) return exports;
+        if (share <= 0) return exports;
 
-        // Выпуск за год в мировой мере: фонд оплаты — известная доля добавленной стоимости.
-        var daily = new Money(country.Payroll.Raw * 100 / country.LabourShare);
+        // Выпуск за год в мировой мере. Раньше он выводился из фонда оплаты труда, но фонд
+        // теперь считается от проданного, а не от всего выпуска, и выводить из него выпуск
+        // стало нельзя: у Китая мера долга падала вчетверо на ровном месте.
+        var daily = _added.GetValueOrDefault(country.Id);
         var yearly = new Money(daily.Raw * DaysInYear * Money.Scale /
             Math.Max(1, country.ExchangeRate.Raw));
 
@@ -1489,7 +1492,12 @@ public sealed class Simulation
             _added[country.Id] = made;
             if (made.Raw <= 0) continue;
 
-            var owed = new Money(made.Raw * country.LabourShare / 100);
+            // Платят с проданного, а не со всего выпуска. То, что легло на склад, денег в
+            // кассу не принесло, и зарплату из него взять неоткуда — оттого касса и уходила
+            // в минус, а станок печатал каждый день. В первый тик продавать ещё нечего:
+            // считаем по выпуску, дальше по вчерашней выручке.
+            var basis = _demand.TryGetValue(country.Id, out var sold) ? sold : made;
+            var owed = new Money(basis.Raw * country.LabourShare / 100);
             var paid = owed;
             if (!country.State.Treasury.TrySpend(owed))
             {
@@ -1514,6 +1522,31 @@ public sealed class Simulation
             country.Payroll = paid;
         }
     }
+
+    /// <summary>Что страна и правда продала за тик за свои деньги: населению и на
+    /// стройку. От этого числа и считается завтрашняя зарплата.</summary>
+    /// <remarks>
+    /// Выпуск, ушедший на склад, сюда не входит: он ещё никем не оплачен, и платить с него
+    /// зарплату — то же самое, что печатать. Именно этим касса и уходила в ноль.
+    ///
+    /// Вывоза здесь тоже нет, хотя по счетам он часть ВВП. За него платят чужой валютой, и
+    /// она ложится в резервы, а не в кассу: зарплату из неё не выдать, пока её не поменяли.
+    /// Считать её здесь — значит обещать зарплату деньгами, которых в стране нет; ровно на
+    /// этом вывозящие страны и печатали. Дыра остаётся, и закроет её обмен выручки.
+    /// </remarks>
+    private void NoteDemand()
+    {
+        foreach (var country in _world.Countries)
+        {
+            _demand[country.Id] = _sales.GetValueOrDefault(country.Id);
+        }
+    }
+
+    /// <summary>Оплаченный спрос прошлого тика, по странам.</summary>
+    private readonly Dictionary<byte, Money> _demand = new();
+
+    /// <summary>Сколько страна продала за прошлый тик населению, стройке и за границу.</summary>
+    public Money DemandOf(byte country) => _demand.GetValueOrDefault(country);
 
     /// <summary>Занять не вышло, платить надо — печатают недостающее.</summary>
     /// <remarks>Цена немедленная: местные цены растут на столько же, на сколько выросла
@@ -2317,7 +2350,19 @@ public sealed class Simulation
 
                 // Строителям платят из того же кошелька, а не вторым разом из казны:
                 // зарплата уже сидит в цене постройки.
-                country.Households.Earn(wages < price ? wages : price);
+                var toBuilders = wages < price ? wages : price;
+                country.Households.Earn(toBuilders);
+
+                // Остальное — плата за материалы, и её получает тот, кто их сделал. Раньше
+                // эти деньги просто исчезали: компания их списывала, а в кассу не приходило
+                // ничего, и стройка выносила деньги из оборота.
+                var forStuff = price - toBuilders;
+                if (forStuff.Raw > 0)
+                {
+                    country.State.Treasury.Receive(forStuff);
+                    _sales[country.Id] = _sales.GetValueOrDefault(country.Id) + forStuff;
+                }
+
                 done++;
             }
 

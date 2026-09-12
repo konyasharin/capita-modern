@@ -114,6 +114,27 @@ public class WagesTests
         Assert.Equal(before, All());
     }
 
+    /// <summary>Зарплату платят с проданного, а не со всего выпуска: то, что легло на
+    /// склад, денег в кассу не принесло.</summary>
+    [Fact]
+    public void WagesFollowWhatWasSold()
+    {
+        var world = Ready(treasury: 10_000, savings: 0);
+        var country = world.CountryById(1);
+
+        var simulation = new Simulation(world);
+        simulation.Tick();
+
+        // Первый тик считается по выпуску: продавать ещё нечего, полки пусты.
+        Assert.Equal(new Money(550), country.Payroll);
+        Assert.Equal(default, simulation.DemandOf(1));
+
+        // Второй платит с выручки первого, а её не было.
+        simulation.Tick();
+
+        Assert.Equal(default, country.Payroll);
+    }
+
     [Fact]
     public void BudgetIsSalesMinusWages()
     {
