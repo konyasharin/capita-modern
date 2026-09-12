@@ -27,7 +27,8 @@ public static class WorldDataLoader
         string neighboursJson,
         string basinsJson,
         string currenciesJson,
-        string companiesJson)
+        string companiesJson,
+        string defenceJson)
     {
         var consumptionFile = LoadConsumptionFile(consumptionJson);
         var needs = new Needs(consumptionFile.UnitPerMillionPeople, consumptionFile.IncomeElasticity);
@@ -41,6 +42,7 @@ public static class WorldDataLoader
         var neighbours = JsonReader.Read<NeighboursFile>(neighboursJson);
         var basins = JsonReader.Read<BasinsFile>(basinsJson);
         var currencies = JsonReader.Read<CurrenciesFile>(currenciesJson).Currencies;
+        var defence = JsonReader.Read<DefenceFile>(defenceJson);
         var goodDtos = JsonReader.Read<GoodDto[]>(goodsJson);
         var elasticity = new Elasticity(
             goodDtos.ToDictionary(dto => dto.Id, dto => dto.DemandElasticity),
@@ -67,7 +69,8 @@ public static class WorldDataLoader
         Country[] countries = countriesFile.Countries
             .Select(dto => ToCountry(dto, startPrices, reserves, idByIso, populations.GetValueOrDefault(dto.Id),
                 currencies.GetValueOrDefault(dto.Iso),
-                moneySupply))
+                moneySupply,
+                defence.Share.GetValueOrDefault(dto.Iso, defence.DefaultShare)))
             .ToArray();
 
         // Приходящую валюту по умолчанию кладут туда же, где лежит основная часть
@@ -279,7 +282,8 @@ public static class WorldDataLoader
         IReadOnlyDictionary<string, byte> idByIso,
         Population population,
         CurrencyDto? currency,
-        MoneySupplyFile moneySupply)
+        MoneySupplyFile moneySupply,
+        int defenceShare)
     {
         var rate = Money.FromWhole(1);
         var money = Currency.Dollar;
@@ -312,7 +316,7 @@ public static class WorldDataLoader
             new Priorities(),
             savings,
             rate
-        ) { Bank = new CentralBank(supply), Currency = money }; // склад - заглушка
+        ) { Bank = new CentralBank(supply), Currency = money, DefenceShare = defenceShare }; // склад - заглушка
     }
 
     /// <summary>Долларовую величину в деньги страны.</summary>

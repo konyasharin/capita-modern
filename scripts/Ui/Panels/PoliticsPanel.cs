@@ -1,3 +1,4 @@
+using CapitaModern.Core.Economy;
 using CapitaModern.Core.Politics;
 using CapitaModern.Core.World;
 using Godot;
@@ -27,6 +28,10 @@ public partial class PoliticsPanel : SidePanel
 
     private Table _table = null!;
 
+    private Stepper _defence = null!;
+    private StatRow _armsSpent = null!;
+    private Table _arsenal = null!;
+
     protected override void Build()
     {
         Section("Мир по блокам", "tab-politics");
@@ -36,6 +41,26 @@ public partial class PoliticsPanel : SidePanel
         _bloc = Stat("Блок", "bloc");
         _friends = Stat("Дружественных стран", "attitude");
         _foes = Stat("Враждебных стран", "attitude");
+
+        Section("Оборона", "tab-industry");
+        Note("Государство само покупает оружие у своих же заводов, и платит за него " +
+            "бюджет. Больше, чем в бюджете есть, не купит: поднять расходы можно только " +
+            "подняв сбор. Техника служит двадцать пять лет, потом её списывают.");
+
+        _defence = Stepper.Create("Доля выпуска на оборону", 0, 2000, 10,
+            () => Me.DefenceShare, value => Me.DefenceShare = value, Fmt.Rate, Stack, "priority");
+
+        Rows.AddChild(_defence);
+        _armsSpent = Stat("Куплено за день", "sales");
+
+        _arsenal = Table.Create(
+        [
+            new Column("Оружие", 0, Right: false),
+            new Column("В строю", 80),
+            new Column("Заказ", 72),
+        ]);
+
+        Rows.AddChild(_arsenal);
 
         Section("Выбранная страна", "population");
         Note("Щелчок по строке в списке выбирает страну. Заморозка касается только тех " +
@@ -80,6 +105,8 @@ public partial class PoliticsPanel : SidePanel
         }
 
         _bloc.Set(Names.Of(relations.BlocOf(Id)), Names.ColourOf(relations.BlocOf(Id)));
+
+        ShowArmy();
 
         var friends = 0;
         var foes = 0;
@@ -127,6 +154,26 @@ public partial class PoliticsPanel : SidePanel
     {
         _chosen = country;
         Refresh();
+    }
+
+    /// <summary>Что стоит на вооружении и что заказано на сегодня.</summary>
+    private void ShowArmy()
+    {
+        _defence.Refresh();
+        _armsSpent.Set(Fmt.Cash(Loop.Simulation.ArmsBoughtOf(Id).Exact),
+            Loop.Simulation.ArmsBoughtOf(Id).Raw > 0 ? Skin.Good : Skin.Dim);
+
+        _arsenal.Set(Me.Army.Kit
+            .Where(pair => pair.Value.Raw > 0)
+            .OrderByDescending(pair => pair.Value.Raw)
+            .Select(pair => new Cell[]
+            {
+                new(Names.Of(pair.Key), (double)pair.Key, Skin.Text, Names.IconOf(pair.Key)),
+                new(Fmt.Amount(pair.Value), pair.Value.Exact, Skin.Bright),
+                new(Fmt.Amount(Loop.Simulation.ArmsWantOf(Id, pair.Key)),
+                    Loop.Simulation.ArmsWantOf(Id, pair.Key).Exact, Skin.Text),
+            })
+            .ToList());
     }
 
     private void Move(int by)

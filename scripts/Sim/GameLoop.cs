@@ -167,7 +167,8 @@ public partial class GameLoop : Node
             Read("map", "neighbours.json"),
             Read("map", "basins.json"),
             Read("economy", "currencies.json"),
-            Read("economy", "companies.json"));
+            Read("economy", "companies.json"),
+            Read("politics", "defence.json"));
 
         // Постоянные цены снимаются на старте: по ним потом и меряется выпуск.
         _constant = new Prices(Enum.GetValues<GoodType>().ToDictionary(good => good, world.Market.Prices.Of));

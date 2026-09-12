@@ -44,6 +44,13 @@ public sealed class Country
     /// <summary>Банк страны: держит вклады населения и кредитует компании.</summary>
     public Bank Banks { get; } = new();
 
+    /// <summary>Что стоит на вооружении. Покупатель военных товаров и есть.</summary>
+    public Army Army { get; } = new();
+
+    /// <summary>Сколько страна хочет тратить на оборону, в сотых долях процента от
+    /// выпуска. На старте — настоящая доля 2020 года из data/politics/defence.json.</summary>
+    public int DefenceShare { get; set; } = 150;
+
     /// <summary>Печатный станок и денежная масса.</summary>
     public CentralBank Bank { get; init; } = new(default);
 

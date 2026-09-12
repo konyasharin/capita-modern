@@ -274,12 +274,15 @@ public sealed class Simulation
         foreach (var country in _world.Countries) country.Budget.NewTick();
 
         _sales.Clear();
+        _armsWants.Clear();
+        _armsBought.Clear();
         _profits.Clear();
         _saved.Clear();
         _builder.Clear();
         _soldCurrency.Clear();
         _boughtCurrency.Clear();
-        _added.Clear();
+        // _added не чистим: госзаказ и мера долга считаются до PayWages, и им нужен
+        // вчерашний выпуск. Каждому тику он всё равно переписывается заново.
         _build.Clear();
         _plan.Clear();
         _burnedFuel.Clear();
@@ -347,8 +350,62 @@ public sealed class Simulation
                 _inputs.Add(country.Id, good, wanted);
                 _claims.Add(country.Id, good, wanted * weight / Priorities.NormalWeight);
             }
+
+            OrderArms(country);
         }
     }
+
+    /// <summary>Госзаказ: сколько оружия страна хочет купить за сутки.</summary>
+    /// <remarks>
+    /// Считается от выпуска: страна тратит на оборону свою долю добавленной стоимости, а
+    /// доля эта — настоящая, из data/politics/defence.json. Делится заказ поровну между
+    /// всеми военными товарами: чем страна вооружается, модель пока не решает.
+    ///
+    /// Заказ идёт в общий спрос наравне с населением и стройкой — значит его видят и цена,
+    /// и торговля, и приоритеты снабжения. Купят его потом, в <see cref="Order"/>, и
+    /// только если в бюджете есть деньги.
+    /// </remarks>
+    private void OrderArms(Country country)
+    {
+        if (country.DefenceShare <= 0) return;
+
+        var budget = new Money(_added.GetValueOrDefault(country.Id).Raw * country.DefenceShare / 10_000);
+        if (budget.Raw <= 0) return;
+
+        var each = new Money(budget.Raw / Arms.Length);
+        var weight = country.Priorities.WeightOf(Sector.Military);
+
+        foreach (var good in Arms)
+        {
+            var price = country.State.Prices.Of(good);
+            if (price.Raw <= 0) continue;
+
+            var wanted = new GoodAmount((long)((Int128)each.Raw * GoodAmount.Scale / price.Raw));
+            if (wanted.Raw <= 0) continue;
+
+            _armsWants.Add(country.Id, good, wanted);
+            _inputs.Add(country.Id, good, wanted);
+            _claims.Add(country.Id, good, wanted * weight / Priorities.NormalWeight);
+        }
+    }
+
+    /// <summary>Что покупает армия. Всё, что делают оборонные заводы.</summary>
+    private static readonly GoodType[] Arms =
+    [
+        GoodType.SmallArms, GoodType.Ammunition, GoodType.Armour, GoodType.Artillery,
+        GoodType.Missiles, GoodType.Aircraft, GoodType.AirDefence, GoodType.StrikeDrones,
+        GoodType.TacticalDrones, GoodType.ElectronicWarfare,
+    ];
+
+    private readonly Tally<GoodType, GoodAmount> _armsWants = new();
+
+    /// <summary>Сколько оружия страна заказала за тик.</summary>
+    public GoodAmount ArmsWantOf(byte country, GoodType good) => _armsWants.Get(country, good);
+
+    /// <summary>Сколько страна потратила на оружие за тик.</summary>
+    public Money ArmsBoughtOf(byte country) => _armsBought.GetValueOrDefault(country);
+
+    private readonly Dictionary<byte, Money> _armsBought = new();
 
     /// <summary>Склады на начало тика. Берём все товары, а не только заказанные: цена
     /// того, что никому не нужно, тоже должна двигаться — вниз.</summary>
@@ -1697,10 +1754,60 @@ public sealed class Simulation
     /// <summary>Государство тратит собранное: бюджетникам и пособиями.</summary>
     private void Spend(Country country)
     {
+        Arm(country);
+
         var paid = country.Budget.SpendUpTo(country.Budget.Balance);
         if (paid.Raw <= 0) return;
 
         country.Households.Earn(paid);
+    }
+
+    /// <summary>Государство покупает оружие и списывает отслужившее.</summary>
+    /// <remarks>
+    /// Платит бюджет, а деньги достаются тому, кто оружие сделал, — как и за всякую
+    /// покупку. Оттого госзаказ и держит оборонную промышленность: без него военные
+    /// заводы работали в никуда.
+    ///
+    /// Хочет страна столько, сколько заказала в <see cref="OrderArms"/>, а купит меньше:
+    /// сколько лежит на складе и сколько есть в бюджете. Бюджет здесь и становится
+    /// рычагом — поднял налоги, смог вооружаться.
+    /// </remarks>
+    private void Arm(Country country)
+    {
+        var spent = default(Money);
+
+        foreach (var good in Arms)
+        {
+            // Отслужившее списывается всегда, куплено новое или нет.
+            country.Army.Wear(good, DaysInYear);
+
+            var wanted = _armsWants.Get(country.Id, good);
+            if (wanted.Raw <= 0) continue;
+
+            var onShelf = country.State.Stock.Of(good);
+            var take = wanted < onShelf ? wanted : onShelf;
+            if (take.Raw <= 0) continue;
+
+            var cost = country.State.Prices.CostOf(good, take);
+            var paid = country.Budget.SpendUpTo(cost);
+            if (paid.Raw <= 0) continue;
+
+            // Заплатили меньше — и взяли меньше: бюджет не берёт в долг у завода.
+            if (paid < cost) take = new GoodAmount((long)((Int128)take.Raw * paid.Raw / cost.Raw));
+            if (take.Raw <= 0) continue;
+
+            country.State.Stock.TakeUpTo(good, take);
+            country.Army.Add(good, take);
+            country.State.Treasury.Receive(paid);
+
+            _bought.Add(country.Id, good, take);
+            spent += paid;
+        }
+
+        if (spent.Raw <= 0) return;
+
+        _armsBought[country.Id] = spent;
+        _sales[country.Id] = _sales.GetValueOrDefault(country.Id) + spent;
     }
 
     /// <summary>С чего берут акциз: с того, что вредно, дорого возить или незаменимо.

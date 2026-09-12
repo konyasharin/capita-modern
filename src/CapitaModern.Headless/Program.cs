@@ -22,7 +22,8 @@ GameWorld Load() => WorldDataLoader.LoadWorld(
     File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "map", "neighbours.json")),
     File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "map", "basins.json")),
     File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "economy", "currencies.json")),
-    File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "economy", "companies.json")));
+    File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "economy", "companies.json")),
+    File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "politics", "defence.json")));
 
 var goods = Enum.GetValues<GoodType>();
 
@@ -714,6 +715,44 @@ foreach (var iso in new[] { "RUS", "USA", "CHN", "DEU" })
         + $"разорилось {simulation.RuinedIn(whose.Id)}, "
         + $"вклады {whose.Banks.Deposits.Exact / 1e6:F0} млн, "
         + $"роздано {whose.Banks.Lent.Exact / 1e6:F0} млн");
+}
+
+// --- Х. Армия ------------------------------------------------------------------------
+Console.WriteLine();
+Console.WriteLine("=== Х. Госзаказ на оружие ===");
+Console.WriteLine("Военные расходы к выпуску: заказ считается от настоящей доли 2020 года,");
+Console.WriteLine("а купить получается лишь то, на что хватило бюджета и что нашлось на складе.");
+Console.WriteLine();
+Console.WriteLine("страна   хотел   купил за день   вышло к выпуску   в жизни");
+
+foreach (var (iso, inLife) in new[] { ("USA", 3.7), ("CHN", 1.7), ("RUS", 4.3), ("SAU", 8.4),
+             ("DEU", 1.4), ("IND", 2.9), ("JPN", 1.0), ("BRA", 1.4) })
+{
+    var whose = world.Countries.First(c => c.Iso == iso);
+    var added = simulation.ValueAddedOf(whose.Id);
+    var spent = simulation.ArmsBoughtOf(whose.Id);
+    var got = added.Raw > 0 ? 100.0 * spent.Exact / added.Exact : 0;
+
+    Console.WriteLine($"{iso}  {whose.DefenceShare / 100.0,6:F2}% {spent.Exact / 1e3,12:F1} млн $ "
+        + $"{got,14:F2}% {inLife,8:F1}%");
+}
+
+var armed = world.Countries.Count(c => c.Army.Kit.Values.Any(a => a.Raw > 0));
+// В мировой мере: у каждой страны свои деньги, и складывать рубли с иенами нельзя.
+var worldArms = world.Countries
+    .Sum(c => Simulation.InWorld(c, simulation.ArmsBoughtOf(c.Id)).Exact) * 365;
+
+Console.WriteLine();
+Console.WriteLine($"Вооружились: {armed} стран из {world.Countries.Count}");
+Console.WriteLine($"Мировые военные расходы: {worldArms / 1e9:F2} трлн $ за год "
+    + "(в жизни 2.0 трлн $, 2.4% мирового ВВП)");
+
+Console.WriteLine();
+Console.WriteLine("Что лежит в арсенале России:");
+foreach (var (good, amount) in world.Countries.First(c => c.Iso == "RUS").Army.Kit
+             .OrderByDescending(pair => pair.Value.Raw).Take(5))
+{
+    Console.WriteLine($"  {good,-18} {amount.Exact,12:F1}");
 }
 
 // --- Ф. Выбросы ----------------------------------------------------------------------
