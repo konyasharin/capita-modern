@@ -230,6 +230,7 @@ public sealed class Simulation
         Run(nameof(PlanBuilds), PlanBuilds);
         Run(nameof(CountHands), CountHands);
         Run(nameof(Trade), Trade);
+        Run(nameof(PayAbroad), PayAbroad);
         Run(nameof(NoteTrade), NoteTrade);
         Run(nameof(Borrow), Borrow);
         Run(nameof(PayInterest), PayInterest);
@@ -748,6 +749,14 @@ public sealed class Simulation
             Reserves.Incoming((byte)seller.State.Id, seller.State.Custody, deal.Paid));
 
 
+        // Вывоз: товар ушёл со склада продавца, чужая валюта легла в резервы страны. Но
+        // платить рабочим и покупать сырьё продавцу надо своими — центробанк меняет ему
+        // выручку, как и делает в жизни. Ввоз забирает ровно столько же из обращения:
+        // страна отдала валюту, значит местных денег стало меньше. Вместе это и есть
+        // сальдо, и денежная масса ходит за ним, а не сама по себе.
+        _earnedAbroad[Slot(deal.Seller, _trading)] += InLocal(seller, deal.Paid);
+        buyer.Bank.Withdraw(InLocal(buyer, deal.Paid));
+
         _imported.Add(deal.Buyer, _trading, deal.Amount);
         _exported.Add(deal.Seller, _trading, deal.Amount);
         _dealValue += deal.Paid;
@@ -762,8 +771,16 @@ public sealed class Simulation
         new((long)((Int128)local.Raw * Money.Scale / Math.Max(1, country.ExchangeRate.Raw)));
 
     /// <summary>Сумма в мировой мере, пересчитанная в деньги страны.</summary>
-    public Money InLocal(Country country, Money world) =>
-        new((long)((Int128)world.Raw * country.ExchangeRate.Raw / Money.Scale));
+    /// <remarks>Сто двадцать восемь бит только когда без них не обойтись: на каждой сделке
+    /// их деление стоило дороже самой сделки, а сделок за тик двадцать шесть тысяч.</remarks>
+    public Money InLocal(Country country, Money world)
+    {
+        var rate = country.ExchangeRate.Raw;
+
+        return new Money(world.Raw == 0 || Math.Abs(world.Raw) <= long.MaxValue / Math.Max(1, rate)
+            ? world.Raw * rate / Money.Scale
+            : (long)((Int128)world.Raw * rate / Money.Scale));
+    }
 
     /// <summary>Продаёт валюту из резервов за местные деньги. Возвращает, сколько своих
     /// денег получено.</summary>
@@ -1780,6 +1797,58 @@ public sealed class Simulation
                 _outputs.Add(country, good, made);
                 Credit(owners, building, total, good, made, prices.Of(good));
             }
+        }
+    }
+
+    /// <summary>Сколько выручки от вывоза ждёт раздачи, по стране и товару.</summary>
+    /// <remarks>Копится за тик и раздаётся разом: сделок за тик двадцать шесть тысяч, и
+    /// делить на каждой стоило пятнадцать миллисекунд.</remarks>
+    private readonly Money[] _earnedAbroad =
+        new Money[256 * Enum.GetValues<GoodType>().Length];
+
+    /// <summary>Раздаёт накопленную выручку от вывоза и обнуляет счёт.</summary>
+    private void PayAbroad()
+    {
+        foreach (var country in _world.Countries)
+        {
+            foreach (var good in AllGoods)
+            {
+                var slot = Slot(country.Id, good);
+                if (_earnedAbroad[slot].Raw <= 0) continue;
+
+                PayExporters(country, good, _earnedAbroad[slot]);
+                _earnedAbroad[slot] = default;
+            }
+        }
+    }
+
+    /// <summary>Делит выручку от вывоза между теми, чей товар уехал.</summary>
+    /// <remarks>По долям на складе: кто держал больше, тот больше и вывез. Деньги новые —
+    /// центробанк выпускает их под пришедшую валюту, и это не дыра в бюджете, а обычная
+    /// его работа.</remarks>
+    private void PayExporters(Country country, GoodType good, Money local)
+    {
+        if (local.Raw <= 0) return;
+
+        var sellers = _sellersOf[Slot(country.Id, good)];
+        if (sellers.Count == 0) return;
+
+        var total = 0L;
+        foreach (var seller in sellers) total += seller.Holds(good).Raw;
+        if (total <= 0) return;
+
+        country.Bank.Emit(local, EmissionKind.ForCurrency);
+
+        var left = local.Raw;
+        for (var i = 0; i < sellers.Count && left > 0; i++)
+        {
+            var mine = i == sellers.Count - 1
+                ? left
+                : Math.Min(left, (long)((Int128)local.Raw * sellers[i].Holds(good).Raw / total));
+
+            sellers[i].Earn(new Money(mine));
+            sellers[i].NoteSold(new Money(mine));
+            left -= mine;
         }
     }
 
