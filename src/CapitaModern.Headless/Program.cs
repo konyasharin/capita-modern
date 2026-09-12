@@ -181,10 +181,14 @@ for (var tick = 1; tick <= 365; tick++)
     foreach (var country in world.Countries)
     {
         realGdp[country.Id] += simulation.ValueAddedOf(country.Id, constant);
-        // По стартовому курсу, а не нынешнему: ВВП считается в стартовых ценах, и делить
-        // одно на другое можно только одной линейкой.
+        // В стартовых ценах и по стартовому курсу: ВВП считается так же, и делить одно на
+        // другое можно только одной линейкой. Стартового курса мало — за пять лет цены
+        // внутри страны уезжают в разы, и отношение раздувалось во столько же. У Индии
+        // выходило 117% сбора к ВВП.
+        var level = Math.Max(1, simulation.PriceLevelOf(country.Id));
         taxYear[country.Id] += new Money(
-            (long)((Int128)country.Budget.Collected.Raw * Money.Scale / country.StartRate.Raw));
+            (long)((Int128)country.Budget.Collected.Raw * Money.Scale * PriceLevel.Scale
+                / country.StartRate.Raw / level));
         exports[country.Id] += simulation.ExportsOf(country.Id, constant);
         // В тех же постоянных ценах, что и ВВП: фонд оплаты — известная доля добавленной
         // стоимости. Считать местные деньги через текущий курс нельзя, тогда зарплату и

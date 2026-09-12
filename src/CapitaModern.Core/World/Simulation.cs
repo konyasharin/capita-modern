@@ -1903,7 +1903,10 @@ public sealed class Simulation
     /// <summary>Покупает заказанное и говорит, на сколько купило.</summary>
     /// <remarks>Одна и та же работа у армии, жилья и дорог: взять со склада сколько есть,
     /// заплатить сколько можешь, и деньги отдать тому, кто товар сделал.</remarks>
-    private GoodAmount Buy(Country country, GoodType good, GoodAmount wanted, Func<Money, Money> purse)
+    /// <param name="taxed">Берётся ли НДС. Государство с себя его не берёт — деньги ушли
+    /// бы из бюджета в бюджет; а жильё и стройка платят, как и в жизни.</param>
+    private GoodAmount Buy(
+        Country country, GoodType good, GoodAmount wanted, Func<Money, Money> purse, bool taxed = false)
     {
         if (wanted.Raw <= 0) return default;
 
@@ -1912,18 +1915,26 @@ public sealed class Simulation
         if (take.Raw <= 0) return default;
 
         var cost = country.State.Prices.CostOf(good, take);
-        var paid = purse(cost);
+        var vat = taxed ? TaxCode.Take(cost, country.Taxes.Vat) : default;
+        var full = cost + vat;
+
+        var paid = purse(full);
         if (paid.Raw <= 0) return default;
 
         // Заплатили меньше — и взяли меньше: в долг у завода никто не берёт.
-        if (paid < cost) take = new GoodAmount((long)((Int128)take.Raw * paid.Raw / cost.Raw));
+        if (paid < full) take = new GoodAmount((long)((Int128)take.Raw * paid.Raw / full.Raw));
         if (take.Raw <= 0) return default;
 
+        // Налог делится в той же доле, что и покупка.
+        var got = full.Raw > 0 ? new Money((long)((Int128)vat.Raw * paid.Raw / full.Raw)) : default;
+        var toSeller = paid - got;
+
+        country.Budget.Collect(TaxKind.Vat, got);
         country.State.Stock.TakeUpTo(good, take);
-        country.State.Treasury.Receive(paid);
+        country.State.Treasury.Receive(toSeller);
 
         _bought.Add(country.Id, good, take);
-        _sales[country.Id] = _sales.GetValueOrDefault(country.Id) + paid;
+        _sales[country.Id] = _sales.GetValueOrDefault(country.Id) + toSeller;
 
         return take;
     }
@@ -1947,7 +1958,7 @@ public sealed class Simulation
             {
                 var before = _sales.GetValueOrDefault(country.Id);
                 var take = Buy(country, good, _houseWants.Get(country.Id, good),
-                    cost => country.Households.SpendUpTo(cost));
+                    cost => country.Households.SpendUpTo(cost), taxed: true);
 
                 built += take;
                 spent += _sales.GetValueOrDefault(country.Id) - before;
@@ -2668,8 +2679,12 @@ public sealed class Simulation
                 var forStuff = price - toBuilders;
                 if (forStuff.Raw > 0)
                 {
-                    country.State.Treasury.Receive(forStuff);
-                    _sales[country.Id] = _sales.GetValueOrDefault(country.Id) + forStuff;
+                    // Материалы стройка покупает с НДС, как и всякий покупатель.
+                    var vat = TaxCode.Take(forStuff, country.Taxes.Vat);
+
+                    country.Budget.Collect(TaxKind.Vat, vat);
+                    country.State.Treasury.Receive(forStuff - vat);
+                    _sales[country.Id] = _sales.GetValueOrDefault(country.Id) + forStuff - vat;
                 }
 
                 done++;
