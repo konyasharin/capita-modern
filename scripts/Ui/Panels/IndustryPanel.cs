@@ -95,13 +95,16 @@ public partial class IndustryPanel : SidePanel
             "берёт в банке; долг перевалил за три годовых выручки — распродаёт дело, " +
             "за пять — разоряется, и здания достаются соседу по отрасли. «Выпуск» — что " +
             "она сделала за сегодня: по нему и делится прибыль, так что простоявший " +
-            "без сырья завод не получает ничего.");
+            "без сырья завод не получает ничего. «Цена» — насколько она дешевле или дороже " +
+            "соседей: у кого товар залежался, тот сбавляет, у кого выметают — набавляет, и " +
+            "покупатель идёт к дешёвому.");
 
         _companies = Table.Create(
         [
             new Column("Компания", 0, Right: false),
             new Column("Зданий", 58),
             new Column("Выпуск", 62),
+            new Column("Цена", 52),
             new Column("Деньги", 62),
             new Column("Долг", 62),
         ]);
@@ -176,6 +179,26 @@ public partial class IndustryPanel : SidePanel
             sim.RoadsOf(Id).Raw > 0 ? Skin.Good : Skin.Dim);
     }
 
+    /// <summary>Средняя цена компании против общей по стране. Ниже сотни — она дешевле
+    /// соседей и потому продаёт больше.</summary>
+    private static Cell Price(Company company)
+    {
+        var weight = 0L;
+        var sum = 0L;
+
+        foreach (var (good, amount) in company.Goods)
+        {
+            weight += amount.Raw;
+            sum += amount.Raw * company.Edge(good);
+        }
+
+        if (weight == 0) return new Cell("—", 0, Skin.Dim);
+
+        var edge = sum / weight;
+
+        return new Cell($"{edge}", edge, edge < Company.Even ? Skin.Good : Skin.Warn);
+    }
+
     /// <summary>Кто в стране чем владеет. Крупнейшие сверху: мелких сотни, и все они
     /// одинаковые.</summary>
     private void ShowCompanies(Simulation sim)
@@ -200,6 +223,7 @@ public partial class IndustryPanel : SidePanel
                 new(Fmt.Count(company.Size), company.Size, Skin.Text),
                 new(Fmt.Cash(company.MadeToday.Exact), company.MadeToday.Exact,
                     company.MadeToday.Raw > 0 ? Skin.Bright : Skin.Bad),
+                Price(company),
                 new(Fmt.Cash(company.Cash.Exact), company.Cash.Exact, Skin.Good),
                 new(Fmt.Cash(company.Debt.Exact), company.Debt.Exact,
                     company.Debt.Raw > 0 ? Skin.Warn : Skin.Dim),

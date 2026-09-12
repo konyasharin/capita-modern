@@ -74,6 +74,9 @@ public class CompanyTests
         Assert.Equal(GoodAmount.FromWhole(15), company.Take(GoodType.Coal, GoodAmount.FromWhole(20)));
         Assert.Equal(default, company.Holds(GoodType.Coal));
         Assert.Empty(company.Goods);
+
+        // Цена по умолчанию — как у всех.
+        Assert.Equal(Company.Even, company.Edge(GoodType.Coal));
     }
 
     /// <summary>Со склада страны взяли половину — у хозяина осталась половина его доли.</summary>
@@ -83,7 +86,12 @@ public class CompanyTests
         var company = Made();
         company.Store(GoodType.Coal, GoodAmount.FromWhole(100));
 
-        company.Fit(GoodType.Coal, have: GoodAmount.FromWhole(60).Raw, mine: GoodAmount.FromWhole(120).Raw);
+        var have = new long[Enum.GetValues<GoodType>().Length];
+        var mine = new long[have.Length];
+        have[(int)GoodType.Coal] = GoodAmount.FromWhole(60).Raw;
+        mine[(int)GoodType.Coal] = GoodAmount.FromWhole(120).Raw;
+
+        company.FitAll(have, mine);
 
         Assert.Equal(GoodAmount.FromWhole(50), company.Holds(GoodType.Coal));
     }

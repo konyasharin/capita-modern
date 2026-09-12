@@ -800,11 +800,28 @@ Console.WriteLine("Сходятся ли именные доли со склад
 foreach (var iso in new[] { "USA", "CHN", "RUS", "DEU" })
 {
     var whose = world.Countries.First(c => c.Iso == iso);
-    var mine = world.CompaniesOf(whose.Id).Sum(c => c.Goods.Values.Sum(a => a.Exact));
+    var mine = world.CompaniesOf(whose.Id).Sum(c => c.Goods.Sum(pair => pair.Amount.Exact));
     var onShelf = goods.Sum(good => whose.State.Stock.Of(good).Exact);
     var gap = onShelf > 0 ? 100 * Math.Abs(onShelf - mine) / onShelf : 0;
 
     Console.WriteLine($"  {iso}: на складе {onShelf,14:F0}, у компаний {mine,14:F0}, расхождение {gap:F2}%");
+}
+
+Console.WriteLine();
+Console.WriteLine("Разброс цен внутри страны (100 — как у всех):");
+foreach (var iso in new[] { "USA", "CHN", "RUS", "DEU" })
+{
+    var whose = world.Countries.First(c => c.Iso == iso);
+    var mine = world.CompaniesOf(whose.Id).Where(c => c.Alive).ToArray();
+
+    foreach (var good in new[] { GoodType.Food, GoodType.Coal, GoodType.Materials })
+    {
+        var edges = mine.Where(c => c.Holds(good).Raw > 0).Select(c => c.Edge(good)).ToArray();
+        if (edges.Length < 2) continue;
+
+        Console.WriteLine($"  {iso} {good,-12} продавцов {edges.Length,3}, "
+            + $"от {edges.Min()} до {edges.Max()}, средняя {edges.Average():F0}");
+    }
 }
 
 Console.WriteLine();

@@ -48,30 +48,38 @@ public sealed class Company
     /// между всеми по числу зданий, и завод, который сегодня стоял без сырья, получал
     /// столько же, сколько работавший.
     /// </remarks>
-    public GoodAmount Holds(GoodType good) => _goods.GetValueOrDefault(good);
+    public GoodAmount Holds(GoodType good) => new(_goods[(int)good]);
 
     /// <summary>Что у компании лежит на складе. Для показа и замера.</summary>
-    public IReadOnlyDictionary<GoodType, GoodAmount> Goods => _goods;
+    public IEnumerable<(GoodType Good, GoodAmount Amount)> Goods
+    {
+        get
+        {
+            for (var i = 0; i < _goods.Length; i++)
+            {
+                if (_goods[i] > 0) yield return ((GoodType)i, new GoodAmount(_goods[i]));
+            }
+        }
+    }
 
     /// <summary>Зачисляет сделанное.</summary>
     public void Store(GoodType good, GoodAmount amount)
     {
         if (amount.Raw <= 0) return;
 
-        _goods[good] = Holds(good) + amount;
+        _goods[(int)good] += amount.Raw;
     }
 
     /// <summary>Списывает со склада сколько получится и говорит, сколько списало.</summary>
     public GoodAmount Take(GoodType good, GoodAmount amount)
     {
-        var have = Holds(good);
-        var gone = amount < have ? amount : have;
-        if (gone.Raw <= 0) return default;
+        var have = _goods[(int)good];
+        var gone = Math.Min(amount.Raw, have);
+        if (gone <= 0) return default;
 
-        if (gone == have) _goods.Remove(good);
-        else _goods[good] = have - gone;
+        _goods[(int)good] = have - gone;
 
-        return gone;
+        return new GoodAmount(gone);
     }
 
     /// <summary>Во что обошёлся выпуск компании за этот тик. По нему делится прибыль.</summary>
@@ -88,18 +96,70 @@ public sealed class Company
     /// вместо этого раз в тик доли ужимаются или растягиваются под настоящий остаток. Кто
     /// сколько внёс, тот столько и потерял — как и должно быть в общем бункере.
     /// </remarks>
-    public void Fit(GoodType good, long have, long mine)
+    public void FitAll(long[] have, long[] mine)
     {
-        var held = Holds(good);
-        if (held.Raw <= 0 || mine <= 0) return;
+        for (var i = 0; i < _goods.Length; i++)
+        {
+            var held = _goods[i];
+            if (held <= 0 || mine[i] <= 0) continue;
 
-        var left = (long)((Int128)held.Raw * have / mine);
-
-        if (left > 0) _goods[good] = new GoodAmount(left);
-        else _goods.Remove(good);
+            _goods[i] = (long)((Int128)held * have[i] / mine[i]);
+        }
     }
 
-    private readonly Dictionary<GoodType, GoodAmount> _goods = [];
+    /// <summary>Добавляет свои доли к общему счёту.</summary>
+    public void AddTo(long[] totals)
+    {
+        for (var i = 0; i < _goods.Length; i++) totals[i] += _goods[i];
+    }
+
+    /// <summary>Записывается в очередь продавцов по всем товарам, что у неё есть.</summary>
+    public void OfferTo(List<Company>[] lists, int from)
+    {
+        for (var i = 0; i < _goods.Length; i++)
+        {
+            if (_goods[i] > 0) lists[from + i].Add(this);
+        }
+    }
+
+    /// <summary>Насколько цена компании отличается от средней по стране, в сотых.
+    /// Сотня — как у всех.</summary>
+    /// <remarks>
+    /// Не своя цена целиком, а отклонение от общей: общую двигают покрытие, денежный якорь
+    /// и закон одной цены, и всё это должно продолжать работать. Компания решает только,
+    /// дешевле она соседа или дороже.
+    ///
+    /// Дешевле продают те, у кого залежался товар, дороже — те, у кого его выметают. Отсюда
+    /// и берётся конкуренция: покупатель идёт к дешёвому, дешёвый продаёт больше штук и
+    /// меньше зарабатывает на каждой.
+    /// </remarks>
+    public int Edge(GoodType good) => _edge[(int)good];
+
+    /// <summary>Цена как у всех.</summary>
+    public const int Even = 100;
+
+    /// <summary>Дальше не расходятся. Один и тот же товар на одном рынке не стоит у соседей
+    /// вдвое по-разному: в жизни разброс цен на биржевой товар — единицы процентов, на
+    /// розничный — полтора десятка.</summary>
+    public const int Widest = 20;
+
+    /// <summary>Двигает отклонение на шаг в нужную сторону.</summary>
+    public void MoveEdge(GoodType good, int by) =>
+        _edge[(int)good] = Math.Clamp(Edge(good) + by, Even - Widest / 2, Even + Widest);
+
+    /// <summary>Что компания продала за этот тик, в деньгах. По нему делится прибыль.</summary>
+    public Money SoldToday { get; private set; }
+
+    public void NoteSold(Money worth) => SoldToday += worth;
+
+    public void ForgetSold() => SoldToday = default;
+
+    /// <summary>Склад и цены — массивами, а не словарями: их перебирают трижды за тик у
+    /// каждой из восьми с половиной тысяч компаний, и на словарях это стоило миллисекунд.</summary>
+    private readonly long[] _goods = new long[Goods32];
+    private readonly int[] _edge = [.. Enumerable.Repeat(Even, Goods32)];
+
+    private static readonly int Goods32 = Enum.GetValues<GoodType>().Length;
 
     /// <summary>Сколько чего у неё есть, по областям.</summary>
     private readonly Dictionary<(int Region, BuildingType Type), int> _buildings = [];

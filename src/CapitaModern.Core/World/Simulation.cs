@@ -253,6 +253,7 @@ public sealed class Simulation
         Run(nameof(PayProfits), PayProfits);
         Run(nameof(NoteDemand), NoteDemand);
         Run(nameof(Balance), Balance);
+        Run(nameof(Rank), Rank);
         Run(nameof(UpdateDemographics), UpdateDemographics);
     }
 
@@ -1905,11 +1906,9 @@ public sealed class Simulation
                 if (wanted.Raw == 0) continue;
 
                 var state = country.State;
-                var onShelf = state.Stock.Of(good);
-                var offered = wanted < onShelf ? wanted : onShelf;
+                var (offered, cost) = Draw(country, good, wanted);
 
                 var bought = offered;
-                var cost = state.Prices.CostOf(good, offered);
                 if (cost.Raw > 0)
                 {
                     // Налоги сидят в цене: человек платит их, сам того не замечая, а
@@ -2042,18 +2041,18 @@ public sealed class Simulation
     {
         if (wanted.Raw <= 0) return default;
 
-        var onShelf = country.State.Stock.Of(good);
-        var take = wanted < onShelf ? wanted : onShelf;
+        // Берём у самых дешёвых, а не по средней цене: продавцов в стране много.
+        var (take, cost) = Draw(country, good, wanted);
         if (take.Raw <= 0) return default;
 
-        var cost = country.State.Prices.CostOf(good, take);
         var vat = taxed ? TaxCode.Take(cost, country.Taxes.Vat) : default;
         var full = cost + vat;
 
         var paid = purse(full);
         if (paid.Raw <= 0) return default;
 
-        // Заплатили меньше — и взяли меньше: в долг у завода никто не берёт.
+        // Заплатили меньше — и взяли меньше: в долг у завода никто не берёт. Товар при
+        // этом уже списан у продавцов; недобранное вернёт Balance на следующем тике.
         if (paid < full) take = new GoodAmount((long)((Int128)take.Raw * paid.Raw / full.Raw));
         if (take.Raw <= 0) return default;
 
@@ -2375,6 +2374,162 @@ public sealed class Simulation
         }
     }
 
+    /// <summary>Берёт товар у самых дешёвых продавцов страны и считает, во что он обошёлся.</summary>
+    /// <remarks>
+    /// Ради этого и затевался именной склад. Покупатель идёт по продавцам от дешёвого к
+    /// дорогому и берёт, пока не наберёт своё или пока не кончатся деньги. Дешёвый продаёт
+    /// больше штук и зарабатывает меньше на каждой — этот размен и есть конкуренция.
+    ///
+    /// Деньги по-прежнему идут в кассу страны, а не прямо продавцу: зарплату платят из неё
+    /// же, и разводить эти потоки — отдельная работа. Но кто именно продал, теперь известно,
+    /// и прибыль делится по этому.
+    /// </remarks>
+    /// <returns>Сколько взято и сколько это стоит по ценам продавцов.</returns>
+    private (GoodAmount Took, Money Cost) Draw(Country country, GoodType good, GoodAmount want)
+    {
+        var usual = country.State.Prices.Of(good);
+        if (want.Raw <= 0 || usual.Raw <= 0) return (default, default);
+
+        var sellers = _sellersOf[Slot(country.Id, good)];
+        if (sellers.Count == 0)
+        {
+            // Хозяев нет — берём со склада по общей цене, как было до компаний.
+            var plain = country.State.Stock.Of(good);
+            var takePlain = want < plain ? want : plain;
+
+            return (takePlain, country.State.Prices.CostOf(good, takePlain));
+        }
+
+        var left = want.Raw;
+        var took = 0L;
+        var cost = default(Money);
+
+        foreach (var seller in sellers)
+        {
+            if (left <= 0) break;
+
+            var have = seller.Holds(good).Raw;
+            if (have <= 0) continue;
+
+            var mine = Math.Min(left, have);
+            var price = new Money(usual.Raw * seller.Edge(good) / Company.Even);
+            var paid = new Money((long)((Int128)price.Raw * mine / GoodAmount.Scale));
+
+            seller.Take(good, new GoodAmount(mine));
+            seller.NoteSold(paid);
+
+            took += mine;
+            left -= mine;
+            cost += paid;
+        }
+
+        return (new GoodAmount(took), cost);
+    }
+
+    /// <summary>Кто в стране продаёт этот товар, от дешёвого к дорогому. Плоским массивом,
+    /// а не словарём: перебирается он весь и каждый тик.</summary>
+    private readonly List<Company>[] _sellersOf =
+        [.. Enumerable.Range(0, 256 * Enum.GetValues<GoodType>().Length).Select(_ => new List<Company>())];
+
+    private static int Slot(byte country, GoodType good) =>
+        country * Enum.GetValues<GoodType>().Length + (int)good;
+
+    /// <summary>Сравнения по цене — по одному на товар, а не новое на каждый вызов.</summary>
+    private static readonly Comparison<Company>[] Cheapest =
+        [.. Enum.GetValues<GoodType>().Select<GoodType, Comparison<Company>>(
+            good => (a, b) => a.Edge(good) != b.Edge(good) ? a.Edge(good) - b.Edge(good) : a.Id - b.Id)];
+
+    /// <summary>Пересобирает очередь продавцов и двигает их цены.</summary>
+    /// <remarks>Дешевеет тот, у кого товар залежался против общего по стране; дорожает тот,
+    /// у кого его выметают. Сравнение с соседями, а не с собственным вчера: иначе цена
+    /// уезжала бы у всех разом, а это работа общего механизма, не компаний.</remarks>
+    private void Rank()
+    {
+        foreach (var list in _sellersOf) list.Clear();
+
+        foreach (var country in _world.Countries)
+        {
+            var companies = _world.CompaniesOf(country.Id);
+            if (companies.Count == 0) continue;
+
+            var from = Slot(country.Id, default);
+            foreach (var company in companies)
+            {
+                if (company.Alive) company.OfferTo(_sellersOf, from);
+            }
+        }
+
+        foreach (var country in _world.Countries)
+        {
+            foreach (var good in AllGoods)
+            {
+                // Очередь пересобираем не каждый день: отклонения ходят по единице из сотни,
+                // и порядок за сутки почти не меняется. Покупатель и в жизни не обзванивает
+                // всех поставщиков каждое утро.
+                Price(_sellersOf[Slot(country.Id, good)], good, _day % SortEvery == (int)good % SortEvery);
+            }
+        }
+
+        // Счёт продаж обнуляем последним: по нему только что двигались цены, а до того —
+        // делилась прибыль.
+        foreach (var company in _world.Companies) company.ForgetSold();
+    }
+
+    /// <summary>Двигает цены продавцов одного товара и выстраивает их от дешёвого.</summary>
+    /// <summary>Раз во сколько тиков продавцов перестраивают по цене.</summary>
+    private const int SortEvery = 4;
+
+    private static void Price(List<Company> sellers, GoodType good, bool sort)
+    {
+        if (sellers.Count == 0) return;
+
+        // Общее покрытие страны: сколько у всех лежит против того, сколько все продали.
+        var stock = 0L;
+        var sold = 0L;
+        foreach (var seller in sellers)
+        {
+            stock += seller.Holds(good).Raw;
+            sold += seller.SoldToday.Raw;
+        }
+
+        foreach (var seller in sellers)
+        {
+            var mine = seller.Holds(good).Raw;
+            var mySold = seller.SoldToday.Raw;
+
+            // Залежался против общего — дешевеет, выметают — дорожает, а кто идёт вровень со
+            // всеми, тот возвращается к общей цене. Без возврата отклонения разбредались по
+            // краям все разом: у идущих вровень сравнение решало одинаково.
+            var slow = (Int128)mine * sold * 100 > (Int128)stock * mySold * (100 + Gap);
+            var fast = (Int128)mine * sold * (100 + Gap) < (Int128)stock * mySold * 100;
+
+            seller.MoveEdge(good, slow ? -1 : fast ? 1 : seller.Edge(good) > Company.Even ? -1 : 1);
+        }
+
+        // Сдвигаем всех так, чтобы средняя по складу осталась общей ценой страны: её двигают
+        // покрытие и якорь, и компаниям не полагается уводить её за собой.
+        Level(sellers, good, stock);
+
+        if (sort) sellers.Sort(Cheapest[(int)good]);
+    }
+
+    /// <summary>Насколько надо разойтись в покрытии, чтобы двигать цену, в процентах.</summary>
+    private const int Gap = 5;
+
+    /// <summary>Сдвигает отклонения так, чтобы средняя по товару осталась сотней.</summary>
+    private static void Level(List<Company> sellers, GoodType good, long stock)
+    {
+        if (stock <= 0) return;
+
+        var weighted = (Int128)0;
+        foreach (var seller in sellers) weighted += (Int128)seller.Edge(good) * seller.Holds(good).Raw;
+
+        var average = (int)(weighted / stock);
+        if (average == Company.Even) return;
+
+        foreach (var seller in sellers) seller.MoveEdge(good, Company.Even - average);
+    }
+
     /// <summary>Сводит именные доли со складом страны и обнуляет дневной выпуск.</summary>
     /// <remarks>Один проход по компаниям вместо учёта в каждом месте, откуда берут со
     /// склада: заводы, население, стройка, армия, жильё, дороги и вывоз — семь мест, и
@@ -2387,26 +2542,23 @@ public sealed class Simulation
             if (companies.Count == 0) continue;
 
             var mine = _sharesOf;
+            var have = _stockOf;
             Array.Clear(mine);
+
+            foreach (var good in AllGoods) have[(int)good] = country.State.Stock.Of(good).Raw;
 
             foreach (var company in companies)
             {
                 company.ForgetMade();
-                foreach (var (good, amount) in company.Goods) mine[(int)good] += amount.Raw;
+                company.AddTo(mine);
             }
 
-            foreach (var company in companies)
-            {
-                // Копия ключей: Fit правит тот же словарь, по которому идём.
-                foreach (var good in company.Goods.Keys.ToArray())
-                {
-                    company.Fit(good, country.State.Stock.Of(good).Raw, mine[(int)good]);
-                }
-            }
+            foreach (var company in companies) company.FitAll(have, mine);
         }
     }
 
     private readonly long[] _sharesOf = new long[Enum.GetValues<GoodType>().Length];
+    private readonly long[] _stockOf = new long[Enum.GetValues<GoodType>().Length];
 
     /// <summary>Что за тик ушло владельцам.</summary>
     public Money ProfitOf(byte country) => _profits.GetValueOrDefault(country);
@@ -2436,7 +2588,7 @@ public sealed class Simulation
         var total = (Int128)0;
         foreach (var company in companies)
         {
-            if (company.Alive) total += company.MadeToday.Raw;
+            if (company.Alive) total += company.SoldToday.Raw;
         }
 
         if (total <= 0)
@@ -2451,7 +2603,7 @@ public sealed class Simulation
         {
             if (!company.Alive) continue;
 
-            var share = new Money((long)((Int128)earned.Raw * company.MadeToday.Raw / total));
+            var share = new Money((long)((Int128)earned.Raw * company.SoldToday.Raw / total));
 
             // Сперва налог на прибыль, и только с остатка компания копит на стройку.
             var tax = TaxCode.Take(share, country.Taxes.Profit);
