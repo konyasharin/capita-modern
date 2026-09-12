@@ -150,6 +150,7 @@ public sealed class Simulation
     private readonly Dictionary<byte, Money> _investment = new();
     private readonly Dictionary<byte, Money> _profits = new();
     private readonly Dictionary<byte, Money> _saved = new();
+    private readonly Dictionary<byte, Company?> _builder = new();
     private readonly Dictionary<byte, Money> _soldCurrency = new();
     private readonly Dictionary<byte, Money> _boughtCurrency = new();
 
@@ -176,10 +177,11 @@ public sealed class Simulation
     /// <summary>Список типов построек: перебирается каждый тик при выборе стройки.</summary>
     private static readonly BuildingType[] AllBuildings = Enum.GetValues<BuildingType>();
 
-    /// <summary>Сколько единиц страна ставит за тик. Предел от бесконечного цикла, а не
-    /// от смысла: упираются обычно в отложенное или в материалы куда раньше. Единица
-    /// мощности мелкая, поэтому и предел высокий — миру нужно около двухсот тысяч в год.</summary>
-    private const int MaxBuildsPerTick = 500;
+    /// <summary>Сколько единиц одна компания ставит за тик. Раньше предел стоял впятеро
+    /// выше и был защитой от бесконечного цикла, а не смыслом: упирались в отложенное или в
+    /// материалы куда раньше. С компаниями упираться перестали — у них есть накопленное, — и
+    /// тик подорожал втрое: двести стран по пятьсот проверок склада на каждую.</summary>
+    private const int MaxBuildsPerTick = 50;
 
     /// <summary>Какую долю склада стройка может съесть за тик, в сотых.</summary>
     /// <remarks>Вычерпать полку за день нельзя. Заказ на тысячу зданий растягивается на
@@ -240,6 +242,7 @@ public sealed class Simulation
         PayWages();
         FeedPeople();
         Store();
+        Tax();
         MovePrices();
         AnchorPrices();
         PullPrices();
@@ -266,9 +269,12 @@ public sealed class Simulation
         _jobs.Clear();
         _hands.Clear();
         _wages.Clear();
+        foreach (var country in _world.Countries) country.Budget.NewTick();
+
         _sales.Clear();
         _profits.Clear();
         _saved.Clear();
+        _builder.Clear();
         _soldCurrency.Clear();
         _boughtCurrency.Clear();
         _added.Clear();
@@ -1325,12 +1331,19 @@ public sealed class Simulation
     {
         foreach (var country in _world.Countries)
         {
-            var purse = _investment.GetValueOrDefault(country.Id);
+            // Строит та компания, у которой сейчас больше всех денег: копили — значит на
+            // что-то копили. Очередь меняется сама собой, потому что потратившая уходит
+            // вниз списка.
+            var builder = Richest(country.Id);
+            var purse = builder?.Cash ?? _investment.GetValueOrDefault(country.Id);
 
-            // За страну игрока не решаем: она строит только то, что он заказал. Появятся
-            // компании — строить начнут они, а государство лишь когда захочет игрок.
-            var best = Ordered(country) ?? (country.Id == HandsOff ? null : BestBuild(country, purse));
+            // Заказ игрока идёт мимо ниш: государство строит что велено. Сама страна не
+            // решает ничего — за неё решают компании, каждая в своём деле.
+            var best = Ordered(country) ?? Chosen(country, builder, purse);
+
             if (best is null) continue;
+
+            _builder[country.Id] = builder;
 
             var info = _world.Buildings[best.Value.Type];
             var price = Construction.CostOf(info.BuildCost, country.State.Prices) + WagesFor(country, info);
@@ -1475,7 +1488,17 @@ public sealed class Simulation
                 if (!country.State.Treasury.TrySpend(owed)) paid = PayWhatIsLeft(country);
             }
 
-            country.Households.Earn(paid);
+            // Труд стоит работодателю всё, что он на него потратил: и зарплату, и взносы,
+            // и удержанный подоходный. Делится эта сумма, а не прибавляется сверху — иначе
+            // взносы упирались бы в пустую кассу и не собирались вовсе.
+            var dues = TaxCode.Take(paid, country.Taxes.Payroll);
+            var onHand = paid - dues;
+            var income = TaxCode.Take(onHand, country.Taxes.Income);
+
+            country.Budget.Collect(TaxKind.Payroll, dues);
+            country.Budget.Collect(TaxKind.Income, income);
+
+            country.Households.Earn(onHand - income);
             _wages[country.Id] = paid;
 
             country.Payroll = paid;
@@ -1542,11 +1565,28 @@ public sealed class Simulation
                 var cost = state.Prices.CostOf(good, offered);
                 if (cost.Raw > 0)
                 {
-                    var paid = country.Households.SpendUpTo(cost);
-                    if (paid < cost) bought = new GoodAmount((long)((Int128)offered.Raw * paid.Raw / cost.Raw));
+                    // Налоги сидят в цене: человек платит их, сам того не замечая, а
+                    // продавцу достаётся меньше. Оттого высокий НДС и бьёт по спросу — на
+                    // те же деньги покупают меньше.
+                    var vat = TaxCode.Take(cost, country.Taxes.Vat);
+                    var excise = Excisable(good) ? TaxCode.Take(cost, country.Taxes.Excise) : default;
+                    var full = cost + vat + excise;
 
-                    state.Treasury.Receive(paid);
-                    _sales[country.Id] = _sales.GetValueOrDefault(country.Id) + paid;
+                    var paid = country.Households.SpendUpTo(full);
+                    if (paid < full) bought = new GoodAmount((long)((Int128)offered.Raw * paid.Raw / full.Raw));
+
+                    // Собранное делится в той же пропорции: заплатил половину — половину
+                    // и налогов.
+                    var share = full.Raw > 0 ? (Int128)paid.Raw * 10_000 / full.Raw : 0;
+                    var gotVat = new Money((long)((Int128)vat.Raw * share / 10_000));
+                    var gotExcise = new Money((long)((Int128)excise.Raw * share / 10_000));
+
+                    country.Budget.Collect(TaxKind.Vat, gotVat);
+                    country.Budget.Collect(TaxKind.Excise, gotExcise);
+
+                    var toSeller = paid - gotVat - gotExcise;
+                    state.Treasury.Receive(toSeller);
+                    _sales[country.Id] = _sales.GetValueOrDefault(country.Id) + toSeller;
                 }
 
                 state.Stock.TakeUpTo(good, bought);
@@ -1566,6 +1606,65 @@ public sealed class Simulation
 
     /// <summary>Выручка с населения за прошедший тик.</summary>
     public Money SalesOf(byte country) => _sales.GetValueOrDefault(country);
+
+    /// <summary>Налог на добычу и расходы бюджета.</summary>
+    /// <remarks>
+    /// Добыча облагается отдельно от прибыли: недра принадлежат стране, а не тому, кто
+    /// поставил над ними вышку. У России это треть бюджета, у Саудовской Аравии почти
+    /// весь, и без этого налога сырьевая страна в модели оставалась без дохода вовсе —
+    /// руду и нефть население не покупает, а значит и НДС с них не берётся.
+    ///
+    /// Тратится собранное тем же тиком: государство содержит бюджетников и платит
+    /// пособия, а это те же люди, что покупают еду. Копить бюджету незачем — деньги,
+    /// лежащие в нём мёртвым грузом, выпадают из оборота ровно так же, как выпадали из
+    /// казны до того, как круг замкнули.
+    /// </remarks>
+    private void Tax()
+    {
+        foreach (var country in _world.Countries)
+        {
+            var rate = country.Taxes.Extraction;
+            if (rate > 0)
+            {
+                var dug = default(Money);
+                foreach (var good in AllGoods)
+                {
+                    if (!Dug(good)) continue;
+
+                    dug += country.State.Prices.CostOf(good, _outputs.Get(country.Id, good));
+                }
+
+                var tax = TaxCode.Take(dug, rate);
+                if (tax.Raw > 0 && country.State.Treasury.TrySpend(tax))
+                {
+                    country.Budget.Collect(TaxKind.Extraction, tax);
+                }
+            }
+
+            Spend(country);
+        }
+    }
+
+    /// <summary>Что берут из земли. С этого и платят за недра.</summary>
+    private static bool Dug(GoodType good) => good is
+        GoodType.Coal or GoodType.Oil or GoodType.Gas or GoodType.IronOre or GoodType.CopperOre
+        or GoodType.Bauxite or GoodType.Uranium or GoodType.RareEarth or GoodType.Timber
+        or GoodType.Agriculture;
+
+    /// <summary>Государство тратит собранное: бюджетникам и пособиями.</summary>
+    private void Spend(Country country)
+    {
+        var paid = country.Budget.SpendUpTo(country.Budget.Balance);
+        if (paid.Raw <= 0) return;
+
+        country.Households.Earn(paid);
+    }
+
+    /// <summary>С чего берут акциз: с того, что вредно, дорого возить или незаменимо.
+    /// В жизни это топливо, табак и алкоголь; у нас табака с алкоголем нет, и их место
+    /// занимают обычные товары.</summary>
+    private static bool Excisable(GoodType good) =>
+        good is GoodType.Fuel or GoodType.ConsumerGoods;
 
     /// <summary>Бюджет за прошедший тик: выручка с населения минус зарплаты.</summary>
     public Money BudgetOf(byte country) =>
@@ -1735,13 +1834,108 @@ public sealed class Simulation
 
             if (!country.State.Treasury.TrySpend(free)) continue;
 
-            country.Households.Earn(free);
             _profits[country.Id] = free;
+            Divide(country, free);
         }
     }
 
     /// <summary>Что за тик ушло владельцам.</summary>
     public Money ProfitOf(byte country) => _profits.GetValueOrDefault(country);
+
+    /// <summary>Делит заработанное между компаниями и владельцами.</summary>
+    /// <remarks>
+    /// Доля компании — её доля в числе зданий страны: чем больше у неё заводов, тем больше
+    /// она и заработала. Считать по выпуску точнее, но это перебор всех зданий всех
+    /// компаний каждый тик, а разница невелика — здания одного сектора похожи.
+    ///
+    /// Из своей доли компания оставляет четверть на развитие, остальное отдаёт владельцам.
+    /// Владелец — население: акций и биржи пока нет, и делить их не с кем.
+    /// </remarks>
+    private void Divide(Country country, Money earned)
+    {
+        var companies = _world.CompaniesOf(country.Id);
+        if (companies.Count == 0)
+        {
+            country.Households.Earn(earned);
+
+            return;
+        }
+
+        var total = 0L;
+        foreach (var company in companies) total += company.Size;
+
+        if (total <= 0)
+        {
+            country.Households.Earn(earned);
+
+            return;
+        }
+
+        var kept = default(Money);
+        foreach (var company in companies)
+        {
+            var share = new Money((long)((Int128)earned.Raw * company.Size / total));
+
+            // Сперва налог на прибыль, и только с остатка компания копит на стройку.
+            var tax = TaxCode.Take(share, country.Taxes.Profit);
+            country.Budget.Collect(TaxKind.Profit, tax);
+            kept += tax;
+
+            var save = new Money((share - tax).Raw * Construction.InvestmentShare / 100);
+            if (save.Raw <= 0) continue;
+
+            company.Earn(save);
+            kept += save;
+        }
+
+        _saved[country.Id] = kept;
+        country.Households.Earn(earned - kept);
+    }
+
+    /// <summary>Что компания решила строить. Решение держится декаду.</summary>
+    /// <remarks>
+    /// Выбор перебирает все типы зданий и все области страны, и делать это каждые сутки —
+    /// и дорого, и бессмысленно: стройку не затевают заново каждое утро. С ежедневным
+    /// перебором тик стоил пятьдесят пять миллисекунд против восемнадцати.
+    /// </remarks>
+    private (BuildingType Type, Region Where)? Chosen(Country country, Company? builder, Money purse)
+    {
+        // Компаний нет вовсе — строит государство и берётся за что угодно. Так живут
+        // тестовые миры, и так же будет, если все компании в стране разорятся.
+        if (builder is null)
+        {
+            return country.Id == HandsOff ? null : BestBuild(country, purse);
+        }
+
+        if (_choice.TryGetValue(builder.Id, out var held) && held.Until > _day) return (held.Type, held.Where);
+
+        var best = BestBuild(country, purse, builder.Focus);
+        if (best is null) return null;
+
+        _choice[builder.Id] = (best.Value.Type, best.Value.Where, _day + ChooseEvery);
+
+        return best;
+    }
+
+    /// <summary>Сколько суток держится решение о стройке.</summary>
+    private const int ChooseEvery = 10;
+
+    private readonly Dictionary<int, (BuildingType Type, Region Where, int Until)> _choice = new();
+
+    /// <summary>Самая богатая компания страны. Она и строит: копила — значит на что-то.</summary>
+    private Company? Richest(byte country)
+    {
+        Company? best = null;
+        foreach (var company in _world.CompaniesOf(country))
+        {
+            if (best is null || company.Cash > best.Cash) best = company;
+        }
+
+        return best;
+    }
+
+    /// <summary>Кто строит в стране на этом тике. Пусто — никто.</summary>
+    public Company? BuilderIn(byte country) => _builder.GetValueOrDefault(country);
 
     /// <summary>Что за тик отложено из казны на стройку.</summary>
     public Money SavedOf(byte country) => _saved.GetValueOrDefault(country);
@@ -1829,20 +2023,22 @@ public sealed class Simulation
     {
         foreach (var country in _world.Countries)
         {
-            var added = _added.GetValueOrDefault(country.Id);
-            if (added.Raw > 0)
+            // Компаний нет — копит государство, как было до них. Так живут тестовые миры.
+            if (_world.CompaniesOf(country.Id).Count == 0)
             {
-                // Считается от выпуска, а не из казны. Местные деньги в модели приходят
-                // только от покупателей, а руду и металл население не покупает: страна,
-                // живущая добычей, не смогла бы отложить ни копейки.
-                _investment[country.Id] = _investment.GetValueOrDefault(country.Id) +
-                    new Money(added.Raw * Construction.InvestmentShare / 100);
+                var added = _added.GetValueOrDefault(country.Id);
+                if (added.Raw > 0)
+                {
+                    var share = new Money(added.Raw * Construction.InvestmentShare / 100);
 
-                _saved[country.Id] = new Money(added.Raw * Construction.InvestmentShare / 100);
+                    _investment[country.Id] = _investment.GetValueOrDefault(country.Id) + share;
+                    _saved[country.Id] = share;
+                }
             }
 
             if (!_plan.TryGetValue(country.Id, out var plan)) continue;
 
+            var builder = _builder.GetValueOrDefault(country.Id);
             var info = _world.Buildings[plan.Type];
             var wages = WagesFor(country, info);
             var price = Construction.CostOf(info.BuildCost, country.State.Prices) + wages;
@@ -1851,11 +2047,25 @@ public sealed class Simulation
 
             for (var built = 0; built < limit; built++)
             {
-                if (_investment.GetValueOrDefault(country.Id) < price) break;
-                if (!country.State.Stock.TryConsume(info.BuildCost, Load.Full)) break;
+                // Платит тот, кто строит: компания из своих денег, государство из
+                // вложенного игроком.
+                var paid = builder is not null
+                    ? builder.TrySpend(price)
+                    : _investment.GetValueOrDefault(country.Id) >= price;
 
-                _investment[country.Id] -= price;
+                if (!paid) break;
+                if (!country.State.Stock.TryConsume(info.BuildCost, Load.Full))
+                {
+                    // Материалов не нашлось — деньги возвращаем: списали их вперёд.
+                    builder?.Earn(price);
+
+                    break;
+                }
+
+                if (builder is null) _investment[country.Id] -= price;
+
                 plan.Where.AddBuildings(plan.Type, 1);
+                builder?.Add(plan.Where.Id, plan.Type, 1);
 
                 // Съеденное стройкой — такой же расход, как заводское сырьё. Без этого
                 // материалы попадали бы в добавленную стоимость дважды: и когда их
@@ -1893,7 +2103,10 @@ public sealed class Simulation
         return where is null ? null : (order.Type, where);
     }
 
-    private (BuildingType Type, Region Where)? BestBuild(Country country, Money purse)
+    /// <param name="focus">Отрасли, в которых компания работает. Пусто — берётся за что
+    /// угодно; так строит государство по заказу игрока.</param>
+    private (BuildingType Type, Region Where)? BestBuild(
+        Country country, Money purse, IReadOnlyList<Sector>? focus = null)
     {
         (BuildingType Type, Region Where)? best = null;
         var bestValue = 0L;
@@ -1902,6 +2115,10 @@ public sealed class Simulation
         {
             var info = _world.Buildings[type];
             if (info.BuildCost.Count == 0) continue;
+
+            // Лесопромышленная компания не станет строить ракетный завод, даже если он
+            // прибыльнее: ни людей, ни связей, ни понимания дела у неё нет.
+            if (focus is not null && !focus.Contains(info.Sector)) continue;
 
             var profit = Construction.ProfitOf(
                 new BuildingRecipe(info.Inputs, info.Outputs),

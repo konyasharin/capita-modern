@@ -140,6 +140,7 @@ public static class WorldDataLoader
             new WorldMarket(new Prices(startPrices)), elasticity, relations, efficiency, tradeCosts, routes);
 
         FillStores(world);
+        world.Settle(Founders.Found(world));
 
         return world;
     }

@@ -34,6 +34,13 @@ public sealed class Country
     /// <summary>Валюта страны: код и знак для подписей.</summary>
     public Currency Currency { get; init; } = Currency.Dollar;
 
+    /// <summary>Государственный бюджет: налоги приходят, расходы уходят. Не путать с
+    /// кассой продавца в <see cref="Producer.Treasury"/> — та держит оборот хозяйства.</summary>
+    public Budget Budget { get; } = new();
+
+    /// <summary>Какие налоги берёт государство и по какой ставке.</summary>
+    public TaxCode Taxes { get; } = TaxCode.Default();
+
     /// <summary>Печатный станок и денежная масса.</summary>
     public CentralBank Bank { get; init; } = new(default);
 

@@ -40,6 +40,9 @@ public partial class FinancePanel : SidePanel
     private int _swap;
 
     private StatRow _rate = null!;
+    private StatRow _budget2 = null!;
+    private StatRow _collected = null!;
+    private readonly Dictionary<TaxKind, StatRow> _taxes = [];
     private StatRow _swapped = null!;
     private Button _sell = null!;
     private Button _buy = null!;
@@ -112,6 +115,23 @@ public partial class FinancePanel : SidePanel
         _noOffers.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         _noOffers.CustomMinimumSize = new Vector2(Skin.PanelWidth - 46, 0);
         Rows.AddChild(_noOffers);
+
+        Section("Налоги", "treasury");
+        Note("Государственный бюджет — не касса страны: он наполняется только налогами и " +
+            "тем же днём расходится на бюджетников и пособия. Ставку можно поднять, " +
+            "опустить или обнулить вовсе — налог с нулевой ставкой просто не берётся.");
+
+        _budget2 = Stat("Остаток бюджета", "treasury");
+        _collected = Stat("Собрано за день", "sales");
+
+        foreach (var (kind, label, min, max) in Rates)
+        {
+            var which = kind;
+
+            _taxes[kind] = Stat(label, "sales");
+            Knob(label, min, max, 100,
+                () => RateOf(which), value => SetRate(which, value), Fmt.Rate, "sales");
+        }
 
         Section("Валютное окно", "rate");
         Note("Вывоз приносит чужую валюту, ввоз её тратит, и заём приходит тоже ею — " +
@@ -242,6 +262,11 @@ public partial class FinancePanel : SidePanel
 
         _rate.Set($"×{Me.ExchangeRate.Exact:0.00}");
 
+        _budget2.Set(Fmt.Cash(Me.Budget.Balance.Exact), Fmt.Sign(Me.Budget.Balance.Exact));
+        _collected.Set(Fmt.Cash(Me.Budget.Collected.Exact), Skin.Good);
+
+        foreach (var (kind, row) in _taxes) row.Set(Fmt.Cash(Me.Budget.IncomeFrom(kind).Exact));
+
         var sold = sim.SoldCurrencyOf(Id);
         var bought = sim.BoughtCurrencyOf(Id);
         _swapped.Set($"+{Fmt.Cash(sold.Exact)} / −{Fmt.Cash(bought.Exact)}",
@@ -251,6 +276,40 @@ public partial class FinancePanel : SidePanel
         _buy.Disabled = _swap <= 0 || Me.State.Treasury.Balance.Raw <= 0;
 
         _repudiate.Disabled = owed.Raw == 0;
+    }
+
+    /// <summary>Какие ставки крутит игрок и в каких пределах.</summary>
+    private static (TaxKind Kind, string Label, int Min, int Max)[] Rates =>
+    [
+        (TaxKind.Vat, "НДС", 0, 4000),
+        (TaxKind.Income, "Подоходный", 0, 6000),
+        (TaxKind.Payroll, "Взносы", 0, 6000),
+        (TaxKind.Profit, "На прибыль", 0, 6000),
+        (TaxKind.Extraction, "На добычу", 0, 8000),
+        (TaxKind.Excise, "Акциз", 0, 10000),
+    ];
+
+    private int RateOf(TaxKind kind) => kind switch
+    {
+        TaxKind.Vat => Me.Taxes.Vat,
+        TaxKind.Income => Me.Taxes.Income,
+        TaxKind.Payroll => Me.Taxes.Payroll,
+        TaxKind.Profit => Me.Taxes.Profit,
+        TaxKind.Extraction => Me.Taxes.Extraction,
+        _ => Me.Taxes.Excise,
+    };
+
+    private void SetRate(TaxKind kind, int value)
+    {
+        switch (kind)
+        {
+            case TaxKind.Vat: Me.Taxes.Vat = value; break;
+            case TaxKind.Income: Me.Taxes.Income = value; break;
+            case TaxKind.Payroll: Me.Taxes.Payroll = value; break;
+            case TaxKind.Profit: Me.Taxes.Profit = value; break;
+            case TaxKind.Extraction: Me.Taxes.Extraction = value; break;
+            default: Me.Taxes.Excise = value; break;
+        }
     }
 
     /// <summary>Меняет валюту через центробанк. Ctrl и Shift множат сумму.</summary>

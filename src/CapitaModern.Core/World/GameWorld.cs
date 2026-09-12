@@ -87,6 +87,31 @@ public sealed class GameWorld
             throw new ArgumentOutOfRangeException(nameof(id), id, "Региона не найдено");
 
     public IReadOnlyList<Country> Countries => _countries;
+
+    /// <summary>Частные компании. Пусто, пока мир не заселён ими: тесты строят мир
+    /// руками, и хозяин там один.</summary>
+    public IReadOnlyList<Company> Companies => _companies;
+
+    /// <summary>Компании страны. Список короткий, перебор дешевле словаря.</summary>
+    public IReadOnlyList<Company> CompaniesOf(byte country) =>
+        _byCountry.TryGetValue(country, out var list) ? list : [];
+
+    /// <summary>Заселяет мир компаниями и раздаёт им стартовые здания.</summary>
+    public void Settle(IReadOnlyList<Company> companies)
+    {
+        _companies = companies;
+        _byCountry.Clear();
+
+        foreach (var company in companies)
+        {
+            if (!_byCountry.TryGetValue(company.Country, out var list)) _byCountry[company.Country] = list = [];
+
+            list.Add(company);
+        }
+    }
+
+    private IReadOnlyList<Company> _companies = [];
+    private readonly Dictionary<byte, List<Company>> _byCountry = [];
     public Country CountryById(byte id) =>
         id < _countriesById.Length && _countriesById[id] is {} country ?
             country :

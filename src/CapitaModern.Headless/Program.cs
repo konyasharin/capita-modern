@@ -146,6 +146,7 @@ var wagesYear = world.Countries.ToDictionary(country => country.Id, _ => 0.0);
 var employedYear = world.Countries.ToDictionary(country => country.Id, _ => 0L);
 var transitYear = world.Countries.ToDictionary(country => country.Id, _ => default(Money));
 var exports = world.Countries.ToDictionary(country => country.Id, _ => default(Money));
+var taxYear = world.Countries.ToDictionary(country => country.Id, _ => default(Money));
 var imports = world.Countries.ToDictionary(country => country.Id, _ => default(Money));
 
 void CountRails(int day)
@@ -178,6 +179,10 @@ for (var tick = 1; tick <= 365; tick++)
     foreach (var country in world.Countries)
     {
         realGdp[country.Id] += simulation.ValueAddedOf(country.Id, constant);
+        // По стартовому курсу, а не нынешнему: ВВП считается в стартовых ценах, и делить
+        // одно на другое можно только одной линейкой.
+        taxYear[country.Id] += new Money(
+            (long)((Int128)country.Budget.Collected.Raw * Money.Scale / country.StartRate.Raw));
         exports[country.Id] += simulation.ExportsOf(country.Id, constant);
         // В тех же постоянных ценах, что и ВВП: фонд оплаты — известная доля добавленной
         // стоимости. Считать местные деньги через текущий курс нельзя, тогда зарплату и
@@ -304,6 +309,8 @@ for (var year = 2; year <= years; year++)
         {
             yearGdp += simulation.ValueAddedOf(country.Id, constant);
             realGdp[country.Id] += simulation.ValueAddedOf(country.Id, constant);
+            taxYear[country.Id] += new Money(
+                (long)((Int128)country.Budget.Collected.Raw * Money.Scale / country.StartRate.Raw));
             exports[country.Id] += simulation.ExportsOf(country.Id, constant);
             imports[country.Id] += simulation.ImportsOf(country.Id, constant);
             wagesYear[country.Id] +=
@@ -641,6 +648,50 @@ foreach (var country in world.Countries.OrderByDescending(c => transitYear[c.Id]
 
 Console.WriteLine($"  всего за год: {transitYear.Values.Sum(m => m.Exact) / 1e6:F0} млн $ " +
                   "(в жизни Суэц 9 млрд, Панама 5 млрд)");
+
+// --- У. Налоги ------------------------------------------------------------------------
+Console.WriteLine();
+Console.WriteLine("=== У. Налоги ===");
+Console.WriteLine("страна   собрано за год   к ВВП   в жизни   НДС    НДФЛ   взносы прибыль добыча акциз");
+
+foreach (var (iso, inLife) in new[] { ("RUS", 33.0), ("USA", 27.0), ("DEU", 40.0), ("CHN", 21.0), ("IND", 18.0) })
+{
+    var whose = world.Countries.First(c => c.Iso == iso);
+
+    // Копилось пять лет — делим на пять, и мерим в одной мере: налоги пересчитаны в
+    // мировую, ВВП считается в постоянных ценах.
+    var year = taxYear[whose.Id].Exact / years;
+    var gdp = realGdp[whose.Id].Exact / years;
+
+    string Share(TaxKind kind) => whose.Budget.Collected.Raw > 0
+        ? $"{100.0 * whose.Budget.IncomeFrom(kind).Raw / whose.Budget.Collected.Raw,5:F1}%"
+        : "    —";
+
+    Console.WriteLine($"{iso}  {year / 1e9,14:F2} трлн {(gdp > 0 ? 100 * year / gdp : 0),6:F1}% {inLife,8:F0}% "
+        + $"{Share(TaxKind.Vat)} {Share(TaxKind.Income)} {Share(TaxKind.Payroll)} "
+        + $"{Share(TaxKind.Profit)} {Share(TaxKind.Extraction)} {Share(TaxKind.Excise)}");
+}
+
+// --- Т. Компании ---------------------------------------------------------------------
+Console.WriteLine();
+Console.WriteLine("=== Т. Компании ===");
+Console.WriteLine($"Всего компаний: {world.Companies.Count}");
+
+foreach (var iso in new[] { "RUS", "USA", "CHN" })
+{
+    var whose = world.Countries.First(c => c.Iso == iso);
+    var mine = world.CompaniesOf(whose.Id);
+
+    Console.WriteLine($"{iso}: {mine.Count} компаний, зданий {mine.Sum(c => c.Size)}, "
+        + $"денег {mine.Sum(c => c.Cash.Exact) / 1e6:F0} млн, "
+        + $"многопрофильных {mine.Count(c => c.Focus.Count > 1)}");
+
+    foreach (var company in mine.OrderByDescending(c => c.Size).Take(4))
+    {
+        Console.WriteLine($"   {company.Name,-26} зданий {company.Size,8} "
+            + $"денег {company.Cash.Exact / 1e6,10:F0} млн  отрасли {company.Focus.Count}");
+    }
+}
 
 // --- С. Свои цены против мировых ---------------------------------------------------
 Console.WriteLine();
