@@ -490,6 +490,8 @@ public sealed class Simulation
     /// иначе упирались бы в коридор.</remarks>
     private void Trade()
     {
+        CountAfford();
+
         foreach (var good in AllGoods)
         {
             // Услуги через границу не возят: стрижку покупают там же, где живут.
@@ -534,6 +536,12 @@ public sealed class Simulation
                 // ровно отсюда берётся встречная торговля одним и тем же товаром.
                 var shortfall = target > stock ? target - stock : default;
                 var bid = shortfall + flow;
+
+                // Просить можно сколько угодно, а заплатить — только тем, что есть.
+                // Страна с пустыми резервами урезает заказ, а не занимает под него: без
+                // этого она ввозила в долг без предела, и внешний долг рос вечно.
+                var afford = _afford.GetValueOrDefault(country.Id, Money.Scale);
+                if (afford < Money.Scale) bid = new GoodAmount(bid.Raw * afford / Money.Scale);
 
                 var offer = default(GoodAmount);
                 if (stock > target)
@@ -1072,6 +1080,52 @@ public sealed class Simulation
                 InLocal(country, new Money(duty.Raw * _world.TradeCosts.TariffOf(country.Id) / 10_000)));
         }
     }
+
+    /// <summary>На какую долю заказа стране хватает валюты, в долях
+    /// <see cref="Money.Scale"/>.</summary>
+    /// <remarks>
+    /// Платить за ввоз нечем, кроме резервов и сегодняшней выручки от вывоза. Раньше
+    /// заявка от этого не зависела вовсе: страна просила сколько хотела, не могла
+    /// заплатить, и недостачу закрывали займом — оттого внешний долг и рос без предела, а
+    /// к пятому году больше половины стран отказывались платить.
+    ///
+    /// Считается до торговли и по вчерашним ценам: точнее не нужно, а перебирать товары
+    /// дважды дорого.
+    /// </remarks>
+    private void CountAfford()
+    {
+        _afford.Clear();
+
+        foreach (var country in _world.Countries)
+        {
+            // По настоящему ввозу, а не по всей заявке: большую её часть страна закрывает
+            // своим же товаром, и валюта на это не нужна. Заявка — это заказ рынку, а
+            // платят чужими деньгами только за то, что и правда приехало.
+            var bill = new Money(country.ImportsPerDay.Raw * Prices.TargetCoverDays);
+            if (bill.Raw <= 0) continue;
+
+            // В кошелёк идёт и заём, но не весь разом: страна выбирает свой запас
+            // заимствования за год, а не за день. Без этого ввоз держался бы на одних
+            // резервах, и приток капитала в модели пропал бы вовсе.
+            var owed = country.State.Treasury.Debt.Owed(LoanSource.Foreign);
+            var ceiling = new Money(DebtCapacity(country).Raw / 100 * CreditMarket.SafeBurden);
+            var room = ceiling > owed ? ceiling - owed : default;
+
+            // Заказ — это запас на сорок суток, значит и выручку считаем за тот же срок:
+            // ввоз в жизни оплачивают с отсрочкой в месяц-другой, а не в тот же день.
+            var purse = country.State.Treasury.Reserves.Liquid
+                + new Money(country.ExportsPerDay.Raw * Prices.TargetCoverDays)
+                + new Money(room.Raw / DaysInYear);
+            if (purse >= bill) continue;
+
+            _afford[country.Id] = (int)((Int128)purse.Raw * Money.Scale / bill.Raw);
+        }
+    }
+
+    /// <summary>Какая доля заказа стране по карману.</summary>
+    public int AffordOf(byte country) => _afford.GetValueOrDefault(country, (int)Money.Scale);
+
+    private readonly Dictionary<byte, int> _afford = new();
 
     /// <summary>Во что мир оценивает свои деньги, в сотых процента.</summary>
     /// <remarks>
