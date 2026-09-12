@@ -786,6 +786,16 @@ foreach (var iso in new[] { "USA", "CHN", "RUS", "DEU", "IND", "BRA", "JPN", "NG
 }
 
 Console.WriteLine();
+Console.WriteLine("Казённые услуги к выпуску (в жизни конечное потребление государства 17%):");
+foreach (var iso in new[] { "USA", "CHN", "RUS", "DEU", "IND", "BRA" })
+{
+    var whose = world.Countries.First(c => c.Iso == iso);
+    var added = simulation.ValueAddedOf(whose.Id).Exact;
+
+    Console.WriteLine($"  {iso}: {(added > 0 ? 100 * simulation.StateServicesOf(whose.Id).Exact / added : 0),6:F2}%");
+}
+
+Console.WriteLine();
 Console.WriteLine("Жилой фонд и дороги, в материалах:");
 foreach (var iso in new[] { "USA", "CHN", "RUS", "IND" })
 {

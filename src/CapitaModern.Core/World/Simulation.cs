@@ -91,7 +91,6 @@ public sealed class Simulation
     /// <summary>Заявки на парную торговлю по одному товару. Переиспользуются.</summary>
     private readonly List<MarketOrder> _market = new();
 
-    private readonly Exchange _exchange = new();
 
     /// <summary>Какой товар сводится прямо сейчас. Сделка о товаре не знает, а списывать
     /// со склада надо именно его.</summary>
@@ -293,6 +292,8 @@ public sealed class Simulation
         _sales.Clear();
         _armsWants.Clear();
         _armsBought.Clear();
+        _stateWants.Clear();
+        _stateBought.Clear();
         _houseWants.Clear();
         _roadWants.Clear();
         _housing.Clear();
@@ -374,6 +375,12 @@ public sealed class Simulation
 
             OrderArms(country);
             OrderEstate(country);
+
+            // Школы, больницы, управление — казённые услуги. В жизни на них уходит около
+            // шестой части ВВП, и без них услуги в модели покупало одно население.
+            Want(country, GoodType.Services,
+                new Money(_added.GetValueOrDefault(country.Id).Raw * StateServiceShare / 10_000),
+                _stateWants);
         }
     }
 
@@ -452,6 +459,12 @@ public sealed class Simulation
     /// третью процентов ВВП.</summary>
     private const int RoadShare = 330;
 
+    /// <summary>Доля выпуска на казённые услуги, в сотых процента. В жизни конечное
+    /// потребление государства — около семнадцати процентов ВВП, и почти всё это
+    /// услуги: школы, больницы, управление, охрана порядка.</summary>
+    private const int StateServiceShare = 1700;
+
+    private readonly Tally<GoodType, GoodAmount> _stateWants = new();
     private readonly Tally<GoodType, GoodAmount> _houseWants = new();
     private readonly Tally<GoodType, GoodAmount> _roadWants = new();
 
@@ -497,8 +510,8 @@ public sealed class Simulation
             // Услуги через границу не возят: стрижку покупают там же, где живут.
             if (good == GoodType.Services) continue;
 
-            _trading = good;
-            _market.Clear();
+            var market = _markets[(int)good];
+            market.Clear();
 
             var wanted = default(GoodAmount);
             var offered = default(GoodAmount);
@@ -557,20 +570,28 @@ public sealed class Simulation
                 if (bid.Raw == 0 && offer.Raw == 0) continue;
 
                 _bid.Add(country.Id, good, bid);
-                _market.Add(new MarketOrder(
+                market.Add(new MarketOrder(
                     country.Id, country.State, offer, bid, inWorld, inWorld,
                     _world.Efficiency.Of(country.Id, SectorOf(good))));
                 wanted += bid;
                 offered += offer;
             }
 
+            _wanted[(int)good] = wanted;
+            _offered[(int)good] = offered;
+        }
+
+        Match();
+
+        foreach (var good in AllGoods)
+        {
+            if (good == GoodType.Services) continue;
+
+            _trading = good;
             _dealValue = default;
             _dealVolume = default;
 
-            var from = System.Diagnostics.Stopwatch.GetTimestamp();
-            _exchange.Settle(CollectionsMarshal.AsSpan(_market), Delivered, Close);
-            _steps["Trade.Settle"] = _steps.GetValueOrDefault("Trade.Settle")
-                + System.Diagnostics.Stopwatch.GetTimestamp() - from;
+            foreach (var deal in _deals[(int)good]) Close(deal);
 
             // Цена рынка — средняя из настоящих сделок, а не выдуманная одна на всех.
             // Не сошлось ни одной — двигаем прежним правилом, по перекосу заявок.
@@ -585,10 +606,55 @@ public sealed class Simulation
             }
             else
             {
-                _world.Market.Prices.MoveFromBalance(good, wanted, offered);
+                _world.Market.Prices.MoveFromBalance(good, _wanted[(int)good], _offered[(int)good]);
             }
         }
     }
+
+    /// <summary>Сводит все товары разом, каждый своим потоком.</summary>
+    /// <remarks>
+    /// Сведение ничего не меняет в мире — оно только считает, кто у кого сколько возьмёт.
+    /// Значит его можно вести по всем товарам сразу, а сделки проводить потом и по
+    /// порядку, чтобы тик остался воспроизводимым. Семь десятых времени уходило сюда.
+    ///
+    /// Плата за это: заявки по всем товарам считаются от складов на начало тика, а не от
+    /// того, что осталось после торговли предыдущим. Так даже честнее — торговый день
+    /// один на всех, а не тридцать один по очереди.
+    /// </remarks>
+    private void Match()
+    {
+        var from = System.Diagnostics.Stopwatch.GetTimestamp();
+
+        Parallel.ForEach(TradedGoods, good =>
+        {
+            var deals = _deals[(int)good];
+            deals.Clear();
+
+            _exchanges[(int)good].Settle(
+                CollectionsMarshal.AsSpan(_markets[(int)good]),
+                (seller, buyer) => Markup(seller, buyer, good),
+                deals.Add);
+        });
+
+        _steps["Trade.Match"] = _steps.GetValueOrDefault("Trade.Match")
+            + System.Diagnostics.Stopwatch.GetTimestamp() - from;
+    }
+
+    /// <summary>Что возят через границу. Услуги не возят.</summary>
+    private static readonly GoodType[] TradedGoods =
+        [.. Enum.GetValues<GoodType>().Where(good => good != GoodType.Services)];
+
+    private readonly List<MarketOrder>[] _markets =
+        [.. Enum.GetValues<GoodType>().Select(_ => new List<MarketOrder>())];
+
+    private readonly List<Deal>[] _deals =
+        [.. Enum.GetValues<GoodType>().Select(_ => new List<Deal>())];
+
+    private readonly Exchange[] _exchanges =
+        [.. Enum.GetValues<GoodType>().Select(_ => new Exchange())];
+
+    private readonly GoodAmount[] _wanted = new GoodAmount[Enum.GetValues<GoodType>().Length];
+    private readonly GoodAmount[] _offered = new GoodAmount[Enum.GetValues<GoodType>().Length];
 
     /// <summary>Чем страна может платить по внешнему долгу за год.</summary>
     /// <remarks>
@@ -649,13 +715,13 @@ public sealed class Simulation
     /// <remarks>Цена продавца плюс дорога от него до покупателя плюс пошлина покупателя.
     /// Отсюда и берётся то, чего в общем котле быть не могло: дальний дешёвый товар
     /// проигрывает ближнему дорогому.</remarks>
-    private int Delivered(byte seller, byte buyer)
+    private int Markup(byte seller, byte buyer, GoodType good)
     {
         var route = _world.Routes.CostBetween(seller, buyer);
 
         return route >= Politics.Routes.Unreachable
             ? -1
-            : _world.TradeCosts.ImportMarkup(buyer, _trading, route);
+            : _world.TradeCosts.ImportMarkup(buyer, good, route);
     }
 
     /// <summary>Проводит сделку: деньги, товар, топливо и плата за проход.</summary>
@@ -809,8 +875,8 @@ public sealed class Simulation
             var want = PriceLevel.Target(country.Bank.Supply, country.Bank.Start, real, realBefore);
             var step = Math.Clamp(
                 want,
-                level * (100 - Prices.StepPercent) / 100,
-                level * (100 + Prices.StepPercent) / 100);
+                level * (100 - PriceLevel.StepPercent) / 100,
+                level * (100 + PriceLevel.StepPercent) / 100);
 
             _levelPush[country.Id] = level > 0 ? (int)((long)(step - level) * 10_000 / level) : 0;
 
@@ -1038,7 +1104,22 @@ public sealed class Simulation
 
     /// <summary>Сколько мир не купил из-за дорогой доставки и сколько — из-за того, что
     /// товара ни у кого не осталось.</summary>
-    public (GoodAmount Refused, GoodAmount Empty) UnfilledBids => (_exchange.Refused, _exchange.Empty);
+    public (GoodAmount Refused, GoodAmount Empty) UnfilledBids
+    {
+        get
+        {
+            var refused = default(GoodAmount);
+            var empty = default(GoodAmount);
+
+            foreach (var exchange in _exchanges)
+            {
+                refused += exchange.Refused;
+                empty += exchange.Empty;
+            }
+
+            return (refused, empty);
+        }
+    }
 
 
     /// <summary>Что мир выпустил за прошедший тик.</summary>
@@ -1883,7 +1964,23 @@ public sealed class Simulation
         or GoodType.Agriculture;
 
     /// <summary>Государство тратит собранное: бюджетникам и пособиями.</summary>
-    private void Spend(Country country) => Arm(country);
+    private void Spend(Country country)
+    {
+        // Сперва школы и больницы, потом оружие: содержание идёт вперёд закупок.
+        var before = _sales.GetValueOrDefault(country.Id);
+
+        Buy(country, GoodType.Services, _stateWants.Get(country.Id, GoodType.Services),
+            cost => country.Budget.SpendUpTo(cost));
+
+        _stateBought[country.Id] = _sales.GetValueOrDefault(country.Id) - before;
+
+        Arm(country);
+    }
+
+    /// <summary>Сколько государство купило услуг за тик.</summary>
+    public Money StateServicesOf(byte country) => _stateBought.GetValueOrDefault(country);
+
+    private readonly Dictionary<byte, Money> _stateBought = new();
 
     /// <summary>Что осталось в бюджете после закупок, уходит бюджетникам и на пособия.</summary>
     /// <remarks>Идёт последним: сперва государство покупает оружие и строит дороги, и
