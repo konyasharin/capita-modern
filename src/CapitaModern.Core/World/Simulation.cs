@@ -252,6 +252,7 @@ public sealed class Simulation
         Run(nameof(Build), Build);
         Run(nameof(PayProfits), PayProfits);
         Run(nameof(NoteDemand), NoteDemand);
+        Run(nameof(Balance), Balance);
         Run(nameof(UpdateDemographics), UpdateDemographics);
     }
 
@@ -1737,13 +1738,47 @@ public sealed class Simulation
             }
 
             var times = _world.Efficiency.OutputTimes(country, recipe.Sector);
+            var owners = _world.Holdings.OwnersIn(country, building);
+            var prices = _world.CountryById(country).State.Prices;
+
+            // Доли хозяев одни на все товары рецепта — считаем их раз, а не на каждый.
+            var total = 0L;
+            foreach (var company in owners) total += company.CountOf(building);
+
             foreach (var (good, amount) in recipe.Outputs)
             {
                 var made = amount * runs / Load.Full;
-                _outputs.Add(country, good, times == Efficiency.Scale
-                    ? made
-                    : new GoodAmount(made.Raw * times / Efficiency.Scale));
+                if (times != Efficiency.Scale) made = new GoodAmount(made.Raw * times / Efficiency.Scale);
+
+                _outputs.Add(country, good, made);
+                Credit(owners, building, total, good, made, prices.Of(good));
             }
+        }
+    }
+
+    /// <summary>Записывает сделанное на счёт тех, чьи это здания.</summary>
+    /// <remarks>Делится по долям: у кого больше таких заводов, тому больше и записано.
+    /// Остаток от округления достаётся последнему — иначе он копился бы в никуда.</remarks>
+    private static void Credit(
+        IReadOnlyList<Company> owners,
+        BuildingType building,
+        long total,
+        GoodType good,
+        GoodAmount made,
+        Money price)
+    {
+        if (owners.Count == 0 || made.Raw <= 0 || total <= 0) return;
+
+        var left = made.Raw;
+        for (var i = 0; i < owners.Count && left > 0; i++)
+        {
+            var mine = i == owners.Count - 1
+                ? left
+                : Math.Min(left, (long)((Int128)made.Raw * owners[i].CountOf(building) / total));
+
+            owners[i].Store(good, new GoodAmount(mine));
+            owners[i].NoteMade(new Money((long)((Int128)price.Raw * mine / GoodAmount.Scale)));
+            left -= mine;
         }
     }
 
@@ -2340,28 +2375,50 @@ public sealed class Simulation
         }
     }
 
-    /// <summary>Во что обходится суточный выпуск всех зданий компании.</summary>
-    private static Int128 Made(Company company, long[] worth)
+    /// <summary>Сводит именные доли со складом страны и обнуляет дневной выпуск.</summary>
+    /// <remarks>Один проход по компаниям вместо учёта в каждом месте, откуда берут со
+    /// склада: заводы, население, стройка, армия, жильё, дороги и вывоз — семь мест, и
+    /// протягивать через все именной учёт значило бы переписать пол-модели.</remarks>
+    private void Balance()
     {
-        var total = (Int128)0;
-        foreach (var (type, count) in company.Types) total += (Int128)worth[(int)type] * count;
+        foreach (var country in _world.Countries)
+        {
+            var companies = _world.CompaniesOf(country.Id);
+            if (companies.Count == 0) continue;
 
-        return total;
+            var mine = _sharesOf;
+            Array.Clear(mine);
+
+            foreach (var company in companies)
+            {
+                company.ForgetMade();
+                foreach (var (good, amount) in company.Goods) mine[(int)good] += amount.Raw;
+            }
+
+            foreach (var company in companies)
+            {
+                // Копия ключей: Fit правит тот же словарь, по которому идём.
+                foreach (var good in company.Goods.Keys.ToArray())
+                {
+                    company.Fit(good, country.State.Stock.Of(good).Raw, mine[(int)good]);
+                }
+            }
+        }
     }
 
-    private readonly long[] _worthOf = new long[Enum.GetValues<BuildingType>().Length];
+    private readonly long[] _sharesOf = new long[Enum.GetValues<GoodType>().Length];
 
     /// <summary>Что за тик ушло владельцам.</summary>
     public Money ProfitOf(byte country) => _profits.GetValueOrDefault(country);
 
     /// <summary>Делит заработанное между компаниями и владельцами.</summary>
     /// <remarks>
-    /// Доля компании — её доля в выпуске страны, а не в числе зданий. Разница не
-    /// косметическая: рудник и завод микроэлектроники считались одинаково, и владелец
-    /// сотни шахт получал столько же, сколько владелец сотни заводов вдесятеро дороже.
+    /// Доля компании — то, что она сегодня и правда сделала, а не число её зданий и даже
+    /// не их мощность. Разница не косметическая: завод, простоявший день без сырья, ничего
+    /// не заработал, а рудник и завод микроэлектроники до этого считались одинаково.
     ///
-    /// Считается по счёту зданий каждого вида, который компания ведёт по ходу: перебирать
-    /// все её здания каждый тик стоило втрое дороже самого тика.
+    /// Считается по именному складу: выпуск записывается на счёт хозяев зданий там же, где
+    /// и делается.
     ///
     /// Из своей доли компания оставляет четверть на развитие, остальное отдаёт владельцам.
     /// Владелец — население: акций и биржи пока нет, и делить их не с кем.
@@ -2376,26 +2433,10 @@ public sealed class Simulation
             return;
         }
 
-        // Во что обходится суточный выпуск одного здания каждого вида — раз на страну.
-        var worth = _worthOf;
-        Array.Clear(worth);
-
-        foreach (var type in AllBuildings)
-        {
-            var daily = default(Money);
-            foreach (var (good, amount) in _world.Buildings[type].Outputs)
-            {
-                daily += new Money(
-                    (long)((Int128)country.State.Prices.Of(good).Raw * amount.Raw / GoodAmount.Scale));
-            }
-
-            worth[(int)type] = daily.Raw;
-        }
-
         var total = (Int128)0;
         foreach (var company in companies)
         {
-            if (company.Alive) total += Made(company, worth);
+            if (company.Alive) total += company.MadeToday.Raw;
         }
 
         if (total <= 0)
@@ -2410,7 +2451,7 @@ public sealed class Simulation
         {
             if (!company.Alive) continue;
 
-            var share = new Money((long)((Int128)earned.Raw * Made(company, worth) / total));
+            var share = new Money((long)((Int128)earned.Raw * company.MadeToday.Raw / total));
 
             // Сперва налог на прибыль, и только с остатка компания копит на стройку.
             var tax = TaxCode.Take(share, country.Taxes.Profit);

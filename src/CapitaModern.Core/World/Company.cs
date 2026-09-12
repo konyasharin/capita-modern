@@ -38,6 +38,69 @@ public sealed class Company
     /// <summary>Свои деньги. Из них строит и с них платит налоги.</summary>
     public Money Cash { get; private set; }
 
+    /// <summary>Сколько на складе страны товара, принадлежащего этой компании.</summary>
+    /// <remarks>
+    /// Склад один на страну — тот, что видит карта и с которого идёт торговля, — а доли в
+    /// нём именные. Так устроен и настоящий элеватор: зерно ссыпают в общий бункер, а
+    /// принадлежит оно тем, кто его привёз.
+    ///
+    /// Нужно это ради выручки: пока склад был безымянным, деньги за проданное делились
+    /// между всеми по числу зданий, и завод, который сегодня стоял без сырья, получал
+    /// столько же, сколько работавший.
+    /// </remarks>
+    public GoodAmount Holds(GoodType good) => _goods.GetValueOrDefault(good);
+
+    /// <summary>Что у компании лежит на складе. Для показа и замера.</summary>
+    public IReadOnlyDictionary<GoodType, GoodAmount> Goods => _goods;
+
+    /// <summary>Зачисляет сделанное.</summary>
+    public void Store(GoodType good, GoodAmount amount)
+    {
+        if (amount.Raw <= 0) return;
+
+        _goods[good] = Holds(good) + amount;
+    }
+
+    /// <summary>Списывает со склада сколько получится и говорит, сколько списало.</summary>
+    public GoodAmount Take(GoodType good, GoodAmount amount)
+    {
+        var have = Holds(good);
+        var gone = amount < have ? amount : have;
+        if (gone.Raw <= 0) return default;
+
+        if (gone == have) _goods.Remove(good);
+        else _goods[good] = have - gone;
+
+        return gone;
+    }
+
+    /// <summary>Во что обошёлся выпуск компании за этот тик. По нему делится прибыль.</summary>
+    public Money MadeToday { get; private set; }
+
+    public void NoteMade(Money worth) => MadeToday += worth;
+
+    public void ForgetMade() => MadeToday = default;
+
+    /// <summary>Подгоняет именные доли под то, что и правда лежит на складе страны.</summary>
+    /// <remarks>
+    /// Со склада берут все и отовсюду — заводы на сырьё, население, стройка, армия, вывоз.
+    /// Списывать у хозяев в каждом из этих мест значило бы протянуть учёт через пол-модели;
+    /// вместо этого раз в тик доли ужимаются или растягиваются под настоящий остаток. Кто
+    /// сколько внёс, тот столько и потерял — как и должно быть в общем бункере.
+    /// </remarks>
+    public void Fit(GoodType good, long have, long mine)
+    {
+        var held = Holds(good);
+        if (held.Raw <= 0 || mine <= 0) return;
+
+        var left = (long)((Int128)held.Raw * have / mine);
+
+        if (left > 0) _goods[good] = new GoodAmount(left);
+        else _goods.Remove(good);
+    }
+
+    private readonly Dictionary<GoodType, GoodAmount> _goods = [];
+
     /// <summary>Сколько чего у неё есть, по областям.</summary>
     private readonly Dictionary<(int Region, BuildingType Type), int> _buildings = [];
 
@@ -87,6 +150,13 @@ public sealed class Company
         var gone = Math.Min(have, count);
         if (gone <= 0) return 0;
 
+        var leftOfType = _byType.GetValueOrDefault(type) - gone;
+        if (leftOfType > 0) _byType[type] = leftOfType;
+        else _byType.Remove(type);
+
+        Size -= gone;
+
+        // Счёт по видам правим до указателя: он спрашивает, осталось ли что-то ещё.
         if (have == gone)
         {
             _buildings.Remove((region, type));
@@ -96,12 +166,6 @@ public sealed class Company
         {
             _buildings[(region, type)] = have - gone;
         }
-
-        var leftOfType = _byType.GetValueOrDefault(type) - gone;
-        if (leftOfType > 0) _byType[type] = leftOfType;
-        else _byType.Remove(type);
-
-        Size -= gone;
 
         return gone;
     }

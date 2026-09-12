@@ -796,6 +796,18 @@ Console.WriteLine("Сходится ли счёт компаний со счёт
 }
 
 Console.WriteLine();
+Console.WriteLine("Сходятся ли именные доли со складом страны:");
+foreach (var iso in new[] { "USA", "CHN", "RUS", "DEU" })
+{
+    var whose = world.Countries.First(c => c.Iso == iso);
+    var mine = world.CompaniesOf(whose.Id).Sum(c => c.Goods.Values.Sum(a => a.Exact));
+    var onShelf = goods.Sum(good => whose.State.Stock.Of(good).Exact);
+    var gap = onShelf > 0 ? 100 * Math.Abs(onShelf - mine) / onShelf : 0;
+
+    Console.WriteLine($"  {iso}: на складе {onShelf,14:F0}, у компаний {mine,14:F0}, расхождение {gap:F2}%");
+}
+
+Console.WriteLine();
 Console.WriteLine("Казённые услуги к выпуску (в жизни конечное потребление государства 17%):");
 foreach (var iso in new[] { "USA", "CHN", "RUS", "DEU", "IND", "BRA" })
 {

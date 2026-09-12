@@ -62,6 +62,45 @@ public class CompanyTests
         Assert.True(company.Works(Sector.Heavy));
     }
 
+    /// <summary>Именной склад: сделанное записывается, взятое списывается.</summary>
+    [Fact]
+    public void GoodsAddUpAndComeOff()
+    {
+        var company = Made();
+        company.Store(GoodType.Coal, GoodAmount.FromWhole(10));
+        company.Store(GoodType.Coal, GoodAmount.FromWhole(5));
+
+        Assert.Equal(GoodAmount.FromWhole(15), company.Holds(GoodType.Coal));
+        Assert.Equal(GoodAmount.FromWhole(15), company.Take(GoodType.Coal, GoodAmount.FromWhole(20)));
+        Assert.Equal(default, company.Holds(GoodType.Coal));
+        Assert.Empty(company.Goods);
+    }
+
+    /// <summary>Со склада страны взяли половину — у хозяина осталась половина его доли.</summary>
+    [Fact]
+    public void ShareShrinksWithTheWarehouse()
+    {
+        var company = Made();
+        company.Store(GoodType.Coal, GoodAmount.FromWhole(100));
+
+        company.Fit(GoodType.Coal, have: GoodAmount.FromWhole(60).Raw, mine: GoodAmount.FromWhole(120).Raw);
+
+        Assert.Equal(GoodAmount.FromWhole(50), company.Holds(GoodType.Coal));
+    }
+
+    [Fact]
+    public void MadeTodayResets()
+    {
+        var company = Made();
+        company.NoteMade(Money.FromWhole(7));
+
+        Assert.Equal(Money.FromWhole(7), company.MadeToday);
+
+        company.ForgetMade();
+
+        Assert.Equal(default, company.MadeToday);
+    }
+
     /// <summary>Проданное уходит со счёта продавца целиком, а не наполовину.</summary>
     [Fact]
     public void RemoveTakesNoMoreThanThereIs()

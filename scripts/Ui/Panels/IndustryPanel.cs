@@ -93,12 +93,15 @@ public partial class IndustryPanel : SidePanel
         _ruined = Stat("Разорилось", "debt");
         Note("Компания строит только в своих отраслях и только на свои. Не хватает — " +
             "берёт в банке; долг перевалил за три годовых выручки — распродаёт дело, " +
-            "за пять — разоряется, и здания достаются соседу по отрасли.");
+            "за пять — разоряется, и здания достаются соседу по отрасли. «Выпуск» — что " +
+            "она сделала за сегодня: по нему и делится прибыль, так что простоявший " +
+            "без сырья завод не получает ничего.");
 
         _companies = Table.Create(
         [
             new Column("Компания", 0, Right: false),
             new Column("Зданий", 58),
+            new Column("Выпуск", 62),
             new Column("Деньги", 62),
             new Column("Долг", 62),
         ]);
@@ -195,6 +198,8 @@ public partial class IndustryPanel : SidePanel
                 new($"{company.Name} ({string.Join(", ", company.Focus.Select(Names.Of))})",
                     company.Size, company.Known ? Skin.Bright : Skin.Text),
                 new(Fmt.Count(company.Size), company.Size, Skin.Text),
+                new(Fmt.Cash(company.MadeToday.Exact), company.MadeToday.Exact,
+                    company.MadeToday.Raw > 0 ? Skin.Bright : Skin.Bad),
                 new(Fmt.Cash(company.Cash.Exact), company.Cash.Exact, Skin.Good),
                 new(Fmt.Cash(company.Debt.Exact), company.Debt.Exact,
                     company.Debt.Raw > 0 ? Skin.Warn : Skin.Dim),
