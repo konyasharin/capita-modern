@@ -786,6 +786,16 @@ foreach (var iso in new[] { "USA", "CHN", "RUS", "DEU", "IND", "BRA", "JPN", "NG
 }
 
 Console.WriteLine();
+Console.WriteLine("Сходится ли счёт компаний со счётом областей:");
+{
+    var inRegions = world.Regions.Sum(r => r.BuildingsCount.Sum(pair => (long)pair.Value));
+    var inFirms = world.Companies.Where(c => c.Alive).Sum(c => (long)c.Size);
+    var gap = inRegions > 0 ? 100.0 * Math.Abs(inRegions - inFirms) / inRegions : 0;
+
+    Console.WriteLine($"  в областях {inRegions}, у компаний {inFirms}, расхождение {gap:F1}%");
+}
+
+Console.WriteLine();
 Console.WriteLine("Казённые услуги к выпуску (в жизни конечное потребление государства 17%):");
 foreach (var iso in new[] { "USA", "CHN", "RUS", "DEU", "IND", "BRA" })
 {

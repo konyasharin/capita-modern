@@ -66,12 +66,18 @@ public sealed class Company
     /// <summary>Берётся ли компания за эту отрасль.</summary>
     public bool Works(Sector sector) => Focus.Contains(sector);
 
+    /// <summary>Указатель владения на весь мир. Ставится, когда мир заселяют компаниями;
+    /// у тестовых миров его нет, и тогда компания просто никого не извещает.</summary>
+    public Holdings? Ledger { get; set; }
+
     public void Add(int region, BuildingType type, int count)
     {
         if (count <= 0) return;
 
         _buildings[(region, type)] = _buildings.GetValueOrDefault((region, type)) + count;
+        _byType[type] = _byType.GetValueOrDefault(type) + count;
         Size += count;
+        Ledger?.Note(this, region, type);
     }
 
     /// <summary>Убирает сколько получится и говорит, сколько убрало.</summary>
@@ -81,24 +87,36 @@ public sealed class Company
         var gone = Math.Min(have, count);
         if (gone <= 0) return 0;
 
-        if (have == gone) _buildings.Remove((region, type));
-        else _buildings[(region, type)] = have - gone;
+        if (have == gone)
+        {
+            _buildings.Remove((region, type));
+            Ledger?.Forget(this, region, type);
+        }
+        else
+        {
+            _buildings[(region, type)] = have - gone;
+        }
+
+        var leftOfType = _byType.GetValueOrDefault(type) - gone;
+        if (leftOfType > 0) _byType[type] = leftOfType;
+        else _byType.Remove(type);
 
         Size -= gone;
 
         return gone;
     }
 
-    public int CountOf(BuildingType type)
-    {
-        var total = 0;
-        foreach (var ((_, kind), count) in _buildings)
-        {
-            if (kind == type) total += count;
-        }
+    /// <summary>Сколько таких зданий у компании в этой области.</summary>
+    public int CountAt(int region, BuildingType type) => _buildings.GetValueOrDefault((region, type));
 
-        return total;
-    }
+    public int CountOf(BuildingType type) => _byType.GetValueOrDefault(type);
+
+    /// <summary>Сколько чего у компании, без разбивки по областям. Считается по ходу, а не
+    /// перебором: делёж прибыли идёт каждый тик, и перебор всех зданий всех компаний стоил
+    /// втрое дороже самого тика.</summary>
+    public IReadOnlyDictionary<BuildingType, int> Types => _byType;
+
+    private readonly Dictionary<BuildingType, int> _byType = [];
 
     /// <summary>Всего зданий у компании. По нему делится прибыль страны.</summary>
     /// <remarks>Считается на лету, а не перебором: прибыль делится каждый тик, и перебор

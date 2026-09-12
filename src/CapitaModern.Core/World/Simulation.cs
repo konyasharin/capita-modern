@@ -2265,7 +2265,48 @@ public sealed class Simulation
                 worst = type;
             }
 
-            region.TryRemoveBuildings(worst, Math.Min(due, most));
+            var gone = Math.Min(due, most);
+            if (!region.TryRemoveBuildings(worst, gone)) continue;
+
+            Strip(region.Id, worst, gone);
+        }
+    }
+
+    /// <summary>Списывает рухнувшее у тех, кому оно принадлежало.</summary>
+    /// <remarks>
+    /// Износ рушит здания на счету области, а счёт компании об этом не знал вовсе: за пять
+    /// лет мир терял миллион предприятий, и ни одно из них не пропадало ни у одного
+    /// хозяина. Пока прибыль делилась по числу зданий, это было незаметно; как только
+    /// компания станет владельцем товара, расхождение станет ошибкой в деньгах.
+    ///
+    /// Делится потеря по долям: у кого больше стояло, у того больше и рухнуло.
+    /// </remarks>
+    private void Strip(int region, BuildingType type, int gone)
+    {
+        var owners = _world.Holdings.OwnersOf(region, type);
+        if (owners.Count == 0) return;
+
+        var total = 0L;
+        foreach (var company in owners) total += company.CountAt(region, type);
+        if (total <= 0) return;
+
+        var left = gone;
+
+        // Копия: Remove вычёркивает опустевших из того же списка.
+        foreach (var company in owners.ToArray())
+        {
+            if (left <= 0) break;
+
+            var mine = (int)((long)gone * company.CountAt(region, type) / total);
+            left -= company.Remove(region, type, Math.Min(mine, left));
+        }
+
+        // Остаток от округления — первому, у кого ещё есть.
+        foreach (var company in owners.ToArray())
+        {
+            if (left <= 0) break;
+
+            left -= company.Remove(region, type, left);
         }
     }
 
@@ -2299,14 +2340,28 @@ public sealed class Simulation
         }
     }
 
+    /// <summary>Во что обходится суточный выпуск всех зданий компании.</summary>
+    private static Int128 Made(Company company, long[] worth)
+    {
+        var total = (Int128)0;
+        foreach (var (type, count) in company.Types) total += (Int128)worth[(int)type] * count;
+
+        return total;
+    }
+
+    private readonly long[] _worthOf = new long[Enum.GetValues<BuildingType>().Length];
+
     /// <summary>Что за тик ушло владельцам.</summary>
     public Money ProfitOf(byte country) => _profits.GetValueOrDefault(country);
 
     /// <summary>Делит заработанное между компаниями и владельцами.</summary>
     /// <remarks>
-    /// Доля компании — её доля в числе зданий страны: чем больше у неё заводов, тем больше
-    /// она и заработала. Считать по выпуску точнее, но это перебор всех зданий всех
-    /// компаний каждый тик, а разница невелика — здания одного сектора похожи.
+    /// Доля компании — её доля в выпуске страны, а не в числе зданий. Разница не
+    /// косметическая: рудник и завод микроэлектроники считались одинаково, и владелец
+    /// сотни шахт получал столько же, сколько владелец сотни заводов вдесятеро дороже.
+    ///
+    /// Считается по счёту зданий каждого вида, который компания ведёт по ходу: перебирать
+    /// все её здания каждый тик стоило втрое дороже самого тика.
     ///
     /// Из своей доли компания оставляет четверть на развитие, остальное отдаёт владельцам.
     /// Владелец — население: акций и биржи пока нет, и делить их не с кем.
@@ -2321,10 +2376,26 @@ public sealed class Simulation
             return;
         }
 
-        var total = 0L;
+        // Во что обходится суточный выпуск одного здания каждого вида — раз на страну.
+        var worth = _worthOf;
+        Array.Clear(worth);
+
+        foreach (var type in AllBuildings)
+        {
+            var daily = default(Money);
+            foreach (var (good, amount) in _world.Buildings[type].Outputs)
+            {
+                daily += new Money(
+                    (long)((Int128)country.State.Prices.Of(good).Raw * amount.Raw / GoodAmount.Scale));
+            }
+
+            worth[(int)type] = daily.Raw;
+        }
+
+        var total = (Int128)0;
         foreach (var company in companies)
         {
-            if (company.Alive) total += company.Size;
+            if (company.Alive) total += Made(company, worth);
         }
 
         if (total <= 0)
@@ -2339,7 +2410,7 @@ public sealed class Simulation
         {
             if (!company.Alive) continue;
 
-            var share = new Money((long)((Int128)earned.Raw * company.Size / total));
+            var share = new Money((long)((Int128)earned.Raw * Made(company, worth) / total));
 
             // Сперва налог на прибыль, и только с остатка компания копит на стройку.
             var tax = TaxCode.Take(share, country.Taxes.Profit);

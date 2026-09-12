@@ -107,8 +107,17 @@ public sealed class GameWorld
             if (!_byCountry.TryGetValue(company.Country, out var list)) _byCountry[company.Country] = list = [];
 
             list.Add(company);
+
+            // Здания компаниям раздали до заселения, поэтому указатель наполняем разом, а
+            // дальше он обновляется сам — стройкой, износом, продажей и разорением.
+            company.Ledger = Holdings;
+            foreach (var ((region, type), _) in company.Buildings) Holdings.Note(company, region, type);
         }
     }
+
+    /// <summary>Кто чем владеет. Нужен износу: он рушит здания области, а списать их надо
+    /// у настоящих хозяев.</summary>
+    public Holdings Holdings { get; } = new();
 
     private IReadOnlyList<Company> _companies = [];
     private readonly Dictionary<byte, List<Company>> _byCountry = [];
