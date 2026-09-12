@@ -50,7 +50,7 @@ public partial class PopoverStack : Control
 
         var popover = card is null
             ? Popover.Create(source, key, article!, extra)
-            : Popover.Create(source, key, card());
+            : Popover.Create(source, key, card);
         AddChild(popover);
         popover.PlaceNear(source, GetViewportRect());
 
@@ -77,11 +77,24 @@ public partial class PopoverStack : Control
         _open.Add(popover);
     }
 
+    /// <summary>Как часто пересобираются висящие карточки, в секундах. Каждый кадр незачем:
+    /// тик игры — это сутки, и чаще двух раз в секунду там всё равно ничего не меняется.</summary>
+    private const double RestockEvery = 0.5;
+
+    private double _since;
+
     public override void _Process(double delta)
     {
         if (_open.Count == 0)
         {
             return;
+        }
+
+        _since += delta;
+        if (_since >= RestockEvery)
+        {
+            _since = 0;
+            foreach (var popover in _open) popover.Restock();
         }
 
         var last = _open[^1];

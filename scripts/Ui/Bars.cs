@@ -8,7 +8,7 @@ public readonly record struct Slice(
     string Text,
     Color Colour,
     string? Icon = null,
-    Func<(string Key, Control Body)?>? About = null);
+    Func<(string Key, Func<Control> Body)?>? About = null);
 
 /// <summary>Столбик горизонтальных полос. Там, где важно не точное число, а кто больше
 /// кого, полосы читаются с одного взгляда, а колонка цифр — нет.</summary>
@@ -70,7 +70,7 @@ public partial class Bars : VBoxContainer
         private ColorRect _groove = null!;
         private ColorRect _fill = null!;
 
-        private Func<(string Key, Control Body)?>? _about;
+        private Func<(string Key, Func<Control> Body)?>? _about;
 
         public static BarRow Create(PopoverStack? stack)
         {

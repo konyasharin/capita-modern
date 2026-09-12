@@ -6,7 +6,7 @@ public partial class Metric : HBoxContainer
     private Label _value = null!;
     private string _key = string.Empty;
     private PopoverStack _stack = null!;
-    private Func<(string Key, Control Body)?>? _card;
+    private Func<(string Key, Func<Control> Body)?>? _card;
 
     /// <param name="width">Ширина места под число: иначе при смене «9.9M» на «10.1M»
     /// весь ряд дёргается вбок.</param>
@@ -16,7 +16,7 @@ public partial class Metric : HBoxContainer
         Texture2D icon,
         Color tint,
         int width,
-        Func<(string Key, Control Body)?>? card = null)
+        Func<(string Key, Func<Control> Body)?>? card = null)
     {
         var metric = new Metric
         {
@@ -62,7 +62,7 @@ public partial class Metric : HBoxContainer
     {
         if (!GetGlobalRect().HasPoint(GetGlobalMousePosition())) return;
 
-        if (_card?.Invoke() is { } card) _stack.Open(this, card.Key, 0, card: () => card.Body);
+        if (_card?.Invoke() is { } card) _stack.Open(this, card.Key, 0, card: card.Body);
         else _stack.Open(this, _key, 0);
     }
 

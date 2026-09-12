@@ -148,6 +148,16 @@ public sealed class Simulation
     /// <summary>Отложенные на стройку деньги. Завод стоит три своих годовых выпуска,
     /// за тик такого не накопить — поэтому копится.</summary>
     private readonly Dictionary<byte, Money> _investment = new();
+    private readonly Dictionary<byte, Money> _profits = new();
+    private readonly Dictionary<byte, Money> _saved = new();
+
+    /// <summary>Добавленная стоимость за тик. Считается в PayWages и переиспользуется:
+    /// перебор всех товаров на каждую страну стоит дороже самого тика.</summary>
+    private readonly Dictionary<byte, Money> _added = new();
+
+    /// <summary>Страна, за которую модель ничего не решает сама: ни строит, ни занимает.
+    /// За неё это делает игрок.</summary>
+    public byte? HandsOff { get; set; }
 
     /// <summary>Что страна велела строить в обход выбора по прибыли и сколько вложенных
     /// денег на это ещё не потрачено.</summary>
@@ -233,6 +243,7 @@ public sealed class Simulation
         PullPrices();
         Wear();
         Build();
+        PayProfits();
         UpdateDemographics();
     }
 
@@ -254,6 +265,9 @@ public sealed class Simulation
         _hands.Clear();
         _wages.Clear();
         _sales.Clear();
+        _profits.Clear();
+        _saved.Clear();
+        _added.Clear();
         _build.Clear();
         _plan.Clear();
         _burnedFuel.Clear();
@@ -877,6 +891,10 @@ public sealed class Simulation
 
             var want = need > have ? need - have : default;
 
+            // За страну игрока заявку подаёт он сам: иначе долг рос бы сам собой, а
+            // «попросить в долг» было бы нечего.
+            if (country.Id == HandsOff) want = default;
+
             // Больше, чем сможет обслуживать, не дадут ни под какой процент: за чертой
             // дефолта заём — это не сделка, а подарок. У кого платить нечем вовсе, того
             // держит не потолок, а ставка: нагрузка без вывоза уходит в бесконечность.
@@ -1202,7 +1220,10 @@ public sealed class Simulation
         foreach (var country in _world.Countries)
         {
             var purse = _investment.GetValueOrDefault(country.Id);
-            var best = Ordered(country) ?? BestBuild(country, purse);
+
+            // За страну игрока не решаем: она строит только то, что он заказал. Появятся
+            // компании — строить начнут они, а государство лишь когда захочет игрок.
+            var best = Ordered(country) ?? (country.Id == HandsOff ? null : BestBuild(country, purse));
             if (best is null) continue;
 
             var info = _world.Buildings[best.Value.Type];
@@ -1336,6 +1357,7 @@ public sealed class Simulation
         foreach (var country in _world.Countries)
         {
             var made = ValueAddedOf(country.Id);
+            _added[country.Id] = made;
             if (made.Raw <= 0) continue;
 
             var owed = new Money(made.Raw * country.LabourShare / 100);
@@ -1429,6 +1451,15 @@ public sealed class Simulation
             }
         }
     }
+
+    /// <summary>Сколько товара просит стройка за тик.</summary>
+    public GoodAmount BuildWantOf(byte country, GoodType good) => _build.Get(country, good);
+
+    /// <summary>Сколько товара просит население за тик.</summary>
+    public GoodAmount PeopleWantOf(byte country, GoodType good) => _peopleWants.Get(country, good);
+
+    /// <summary>Выручка с населения за прошедший тик.</summary>
+    public Money SalesOf(byte country) => _sales.GetValueOrDefault(country);
 
     /// <summary>Бюджет за прошедший тик: выручка с населения минус зарплаты.</summary>
     public Money BudgetOf(byte country) =>
@@ -1573,6 +1604,114 @@ public sealed class Simulation
         }
     }
 
+    /// <summary>Прибыль сверх дневного запаса уходит владельцам — тем же людям.</summary>
+    /// <remarks>
+    /// Без этого шага деньги утекали из оборота навсегда: казна собирала с населения
+    /// больше, чем платила зарплатами, и разница копилась мёртвым грузом. За пять лет у
+    /// России в казне оседало почти два миллиарда, а у населения оставалось две тысячных
+    /// от начального — покупать было уже не на что.
+    ///
+    /// Владелец предприятия — такой же человек, и его прибыль идёт в те же кошельки.
+    /// Отдельного счёта у него не будет, пока не появятся компании.
+    /// </remarks>
+    private void PayProfits()
+    {
+        foreach (var country in _world.Countries)
+        {
+            // Делится заработанное за сутки, а не весь остаток казны: остаток — это
+            // оборотные деньги страны, и раздать их в первый же тик значит пустить
+            // стартовый капитал на потребление.
+            var free = _sales.GetValueOrDefault(country.Id) - _wages.GetValueOrDefault(country.Id);
+            var balance = country.State.Treasury.Balance;
+
+            if (free > balance) free = balance;
+            if (free.Raw <= 0) continue;
+
+            if (!country.State.Treasury.TrySpend(free)) continue;
+
+            country.Households.Earn(free);
+            _profits[country.Id] = free;
+        }
+    }
+
+    /// <summary>Что за тик ушло владельцам.</summary>
+    public Money ProfitOf(byte country) => _profits.GetValueOrDefault(country);
+
+    /// <summary>Что за тик отложено из казны на стройку.</summary>
+    public Money SavedOf(byte country) => _saved.GetValueOrDefault(country);
+
+    /// <summary>Предложение занять: кто даёт, сколько и под какой процент.</summary>
+    /// <param name="Rate">Годовая ставка в сотых долях процента.</param>
+    public readonly record struct LoanOffer(byte Lender, Money Amount, int Rate);
+
+    /// <summary>Кто и на каких условиях даст стране в долг прямо сейчас.</summary>
+    /// <remarks>
+    /// Считается ровно тем же правилом, что и сам аукцион в <see cref="CreditMarket"/>:
+    /// показанная ставка обязана совпасть с той, по которой заём и возьмут. Свободные
+    /// деньги кредитора — это его резервы сверх сорокадневного запаса на ввоз.
+    /// </remarks>
+    public List<LoanOffer> OffersFor(byte country, Money want)
+    {
+        var borrower = _world.CountryById(country);
+        var premium = CreditMarket.PremiumFor(
+            borrower.State.Treasury.Debt.BurdenToExports(DebtCapacity(borrower)), LockedOut(borrower));
+
+        var offers = new List<LoanOffer>();
+
+        foreach (var lender in _world.Countries)
+        {
+            if (lender.Id == country) continue;
+
+            var free = FreeToLend(lender);
+            if (free.Raw <= 0) continue;
+
+            var politics = CreditMarket.PoliticsOn(_world.Relations.Between(lender.Id, country));
+            if (politics is null) continue;
+
+            var rate = Math.Max(
+                CreditMarket.BaseRate,
+                CreditMarket.BaseRate + lender.KeyRate + premium + politics.Value);
+
+            rate = (rate + CreditMarket.RateStep - 1) / CreditMarket.RateStep * CreditMarket.RateStep;
+            if (rate > CreditMarket.Ceiling) continue;
+
+            offers.Add(new LoanOffer(lender.Id, free < want ? free : want, rate));
+        }
+
+        offers.Sort((a, b) => a.Rate != b.Rate ? a.Rate - b.Rate : b.Amount.Raw.CompareTo(a.Amount.Raw));
+
+        return offers;
+    }
+
+    /// <summary>Берёт заём у названного кредитора. Возвращает, сколько удалось занять.</summary>
+    public Money TakeLoan(byte country, byte lender, Money want)
+    {
+        var offer = OffersFor(country, want).FirstOrDefault(one => one.Lender == lender);
+        if (offer.Amount.Raw <= 0) return default;
+
+        var taken = offer.Amount < want ? offer.Amount : want;
+        var from = _world.CountryById(lender).State;
+        var to = _world.CountryById(country).State;
+
+        if (!from.Treasury.Reserves.TrySpend(taken)) return default;
+
+        to.Treasury.Reserves.Add(Reserves.Incoming(country, to.Custody, taken));
+        to.Treasury.Debt.Take(
+            LoanSource.Foreign, lender, taken, RateKind.Floating,
+            offer.Rate - _world.CountryById(lender).KeyRate);
+
+        return taken;
+    }
+
+    /// <summary>Сколько у страны резервов сверх собственной нужды на ввоз.</summary>
+    private static Money FreeToLend(Country lender)
+    {
+        var need = new Money(lender.ImportsPerDay.Raw * Prices.TargetCoverDays);
+        var have = lender.State.Treasury.Reserves.Liquid;
+
+        return have > need ? have - need : default;
+    }
+
     /// <summary>Страна откладывает часть выпуска и строит то, что ей выгоднее всего.</summary>
     /// <remarks>
     /// Здесь и рождается сравнительное преимущество. Выгода меряется прибылью на
@@ -1584,11 +1723,16 @@ public sealed class Simulation
     {
         foreach (var country in _world.Countries)
         {
-            var added = ValueAddedOf(country.Id);
+            var added = _added.GetValueOrDefault(country.Id);
             if (added.Raw > 0)
             {
+                // Считается от выпуска, а не из казны. Местные деньги в модели приходят
+                // только от покупателей, а руду и металл население не покупает: страна,
+                // живущая добычей, не смогла бы отложить ни копейки.
                 _investment[country.Id] = _investment.GetValueOrDefault(country.Id) +
                     new Money(added.Raw * Construction.InvestmentShare / 100);
+
+                _saved[country.Id] = new Money(added.Raw * Construction.InvestmentShare / 100);
             }
 
             if (!_plan.TryGetValue(country.Id, out var plan)) continue;
@@ -1612,8 +1756,9 @@ public sealed class Simulation
                 // сделали, и когда из них построили.
                 foreach (var (good, amount) in info.BuildCost) _consumed.Add(country.Id, good, amount);
 
-                // Строителям платят, и деньги уходят в те же кошельки, что и зарплата.
-                if (country.State.Treasury.TrySpend(wages)) country.Households.Earn(wages);
+                // Строителям платят из того же кошелька, а не вторым разом из казны:
+                // зарплата уже сидит в цене постройки.
+                country.Households.Earn(wages < price ? wages : price);
                 done++;
             }
 

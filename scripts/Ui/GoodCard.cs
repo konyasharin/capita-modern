@@ -9,8 +9,12 @@ public static class GoodCard
 {
     private const int Wide = 330;
 
-    /// <summary>Ключ и виджет. Ключ нужен подсказке, чтобы заметить смену товара.</summary>
-    public static (string Key, Control Body) Of(GameLoop loop, History past, GoodType good)
+    /// <summary>Ключ и сборщик карточки. Ключ нужен подсказке, чтобы заметить смену
+    /// товара, а сборщик — чтобы пересобирать её, пока идёт время.</summary>
+    public static (string Key, Func<Control> Body) Of(GameLoop loop, History past, GoodType good) =>
+        ($"good:{good}", () => Build(loop, past, good));
+
+    private static Control Build(GameLoop loop, History past, GoodType good)
     {
         var card = new VBoxContainer { CustomMinimumSize = new Vector2(Wide, 0) };
         card.AddThemeConstantOverride("separation", 7);
@@ -22,7 +26,7 @@ public static class GoodCard
         card.AddChild(Flow(past, good));
         card.AddChild(Recipe(loop, good));
 
-        return ($"good:{good}", card);
+        return card;
     }
 
     private static Control Head(GameLoop loop, GoodType good)

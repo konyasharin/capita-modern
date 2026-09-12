@@ -15,6 +15,9 @@ public partial class FinancePanel : SidePanel
     private StatRow _balance = null!;
     private StatRow _budget = null!;
     private StatRow _wages = null!;
+    private StatRow _income = null!;
+    private StatRow _saved = null!;
+    private StatRow _profit = null!;
     private StatRow _supply = null!;
     private StatRow _printed = null!;
 
@@ -29,6 +32,12 @@ public partial class FinancePanel : SidePanel
     private StatRow _lockout = null!;
 
     private readonly List<Stepper> _knobs = [];
+
+    /// <summary>Сколько просим в долг, в миллиардах долларов.</summary>
+    private int _ask;
+
+    private VBoxContainer _offers = null!;
+    private Label _noOffers = null!;
     private Table _table = null!;
     private Button _emit = null!;
     private Button _repudiate = null!;
@@ -40,8 +49,17 @@ public partial class FinancePanel : SidePanel
 
         Section("Казна", "treasury");
         _balance = Stat("Остаток", "treasury", Trends.Treasury(Past));
+        Note("Казна — оборотная касса страны, а не запас на чёрный день. Выручка приходит " +
+            "за день и за день же расходится: зарплаты, накопление, остальное владельцам. " +
+            "Отложенное на стройку считается долей выпуска и через казну пока не проходит: " +
+            "местные деньги приходят только от покупателей, а руду и металл население не " +
+            "покупает.");
+
+        _income = Stat("Продажи населению", "sales");
+        _wages = Stat("Зарплаты", "wages");
+        _profit = Stat("Владельцам предприятий", "profit");
+        _saved = Stat("Отложено на стройку", "investment");
         _budget = Stat("Сальдо за день", "budget");
-        _wages = Stat("Зарплаты за день", "wages");
         _supply = Stat("Денежная масса", "supply", Trends.Supply(Past));
         _printed = Stat("Напечатано за партию", "printed");
 
@@ -66,6 +84,24 @@ public partial class FinancePanel : SidePanel
         ]);
 
         Rows.AddChild(_table);
+
+        Section("Занять", "debt");
+        Note("Государство само в долг не лезет — заявку подаёте вы. Условия считаются по " +
+            "тем же правилам, что и весь кредитный рынок: ставка растёт с долговой " +
+            "нагрузкой, идёт за ключевой ставкой кредитора и зависит от отношений с ним. " +
+            "Враждебные не дадут ни под какой процент.");
+
+        Knob("Просим в долг", 0, 2000, 10,
+            () => _ask, value => _ask = value, value => $"{value} млрд $", "debt");
+
+        _offers = new VBoxContainer();
+        _offers.AddThemeConstantOverride("separation", 3);
+        Rows.AddChild(_offers);
+
+        _noOffers = Ui.Text(string.Empty, 13, 400, Skin.Dim);
+        _noOffers.AutowrapMode = TextServer.AutowrapMode.WordSmart;
+        _noOffers.CustomMinimumSize = new Vector2(Skin.PanelWidth - 46, 0);
+        Rows.AddChild(_noOffers);
 
         Section("Рычаги", "tab-finance");
         Knob("Ключевая ставка", 0, 3000, 25,
@@ -99,7 +135,13 @@ public partial class FinancePanel : SidePanel
 
         var budget = sim.BudgetOf(Id);
         _budget.Set(Fmt.Cash(budget.Exact), Fmt.Sign(budget.Exact));
-        _wages.Set(Fmt.Cash(sim.WagesIn(Id).Exact));
+
+        _income.Set(Fmt.Cash(sim.SalesOf(Id).Exact), Skin.Good);
+        _wages.Set($"−{Fmt.Cash(sim.WagesIn(Id).Exact)}", Skin.Bad);
+        _profit.Set($"−{Fmt.Cash(sim.ProfitOf(Id).Exact)}", Skin.Bad);
+
+        // Без минуса: накопление считается долей выпуска и через казну пока не проходит.
+        _saved.Set(Fmt.Cash(sim.SavedOf(Id).Exact), Skin.Plants);
         _supply.Set(Fmt.Cash(Me.Bank.Supply.Exact));
         _printed.Set(Fmt.Cash(Me.Bank.Printed.Exact), Me.Bank.Printed.Raw > 0 ? Skin.Warn : Skin.Text);
 
@@ -166,7 +208,61 @@ public partial class FinancePanel : SidePanel
 
         foreach (var knob in _knobs) knob.Refresh();
 
+        ShowOffers();
+
         _repudiate.Disabled = owed.Raw == 0;
+    }
+
+    /// <summary>Кто даст в долг под нашу заявку и на каких условиях.</summary>
+    /// <remarks>Список пересобирается каждый кадр: условия меняются вместе с ключевыми
+    /// ставками, резервами кредиторов и нашей же нагрузкой.</remarks>
+    private void ShowOffers()
+    {
+        Ui.Trim(_offers, 0);
+
+        if (_ask <= 0)
+        {
+            _noOffers.Text = "Поставьте сумму — покажем, кто готов её дать.";
+
+            return;
+        }
+
+        var want = new Money((long)_ask * 1_000_000_000 / (long)Fmt.Dollar * Money.Scale);
+        var offers = Loop.Simulation.OffersFor(Id, want).Take(6).ToList();
+
+        _noOffers.Text = offers.Count > 0
+            ? string.Empty
+            : "Столько сейчас не даст никто: свободных резервов в мире нет, а те, у кого " +
+              "они есть, нам не дадут.";
+
+        foreach (var offer in offers) _offers.AddChild(Offer(offer, want));
+    }
+
+    /// <summary>Одно предложение строкой: кредитор, сумма, ставка и кнопка.</summary>
+    private Control Offer(Simulation.LoanOffer offer, Money want)
+    {
+        var row = new HBoxContainer();
+        row.AddThemeConstantOverride("separation", 8);
+
+        var lender = Loop.World.CountryById(offer.Lender);
+        var name = Ui.Text(Names.Of(lender), 13, 600, Skin.Text);
+        name.CustomMinimumSize = new Vector2(120, 0);
+        row.AddChild(name);
+
+        row.AddChild(Ui.Number(Fmt.Cash(offer.Amount.Exact), 13, Skin.Money, 76));
+        row.AddChild(Ui.Number(Fmt.Rate(offer.Rate), 13,
+            offer.Rate > 1500 ? Skin.Bad : Skin.Text, 58));
+        row.AddChild(Ui.Spring());
+
+        var take = Ui.Act("Взять", Skin.Good, () =>
+        {
+            Loop.Simulation.TakeLoan(Id, offer.Lender, want);
+            Refresh();
+        }, 62);
+
+        row.AddChild(take);
+
+        return row;
     }
 
     private void Knob(string label, int min, int max, int step,

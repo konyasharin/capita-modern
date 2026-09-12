@@ -22,7 +22,7 @@ public partial class Table : VBoxContainer
     private bool _ascending;
     private Action<int>? _clicked;
     private PopoverStack? _stack;
-    private Func<int, (string Key, Control Body)?>? _about;
+    private Func<int, (string Key, Func<Control> Body)?>? _about;
 
     /// <param name="about">Что рассказать о строке при наведении. Номер тот же, что и у
     /// щелчка: порядковый в исходном списке, а не в отсортированном.</param>
@@ -30,7 +30,7 @@ public partial class Table : VBoxContainer
         Column[] columns,
         Action<int>? clicked = null,
         PopoverStack? stack = null,
-        Func<int, (string Key, Control Body)?>? about = null)
+        Func<int, (string Key, Func<Control> Body)?>? about = null)
     {
         var table = new Table
         {
@@ -150,7 +150,7 @@ public partial class Table : VBoxContainer
             int index,
             Action<int>? clicked,
             PopoverStack? stack,
-            Func<int, (string Key, Control Body)?>? about)
+            Func<int, (string Key, Func<Control> Body)?>? about)
         {
             var row = new TableRow
             {

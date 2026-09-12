@@ -119,7 +119,7 @@ public partial class TopBar : Control
         string key,
         Color tint,
         int width,
-        Func<(string Key, Control Body)?>? card = null)
+        Func<(string Key, Func<Control> Body)?>? card = null)
     {
         var icon = GD.Load<Texture2D>($"res://assets/icons/ui/{key}.svg");
         var metric = Metric.Create(_stack, key, icon, tint, width, card);

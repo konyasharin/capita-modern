@@ -81,14 +81,15 @@ public class WagesTests
     {
         var world = Ready(treasury: 0, savings: 1000);
         var country = world.CountryById(1);
-        var before = country.Households.Savings;
 
         var simulation = new Simulation(world);
         simulation.Tick();
         simulation.Tick();
 
-        Assert.True(country.Households.Savings < before, "население ничего не потратило");
-        Assert.True(country.State.Treasury.Balance > default(Money), "выручка не дошла до казны");
+        // Сами сбережения при этом не тают: в казне пусто, зарплат нет, и вся выручка тем
+        // же тиком возвращается владельцам — тем же людям.
+        Assert.True(simulation.SalesOf(1) > default(Money), "население ничего не купило");
+        Assert.True(simulation.ProfitOf(1) > default(Money), "выручка не вернулась владельцам");
     }
 
     /// <summary>Местные деньги не появляются ниоткуда: сколько было, столько и есть.</summary>
@@ -98,10 +99,12 @@ public class WagesTests
         var world = Ready(treasury: 5000, savings: 3000);
         var country = world.CountryById(1);
 
+        var simulation = new Simulation(world);
+
         long All() => country.State.Treasury.Balance.Raw + country.Households.Savings.Raw;
+
         var before = All();
 
-        var simulation = new Simulation(world);
         for (var tick = 0; tick < 100; tick++) simulation.Tick();
 
         Assert.Equal(before, All());

@@ -44,6 +44,7 @@ public partial class GameLoop : Node
         World = Load();
         Simulation = new Simulation(World);
         Player = World.Countries.First(country => country.Iso == "RUS").Id;
+        Simulation.HandsOff = Player;
     }
 
     /// <summary>Ставит скорость. Пауза помнит, с какой скорости её включили.</summary>

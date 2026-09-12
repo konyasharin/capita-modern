@@ -34,14 +34,37 @@ public partial class Popover : PanelContainer
     /// подсказку, пока подробность не изменилась.</summary>
     public string? Extra { get; private set; }
 
+    /// <summary>Чем собран виджет. Держим, чтобы пересобирать его на ходу: игра идёт, и
+    /// висящий график иначе замирает на том дне, когда его открыли.</summary>
+    private Func<Control>? _card;
+
     /// <summary>Подсказка из собранного виджета: заголовок и всё прочее рисует он сам.
-    /// Текстом не всё расскажешь — цену за месяц удобнее показать графиком.</summary>
-    public static Popover Create(Control source, string key, Control body)
+    /// Текстом не всё расскажешь — цену за год удобнее показать графиком.</summary>
+    public static Popover Create(Control source, string key, Func<Control> card)
     {
         var popover = Frame(source, key, null);
-        popover.GetChild(0).AddChild(body);
+
+        popover._card = card;
+        popover.GetChild(0).AddChild(card());
 
         return popover;
+    }
+
+    /// <summary>Пересобирает виджет по нынешнему состоянию игры.</summary>
+    /// <remarks>Ширина держится прежней: карточка, которая дышит вслед за длиной чисел,
+    /// читается хуже замершей.</remarks>
+    public void Restock()
+    {
+        if (_card is null) return;
+
+        var rows = GetChild<VBoxContainer>(0);
+        var fresh = _card();
+
+        fresh.CustomMinimumSize = new Vector2(
+            Mathf.Max(fresh.CustomMinimumSize.X, rows.Size.X), fresh.CustomMinimumSize.Y);
+
+        Ui.Trim(rows, 0);
+        rows.AddChild(fresh);
     }
 
     private static Popover Frame(Control source, string key, string? extra)

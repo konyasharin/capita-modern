@@ -61,10 +61,11 @@ public partial class ResourceWindow : Control
     private Bars _sellers = null!;
     private Bars _buyers = null!;
     private Bars _world = null!;
+    private Bars _eaters = null!;
     private Label _whose = null!;
     private Label _enough = null!;
     private Label _spill = null!;
-    private ColorRect _notch = null!;
+    private VBoxContainer _forecast = null!;
     private Label _price = null!;
     private VBoxContainer _breakdown = null!;
     private HSlider _slider = null!;
@@ -264,6 +265,11 @@ public partial class ResourceWindow : Control
         _world = Bars.Create();
         column.AddChild(_world);
 
+        column.AddChild(Heading("Куда уходит у нас"));
+        _eaters = Bars.Create();
+        column.AddChild(_eaters);
+        column.AddChild(_eaters.Empty("Никто не просит — товар только копится."));
+
         column.AddChild(Heading("Вложиться в производство"));
 
         _plants = new VBoxContainer();
@@ -282,21 +288,6 @@ public partial class ResourceWindow : Control
             ShowSum();
         });
 
-        // Засечка — сумма, на которой худший материал заказа начинает ускоряться на
-        // процент в день. Левее стройка цен почти не трогает, правее — заметно.
-        _notch = new ColorRect
-        {
-            Color = Skin.Warn,
-            MouseFilter = MouseFilterEnum.Ignore,
-            Visible = false,
-        };
-
-        _notch.AnchorTop = 0;
-        _notch.AnchorBottom = 1;
-        _notch.OffsetLeft = -1;
-        _notch.OffsetRight = 1;
-        _slider.AddChild(_notch);
-
         line.AddChild(_slider);
 
         _sum = Ui.Number("0$", 18, Skin.Money, 130);
@@ -308,7 +299,11 @@ public partial class ResourceWindow : Control
         _enough = Wrapped(13, Skin.Text, 600);
         column.AddChild(_enough);
 
-        _spill = Wrapped(13, Skin.Warn);
+        _forecast = new VBoxContainer();
+        _forecast.AddThemeConstantOverride("separation", 2);
+        column.AddChild(_forecast);
+
+        _spill = Wrapped(13, Skin.Dim);
         column.AddChild(_spill);
 
         _order = Wrapped(13);
@@ -535,6 +530,7 @@ public partial class ResourceWindow : Control
             : "Раздел по долям области: где граница разрезала область, часть предприятий числится за соседом.";
 
         _world.Show(Shares());
+        _eaters.Show(Eaters());
 
         var output = sim.OutputOf(id, _chosen);
         var everywhere = sim.WorldOutputOf(_chosen);
@@ -638,6 +634,43 @@ public partial class ResourceWindow : Control
                     ? Names.ColourOf(_chosen).Lightened(0.25f)
                     : Slices[(index + 1) % Slices.Length]))
             .ToList();
+    }
+
+    /// <summary>Кто у нас просит этот товар за сутки: заводы по типам, стройка и люди.</summary>
+    /// <remarks>Считается по заказу, а не по съеденному: съедено — это то, что нашлось на
+    /// складе, и при нехватке все доли ужимаются разом, будто её и не было.</remarks>
+    private List<Slice> Eaters()
+    {
+        var sim = _loop.Simulation;
+        var id = _loop.Player;
+        var eaters = new List<Slice>();
+
+        foreach (var type in Enum.GetValues<BuildingType>())
+        {
+            if (!_loop.World.Buildings[type].Inputs.TryGetValue(_chosen, out var each)) continue;
+
+            var eats = new GoodAmount(each.Raw * sim.WorkingOf(id, type));
+            if (eats.Raw <= 0) continue;
+
+            eaters.Add(new Slice(
+                Names.Of(type), eats.Exact, Fmt.Amount(eats), Skin.Plants, Names.IconOf(type)));
+        }
+
+        var building = sim.BuildWantOf(id, _chosen);
+        if (building.Raw > 0)
+        {
+            eaters.Add(new Slice(
+                "Стройка", building.Exact, Fmt.Amount(building), Skin.Labour, Names.Ui("plants")));
+        }
+
+        var people = sim.PeopleWantOf(id, _chosen);
+        if (people.Raw > 0)
+        {
+            eaters.Add(new Slice(
+                "Население", people.Exact, Fmt.Amount(people), Skin.People, Names.Ui("population")));
+        }
+
+        return eaters.OrderByDescending(slice => slice.Value).Take(7).ToList();
     }
 
     /// <summary>Доли стран в мировом выпуске товара: пятёрка крупнейших.</summary>
@@ -808,7 +841,7 @@ public partial class ResourceWindow : Control
     }
 
     /// <summary>Карточка товара, записанного в узле. Пусто — рассказывать нечего.</summary>
-    private (string Key, Control Body)? Told(Node row) =>
+    private (string Key, Func<Control> Body)? Told(Node row) =>
         row.HasMeta("good")
             ? GoodCard.Of(_loop, _past, (GoodType)(int)row.GetMeta("good"))
             : null;
@@ -837,71 +870,80 @@ public partial class ResourceWindow : Control
         ShowBreakdown();
     }
 
-    /// <summary>Насколько выбранная сумма ускорит подорожание материалов и где та
-    /// граница, за которой это уже заметно.</summary>
-    /// <remarks>Прежняя засечка отвечала «двинет цены или нет» и всегда стояла на нуле:
-    /// склад почти никогда не держит ровно сорокадневный запас, поэтому цены и так уже
-    /// куда-то идут. Полезен не порог, а величина: на сколько именно эта стройка ускорит
-    /// движение.</remarks>
+    /// <summary>Во что обойдётся размах: на сколько эта стройка ускорит подорожание
+    /// каждого материала.</summary>
+    /// <remarks>
+    /// Сначала здесь была засечка на шкале — точка, за которой цены «поедут». Точки такой
+    /// нет: склад почти никогда не держит ровно сорокадневный запас, цены и так уже куда-то
+    /// идут, и засечка вечно стояла на нуле. Полезен не порог, а величина, и не по одному
+    /// худшему материалу, а по всем: строку про худший приходилось читать, а строки с
+    /// числами видно разом.
+    /// </remarks>
     private void Spill(double price, double amount, double purse)
     {
+        Ui.Trim(_forecast, 0);
+
         if (_plant is not { } type || price <= 0 || purse <= 0)
         {
-            _notch.Visible = false;
             _spill.Text = string.Empty;
 
             return;
         }
 
-        // Засечка — там, где худший материал начинает ускоряться на процент в день.
-        var mark = Mark(type, price, purse);
-
-        _notch.Visible = mark > 0 && mark < purse;
-        _notch.AnchorLeft = _notch.AnchorRight = (float)Mathf.Clamp(mark / purse, 0.0, 1.0);
-
-        // Ползунок на нуле — считаем для всей казны: иначе строка молчит, когда как раз и
+        // Ползунок на нуле — считаем для всей казны: иначе прогноз молчит, когда как раз и
         // хочется прикинуть, во что обойдётся размах.
         var whole = amount <= 0;
         var count = (int)((whole ? purse : amount) / price);
-        var (good, lift) = _loop.Simulation.OrderLift(_loop.Player, type, count);
+        var sim = _loop.Simulation;
+        var id = _loop.Player;
+        var worst = default(GoodType?);
+        var most = 0;
 
-        if (good is not { } which || lift <= 0)
+        foreach (var (good, each) in _loop.World.Buildings[type].BuildCost.OrderBy(pair => (int)pair.Key))
         {
-            _spill.Text = "На ценах материалов это почти не скажется.";
-            _spill.AddThemeColorOverride("font_color", Skin.Dim);
+            if (each.Raw <= 0) continue;
 
-            return;
+            var lift = sim.PriceLift(id, good, new GoodAmount(each.Raw * count));
+            _forecast.AddChild(Forecast(good, sim.PaceOf(id, good), lift));
+
+            if (lift <= most) continue;
+
+            most = lift;
+            worst = good;
         }
 
-        var pace = _loop.Simulation.PaceOf(_loop.Player, which);
-        var head = whole ? "Если вложить всё, сильнее всего заденет" : "Сильнее всего заденет";
+        _spill.Text = worst is { } which && most > 0
+            ? (whole ? "Если вложить всё: " : string.Empty) + Ship(which)
+            : "На ценах материалов это почти не скажется.";
 
-        _spill.AddThemeColorOverride("font_color", lift >= LiftMark && !whole ? Skin.Warn : Skin.Dim);
-        _spill.Text =
-            $"{head} {Names.Of(which).ToLowerInvariant()}: " +
-            $"сейчас {Fmt.Percent(pace / 100.0, signed: true)} в день, эта стройка добавит " +
-            $"{Fmt.Percent(lift / 100.0, signed: true)}. {Ship(which)}";
+        _spill.AddThemeColorOverride("font_color", most >= LiftMark && !whole ? Skin.Warn : Skin.Dim);
     }
 
-    /// <summary>Сумма, на которой худший материал начинает ускоряться на процент в день.
-    /// Ищется перебором пополам: обратной формулы у правила цен нет.</summary>
-    private double Mark(BuildingType type, double price, double purse)
+    /// <summary>Строка прогноза по одному материалу: сколько цена идёт сейчас и сколько
+    /// добавит стройка.</summary>
+    private static Control Forecast(GoodType good, int pace, int lift)
     {
-        var most = (int)(purse / price);
-        if (most <= 0) return 0;
+        var row = new HBoxContainer();
+        row.AddThemeConstantOverride("separation", 8);
 
-        var low = 0;
-        var high = most;
+        row.AddChild(Ui.Icon(Names.IconOf(good), 16, Names.ColourOf(good)));
 
-        while (low < high)
-        {
-            var middle = (low + high) / 2;
+        var name = Ui.Text(Names.Of(good), 13, 400, Skin.Text);
+        name.CustomMinimumSize = new Vector2(132, 0);
+        row.AddChild(name);
 
-            if (_loop.Simulation.OrderLift(_loop.Player, type, middle).Lift >= LiftMark) high = middle;
-            else low = middle + 1;
-        }
+        row.AddChild(Ui.Number(Fmt.Percent(pace / 100.0, signed: true), 13, Fmt.Sign(pace, moreIsBetter: false), 62));
+        row.AddChild(Ui.Text("в день, стройка добавит", 13, 400, Skin.Dim));
 
-        return low >= most ? 0 : low * price;
+        // Прибавка всегда со знаком плюс и всегда тревожного цвета, когда она заметна:
+        // читают эту строку ради неё, а не ради нынешней скорости.
+        row.AddChild(Ui.Number(
+            Fmt.Percent(lift / 100.0, signed: true), 13,
+            lift >= LiftMark ? Skin.Bad : lift > 0 ? Skin.Warn : Skin.Dim, 62));
+
+        row.AddChild(Ui.Spring());
+
+        return row;
     }
 
     /// <summary>Привезут ли нехватку из-за границы и во что обойдётся дорога.</summary>

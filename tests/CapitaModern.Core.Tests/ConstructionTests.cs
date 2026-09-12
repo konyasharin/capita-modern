@@ -11,7 +11,9 @@ public class ConstructionTests
     private const GoodType Coal = GoodType.Coal;
     private const BuildingType Mine = BuildingType.CoalMine;
 
-    private static GameWorld WorldWith(int population, int workersPerMine) => Build.World(
+    /// <param name="needs">Сколько угля в сутки нужно миллиону человек. Без покупателя
+    /// стране нечего заработать, а значит и нечего отложить на стройку.</param>
+    private static GameWorld WorldWith(int population, int workersPerMine, long needs = 1000) => new(
         [Build.Region(1, 1, new Dictionary<BuildingType, int> { [Mine] = 10 },
             deposits: new Dictionary<GoodType, int> { [Coal] = 100 },
             population: population)],
@@ -21,14 +23,16 @@ public class ConstructionTests
                 [GoodType.Metals] = Build.Whole(1_000_000),
             },
             prices: new Dictionary<GoodType, Money> { [Coal] = Money.FromWhole(100) },
-            money: 100_000_000, supply: 100_000_000)],
+            money: 100_000_000, supply: 100_000_000, savings: 100_000_000)],
         Build.Catalog(Build.Info(Mine,
             outputs: new() { [Coal] = Build.Whole(10) },
             deposit: Coal,
             workers: workersPerMine,
             buildCost: new() { [GoodType.Materials] = Build.Whole(100) },
             buildWorkers: 50)),
-        new Dictionary<GoodType, Money> { [Coal] = Money.FromWhole(100) });
+        new Needs(new Dictionary<GoodType, GoodAmount> { [Coal] = Build.Whole(needs) }),
+        Build.Market(new Dictionary<GoodType, Money> { [Coal] = Money.FromWhole(100) }),
+        new Elasticity());
 
     private static int MinesIn(GameWorld world) =>
         world.Regions.SelectMany(region => region.BuildingsCount)

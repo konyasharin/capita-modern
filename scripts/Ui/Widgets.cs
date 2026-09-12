@@ -236,7 +236,7 @@ public static class Ui
         PopoverStack stack,
         string key,
         Func<Article?>? about = null,
-        Func<(string Key, Control Body)?>? card = null)
+        Func<(string Key, Func<Control> Body)?>? card = null)
         where T : Control
     {
         node.MouseFilter = Control.MouseFilterEnum.Stop;
@@ -262,7 +262,7 @@ public partial class HoverProbe : Node
 
     /// <summary>Собранный виджет вместо текста. Ключ нужен, чтобы подсказка заметила, что
     /// мышь переехала на другой товар, и пересобралась.</summary>
-    public Func<(string Key, Control Body)?>? Card;
+    public Func<(string Key, Func<Control> Body)?>? Card;
 
     public override void _Process(double delta)
     {
@@ -272,7 +272,7 @@ public partial class HoverProbe : Node
 
         if (Card?.Invoke() is { } card)
         {
-            Stack.Open(owner, card.Key, 0, card: () => card.Body);
+            Stack.Open(owner, card.Key, 0, card: card.Body);
             return;
         }
 
@@ -291,7 +291,7 @@ public partial class StatRow : HBoxContainer
         string label,
         PopoverStack? stack = null,
         string? key = null,
-        Func<(string Key, Control Body)?>? card = null)
+        Func<(string Key, Func<Control> Body)?>? card = null)
     {
         var row = new StatRow { MouseFilter = MouseFilterEnum.Ignore };
         row.AddThemeConstantOverride("separation", 6);
@@ -326,7 +326,7 @@ public partial class Bar : VBoxContainer
         Color colour,
         PopoverStack? stack = null,
         string? key = null,
-        Func<(string Key, Control Body)?>? card = null)
+        Func<(string Key, Func<Control> Body)?>? card = null)
     {
         var bar = new Bar { MouseFilter = MouseFilterEnum.Ignore, _colour = colour };
         bar.AddThemeConstantOverride("separation", 3);
