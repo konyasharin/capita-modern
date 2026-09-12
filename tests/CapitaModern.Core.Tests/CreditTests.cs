@@ -110,17 +110,22 @@ public class CreditTests
     }
 
     [Fact]
-    public void CheaperLenderIsUsedFirst()
+    public void LenderKeyRateDoesNotSetThePrice()
     {
-        var cheap = Rich(200);
-        var dear = Rich(200);
-        var borrower = Rich(0);
+        Money RateWith(int keyRate)
+        {
+            var lender = Rich(1000);
+            var borrower = Rich(0);
 
-        new CreditMarket().Settle(
-            [Offers(1, dear, 200, keyRate: 1000), Offers(2, cheap, 200, keyRate: 0), Wants(3, borrower, 200)]);
+            new CreditMarket().Settle(
+                [Offers(1, lender, 1000, keyRate), Wants(2, borrower, 400)], worldRate: 200);
 
-        Assert.Equal(default, cheap.Reserves.Value);
-        Assert.Equal(Whole(200), dear.Reserves.Value);
+            return new Money(borrower.Debt.Loans[0].RateAt(200));
+        }
+
+        // Кредитор даёт мировые деньги, а не свои: доллар стоит столько, сколько стоит
+        // доллар, и порядки у кредитора дома тут ни при чём.
+        Assert.Equal(RateWith(0), RateWith(3500));
     }
 
     [Fact]
@@ -350,12 +355,14 @@ public class CreditTests
 
         Assert.True(poor.DefaultedOnDay > 0, "безнадёжный должник так и не отказался платить");
 
-        // Отказ списывает внешний долг и закрывает рынок на пять лет: занять снова он
-        // не может, сколько бы ни просил.
-        var owedAfter = poor.State.Treasury.Debt.Owed(LoanSource.Foreign);
+        // Отказ списывает внешний долг и закрывает рынок на пять лет: занять снова он не
+        // может, сколько бы ни просил. Старые займы при этом гаснут и списываются, так что
+        // проверяем, что новых не прибавилось.
+        var loansAfter = poor.State.Treasury.Debt.Loans.Count;
         for (var tick = 0; tick < 100; tick++) simulation.Tick();
 
-        Assert.Equal(owedAfter, poor.State.Treasury.Debt.Owed(LoanSource.Foreign));
+        Assert.True(poor.State.Treasury.Debt.Loans.Count <= loansAfter,
+            "отказавшемуся платить снова дали в долг");
     }
 
     /// <summary>Долг не создаёт денег: сколько в мире было, столько и осталось.</summary>

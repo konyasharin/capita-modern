@@ -214,10 +214,9 @@ public partial class FinancePanel : SidePanel
 
         foreach (var loan in debt.Loans)
         {
-            var lenderRate = loan.Lender is { } who ? Loop.World.CountryById(who).KeyRate : 0;
-            var rate = loan.RateAt(lenderRate);
+            var rate = loan.RateAt(sim.WorldRate);
 
-            interest += loan.InterestPerTick(lenderRate);
+            interest += loan.InterestPerTick(sim.WorldRate);
 
             rows.Add(
             [

@@ -81,7 +81,9 @@ public sealed class CreditMarket
     }
 
     /// <param name="attitude">Как кредитор относится к заёмщику, от −100 до 100.</param>
-    public Money Settle(Span<CreditOrder> orders, Func<byte, byte, int>? attitude = null)
+    /// <param name="worldRate">Во что мир оценивает свои деньги, в сотых процента: средняя
+    /// ключевая ставка эмитентов резервных валют, взвешенная по резервам.</param>
+    public Money Settle(Span<CreditOrder> orders, Func<byte, byte, int>? attitude = null, int worldRate = 0)
     {
         var borrowers = new List<CreditOrder>();
         var lenders = new List<CreditOrder>();
@@ -95,7 +97,10 @@ public sealed class CreditMarket
 
         // Надёжным дают первым: при нехватке денег рискованные остаются ни с чем.
         borrowers.Sort((a, b) => a.Premium != b.Premium ? a.Premium - b.Premium : a.Id - b.Id);
-        lenders.Sort((a, b) => a.KeyRate != b.KeyRate ? a.KeyRate - b.KeyRate : a.Id - b.Id);
+
+        // Кредиторы идут от тех, у кого денег больше: цена займа от кредитора не зависит,
+        // а разбирать сперва крупных дешевле — заёмщик закрывает нужду одной сделкой.
+        lenders.Sort((a, b) => b.Free.Raw.CompareTo(a.Free.Raw));
 
         var free = new Money[lenders.Count];
         for (var i = 0; i < lenders.Count; i++) free[i] = lenders[i].Free;
@@ -112,8 +117,11 @@ public sealed class CreditMarket
                 var politics = PoliticsOn(attitude?.Invoke(lenders[i].Id, borrower.Id) ?? 0);
                 if (politics is null) continue; // враждебным не дают ни под какой процент
 
+                // Цена займа — это цена мировых денег, а не порядки у кредитора дома.
+                // Ангола, дающая доллары из резервов, не может требовать за них свои
+                // тридцать пять процентов: доллар стоит столько, сколько стоит доллар.
                 // Ставка не опускается ниже безрисковой, как бы ни дружили.
-                var rate = Math.Max(BaseRate, BaseRate + lenders[i].KeyRate + borrower.Premium + politics.Value);
+                var rate = Math.Max(BaseRate, BaseRate + worldRate + borrower.Premium + politics.Value);
                 rate = (rate + RateStep - 1) / RateStep * RateStep;
                 if (rate > borrower.MaxRate || rate > Ceiling) continue;
 
@@ -123,6 +131,8 @@ public sealed class CreditMarket
                 borrower.Treasury.Reserves.Add(Reserves.Incoming(borrower.Id, borrower.Custody, lent));
                 // Заём плавающий: в валюте кредитора, значит и ставка идёт за его
                 // ключевой. Фиксированная останется облигациям, когда они появятся.
+                // Плавающая: тело идёт за мировой ставкой, а надбавка за риск заёмщика
+                // остаётся его собственной и не меняется.
                 borrower.Treasury.Debt.Take(
                     LoanSource.Foreign, lenders[i].Id, lent, RateKind.Floating, BaseRate + borrower.Premium);
 

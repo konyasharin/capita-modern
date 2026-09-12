@@ -467,7 +467,7 @@ foreach (var (iso, yield, realBurden) in realDebt)
     var loans = country.State.Treasury.Debt.Loans;
     var ours = loans.Count == 0
         ? double.NaN
-        : loans.Sum(l => l.Principal.Exact * l.RateAt(l.Lender is { } id ? world.CountryById(id).KeyRate : 0))
+        : loans.Sum(l => l.Principal.Exact * l.RateAt(simulation.WorldRate))
           / Math.Max(loans.Sum(l => l.Principal.Exact), 1) / 100;
     var burden = country.State.Treasury.Debt.BurdenToExports(country.ExportsPerDay * 365);
 

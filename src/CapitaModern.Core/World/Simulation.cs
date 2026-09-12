@@ -430,7 +430,7 @@ public sealed class Simulation
 
             if (average >= Prices.Floor)
             {
-                _world.Market.Prices.Set(good, average);
+                _world.Market.Prices.MoveToward(good, average);
                 _dealt[(int)good] = true;
             }
             else
@@ -920,6 +920,42 @@ public sealed class Simulation
         }
     }
 
+    /// <summary>Во что мир оценивает свои деньги, в сотых процента.</summary>
+    /// <remarks>
+    /// Средняя ключевая ставка эмитентов резервных валют, взвешенная по тому, сколько их
+    /// валюты лежит в мировых резервах. Это и есть цена мировых денег: доллар стоит
+    /// столько, сколько стоит доллар, кто бы его ни давал взаймы.
+    ///
+    /// Раньше плавающий заём шёл за ключевой ставкой кредитора. Дешёвые кредиторы —
+    /// Америка с четвертью процента, Германия с минусовой — раздают свободные резервы
+    /// первыми, и дальше заёмщику оставались те, у кого дома тридцать пять процентов.
+    /// Оттого Россия занимала под тридцать шесть при нулевой долговой нагрузке, а за пять
+    /// лет отказывались платить сто шестьдесят пять стран из двухсот.
+    /// </remarks>
+    public int WorldRate { get; private set; } = CreditMarket.BaseRate;
+
+    private void CountWorldRate()
+    {
+        Int128 weighted = 0;
+        Int128 total = 0;
+
+        foreach (var country in _world.Countries)
+        {
+            foreach (var held in country.State.Treasury.Reserves.Held)
+            {
+                // Ничейный эмитент — это мировая единица, а не страна: ключевой ставки
+                // у неё нет, и в среднюю она не идёт.
+                if (held.Kind != ReserveKind.ForeignCurrency || held.Amount.Raw <= 0) continue;
+                if (held.Issuer == WorldMarket.WorldIssuer) continue;
+
+                weighted += (Int128)held.Amount.Raw * _world.CountryById(held.Issuer).KeyRate;
+                total += held.Amount.Raw;
+            }
+        }
+
+        WorldRate = total > 0 ? (int)(weighted / total) : CreditMarket.BaseRate;
+    }
+
     /// <summary>Кому не хватает валюты — тот занимает, у кого лишняя.</summary>
     /// <remarks>
     /// Без этого деньги — храповик в одну сторону: получить их можно только за экспорт,
@@ -932,6 +968,7 @@ public sealed class Simulation
     private void Borrow()
     {
         CountReserves();
+        CountWorldRate();
 
         _credit.Clear();
         foreach (var country in _world.Countries)
@@ -993,7 +1030,7 @@ public sealed class Simulation
             _capitalIn[country.Id] = country.State.Treasury.Reserves.Liquid;
         }
 
-        _world.Credit.Settle(CollectionsMarshal.AsSpan(_credit), _world.Relations.Between);
+        _world.Credit.Settle(CollectionsMarshal.AsSpan(_credit), _world.Relations.Between, WorldRate);
 
         foreach (var country in _world.Countries)
         {
@@ -1012,7 +1049,7 @@ public sealed class Simulation
             {
                 if (loan.Principal.Raw == 0) continue;
 
-                var due = loan.InterestPerTick(loan.Lender is { } id ? _world.CountryById(id).KeyRate : 0);
+                var due = loan.InterestPerTick(WorldRate);
                 if (due.Raw == 0) continue;
 
                 if (loan.Lender is { } lender && country.State.Treasury.Reserves.TrySpend(due))
