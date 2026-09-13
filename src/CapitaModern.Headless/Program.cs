@@ -242,7 +242,7 @@ foreach (var (iso, gdp, export, balance) in real)
 var worldGdp = realGdp.Values.Aggregate(default(Money), (a, b) => a + b).Exact / 1e9;
 var worldExport = exports.Values.Aggregate(default(Money), (a, b) => a + b).Exact / 1e9;
 Console.WriteLine();
-Console.WriteLine($"Мир: реальный ВВП {worldGdp:F2} трлн (в жизни 84.9 трлн)");
+Console.WriteLine($"Мир: реальный ВВП {worldGdp:F2} трлн (в жизни 130 трлн по ППС)");
 Console.WriteLine($"     товарный экспорт {worldExport:F2} трлн (в жизни 17.6 трлн)");
 
 var (refused, empty) = simulation.UnfilledBids;
@@ -699,9 +699,9 @@ Console.WriteLine("страна   потенциал трлн   факт трл�
 var worldCould = 0.0;
 var worldDid = 0.0;
 
-foreach (var (iso, inLife) in new[] { ("USA", 21.55), ("CHN", 14.76), ("JPN", 5.04),
-             ("DEU", 3.86), ("IND", 2.87), ("GBR", 2.76), ("FRA", 2.63), ("RUS", 1.70),
-             ("BRA", 1.84), ("SAU", 0.70), ("NGA", 0.45) })
+foreach (var (iso, inLife) in new[] { ("USA", 20.94), ("CHN", 24.14), ("JPN", 5.33),
+             ("DEU", 4.53), ("IND", 8.91), ("GBR", 3.02), ("FRA", 3.12), ("RUS", 4.13),
+             ("BRA", 3.15), ("SAU", 1.61), ("NGA", 1.00) })
 {
     var id = world.Countries.First(c => c.Iso == iso).Id;
     var could = simulation.PotentialOf(id, constant).Exact * 365 / 1e9;
@@ -718,7 +718,7 @@ foreach (var country in world.Countries)
 }
 
 Console.WriteLine($"мир      {worldCould,15:F2} {worldDid,11:F2} "
-    + $"{(worldCould > 0 ? 100 * worldDid / worldCould : 0),10:F0}%         84.90");
+    + $"{(worldCould > 0 ? 100 * worldDid / worldCould : 0),10:F0}%        130.00");
 
 Console.WriteLine();
 Console.WriteLine("Что именно стоит: выпуск против возможного, по товарам");
@@ -800,12 +800,14 @@ foreach (var iso in new[] { "USA", "FRA", "DEU", "CHN", "JPN", "KOR", "RUS", "IN
 // --- Ш. ВВП по странам ---------------------------------------------------------------
 Console.WriteLine();
 Console.WriteLine("=== Ш. ВВП по странам против настоящего ===");
+Console.WriteLine("Сверяемся с ВВП по паритету покупательной способности: наш выпуск считается");
+Console.WriteLine("в единых мировых ценах, а это ровно то, что меряет ППС, а не рыночный курс.");
 Console.WriteLine("страна   у нас трлн   в жизни   ошибка");
 
-foreach (var (iso, inLife) in new[] { ("USA", 21.55), ("CHN", 14.76), ("JPN", 5.04),
-             ("DEU", 3.86), ("IND", 2.87), ("GBR", 2.76), ("FRA", 2.63), ("ITA", 1.89),
-             ("BRA", 1.84), ("RUS", 1.70), ("KOR", 1.64), ("IDN", 1.06), ("MEX", 1.09),
-             ("SAU", 0.70), ("NGA", 0.45), ("ZAF", 0.34), ("EGY", 0.37), ("VNM", 0.35) })
+foreach (var (iso, inLife) in new[] { ("USA", 20.94), ("CHN", 24.14), ("JPN", 5.33),
+             ("DEU", 4.53), ("IND", 8.91), ("GBR", 3.02), ("FRA", 3.12), ("ITA", 2.40),
+             ("BRA", 3.15), ("RUS", 4.13), ("KOR", 2.32), ("IDN", 3.30), ("MEX", 2.43),
+             ("SAU", 1.61), ("NGA", 1.00), ("ZAF", 0.76), ("EGY", 1.29), ("VNM", 1.05) })
 {
     var id = world.Countries.First(c => c.Iso == iso).Id;
     var ours = realGdp[id].Exact / years / 1e9;
