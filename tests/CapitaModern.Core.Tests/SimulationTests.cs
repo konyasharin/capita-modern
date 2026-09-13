@@ -61,9 +61,9 @@ public class SimulationTests
         var simulation = new Simulation(world);
         for (var i = 0; i < 5; i++) simulation.Tick();
 
-        // Первый тик шахта работает на полную, а дальше сбавляет вполсилы: уголь в этом
-        // мире никому не нужен, и склад сразу выше нормы запаса.
-        Assert.Equal(Build.Whole(30), world.CountryById(1).State.Stock.Of(GoodType.Coal));
+        // Первый тик шахта работает на полную, а дальше — в самую малую силу: уголь в этом
+        // мире никому не нужен вовсе, и склад сразу выше нормы запаса.
+        Assert.Equal(new GoodAmount(104000), world.CountryById(1).State.Stock.Of(GoodType.Coal));
     }
 
     /// <summary>Свежая продукция достаётся следующему тику, а не заводам в этом же.</summary>

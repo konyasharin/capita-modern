@@ -315,6 +315,7 @@ public sealed class Simulation
         // _added не чистим: госзаказ и мера долга считаются до PayWages, и им нужен
         // вчерашний выпуск. Каждому тику он всё равно переписывается заново.
         _build.Clear();
+        _replace.Clear();
         _raised.Clear();
         _burnedFuel.Clear();
         _transit.Clear();
@@ -354,6 +355,23 @@ public sealed class Simulation
                     _inputs.Add(owner, input.Key, demand);
                     _claims.Add(owner, input.Key, demand * weight / Priorities.NormalWeight);
                 }
+
+                // Изношенное придётся заменить, и на это нужен материал — даже когда
+                // построить сегодня не выходит. Без такого спроса выпуск сбавлялся до
+                // нынешней стройки, стройка упиралась в пустой склад, и капитал таял по
+                // кругу.
+                //
+                // Считается отдельно от _inputs нарочно: это нужда завтрашнего дня, а не
+                // сегодняшний заказ. Попав в заявку внешнему рынку, она вдвое раздувала
+                // ввоз и внешний долг мира — страны заказывали на замену то, чем платить
+                // им нечем.
+                var life = Math.Max(1, info.LifeYears * DaysInYear);
+                foreach (var (good, amount) in info.BuildCost)
+                {
+                    var replace = new GoodAmount(building.Value * amount.Raw / life);
+                    if (replace.Raw > 0) _replace.Add(owner, good, replace);
+                }
+
                 _working.Add(owner, building.Key, building.Value);
 
                 // Отстающей стране тот же завод обходится в большее число рук: комбайн
@@ -1144,9 +1162,12 @@ public sealed class Simulation
     /// <summary>Сбавляет загрузку, когда склад уже вдвое выше нормы запаса.</summary>
     /// <remarks>
     /// Завод не работает в никуда: чем больше на складе сверх нормы, тем ниже загрузка.
-    /// Полностью не встаёт — ниже половины мощности не опускается, иначе цех, у которого
-    /// товар просто залежался, гасит всю цепочку за собой. И сбавляют не от первой лишней
-    /// единицы, а когда запас вдвое выше нормы: склад и должен гулять вокруг неё.
+    /// Сбавляют не от первой лишней единицы, а когда запас вдвое выше нормы: склад и
+    /// должен гулять вокруг неё.
+    ///
+    /// Пола у загрузки нет нарочно. С полом в половину мощности шахта в замкнутом мире
+    /// копала в пятьдесят раз больше, чем тратилось, и склад пух без предела — это и
+    /// поймал SteadyStateTests.StockDoesNotPileUp.
     ///
     /// Без этого выпуск оседал на полке: склады мира росли на двадцать триллионов в год
     /// при ВВП в сто, а в жизни изменение запасов — около процента. Заодно оттого и не
@@ -1164,14 +1185,17 @@ public sealed class Simulation
         {
             if (amount.Raw <= 0) continue;
 
-            var wanted = _inputs.Get(country, good) + _exported.Get(country, good);
+            var wanted = _inputs.Get(country, good) + _replace.Get(country, good)
+                + _exported.Get(country, good);
             var target = new GoodAmount(wanted.Raw * Prices.TargetCoverDays * 2);
             var stock = _available.Get(country, good) + _outputs.Get(country, good);
             if (stock <= target) continue;
 
             // Товар, который вовсе никому не нужен, делают в самую малую силу: норма у
             // него нулевая, и делить на склад тут нечего.
-            var load = target.Raw <= 0 ? MinLoad : Math.Max(MinLoad, target.Raw * Load.Full / stock.Raw);
+            // Товар, который вовсе никому не нужен, делают в самую малую силу: норма у
+            // него нулевая, и делить на склад тут нечего.
+            var load = target.Raw <= 0 ? MinLoad : target.Raw * Load.Full / stock.Raw;
             var fits = runs * load / Load.Full;
             if (fits < runs) runs = fits;
         }
@@ -1179,8 +1203,10 @@ public sealed class Simulation
         return runs;
     }
 
-    /// <summary>Ниже какой доли мощности завод не опускается, что бы ни лежало на складе.</summary>
-    public const int MinLoad = Load.Full / 2;
+    /// <summary>Доля мощности для товара, которого не просит вовсе никто.</summary>
+    /// <remarks>Не ноль: завод, который встал совсем, уже не заметит, что товар снова
+    /// понадобился. Сотая доля мощности держит его тёплым и склад не пухнет.</remarks>
+    public const int MinLoad = Load.Full / 100;
 
     /// <summary>Сколько зданий типа работало на прошлом тике. Меньше построенных —
     /// значит не хватило сырья или рук.</summary>
@@ -2646,6 +2672,54 @@ public sealed class Simulation
 
     /// <summary>Изношенное разваливается. Считается остатком: за срок службы должен
     /// осыпаться весь капитал, а по одному заводу в тик этого не набрать.</summary>
+    /// <summary>Все здания страны по типам. Для стран без компаний: считать износ больше
+    /// не по чему.</summary>
+    private Dictionary<BuildingType, int> BuildingsIn(byte country)
+    {
+        var all = new Dictionary<BuildingType, int>();
+        foreach (var region in _world.RegionsOf(country))
+        {
+            foreach (var (type, count) in region.BuildingsCount)
+            {
+                all[type] = all.GetValueOrDefault(type) + region.BuildingsOf(type, country);
+            }
+        }
+
+        return all;
+    }
+
+    /// <summary>Сколько материала уйдёт на замену изношенного, по стране и товару.</summary>
+    private readonly Tally<GoodType, GoodAmount> _replace = new();
+
+    /// <summary>Во что обходится износ зданий за сутки — амортизация.</summary>
+    /// <remarks>
+    /// Здание живёт свой срок и рушится, а на замену никто не откладывал: в затратах
+    /// износа не было вовсе. Оттого и выходил круг — выпуск сбавляется до нынешнего
+    /// расхода, вместе с ним падает добавленная стоимость, из неё же берётся стройка, и
+    /// капитал тает. В замкнутом мире это видно начисто: тысяча шахт превращалась в
+    /// триста шестьдесят восемь за двадцать лет, хотя выпуска хватало с запасом.
+    ///
+    /// Считается по нынешним ценам постройки: заменять придётся по ним, а не по тем, что
+    /// были при закладке.
+    /// </remarks>
+    private Money WearCost(Country country, IReadOnlyDictionary<BuildingType, int> what)
+    {
+        var total = default(Money);
+
+        foreach (var (type, count) in what)
+        {
+            if (count <= 0) continue;
+
+            var info = _world.Buildings[type];
+            if (info.BuildCost.Count == 0) continue;
+
+            var price = Construction.CostOf(info.BuildCost, country.State.Prices);
+            total += new Money(price.Raw * count / (info.LifeYears * DaysInYear));
+        }
+
+        return total;
+    }
+
     /// <summary>Сколько зданий поднято и сколько рухнуло за всю игру. Только для замера.</summary>
     public long BuiltSoFar { get; private set; }
 
@@ -2784,6 +2858,12 @@ public sealed class Simulation
                 // процента предприятий в год.
                 var net = profit - TaxCode.Take(profit, country.Taxes.Profit);
                 var want = new Money(added.Raw * Construction.InvestmentShare / 100);
+
+                // Но не меньше износа своих зданий: это не прибыль, а возврат вложенного,
+                // и раздавать его владельцам значит проедать завод.
+                var wear = WearCost(country, company.ByType);
+                if (wear > want) want = wear;
+
                 var keep = net < want ? net : want;
 
                 country.Households.Earn(company.Give(net - keep));
@@ -3493,6 +3573,8 @@ public sealed class Simulation
                 if (added.Raw > 0)
                 {
                     var share = new Money(added.Raw * Construction.InvestmentShare / 100);
+                    var wear = WearCost(country, BuildingsIn(country.Id));
+                    if (wear > share) share = wear;
 
                     _investment[country.Id] = _investment.GetValueOrDefault(country.Id) + share;
                     _saved[country.Id] = share;
@@ -3630,7 +3712,10 @@ public sealed class Simulation
             var value = Construction.ValuePerWorker(
                 profit, info.OptimalWorkers, _world.Efficiency.Of(country.Id, info.Sector));
 
-            if (value <= bestValue) continue;
+            // Пока не выбрано ничего, берём любое прибыльное: отдача на работника у
+            // большого завода делится в ноль, и страна с полной казной решала, что строить
+            // нечего вовсе. Это и поймал SteadyStateTests.CapitalHoldsItsGround.
+            if (value <= bestValue && best is not null) continue;
 
             var where = PlaceFor(country, info);
             if (where is null) continue;

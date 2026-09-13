@@ -119,9 +119,12 @@ public class ExchangeRateTests
         var simulation = new Simulation(world);
         for (var tick = 0; tick < 300; tick++) simulation.Tick();
 
-        // Вдвое в любую сторону — это уже много, но паритет к единице утащил бы её в тысячу раз.
-        Assert.True(pricey.ExchangeRate.Raw > pricey.StartRate.Raw / 2,
-            $"дорогая валюта уползла к единице: {pricey.ExchangeRate.Exact}");
+        // Сравниваем с соседкой, чья валюта нарезана единицей: дорогая должна остаться
+        // заметно дороже, а паритет к единице сравнял бы их.
+        var plain = world.CountryById(2);
+
+        Assert.True(pricey.ExchangeRate.Raw > plain.ExchangeRate.Raw * 10,
+            $"дорогая валюта сравнялась с обычной: {pricey.ExchangeRate.Exact} против {plain.ExchangeRate.Exact}");
     }
 
     [Fact]

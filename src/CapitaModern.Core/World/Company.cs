@@ -235,6 +235,9 @@ public sealed class Company
 
     public int CountOf(BuildingType type) => _byType.GetValueOrDefault(type);
 
+    /// <summary>Чем компания владеет, по типам зданий.</summary>
+    public IReadOnlyDictionary<BuildingType, int> ByType => _byType;
+
     /// <summary>Сколько чего у компании, без разбивки по областям. Считается по ходу, а не
     /// перебором: делёж прибыли идёт каждый тик, и перебор всех зданий всех компаний стоил
     /// втрое дороже самого тика.</summary>
