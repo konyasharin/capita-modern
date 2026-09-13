@@ -723,7 +723,7 @@ Console.WriteLine($"мир      {worldCould,15:F2} {worldDid,11:F2} "
 Console.WriteLine();
 Console.WriteLine("Что именно стоит: выпуск против возможного, по товарам");
 
-foreach (var iso in new[] { "USA" })
+foreach (var iso in new[] { "DEU" })
 {
     var whose = world.Countries.First(c => c.Iso == iso);
 

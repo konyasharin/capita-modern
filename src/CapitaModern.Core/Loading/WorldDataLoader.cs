@@ -169,6 +169,20 @@ public static class WorldDataLoader
     /// Спрос берётся расчётный: сколько съедят заводы на полном ходу плюс базовая нужда
     /// населения. Настоящего спроса до первого тика взять неоткуда.
     /// </remarks>
+    /// <seealso cref="StartCoverDays"/>
+    /// <summary>На сколько суток расхода хватает стартового запаса.</summary>
+    /// <remarks>
+    /// Вдвое больше нормы <see cref="Prices.TargetCoverDays"/>, по которой стоит цена, и
+    /// это не запас прочности, а разные вещи: норма считает склад страны, а в жизни товар
+    /// лежит ещё и у заводов, в пути и в торговле.
+    ///
+    /// Разница видна сразу: с сорока сутками мир работал на 57% мощности, с восемьюдесятью
+    /// на 73%. При норме ровно в сорок страна стоит на грани — любое колебание роняет её в
+    /// петлю, где нет сырья, нет выпуска и нечем платить за ввоз. США 55% → 88%, Россия
+    /// 24% → 84%, Нигерия 45% → 79%.
+    /// </remarks>
+    private const int StartCoverDays = Prices.TargetCoverDays * 2;
+
     private static void FillStores(GameWorld world)
     {
         foreach (var country in world.Countries)
@@ -194,7 +208,7 @@ public static class WorldDataLoader
 
             foreach (var (good, amount) in daily)
             {
-                country.State.Stock.Store(good, new GoodAmount(amount.Raw * Prices.TargetCoverDays));
+                country.State.Stock.Store(good, new GoodAmount(amount.Raw * StartCoverDays));
             }
         }
     }

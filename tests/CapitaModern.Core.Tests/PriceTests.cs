@@ -27,14 +27,14 @@ public class PriceTests
     [Fact]
     public void EmptyStockRaisesPriceByTheFullStep()
     {
-        Assert.Equal(Money.FromWhole(102), Moved(Build.Whole(10), default));
+        Assert.Equal(Money.FromWhole(100 + Prices.StepPercent), Moved(Build.Whole(10), default));
     }
 
     /// <summary>Спроса нет вовсе — перекос ровно −1, полный шаг вниз.</summary>
     [Fact]
     public void NobodyWantsItSoItGetsCheaperByTheFullStep()
     {
-        Assert.Equal(Money.FromWhole(98), Moved(default, Build.Whole(10)));
+        Assert.Equal(Money.FromWhole(100 - Prices.StepPercent), Moved(default, Build.Whole(10)));
     }
 
     /// <summary>Запаса ровно на норму — цену двигать незачем.</summary>
@@ -48,7 +48,9 @@ public class PriceTests
     [Fact]
     public void HalfTheStockMovesPriceByPartOfTheStep()
     {
-        var expected = Money.FromWhole(100) + new Money(Money.Scale * 100 * 2 * 20 / (60 * 100));
+        // Половина нормы покрытия — значит и шаг половинный, считая от полного.
+        var expected = Money.FromWhole(100)
+            + new Money(Money.Scale * 100 * Prices.StepPercent * 20 / (60 * 100));
 
         Assert.Equal(expected, Moved(Build.Whole(1), Build.Whole(Prices.TargetCoverDays / 2)));
     }
@@ -147,7 +149,7 @@ public class PriceTests
 
         new Simulation(world).Tick();
 
-        Assert.Equal(Money.FromWhole(102), world.CountryById(1).State.Prices.Of(GoodType.Coal));
+        Assert.Equal(Money.FromWhole(100 + Prices.StepPercent), world.CountryById(1).State.Prices.Of(GoodType.Coal));
     }
 
     /// <summary>Товар, который никто не заказывает, дешевеет — даже если его выпускают.
@@ -164,7 +166,7 @@ public class PriceTests
         simulation.Tick();
         simulation.Tick();
 
-        Assert.Equal(Money.FromWhole(98), world.CountryById(1).State.Prices.Of(GoodType.Coal));
+        Assert.Equal(Money.FromWhole(100 - Prices.StepPercent), world.CountryById(1).State.Prices.Of(GoodType.Coal));
     }
 
     /// <summary>Шахта выдаёт уголь из ничего, завод превращает его в металл. ВВП — это
