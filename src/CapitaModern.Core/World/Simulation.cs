@@ -1530,9 +1530,19 @@ public sealed class Simulation
         (country.DefaultedOnDay > 0 && _day - country.DefaultedOnDay < DaysInYear * DefaultLockYears)
         || (country.TalkedOnDay > 0 && _day - country.TalkedOnDay < DaysInYear * TalkLockYears);
 
-    /// <summary>Через сколько суток непрерывных пропусков садятся за стол. Раньше отказа:
-    /// половина льготного срока.</summary>
-    private const int TalksDays = GraceDays / 2;
+    /// <summary>Через сколько суток непрерывных пропусков садятся за стол. Раньше отказа,
+    /// но не сразу: два месяца просрочки — это уже не забывчивость.</summary>
+    private const int TalksDays = 60;
+
+    /// <summary>За какой чертой нагрузки долг переписывают, в процентах.</summary>
+    /// <remarks>
+    /// Выше той, за которой перестают давать в долг, и заметно ниже той, за которой
+    /// отказываются платить. С порогом на уровне кредитного долг переписывали ста двадцати
+    /// девяти странам за пять лет против примерно десятка случаев в год в жизни: за стол
+    /// садились в тот же день, когда закрывался кредит, а в жизни сперва пробуют выкрутиться
+    /// сами.
+    /// </remarks>
+    private const int TalksBurden = 300;
 
     /// <summary>На сколько лет закрывается кредит после переписанного долга. Короче, чем
     /// после отказа: договорившегося рынок прощает быстрее.</summary>
@@ -1560,7 +1570,10 @@ public sealed class Simulation
         if (capacity.Raw <= 0) return false;
 
         var burden = debt.BurdenToExports(capacity);
-        if (burden <= CreditMarket.SafeBurden) return false;
+        if (burden <= TalksBurden) return false;
+
+        // Пока есть чем платить, за стол не садятся: кредитор скажет сперва потратить своё.
+        if (country.State.Treasury.Reserves.Liquid > country.ImportsPerDay) return false;
 
         var cut = 10_000 - CreditMarket.SafeBurden * 10_000 / burden;
         var forgiven = debt.Forgive(LoanSource.Foreign, cut);

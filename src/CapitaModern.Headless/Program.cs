@@ -566,13 +566,32 @@ if (refusals.Count > 0)
 Console.WriteLine($"Плавающих займов: {allLoans.Count(l => l.RateKind == RateKind.Floating)} из {allLoans.Length}");
 
 // --- К. Производительность: главный замер этого шага ------------------------------
+// --- Ш. ВВП по странам ---------------------------------------------------------------
+Console.WriteLine();
+Console.WriteLine("=== Ш. ВВП по странам против настоящего ===");
+Console.WriteLine("страна   у нас трлн   в жизни   ошибка");
+
+foreach (var (iso, inLife) in new[] { ("USA", 21.55), ("CHN", 14.76), ("JPN", 5.04),
+             ("DEU", 3.86), ("IND", 2.87), ("GBR", 2.76), ("FRA", 2.63), ("ITA", 1.89),
+             ("BRA", 1.84), ("RUS", 1.70), ("KOR", 1.64), ("IDN", 1.06), ("MEX", 1.09),
+             ("SAU", 0.70), ("NGA", 0.45), ("ZAF", 0.34), ("EGY", 0.37), ("VNM", 0.35) })
+{
+    var id = world.Countries.First(c => c.Iso == iso).Id;
+    var ours = realGdp[id].Exact / years / 1e9;
+
+    Console.WriteLine($"{iso,-8} {ours,10:F2} {inLife,9:F2} {100 * (ours / inLife - 1),8:F0}%");
+}
+
 Console.WriteLine();
 Console.WriteLine("=== К. Выработка на работника ===");
 Console.WriteLine("страна   у нас   в жизни   отстаёт у нас   в жизни   занято млн   рук не хватает");
 
+// ВВП страны, делённый на занятых по данным МОТ за 2020 год. Прежняя таблица была на
+// глазок и врала: у США стояло 190 при настоящих 146, у Китая 35 при 20, у России 20
+// при 24. По ней и судили, а значит судили неверно.
 (string Iso, int Real)[] realOutput =
-    [("USA", 190), ("DEU", 100), ("JPN", 100), ("TWN", 95), ("CHN", 35),
-     ("RUS", 20), ("BRA", 15), ("NGA", 10), ("IND", 7)];
+    [("USA", 146), ("DEU", 86), ("JPN", 76), ("TWN", 98), ("CHN", 20),
+     ("RUS", 24), ("BRA", 21), ("NGA", 7), ("IND", 6)];
 
 var perWorker = new Dictionary<string, double>();
 foreach (var (iso, _) in realOutput)
