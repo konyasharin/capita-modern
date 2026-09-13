@@ -149,6 +149,14 @@ public sealed class Prices
     /// <summary>Двигает все цены разом, не меняя их между собой.</summary>
     /// <remarks>Этим правит общий уровень цен: относительные задаёт покрытие, а во
     /// сколько раз дорого всё вместе — деньги.</remarks>
+    /// <summary>Ставит цену прямо. Для равновесия: его считают заново, а не подталкивают.</summary>
+    public void SetTo(GoodType good, Money price)
+    {
+        if (price.Raw <= 0) return;
+
+        _values[(int)good] = price;
+    }
+
     public void Rescale(long times, long by)
     {
         if (by <= 0 || times == by) return;
