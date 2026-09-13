@@ -90,40 +90,8 @@ public class ElasticityTests
         }
     }
 
-    /// <summary>В тике: подорожавший уголь закупают меньше.</summary>
-    [Fact]
-    public void ExpensiveGoodIsBidLessInTheTick()
-    {
-        static GoodAmount BoughtAfterShock(int percent)
-        {
-            var world = Build.World(
-                [
-                    Build.Region(1, 1, new Dictionary<BuildingType, int> { [BuildingType.CoalMine] = 100 }),
-                    Build.Region(2, 2, new Dictionary<BuildingType, int> { [Mill] = 1 }),
-                ],
-                [Build.Country(1), Build.Country(2, money: 1_000_000_000)],
-                Build.Catalog(
-                    Build.Info(BuildingType.CoalMine, outputs: new() { [Coal] = Build.Whole(10) }),
-                    Build.Info(Mill, inputs: new() { [Coal] = Build.Whole(10) },
-                                     outputs: new() { [GoodType.Metals] = Build.Whole(1) })),
-                new Dictionary<GoodType, Money> { [Coal] = Money.FromWhole(100) },
-                new Dictionary<GoodType, int> { [Coal] = -50 },
-                new Dictionary<GoodType, int> { [Coal] = 30 });
-
-            // Ставки идут от своих цен: у продавца уголь дёшев, у покупателя дорог, иначе
-            // разницы не хватит даже на дорогу и никто ничего не купит.
-            world.CountryById(1).State.Prices.Shock(Coal, -90);
-            world.CountryById(2).State.Prices.Shock(Coal, percent);
-
-            // Два тика: на первом шахты только наполняют склад, торговать нечем.
-            var simulation = new Simulation(world);
-            simulation.Tick();
-            simulation.Tick();
-
-            return world.CountryById(2).State.Stock.Of(Coal);
-        }
-
-        // Вдвое дороже при показателе 0.5 — это корень из двух, а не половина.
-        Assert.True(BoughtAfterShock(0) > BoughtAfterShock(100) * 6 / 5, "подорожание не срезало закупку");
-    }
+    // Тест «подорожавший уголь закупают меньше» убран: заводу нужно ровно столько, сколько
+    // велит рецепт, и цена его заказ не меняет — при деньгах он берёт своё по любой цене.
+    // Упругость спроса по цене живёт теперь у населения и проверяется в SpendingTests:
+    // DearerMeansLess. Упругость заявки страны — выше в этом же файле.
 }

@@ -40,6 +40,8 @@ public static class Clearing
         // Ни спроса, ни предложения — про товар ничего не известно, цена прежняя.
         if (wanted.Raw <= 0 && offered.Raw <= 0) return usual;
 
+        // Упругости не задано — цена не отзывается вовсе: так живут миры, где про товар
+        // ничего не известно, кроме имени.
         var stretch = Math.Abs(ofDemand) + Math.Abs(ofSupply);
         if (stretch <= 0) return usual;
 

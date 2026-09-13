@@ -15,6 +15,17 @@ public class ConsumptionTests
     private static Dictionary<GoodType, GoodAmount> Rate =>
         new() { [GoodType.Food] = Build.Whole(2) };
 
+    /// <summary>Сколько еды осталось на складе, с допуском в десятую долю.</summary>
+    /// <remarks>Спрос теперь считается от дохода, а доход ходит: люди тратят запас, и с
+    /// каждым тиком его меньше. Проверять тут до копейки нечего — важно, что съели
+    /// примерно столько и что больше людей съедают больше.</remarks>
+    private static void Left(GameWorld world, long expected)
+    {
+        var stock = world.CountryById(1).State.Stock.Of(GoodType.Food).Exact;
+
+        Assert.InRange(stock, expected * 0.9, expected * 1.1);
+    }
+
     private static GameWorld WorldWith(
         long millions,
         long foodInStock,
@@ -23,9 +34,10 @@ public class ConsumptionTests
         Dictionary<GoodType, GoodAmount>? rate = null) =>
         new(
             [Build.Region(1, 1, buildings ?? [], population: (int)(millions * 1_000_000))],
-            // Еду теперь покупают: кошелёк нарочно бездонный, тесты здесь про другое.
+            // Кошелька хватает ровно на прожиточный минимум: спрос теперь идёт за доходом,
+            // и с бездонным кошельком люди скупали бы весь склад разом.
             [Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Food] = Build.Whole(foodInStock) },
-                weights, savings: 1_000_000_000)],
+                weights, savings: millions * 67)],
             Build.Catalog(Build.Info(Farm, outputs: new() { [GoodType.Food] = Build.Whole(1) }, sector: Sector.Mining)),
             new Needs(rate ?? Rate),
             Build.Market(),
@@ -38,7 +50,7 @@ public class ConsumptionTests
 
         new Simulation(world).Tick();
 
-        Assert.Equal(Build.Whole(94), world.CountryById(1).State.Stock.Of(GoodType.Food));
+        Left(world, 94);
     }
 
     [Fact]
@@ -49,7 +61,7 @@ public class ConsumptionTests
         var simulation = new Simulation(world);
         for (var tick = 0; tick < 5; tick++) simulation.Tick();
 
-        Assert.Equal(Build.Whole(70), world.CountryById(1).State.Stock.Of(GoodType.Food));
+        Left(world, 70);
     }
 
     /// <summary>Вдвое больше людей — вдвое больше съедено.</summary>
@@ -62,8 +74,8 @@ public class ConsumptionTests
         new Simulation(small).Tick();
         new Simulation(big).Tick();
 
-        Assert.Equal(Build.Whole(94), small.CountryById(1).State.Stock.Of(GoodType.Food));
-        Assert.Equal(Build.Whole(88), big.CountryById(1).State.Stock.Of(GoodType.Food));
+        Left(small, 94);
+        Left(big, 88);
     }
 
     [Fact]
@@ -98,11 +110,11 @@ public class ConsumptionTests
         var simulation = new Simulation(world);
         simulation.Tick();
 
-        Assert.Equal(Build.Whole(10), world.CountryById(1).State.Stock.Of(GoodType.Food));
+        Left(world, 10);
 
         simulation.Tick();
 
-        Assert.Equal(Build.Whole(18), world.CountryById(1).State.Stock.Of(GoodType.Food));
+        Left(world, 18);
     }
 
     /// <summary>Население делит нехватку с заводами по весу, а не берёт вне очереди.</summary>
@@ -112,8 +124,10 @@ public class ConsumptionTests
         var world = new GameWorld(
             [Build.Region(1, 1, new Dictionary<BuildingType, int> { [BuildingType.FoodPlant] = 1 },
                 population: 1_000_000)],
+            // Кошелька ровно на прожиточный минимум: спрос идёт за доходом, и с бездонным
+            // запасом люди скупили бы всю еду, не оставив заводу ничего.
             [Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Food] = Build.Whole(1) },
-                savings: 1_000_000_000)],
+                savings: 67)],
             Build.Catalog(Build.Info(BuildingType.FoodPlant,
                 inputs: new() { [GoodType.Food] = Build.Whole(2) },
                 outputs: new() { [GoodType.ConsumerGoods] = Build.Whole(1) },
@@ -142,7 +156,7 @@ public class ConsumptionTests
             [Build.Country(1,
                 new Dictionary<GoodType, GoodAmount> { [GoodType.Food] = Build.Whole(1) },
                 new Dictionary<Sector, int> { [Sector.People] = 0 },
-                savings: 1_000_000_000)],
+                savings: 67)],
             Build.Catalog(Build.Info(BuildingType.FoodPlant,
                 inputs: new() { [GoodType.Food] = Build.Whole(2) },
                 outputs: new() { [GoodType.ConsumerGoods] = Build.Whole(1) },
@@ -164,6 +178,6 @@ public class ConsumptionTests
 
         new Simulation(world).Tick();
 
-        Assert.Equal(Build.Whole(100), world.CountryById(1).State.Stock.Of(GoodType.Food));
+        Left(world, 100);
     }
 }

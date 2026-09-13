@@ -170,10 +170,15 @@ public sealed class Prices
     /// <summary>Разовый сдвиг от события: эмбарго, удар по заводу, паника.</summary>
     /// <remarks>В жизни цена улетает от новости, а не оттого, что склад просел на процент.
     /// Всё резкое идёт отсюда, а <see cref="Move"/> только сползает к равновесию.</remarks>
+    /// <remarks>Двигает и обычную цену, а не только нынешнюю: равновесие считается от
+    /// обычной и стёрло бы разовый сдвиг тем же тиком. Шок — это перемена в самом деле
+    /// (санкции, неурожай, новое месторождение), а не случайное отклонение цены.</remarks>
     public void Shock(GoodType good, int percent)
     {
         long raw = Of(good).Raw;
+        long start = _start[(int)good].Raw;
 
+        _start[(int)good] = new Money(Math.Max(Floor.Raw, start + start * percent / 100));
         _values[(int)good] = Clamped(good, raw + raw * percent / 100);
     }
 

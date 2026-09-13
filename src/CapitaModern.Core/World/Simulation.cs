@@ -389,12 +389,35 @@ public sealed class Simulation
         foreach (var country in _world.Countries)
         {
             var weight = country.Priorities.WeightOf(Sector.People);
-            var capacity = CapacityOf(country);
 
-            foreach (var (good, _) in _world.Needs.BaseRates)
+            // Сперва прожиточный минимум по норме, затем то, что осталось от дохода, —
+            // долями. Оттого спрос и идёт за достатком: прежде он был нормой и стоял на
+            // месте, сколько бы денег людям ни доставалось.
+            var people = _world.PopulationOf(country.Id).Whole;
+            var prices = country.State.Prices;
+            var floor = default(Money);
+
+            foreach (var (good, rate) in _world.Needs.BaseRates)
             {
-                var wanted = _world.Needs.PerMillion(good, capacity) *
-                    _world.PopulationOf(country.Id).Whole / 1_000_000;
+                floor += prices.CostOf(good, new GoodAmount(rate.Raw * people / 1_000_000));
+            }
+
+            // Доход — это заработок плюс то, что берут из запаса: в первые дни партии
+            // зарплат ещё не платили вовсе, и без запаса спрос выходил нулевым, а за ним
+            // нулевым и выпуск. Тридцатая доля — месячная трата накопленного.
+            var income = country.Payroll + new Money(country.Households.Savings.Raw / 30);
+
+            foreach (var (good, rate) in _world.Needs.BaseRates)
+            {
+                var least = new GoodAmount(rate.Raw * people / 1_000_000);
+
+                // Доля свободных денег — по месту товара в самом минимуме: на что уходит
+                // больше при нужде, на то больше уходит и при достатке.
+                var share = floor.Raw <= 0
+                    ? 0
+                    : (int)(prices.CostOf(good, least).Raw * 100 / floor.Raw);
+
+                var wanted = Spending.Wanted(income, floor, prices.Of(good), least, share);
                 _peopleWants.Add(country.Id, good, wanted);
                 _inputs.Add(country.Id, good, wanted);
                 _claims.Add(country.Id, good, wanted * weight / Priorities.NormalWeight);
@@ -2657,11 +2680,40 @@ public sealed class Simulation
 
     /// <summary>Цены двигаются в конце тика: спрос за тик против того запаса, что был
     /// на его начало.</summary>
+    /// <summary>Ставит цену, при которой спрос сходится с предложением.</summary>
+    /// <remarks>
+    /// Не двигает вчерашнюю, а считает заново от обычной — оттого цене и не от чего
+    /// раскачиваться. Прежде она ползла шагами вслед за покрытием склада, а склад копил
+    /// выпуск, который сам зависел от цены: круг с задержкой в тик, который расходится сам
+    /// собой. Это паутинообразная модель из учебника, и подбором шага она не лечится.
+    ///
+    /// Сравниваются потоки: сколько просят за сутки против того, сколько за сутки можно
+    /// дать. Запас входит в предложение лишь той частью, что выше нормы, и растянутой на
+    /// ту же норму, — иначе полный склад ронял бы цену во столько же раз, во сколько
+    /// пустой её поднимал.
+    /// </remarks>
     private void MovePrices()
     {
-        foreach (var (country, good, available) in _available)
+        foreach (var country in _world.Countries)
         {
-            _world.CountryById(country).State.Prices.MoveFromCover(good, _inputs.Get(country, good), available);
+            var prices = country.State.Prices;
+
+            foreach (var good in AllGoods)
+            {
+                var wanted = _inputs.Get(country.Id, good);
+                var kept = _available.Get(country.Id, good);
+                var norm = new GoodAmount(wanted.Raw * Prices.TargetCoverDays);
+                var spare = kept > norm
+                    ? new GoodAmount((kept - norm).Raw / Prices.TargetCoverDays)
+                    : default;
+
+                prices.SetTo(good, Clearing.Price(
+                    prices.StartOf(good),
+                    wanted,
+                    PotentialOutputOf(country.Id, good) + spare,
+                    _world.Elasticity.Demand(good),
+                    _world.Elasticity.Supply(good)));
+            }
         }
     }
 
