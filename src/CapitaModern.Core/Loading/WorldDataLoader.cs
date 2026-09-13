@@ -46,7 +46,8 @@ public static class WorldDataLoader
         var goodDtos = JsonReader.Read<GoodDto[]>(goodsJson);
         var elasticity = new Elasticity(
             goodDtos.ToDictionary(dto => dto.Id, dto => dto.DemandElasticity),
-            goodDtos.ToDictionary(dto => dto.Id, dto => dto.SupplyElasticity));
+            goodDtos.ToDictionary(dto => dto.Id, dto => dto.SupplyElasticity),
+            goodDtos.ToDictionary(dto => dto.Id, dto => dto.Substitution));
         var startBuildings = LoadStartBuildingsFile(startBuildingsJson).StartBuildings;
         var countriesFile = LoadCountriesFile(countriesJson);
         var regionsFile = LoadRegionsFile(regionsJson);

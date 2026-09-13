@@ -105,6 +105,10 @@ public sealed class Country
     /// отказа на рынок несколько лет не пускают.</summary>
     public int DefaultedOnDay { get; set; }
 
+    /// <summary>На какой день долг переписали. Кредит после этого закрыт, но короче, чем
+    /// после отказа: договорившегося рынок прощает быстрее отказавшегося.</summary>
+    public int TalkedOnDay { get; set; }
+
     /// <summary>Курс на старте партии. От него считается коридор.</summary>
     public Money StartRate { get; private init; } = Money.FromWhole(1);
 

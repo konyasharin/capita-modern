@@ -8,7 +8,8 @@
 		"worldOutput2019": 8100000,
 		"demandElasticity": -25,
 		"supplyElasticity": 30,
-		"freightShare": 2500
+		"freightShare": 2500,
+		"substitution": 900
 	},
 	{
 		"id": "Oil",
@@ -19,7 +20,8 @@
 		"worldOutput2019": 4485000,
 		"demandElasticity": -25,
 		"supplyElasticity": 20,
-		"freightShare": 500
+		"freightShare": 500,
+		"substitution": 1100
 	},
 	{
 		"id": "Gas",
@@ -30,7 +32,8 @@
 		"worldOutput2019": 4088000,
 		"demandElasticity": -25,
 		"supplyElasticity": 20,
-		"freightShare": 1200
+		"freightShare": 1200,
+		"substitution": 900
 	},
 	{
 		"id": "IronOre",
@@ -41,7 +44,8 @@
 		"worldOutput2019": 2500000,
 		"demandElasticity": -50,
 		"supplyElasticity": 30,
-		"freightShare": 1800
+		"freightShare": 1800,
+		"substitution": 1000
 	},
 	{
 		"id": "CopperOre",
@@ -52,7 +56,8 @@
 		"worldOutput2019": 816000,
 		"demandElasticity": -50,
 		"supplyElasticity": 30,
-		"freightShare": 1200
+		"freightShare": 1200,
+		"substitution": 1000
 	},
 	{
 		"id": "Bauxite",
@@ -63,7 +68,8 @@
 		"worldOutput2019": 370000,
 		"demandElasticity": -50,
 		"supplyElasticity": 30,
-		"freightShare": 2200
+		"freightShare": 2200,
+		"substitution": 1000
 	},
 	{
 		"id": "Uranium",
@@ -74,7 +80,8 @@
 		"worldOutput2019": 54000,
 		"demandElasticity": -20,
 		"supplyElasticity": 20,
-		"freightShare": 20
+		"freightShare": 20,
+		"substitution": 800
 	},
 	{
 		"id": "RareEarth",
@@ -85,7 +92,8 @@
 		"worldOutput2019": 146000,
 		"demandElasticity": -40,
 		"supplyElasticity": 30,
-		"freightShare": 100
+		"freightShare": 100,
+		"substitution": 600
 	},
 	{
 		"id": "Timber",
@@ -96,7 +104,8 @@
 		"worldOutput2019": 3970000,
 		"demandElasticity": -50,
 		"supplyElasticity": 40,
-		"freightShare": 2000
+		"freightShare": 2000,
+		"substitution": 700
 	},
 	{
 		"id": "Agriculture",
@@ -107,7 +116,8 @@
 		"worldOutput2019": 8000000,
 		"demandElasticity": -40,
 		"supplyElasticity": 30,
-		"freightShare": 1500
+		"freightShare": 1500,
+		"substitution": 800
 	},
 	{
 		"id": "Electricity",
@@ -118,7 +128,8 @@
 		"worldOutput2019": 13500000,
 		"demandElasticity": -20,
 		"supplyElasticity": 50,
-		"freightShare": 3000
+		"freightShare": 3000,
+		"substitution": 1200
 	},
 	{
 		"id": "Fuel",
@@ -129,7 +140,8 @@
 		"worldOutput2019": 4300000,
 		"demandElasticity": -25,
 		"supplyElasticity": 60,
-		"freightShare": 500
+		"freightShare": 500,
+		"substitution": 900
 	},
 	{
 		"id": "Metals",
@@ -140,7 +152,8 @@
 		"worldOutput2019": 1963000,
 		"demandElasticity": -50,
 		"supplyElasticity": 60,
-		"freightShare": 500
+		"freightShare": 500,
+		"substitution": 600
 	},
 	{
 		"id": "Chemicals",
@@ -151,7 +164,8 @@
 		"worldOutput2019": 2828750,
 		"demandElasticity": -50,
 		"supplyElasticity": 70,
-		"freightShare": 400
+		"freightShare": 400,
+		"substitution": 400
 	},
 	{
 		"id": "Materials",
@@ -162,7 +176,8 @@
 		"worldOutput2019": 4100000,
 		"demandElasticity": -60,
 		"supplyElasticity": 80,
-		"freightShare": 4000
+		"freightShare": 4000,
+		"substitution": 600
 	},
 	{
 		"id": "Components",
@@ -173,7 +188,8 @@
 		"worldOutput2019": 3361650,
 		"demandElasticity": -60,
 		"supplyElasticity": 100,
-		"freightShare": 100
+		"freightShare": 100,
+		"substitution": 300
 	},
 	{
 		"id": "Electronics",
@@ -184,7 +200,8 @@
 		"worldOutput2019": 3465310,
 		"demandElasticity": -60,
 		"supplyElasticity": 100,
-		"freightShare": 50
+		"freightShare": 50,
+		"substitution": 250
 	},
 	{
 		"id": "Microelectronics",
@@ -195,7 +212,8 @@
 		"worldOutput2019": 584000,
 		"demandElasticity": -60,
 		"supplyElasticity": 80,
-		"freightShare": 10
+		"freightShare": 10,
+		"substitution": 250
 	},
 	{
 		"id": "Food",
@@ -206,7 +224,8 @@
 		"worldOutput2019": 3000000,
 		"demandElasticity": -30,
 		"supplyElasticity": 70,
-		"freightShare": 1000
+		"freightShare": 1000,
+		"substitution": 400
 	},
 	{
 		"id": "ConsumerGoods",
@@ -217,7 +236,8 @@
 		"worldOutput2019": 2044000,
 		"demandElasticity": -120,
 		"supplyElasticity": 120,
-		"freightShare": 200
+		"freightShare": 200,
+		"substitution": 300
 	},
 	{
 		"id": "Medicine",
@@ -228,7 +248,8 @@
 		"worldOutput2019": 365000,
 		"demandElasticity": -20,
 		"supplyElasticity": 60,
-		"freightShare": 30
+		"freightShare": 30,
+		"substitution": 200
 	},
 	{
 		"id": "Armour",
@@ -240,7 +261,8 @@
 		"worldOutput2019": 5840,
 		"demandElasticity": -30,
 		"supplyElasticity": 40,
-		"freightShare": 200
+		"freightShare": 200,
+		"substitution": 200
 	},
 	{
 		"id": "Artillery",
@@ -252,7 +274,8 @@
 		"worldOutput2019": 2190,
 		"demandElasticity": -30,
 		"supplyElasticity": 40,
-		"freightShare": 200
+		"freightShare": 200,
+		"substitution": 200
 	},
 	{
 		"id": "SmallArms",
@@ -264,7 +287,8 @@
 		"worldOutput2019": 10585,
 		"demandElasticity": -30,
 		"supplyElasticity": 40,
-		"freightShare": 100
+		"freightShare": 100,
+		"substitution": 250
 	},
 	{
 		"id": "Ammunition",
@@ -276,7 +300,8 @@
 		"worldOutput2019": 6570,
 		"demandElasticity": -30,
 		"supplyElasticity": 40,
-		"freightShare": 300
+		"freightShare": 300,
+		"substitution": 300
 	},
 	{
 		"id": "TacticalDrones",
@@ -288,7 +313,8 @@
 		"worldOutput2019": 1460,
 		"demandElasticity": -30,
 		"supplyElasticity": 40,
-		"freightShare": 30
+		"freightShare": 30,
+		"substitution": 200
 	},
 	{
 		"id": "StrikeDrones",
@@ -300,7 +326,8 @@
 		"worldOutput2019": 1825,
 		"demandElasticity": -30,
 		"supplyElasticity": 40,
-		"freightShare": 30
+		"freightShare": 30,
+		"substitution": 200
 	},
 	{
 		"id": "Missiles",
@@ -312,7 +339,8 @@
 		"worldOutput2019": 5110,
 		"demandElasticity": -30,
 		"supplyElasticity": 40,
-		"freightShare": 50
+		"freightShare": 50,
+		"substitution": 200
 	},
 	{
 		"id": "Aircraft",
@@ -324,7 +352,8 @@
 		"worldOutput2019": 2190,
 		"demandElasticity": -30,
 		"supplyElasticity": 40,
-		"freightShare": 20
+		"freightShare": 20,
+		"substitution": 200
 	},
 	{
 		"id": "AirDefence",
@@ -336,7 +365,8 @@
 		"worldOutput2019": 1825,
 		"demandElasticity": -30,
 		"supplyElasticity": 40,
-		"freightShare": 50
+		"freightShare": 50,
+		"substitution": 200
 	},
 	{
 		"id": "ElectronicWarfare",
@@ -348,7 +378,8 @@
 		"worldOutput2019": 1460,
 		"demandElasticity": -30,
 		"supplyElasticity": 40,
-		"freightShare": 20
+		"freightShare": 20,
+		"substitution": 200
 	},
 	{
 		"id": "Services",
@@ -359,6 +390,7 @@
 		"worldOutput2019": 535000000,
 		"demandElasticity": -40,
 		"supplyElasticity": 90,
-		"freightShare": 0
+		"freightShare": 0,
+		"substitution": 300
 	}
 ]

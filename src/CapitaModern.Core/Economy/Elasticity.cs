@@ -33,19 +33,39 @@ public sealed class Elasticity
     public const int MinStockFactor = 20;
     public const int MaxStockFactor = 150;
 
+    /// <summary>Насколько товар одного вида из разных стран взаимозаменяем, в сотых.</summary>
+    /// <remarks>
+    /// Уголь есть уголь: берут у того, кто дешевле, и всё. А немецкий станок китайским не
+    /// заменишь — другие допуски, другая оснастка, другие люди умеют на нём работать.
+    /// Это и есть разница в товаре, а не только в цене, и без неё страна с дорогим, но
+    /// хорошим товаром не вывозит ничего.
+    ///
+    /// Числа из Броди и Вайнштейна: у однородного сырья упругость замещения около десяти,
+    /// у сложной техники два-три. По умолчанию четыре — прежнее общее значение.
+    /// </remarks>
+    public int Substitution(GoodType good) => _substitution[good];
+
+    private const int UsualSubstitution = 400;
+
     private readonly Dictionary<GoodType, int> _demand = new();
     private readonly Dictionary<GoodType, int> _supply = new();
+    private readonly Dictionary<GoodType, int> _substitution = new();
 
     public Elasticity(
         IReadOnlyDictionary<GoodType, int>? demand = null,
-        IReadOnlyDictionary<GoodType, int>? supply = null)
+        IReadOnlyDictionary<GoodType, int>? supply = null,
+        IReadOnlyDictionary<GoodType, int>? substitution = null)
     {
         demand ??= new Dictionary<GoodType, int>();
         supply ??= new Dictionary<GoodType, int>();
+        substitution ??= new Dictionary<GoodType, int>();
         foreach (var good in Enum.GetValues<GoodType>())
         {
             _demand.Add(good, demand.GetValueOrDefault(good));
             _supply.Add(good, supply.GetValueOrDefault(good));
+
+            var swap = substitution.GetValueOrDefault(good);
+            _substitution.Add(good, swap > 0 ? swap : UsualSubstitution);
         }
     }
 

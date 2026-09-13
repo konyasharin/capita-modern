@@ -30,10 +30,12 @@ public readonly record struct MarketOrder(
 /// </remarks>
 public sealed class Exchange
 {
-    /// <summary>Насколько покупатель разборчив: степень, с которой падает доля продавца
-    /// по мере того, как он дороже. Четвёрка — середина оценок внешней торговли, они
-    /// разбросаны от двух до восьми.</summary>
-    public const int Choosiness = 4;
+    /// <summary>Насколько покупатель разборчив по умолчанию, в сотых: степень, с которой
+    /// падает доля продавца по мере того, как он дороже.</summary>
+    /// <remarks>Своя у каждого товара — см. <see cref="Elasticity.Substitution"/>. Уголь
+    /// берут у того, кто дешевле; немецкий станок китайским не заменишь. Четвёрка осталась
+    /// для тех, у кого своё число не задано.</remarks>
+    public const int Choosiness = 400;
 
     /// <summary>Сколько поставщиков у одного покупателя по одному товару. В жизни ввоз
     /// идёт от горстки стран, а не от всех двухсот: у большинства товаров первая десятка
@@ -46,10 +48,24 @@ public sealed class Exchange
     /// не вчетверо. Иначе передовые забирали бы весь рынок при любой цене.</summary>
     public const int QualityFromSkill = 25;
 
-    /// <summary>Вес по отношению цен, посчитанный заранее. Степень считается долго, а
-    /// отношение — целое от нуля до <see cref="Powers.Scale"/>: пар за тик выходит больше
-    /// миллиона, и без таблицы тик уходил в шестьдесят миллисекунд.</summary>
-    private static readonly long[] Weights = BuildWeights();
+    /// <summary>Вес по отношению цен, посчитанный заранее, — своя таблица на каждую
+    /// разборчивость. Степень считается долго, а отношение — целое от нуля до
+    /// <see cref="Powers.Scale"/>: пар за тик выходит больше миллиона, и без таблицы тик
+    /// уходил в шестьдесят миллисекунд.</summary>
+    private static readonly Dictionary<int, long[]> Tables = [];
+
+    private static long[] Weights(int choosiness)
+    {
+        lock (Tables)
+        {
+            if (Tables.TryGetValue(choosiness, out var ready)) return ready;
+
+            var table = BuildWeights(choosiness);
+            Tables[choosiness] = table;
+
+            return table;
+        }
+    }
 
     private readonly List<int> _buyers = [];
     private readonly List<int> _sellers = [];
@@ -61,6 +77,9 @@ public sealed class Exchange
     private byte[] _whoOf = new byte[256];
 
     /// <summary>Цена с доставкой и вес каждого продавца для нынешнего покупателя.</summary>
+    /// <summary>Таблица весов для товара, который сводим сейчас.</summary>
+    private long[] _weights = [];
+
     private long[] _askOf = new long[256];
     private long[] _qualityOf = new long[256];
     private long[] _keyOf = new long[256];
@@ -97,7 +116,8 @@ public sealed class Exchange
     public GoodAmount Settle(
         Span<MarketOrder> orders,
         Func<byte, byte, int> markup,
-        Action<Deal> onDeal)
+        Action<Deal> onDeal,
+        int choosiness = Choosiness)
     {
         _buyers.Clear();
         _sellers.Clear();
@@ -141,6 +161,8 @@ public sealed class Exchange
         }
 
         _sellers.Sort((a, b) => ask[a] != ask[b] ? ask[a].CompareTo(ask[b]) : who[a] - who[b]);
+
+        _weights = Weights(choosiness);
 
         var traded = default(GoodAmount);
         foreach (var b in _buyers) traded += Serve(orders, b, left, markup, onDeal);
@@ -199,7 +221,7 @@ public sealed class Exchange
         foreach (var s in _fit)
         {
             var ratio = Ratio(cheapest, _priceOf[s]);
-            _weightOf[s] = Weights[ratio < 0 ? 0 : ratio > Powers.Scale ? Powers.Scale : ratio];
+            _weightOf[s] = _weights[ratio < 0 ? 0 : ratio > Powers.Scale ? Powers.Scale : ratio];
         }
 
         // Оставляем тех, от кого и правда что-то придёт: дешевизна без товара бесполезна,
@@ -297,10 +319,10 @@ public sealed class Exchange
         return Powers.PowCached((long)quality * Powers.Scale / Efficiency.Scale, QualityFromSkill);
     }
 
-    private static long[] BuildWeights()
+    private static long[] BuildWeights(int choosiness)
     {
         var table = new long[Powers.Scale + 1];
-        for (var i = 0; i <= Powers.Scale; i++) table[i] = Powers.Pow(i, Choosiness * 100);
+        for (var i = 0; i <= Powers.Scale; i++) table[i] = Powers.Pow(i, choosiness);
 
         return table;
     }

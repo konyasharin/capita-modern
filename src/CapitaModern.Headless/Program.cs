@@ -195,7 +195,9 @@ for (var tick = 1; tick <= 365; tick++)
         // выработку меряют двумя разными линейками.
         wagesYear[country.Id] +=
             simulation.ValueAddedOf(country.Id, constant).Exact * country.LabourShare / 100;
-        employedYear[country.Id] += simulation.EmployedIn(country.Id);
+        // Вместе со своим делом: ВВП кормит и тех, кто не попал на завод, и делить его
+        // на одних заводских — значит завышать выработку вдвое-втрое.
+        employedYear[country.Id] += simulation.EmployedIn(country.Id) + simulation.SelfEmployedIn(country.Id);
         transitYear[country.Id] += simulation.TransitEarnedBy(country.Id);
         imports[country.Id] += simulation.ImportsOf(country.Id, constant);
     }
@@ -511,6 +513,10 @@ Console.WriteLine("правилах. Смотрим не на итог, а на 
 Console.WriteLine();
 
 var refusals = simulation.Refusals;
+var talked = world.Countries.Count(c => simulation.TalksOf(c.Id) > 0);
+var forgiven = world.Countries.Sum(c => simulation.ForgivenTo(c.Id).Exact);
+
+Console.WriteLine($"Переписали долг: {talked} стран, прощено {forgiven / 1e9:F2} трлн $");
 Console.WriteLine($"Всего отказов: {refusals.Count}");
 
 if (refusals.Count > 0)
@@ -604,10 +610,13 @@ foreach (var iso in new[] { "USA", "CHN", "DEU", "JPN", "IND", "NGA" })
 }
 
 Console.WriteLine();
-Console.WriteLine($"Занято в мире: {employedWorld / 1e6:F0} млн, из них в услугах " +
-                  $"{simulation.ServiceJobs / 1e6:F0} млн (рабочая сила " +
-                  $"{world.Countries.Sum(c => world.WorkersOf(c.Id)) / 1e6:F0} млн, в жизни занято 3240, " +
-                  $"из них в услугах около 1600)");
+var ownWork = world.Countries.Sum(c => simulation.SelfEmployedIn(c.Id));
+
+Console.WriteLine($"Занято в мире: {employedWorld / 1e6:F0} млн на предприятиях плюс " +
+                  $"{ownWork / 1e6:F0} млн своим делом — всего {(employedWorld + ownWork) / 1e6:F0} млн " +
+                  $"(рабочая сила {world.Countries.Sum(c => world.WorkersOf(c.Id)) / 1e6:F0} млн, " +
+                  "в жизни занято 3240)");
+Console.WriteLine($"В услугах: {simulation.ServiceJobs / 1e6:F0} млн (в жизни около 1600)");
 Console.WriteLine($"Вне услуг: {(employedWorld - simulation.ServiceJobs) / 1e6:F0} млн, " +
                   $"из них на стройке {simulation.BuildJobs / 1e6:F0} млн " +
                   "(в наших данных о занятости 1096, в жизни на стройке около 220)");

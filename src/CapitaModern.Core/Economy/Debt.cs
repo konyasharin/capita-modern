@@ -70,6 +70,33 @@ public sealed class Debt
 
     /// <summary>Списывает долг по одному источнику и говорит, сколько списано кому.
     /// Кредиторы теряют ровно эти деньги — они уже у должника.</summary>
+    /// <summary>Списывает долю каждого займа: долг переписан по договорённости.</summary>
+    /// <remarks>
+    /// В жизни до отказа платить доходит редко — раньше садятся за стол и переписывают
+    /// долг: часть прощают, срок растягивают, ставку режут. Парижский клуб и МВФ этим и
+    /// заняты, и половина всех долговых историй кончается так, а не отказом.
+    ///
+    /// Кредитор при этом теряет деньги, но меньше, чем потерял бы при отказе, — потому и
+    /// соглашается.
+    /// </remarks>
+    /// <param name="cut">Какую долю тела списать, в сотых долях процента.</param>
+    public Money Forgive(LoanSource source, int cut)
+    {
+        if (cut <= 0) return default;
+
+        var forgiven = default(Money);
+        foreach (var loan in _loans)
+        {
+            if (loan.Source != source || loan.Principal.Raw == 0) continue;
+
+            forgiven += loan.Repay(new Money(loan.Principal.Raw * cut / 10_000));
+        }
+
+        Forget();
+
+        return forgiven;
+    }
+
     public List<(byte? Lender, Money Lost)> Default(LoanSource source)
     {
         var lost = new List<(byte?, Money)>();

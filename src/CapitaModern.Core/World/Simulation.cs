@@ -640,7 +640,8 @@ public sealed class Simulation
             _exchanges[(int)good].Settle(
                 CollectionsMarshal.AsSpan(_markets[(int)good]),
                 (seller, buyer) => Markup(seller, buyer, good),
-                deals.Add);
+                deals.Add,
+                _world.Elasticity.Substitution(good));
         });
 
         _steps["Trade.Match"] = _steps.GetValueOrDefault("Trade.Match")
@@ -1122,6 +1123,43 @@ public sealed class Simulation
     public long EmployedIn(byte country) =>
         Math.Min(_jobs.GetValueOrDefault(country), _world.WorkersOf(country));
 
+    /// <summary>Сколько людей кормится своим делом, не попав на завод.</summary>
+    /// <remarks>
+    /// Предприятия и стройка берут не всех: в модели оставалось незанятыми шестьсот
+    /// миллионов человек, и занятость выходила 2813 млн против 3240 в жизни. Но эти люди
+    /// не сидят без дела — они пашут свой огород, торгуют на рынке, чинят и подвозят. В
+    /// статистике это неформальный сектор, и в нём по оценкам МОТ два миллиарда человек,
+    /// почти все в бедных странах.
+    ///
+    /// Без работы остаётся <see cref="Jobless"/> — примерно столько безработных в мире и
+    /// есть.
+    /// </remarks>
+    public long SelfEmployedIn(byte country)
+    {
+        var workers = _world.WorkersOf(country);
+        var idle = workers - EmployedIn(country);
+        var jobless = workers * Jobless / 100;
+
+        return idle > jobless ? idle - jobless : 0;
+    }
+
+    /// <summary>Какая доля рабочей силы не находит дела вовсе, в процентах. В жизни
+    /// мировая безработица держится около пяти-шести процентов.</summary>
+    public const int Jobless = 6;
+
+    /// <summary>Выпуск своего дела отдельно не считается, и это не забывчивость.</summary>
+    /// <remarks>
+    /// Пробовали вменять его долей от заводской выработки, как считают в жизни. Мировой ВВП
+    /// подскочил с 92.8 до 104.2 трлн при настоящих 84.9 — значит эти люди уже посчитаны
+    /// внутри заводских чисел. Видно это и по выработке: у России она выходит 55.7 тыс. $
+    /// против настоящих 20, у Бразилии 31.8 против 15. Завод в модели кормит больше людей,
+    /// чем числится на нём занятыми, — вот они и есть.
+    ///
+    /// Поэтому своё дело считается в занятости, но не в выпуске: так обе меры сходятся с
+    /// жизнью, а не одна за счёт другой.
+    /// </remarks>
+    public const int SelfEmployedTimes = 0;
+
     /// <summary>Сколько людей просят предприятия. Больше занятых — значит рук не хватает.</summary>
     public long JobsIn(byte country) => _jobs.GetValueOrDefault(country);
 
@@ -1460,6 +1498,8 @@ public sealed class Simulation
 
             var missed = _missedInARow.GetValueOrDefault(country.Id) + 1;
             _missedInARow[country.Id] = missed;
+
+            if (Restructure(country, debt, missed)) continue;
             if (missed < GraceDays) continue;
             // Той же меркой, что и ставка: у кого валюту держат в резервах, тот платит
             // своими деньгами, и по вывозу его судить нельзя.
@@ -1487,7 +1527,60 @@ public sealed class Simulation
 
     /// <summary>Не пускают ли страну на кредитный рынок после отказа платить.</summary>
     private bool LockedOut(Country country) =>
-        country.DefaultedOnDay > 0 && _day - country.DefaultedOnDay < DaysInYear * DefaultLockYears;
+        (country.DefaultedOnDay > 0 && _day - country.DefaultedOnDay < DaysInYear * DefaultLockYears)
+        || (country.TalkedOnDay > 0 && _day - country.TalkedOnDay < DaysInYear * TalkLockYears);
+
+    /// <summary>Через сколько суток непрерывных пропусков садятся за стол. Раньше отказа:
+    /// половина льготного срока.</summary>
+    private const int TalksDays = GraceDays / 2;
+
+    /// <summary>На сколько лет закрывается кредит после переписанного долга. Короче, чем
+    /// после отказа: договорившегося рынок прощает быстрее.</summary>
+    private const int TalkLockYears = 2;
+
+    /// <summary>Сколько раз одной стране перепишут долг за партию. Дальше кредиторы
+    /// перестают верить обещаниям.</summary>
+    private const int TalksAllowed = 2;
+
+    /// <summary>Долг переписывают: часть списывают, чтобы страна снова могла платить.</summary>
+    /// <remarks>
+    /// В жизни до отказа доходит редко — раньше садятся за стол. Парижский клуб и МВФ этим
+    /// и заняты: часть долга прощают, срок растягивают, и страна возвращается к платежам.
+    /// Кредитор теряет меньше, чем потерял бы при отказе, потому и соглашается.
+    ///
+    /// Списывают ровно столько, чтобы нагрузка вернулась к той черте, за которой ещё дают
+    /// в долг: меньше — и через год всё повторится, больше — и кредитор не сядет за стол.
+    /// </remarks>
+    private bool Restructure(Country country, Debt debt, int missed)
+    {
+        if (missed < TalksDays) return false;
+        if (_talks.GetValueOrDefault(country.Id) >= TalksAllowed) return false;
+
+        var capacity = DebtCapacity(country);
+        if (capacity.Raw <= 0) return false;
+
+        var burden = debt.BurdenToExports(capacity);
+        if (burden <= CreditMarket.SafeBurden) return false;
+
+        var cut = 10_000 - CreditMarket.SafeBurden * 10_000 / burden;
+        var forgiven = debt.Forgive(LoanSource.Foreign, cut);
+        if (forgiven.Raw <= 0) return false;
+
+        _talks[country.Id] = _talks.GetValueOrDefault(country.Id) + 1;
+        _forgiven[country.Id] = _forgiven.GetValueOrDefault(country.Id) + forgiven;
+        _missedInARow.Remove(country.Id);
+        country.TalkedOnDay = _day;
+
+        return true;
+    }
+
+    /// <summary>Сколько раз стране переписывали долг и сколько ей простили.</summary>
+    public int TalksOf(byte country) => _talks.GetValueOrDefault(country);
+
+    public Money ForgivenTo(byte country) => _forgiven.GetValueOrDefault(country);
+
+    private readonly Dictionary<byte, int> _talks = new();
+    private readonly Dictionary<byte, Money> _forgiven = new();
 
     /// <summary>Курс идёт за сальдо: кто больше ввозит, у того валюта дешевеет.</summary>
     /// <remarks>Петля замыкается через эластичность: подешевевшая валюта поднимает
