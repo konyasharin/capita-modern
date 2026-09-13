@@ -2643,6 +2643,46 @@ public sealed class Simulation
         }
     }
 
+    /// <summary>Сколько страна дала бы, работай все её предприятия на полную.</summary>
+    /// <remarks>
+    /// Потенциальный выпуск: здания умножены на рецепт и на умение страны, без оглядки на
+    /// то, хватило ли сырья, рук и денег. На старте он совпадает с настоящим ВВП страны —
+    /// оттуда и выведено число заводов, — а дальше расходится с фактическим ровно на то,
+    /// что модель теряет по дороге.
+    ///
+    /// Отношение факта к нему — загрузка мощностей, в жизни около трёх четвертей. Это и
+    /// есть мера, по которой видно, здорова ли экономика: не «сколько вышло», а «сколько
+    /// могло выйти и почему не вышло».
+    /// </remarks>
+    public Money PotentialOf(byte country, Prices prices)
+    {
+        var total = default(Money);
+
+        foreach (var building in AllBuildings)
+        {
+            var count = _working.Get(country, building);
+            if (count == 0) continue;
+
+            var recipe = _world.Buildings[building];
+            var times = _world.Efficiency.OutputTimes(country, recipe.Sector);
+
+            foreach (var (good, amount) in recipe.Outputs)
+            {
+                var made = new GoodAmount(amount.Raw * count);
+                if (times != Efficiency.Scale) made = new GoodAmount(made.Raw * times / Efficiency.Scale);
+
+                total += prices.CostOf(good, made);
+            }
+
+            foreach (var (good, amount) in recipe.Inputs)
+            {
+                total -= prices.CostOf(good, new GoodAmount(amount.Raw * count));
+            }
+        }
+
+        return total;
+    }
+
     /// <summary>Добавленная стоимость страны за прошедший тик: что выпущено минус то,
     /// что на это ушло. Сумма по всем странам — мировой ВВП за сутки.</summary>
     /// <remarks>Может быть отрицательной: значит, сырьё стоит дороже продукции.</remarks>

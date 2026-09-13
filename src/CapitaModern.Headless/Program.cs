@@ -665,6 +665,37 @@ foreach (var iso in new[] { "USA", "DEU", "CHN", "IND", "NGA", "SAU" })
     }
 }
 
+// --- Я. Загрузка мощностей -----------------------------------------------------------
+Console.WriteLine();
+Console.WriteLine("=== Я. Сколько страна могла дать и сколько дала ===");
+Console.WriteLine("Потенциал — все предприятия на полную. В жизни загружено около 78%.");
+Console.WriteLine();
+Console.WriteLine("страна   потенциал трлн   факт трлн   загрузка   в жизни ВВП");
+
+var worldCould = 0.0;
+var worldDid = 0.0;
+
+foreach (var (iso, inLife) in new[] { ("USA", 21.55), ("CHN", 14.76), ("JPN", 5.04),
+             ("DEU", 3.86), ("IND", 2.87), ("GBR", 2.76), ("FRA", 2.63), ("RUS", 1.70),
+             ("BRA", 1.84), ("SAU", 0.70), ("NGA", 0.45) })
+{
+    var id = world.Countries.First(c => c.Iso == iso).Id;
+    var could = simulation.PotentialOf(id, constant).Exact * 365 / 1e9;
+    var did = simulation.ValueAddedOf(id, constant).Exact * 365 / 1e9;
+
+    Console.WriteLine($"{iso,-8} {could,15:F2} {did,11:F2} {(could > 0 ? 100 * did / could : 0),10:F0}%"
+        + $" {inLife,13:F2}");
+}
+
+foreach (var country in world.Countries)
+{
+    worldCould += simulation.PotentialOf(country.Id, constant).Exact * 365 / 1e9;
+    worldDid += simulation.ValueAddedOf(country.Id, constant).Exact * 365 / 1e9;
+}
+
+Console.WriteLine($"мир      {worldCould,15:F2} {worldDid,11:F2} "
+    + $"{(worldCould > 0 ? 100 * worldDid / worldCould : 0),10:F0}%         84.90");
+
 // --- Ю. Добыча против настоящей ------------------------------------------------------
 Console.WriteLine();
 Console.WriteLine("=== Ю. Доля страны в мировой добыче ===");
