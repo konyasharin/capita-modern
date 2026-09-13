@@ -12,6 +12,31 @@ public class SimulationTests
     private const BuildingType Plant = BuildingType.ChemicalPlant;
 
     /// <summary>Шахта без входов: сколько заводов, столько и выпуска.</summary>
+    /// <summary>Завод сбавляет, когда товар залежался: склад вдвое выше нормы запаса —
+    /// работает вполсилы, а не в никуда.</summary>
+    [Fact]
+    public void FullShelfSlowsThePlantDown()
+    {
+        var world = Build.World(
+            [Build.Region(1, 1, new Dictionary<BuildingType, int> { [BuildingType.CoalMine] = 10 })],
+            [Build.Country(1)],
+            Build.Catalog(Build.Info(BuildingType.CoalMine,
+                outputs: new() { [GoodType.Coal] = Build.Whole(10) })),
+            new Dictionary<GoodType, Money> { [GoodType.Coal] = Money.FromWhole(1) });
+
+        var simulation = new Simulation(world);
+        simulation.Tick();
+
+        var atFirst = simulation.OutputOf(1, GoodType.Coal);
+        Assert.True(atFirst.Raw > 0, "шахта не дала угля даже в первый тик");
+
+        // Уголь никому не нужен: за сто тиков склад уходит далеко за норму.
+        for (var tick = 0; tick < 100; tick++) simulation.Tick();
+
+        Assert.True(simulation.OutputOf(1, GoodType.Coal) < atFirst,
+            "склад давно полон, а шахта копает в прежнюю силу");
+    }
+
     [Fact]
     public void ProducesEveryTick()
     {
@@ -36,7 +61,9 @@ public class SimulationTests
         var simulation = new Simulation(world);
         for (var i = 0; i < 5; i++) simulation.Tick();
 
-        Assert.Equal(Build.Whole(50), world.CountryById(1).State.Stock.Of(GoodType.Coal));
+        // Первый тик шахта работает на полную, а дальше сбавляет вполсилы: уголь в этом
+        // мире никому не нужен, и склад сразу выше нормы запаса.
+        Assert.Equal(Build.Whole(30), world.CountryById(1).State.Stock.Of(GoodType.Coal));
     }
 
     /// <summary>Свежая продукция достаётся следующему тику, а не заводам в этом же.</summary>

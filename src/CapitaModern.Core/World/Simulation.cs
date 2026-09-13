@@ -142,7 +142,8 @@ public sealed class Simulation
     /// <summary>Что страна собралась строить в этот тик. Решается вместе со спросом,
     /// чтобы стройку видели и цена, и мировой рынок: без этого главный потребитель
     /// материалов не создавал спроса, и они лежали на полу у 196 стран.</summary>
-    private readonly Dictionary<byte, (BuildingType Type, Region Where, int Count)> _plan = new();
+    private readonly Dictionary<byte, List<(Company? Builder, BuildingType Type, Region Where, int Count)>>
+        _plan = [];
 
     /// <summary>Отложенные на стройку деньги. Завод стоит три своих годовых выпуска,
     /// за тик такого не накопить — поэтому копится.</summary>
@@ -315,7 +316,6 @@ public sealed class Simulation
         // вчерашний выпуск. Каждому тику он всё равно переписывается заново.
         _build.Clear();
         _raised.Clear();
-        _plan.Clear();
         _burnedFuel.Clear();
         _transit.Clear();
         _capitalIn.Clear();
@@ -1126,9 +1126,61 @@ public sealed class Simulation
 
     public void Cancel(byte country) => _ordered.Remove(country);
 
-    /// <summary>Что строится прямо сейчас: тип, регион и сколько штук.</summary>
-    public (BuildingType Type, Region Where, int Count)? PlanOf(byte country) =>
-        _plan.TryGetValue(country, out var plan) ? plan : null;
+    /// <summary>Что строится прямо сейчас: тип, регион и сколько штук. Строек за тик
+    /// бывает несколько — здесь самая большая, для окна страны.</summary>
+    public (BuildingType Type, Region Where, int Count)? PlanOf(byte country)
+    {
+        if (!_plan.TryGetValue(country, out var plans) || plans.Count == 0) return null;
+
+        var biggest = plans[0];
+        foreach (var plan in plans)
+        {
+            if (plan.Count > biggest.Count) biggest = plan;
+        }
+
+        return (biggest.Type, biggest.Where, biggest.Count);
+    }
+
+    /// <summary>Сбавляет загрузку, когда склад уже вдвое выше нормы запаса.</summary>
+    /// <remarks>
+    /// Завод не работает в никуда: чем больше на складе сверх нормы, тем ниже загрузка.
+    /// Полностью не встаёт — ниже половины мощности не опускается, иначе цех, у которого
+    /// товар просто залежался, гасит всю цепочку за собой. И сбавляют не от первой лишней
+    /// единицы, а когда запас вдвое выше нормы: склад и должен гулять вокруг неё.
+    ///
+    /// Без этого выпуск оседал на полке: склады мира росли на двадцать триллионов в год
+    /// при ВВП в сто, а в жизни изменение запасов — около процента. Заодно оттого и не
+    /// было нигде запаса мощности: число заводов пришлось выводить из фактического
+    /// выпуска, ведь работали они всегда на полную.
+    ///
+    /// Вывоз считается наравне со своими: он уже прошёл в этом тике, и без него страна,
+    /// которая кормит полмира, считала бы свой склад лишним.
+    /// </remarks>
+    private long Ordered(Country owner, Buildings.BuildingInfo recipe, long runs)
+    {
+        var country = owner.Id;
+
+        foreach (var (good, amount) in recipe.Outputs)
+        {
+            if (amount.Raw <= 0) continue;
+
+            var wanted = _inputs.Get(country, good) + _exported.Get(country, good);
+            var target = new GoodAmount(wanted.Raw * Prices.TargetCoverDays * 2);
+            var stock = _available.Get(country, good) + _outputs.Get(country, good);
+            if (stock <= target) continue;
+
+            // Товар, который вовсе никому не нужен, делают в самую малую силу: норма у
+            // него нулевая, и делить на склад тут нечего.
+            var load = target.Raw <= 0 ? MinLoad : Math.Max(MinLoad, target.Raw * Load.Full / stock.Raw);
+            var fits = runs * load / Load.Full;
+            if (fits < runs) runs = fits;
+        }
+
+        return runs;
+    }
+
+    /// <summary>Ниже какой доли мощности завод не опускается, что бы ни лежало на складе.</summary>
+    public const int MinLoad = Load.Full / 2;
 
     /// <summary>Сколько зданий типа работало на прошлом тике. Меньше построенных —
     /// значит не хватило сырья или рук.</summary>
@@ -1792,71 +1844,92 @@ public sealed class Simulation
     }
 
     /// <summary>Решает, что строить, и заявляет это как спрос наравне с заводами.</summary>
+    /// <remarks>Строит не одна богатейшая компания, а каждая, у которой хватает на здание.
+    /// Пока строила одна, мир поднимал девяносто тысяч зданий в год против трёхсот тысяч
+    /// изношенных и терял по три процента капитала ежегодно.</remarks>
     private void PlanBuilds()
     {
         foreach (var country in _world.Countries)
         {
-            // Строит та компания, у которой сейчас больше всех денег: копили — значит на
-            // что-то копили. Очередь меняется сама собой, потому что потратившая уходит
-            // вниз списка.
-            var builder = Richest(country.Id);
-            var purse = builder?.Cash ?? _investment.GetValueOrDefault(country.Id);
+            if (!_plan.TryGetValue(country.Id, out var plans)) _plan[country.Id] = plans = [];
+            plans.Clear();
+
+            // Общие на страну потолки: материалы со склада и свободные руки одни на всех,
+            // и вторая компания берёт то, что осталось после первой.
+            var room = MaxBuildsPerTick;
+            var free = _world.WorkersOf(country.Id) - _jobs.GetValueOrDefault(country.Id);
+            var hired = 0L;
 
             // Заказ игрока идёт мимо ниш: государство строит что велено. Сама страна не
             // решает ничего — за неё решают компании, каждая в своём деле.
-            var best = Ordered(country) ?? Chosen(country, builder, purse);
+            var order = Ordered(country);
 
-            if (best is null)
+            foreach (var builder in Builders(country.Id))
             {
-                Stall[0]++;
-                continue;
-            }
+                if (room <= 0) break;
 
-            _builder[country.Id] = builder;
+                var purse = builder?.Cash ?? _investment.GetValueOrDefault(country.Id);
+                var best = order ?? Chosen(country, builder, purse);
 
-            var info = _world.Buildings[best.Value.Type];
-            var price = Construction.CostOf(info.BuildCost, country.State.Prices) + WagesFor(country, info);
-            if (price.Raw <= 0) continue;
+                if (best is null)
+                {
+                    Stall[0]++;
+                    continue;
+                }
 
-            if (purse < price) Stall[1]++;
-            if (CanRaisePerTick(country.Id, best.Value.Type) <= 1) Stall[2]++;
+                var info = _world.Buildings[best.Value.Type];
+                var price = Construction.CostOf(info.BuildCost, country.State.Prices) + WagesFor(country, info);
+                if (price.Raw <= 0) continue;
 
-            // За тик строится не больше потолка: не найдя материалов, страна заявляла бы
-            // спрос, которого мир не выдержит. Режется именно число, а не кошелёк —
-            // раньше лишние деньги пропадали, и вложенное игроком исчезало бы, не дойдя
-            // до стройки.
-            var count = (int)Math.Min(purse.Raw / price.Raw, MaxBuildsPerTick);
+                if (purse < price)
+                {
+                    Stall[1]++;
+                    continue;
+                }
 
-            // Заявлять больше, чем со склада откусишь, нельзя: страна просила материалы
-            // на пятьсот зданий, а поднимала пять, и выдуманный спрос гнал цену вверх.
-            count = Math.Min(count, CanRaisePerTick(country.Id, best.Value.Type));
+                // За тик строится не больше потолка: не найдя материалов, страна заявляла бы
+                // спрос, которого мир не выдержит. Режется именно число, а не кошелёк —
+                // раньше лишние деньги пропадали, и вложенное игроком исчезало бы, не дойдя
+                // до стройки.
+                var count = (int)Math.Min(purse.Raw / price.Raw, room);
 
-            // Стройке нужны руки, и берёт она их у заводов: больше, чем свободно, не
-            // построишь ни за какие деньги.
-            var perUnit = _world.Efficiency.HandsFor(country.Id, info.Sector, info.BuildWorkers);
+                // Заявлять больше, чем со склада откусишь, нельзя: страна просила материалы
+                // на пятьсот зданий, а поднимала пять, и выдуманный спрос гнал цену вверх.
+                var fits = RoomFor(country.Id, best.Value.Type);
+                if (fits <= 0)
+                {
+                    Stall[2]++;
+                    continue;
+                }
 
-            if (perUnit > 0)
-            {
-                var free = _world.WorkersOf(country.Id) - _jobs.GetValueOrDefault(country.Id);
-                count = (int)Math.Min(count, Math.Max(0, free / perUnit));
-            }
+                count = Math.Min(count, fits);
 
-            if (count <= 0)
-            {
-                Stall[3]++;
-                continue;
-            }
+                // Стройке нужны руки, и берёт она их у заводов: больше, чем свободно, не
+                // построишь ни за какие деньги.
+                var perUnit = _world.Efficiency.HandsFor(
+                    country.Id, info.Sector, info.BuildWorkers / Construction.BuildDays);
 
-            Stall[4] += count;
-            _plan[country.Id] = (best.Value.Type, best.Value.Where, count);
+                if (perUnit > 0) count = (int)Math.Min(count, Math.Max(0, (free - hired) / perUnit));
 
-            var weight = country.Priorities.WeightOf(info.Sector);
-            foreach (var (good, amount) in info.BuildCost)
-            {
-                var wanted = amount * count;
-                _inputs.Add(country.Id, good, wanted);
-                _build.Add(country.Id, good, wanted);
-                _claims.Add(country.Id, good, wanted * weight / Priorities.NormalWeight);
+                if (count <= 0)
+                {
+                    Stall[3]++;
+                    continue;
+                }
+
+                Stall[4] += count;
+                plans.Add((builder, best.Value.Type, best.Value.Where, count));
+                room -= count;
+                hired += perUnit * count;
+
+                var weight = country.Priorities.WeightOf(info.Sector);
+                foreach (var (good, amount) in info.BuildCost)
+                {
+                    var wanted = amount * count;
+                    _inputs.Add(country.Id, good, wanted);
+                    _build.Add(country.Id, good, wanted);
+                    _claims.Add(country.Id, good, wanted * weight / Priorities.NormalWeight);
+                }
             }
 
             // Строители — такие же рабочие руки и конкурируют с заводами за людей. Берём
@@ -1929,6 +2002,9 @@ public sealed class Simulation
             }
 
             if (runs == 0) continue;
+
+            runs = Ordered(owner, recipe, runs);
+            if (runs <= 0) continue;
 
             var prices = owner.State.Prices;
             var owners = _world.Holdings.OwnersIn(country, building);
@@ -2698,10 +2774,17 @@ public sealed class Simulation
                 country.Budget.Collect(
                     TaxKind.Profit, company.Give(TaxCode.Take(profit, country.Taxes.Profit)));
 
-                // Четверть чистого — на развитие, остальное владельцам. Владелец —
-                // население: акций и биржи пока нет.
+                // На развитие — четверть добавленной стоимости, остальное владельцам.
+                // Владелец — население: акций и биржи пока нет.
+                //
+                // Доля считается от добавленной стоимости, а не от прибыли: в жизни
+                // валовое накопление — четверть ВВП, а прибыль сама по себе меньше
+                // половины его. Отсчёт от прибыли оставлял на стройку семь процентов ВВП —
+                // вдвое меньше, чем нужно на одно возмещение износа, и мир терял по три
+                // процента предприятий в год.
                 var net = profit - TaxCode.Take(profit, country.Taxes.Profit);
-                var keep = new Money(net.Raw * Construction.InvestmentShare / 100);
+                var want = new Money(added.Raw * Construction.InvestmentShare / 100);
+                var keep = net < want ? net : want;
 
                 country.Households.Earn(company.Give(net - keep));
             }
@@ -3271,17 +3354,47 @@ public sealed class Simulation
 
     private readonly Dictionary<int, (BuildingType Type, Region Where, int Until)> _choice = new();
 
-    /// <summary>Самая богатая компания страны. Она и строит: копила — значит на что-то.</summary>
-    private Company? Richest(byte country)
+    /// <summary>Кто в стране может строить: живые компании, богатые вперёд. Компаний нет
+    /// вовсе — строит государство, и это единственный «строитель» из пустоты.</summary>
+    private IEnumerable<Company?> Builders(byte country)
     {
-        Company? best = null;
-        foreach (var company in _world.CompaniesOf(country))
+        var all = _world.CompaniesOf(country);
+        if (all.Count == 0) return [null];
+
+        _lineUp.Clear();
+        foreach (var company in all)
         {
-            if (!company.Alive) continue;
-            if (best is null || company.Cash > best.Cash) best = company;
+            if (company.Alive) _lineUp.Add(company);
         }
 
-        return best;
+        if (_lineUp.Count == 0) return [null];
+
+        _lineUp.Sort((a, b) => b.Cash.Raw.CompareTo(a.Cash.Raw));
+
+        return _lineUp;
+    }
+
+    private readonly List<Company> _lineUp = [];
+
+    /// <summary>Сколько зданий типа ещё поместится на склад после того, что уже заказано
+    /// стройкой за этот тик.</summary>
+    /// <remarks>Строителей за тик несколько, и полка у них одна. Считать каждому от
+    /// полного склада значило заявить спрос, которого нет: заказывали вдвое больше, чем
+    /// поднимали, и выдуманная заявка гнала цену материалов в потолок коридора.</remarks>
+    private int RoomFor(byte country, BuildingType type)
+    {
+        var stock = _world.CountryById(country).State.Stock;
+        var most = MaxBuildsPerTick;
+
+        foreach (var (good, amount) in _world.Buildings[type].BuildCost)
+        {
+            if (amount.Raw <= 0) continue;
+
+            var free = stock.Of(good).Raw * BiteOfStock / 100 - _build.Get(country, good).Raw;
+            most = (int)Math.Min(most, Math.Max(0, free) / amount.Raw);
+        }
+
+        return most;
     }
 
     /// <summary>Кто строит в стране на этом тике. Пусто — никто.</summary>
@@ -3386,9 +3499,14 @@ public sealed class Simulation
                 }
             }
 
-            if (!_plan.TryGetValue(country.Id, out var plan)) continue;
+            if (!_plan.TryGetValue(country.Id, out var plans) || plans.Count == 0) continue;
 
-            var builder = _builder.GetValueOrDefault(country.Id);
+            var raised = 0;
+            var hands = 0L;
+
+            foreach (var plan in plans)
+            {
+            var builder = plan.Builder;
             var info = _world.Buildings[plan.Type];
             var wages = WagesFor(country, info);
             var price = Construction.CostOf(info.BuildCost, country.State.Prices) + wages;
@@ -3449,19 +3567,30 @@ public sealed class Simulation
                 BuiltSoFar++;
             }
 
-            _builders[country.Id] = _world.Efficiency.HandsFor(
-                country.Id, info.Sector, (long)info.BuildWorkers * done);
+            raised += done;
+            hands += _world.Efficiency.HandsFor(
+                country.Id, info.Sector, (long)info.BuildWorkers * done / Construction.BuildDays);
 
-            if (!_ordered.TryGetValue(country.Id, out var order) || order.Type != plan.Type) continue;
+            if (_ordered.TryGetValue(country.Id, out var order) && order.Type == plan.Type)
+            {
+                // Заказ держится, пока вложенное игроком не израсходовано. Построенное сверх
+                // него — это уже обычные деньги страны.
+                var spent = new Money(price.Raw * done);
 
-            // Заказ держится, пока вложенное игроком не израсходовано. Построенное сверх
-            // него — это уже обычные деньги страны.
-            var spent = new Money(price.Raw * done);
+                if (order.Left > spent) _ordered[country.Id] = (order.Type, order.Left - spent);
+                else _ordered.Remove(country.Id);
+            }
+            }
 
-            if (order.Left > spent) _ordered[country.Id] = (order.Type, order.Left - spent);
-            else _ordered.Remove(country.Id);
+            _builders[country.Id] = hands;
+            _raisedToday[country.Id] = raised;
         }
     }
+
+    /// <summary>Сколько зданий страна подняла за последний тик.</summary>
+    public int RaisedIn(byte country) => _raisedToday.GetValueOrDefault(country);
+
+    private readonly Dictionary<byte, int> _raisedToday = new();
 
     /// <summary>Что и где стране строить по средствам. Пусто, если ничего не подходит.</summary>
     /// <summary>Заказанное игроком, если его есть где поставить.</summary>
