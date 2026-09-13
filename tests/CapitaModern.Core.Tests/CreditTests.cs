@@ -390,6 +390,39 @@ public class CreditTests
         Assert.Equal(before, Money0());
     }
 
+    /// <summary>Досрочное погашение не трогает подушку — запас валюты на сорок суток
+    /// ввоза. Иначе резервы уходят в долг подчистую, а курс за их отсутствие слабеет.</summary>
+    [Fact]
+    public void EarlyRepaymentLeavesTheImportCushionAlone()
+    {
+        var world = Build.World(
+            [
+                Build.Region(1, 1, new Dictionary<BuildingType, int> { [Mine] = 100 }),
+                Build.Region(2, 2, new Dictionary<BuildingType, int> { [Mill] = 50 }),
+            ],
+            [Build.Country(1, money: 1_000_000), Build.Country(2, money: 1_000_000)],
+            Build.Catalog(
+                Build.Info(Mine, outputs: new() { [Coal] = Build.Whole(10) }),
+                Build.Info(Mill, inputs: new() { [Coal] = Build.Whole(10) },
+                                 outputs: new() { [GoodType.Metals] = Build.Whole(1) })),
+            new Dictionary<GoodType, Money> { [Coal] = Money.FromWhole(100) });
+
+        var borrower = world.CountryById(2);
+        var simulation = new Simulation(world);
+
+        // Сначала дать стране начать ввозить: норма достаточности считается от ввоза, и
+        // у страны, которая ещё ничего не купила, подушки нет.
+        for (var tick = 0; tick < 20; tick++) simulation.Tick();
+
+        borrower.State.Treasury.Debt.Take(LoanSource.Foreign, 1, Whole(50_000_000), RateKind.Fixed, 500);
+        for (var tick = 0; tick < 60; tick++) simulation.Tick();
+
+        Assert.True(borrower.State.Treasury.Reserves.Liquid > default(Money),
+            "досрочное погашение выгребло резервы подчистую");
+        Assert.True(borrower.State.Treasury.Debt.Owed(LoanSource.Foreign) > default(Money),
+            "долг погашен целиком — подушка не понадобилась, проверять нечего");
+    }
+
     /// <summary>Долг гасится по графику, а не когда останутся лишние деньги. У должника
     /// с деньгами тело займа убывает само.</summary>
     [Fact]

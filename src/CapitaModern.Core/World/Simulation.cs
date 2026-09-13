@@ -958,6 +958,9 @@ public sealed class Simulation
     /// <summary>Сколько страна заказала по одному товару — и заводы, и население.</summary>
     public GoodAmount InputOf(byte country, GoodType good) => _inputs.Get(country, good);
 
+    /// <summary>Сколько страна просила у внешнего рынка.</summary>
+    public GoodAmount BidOf(byte country, GoodType good) => _bid.Get(country, good);
+
     /// <summary>Что население страны купило за тик.</summary>
     public GoodAmount BoughtOf(byte country, GoodType good) => _bought.Get(country, good);
 
@@ -1437,8 +1440,16 @@ public sealed class Simulation
             var due = new Money(owed.Raw / (CreditMarket.LoanYears * DaysInYear));
             if (due.Raw > 0 && Settle(country, due) < due) _missedPayment.Add(country.Id);
 
-            // Сверх графика гасят из того, что осталось после закупок: дорогое вперёд.
-            var spare = country.State.Treasury.Reserves.Liquid - Valued(_bid, country.Id);
+            // Сверх графика гасят из того, что осталось после закупок и сверх подушки:
+            // дорогое вперёд. Норма достаточности — запас на сорок суток ввоза, та же, по
+            // которой MoveRates судит о курсе. Раньше подушки не было, и резервы уходили
+            // в долг подчистую: курс за это же слабел каждый тик, страна переставала
+            // покупать сырьё, отрасли вставали, вывоза не было — и резервы не возвращались.
+            var cushion = new Money(country.ImportsPerDay.Raw * Prices.TargetCoverDays);
+            var held = Valued(_bid, country.Id);
+            if (cushion > held) held = cushion;
+
+            var spare = country.State.Treasury.Reserves.Liquid - held;
             if (spare.Raw > 0) Settle(country, spare);
 
             debt.Forget();

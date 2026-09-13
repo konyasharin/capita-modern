@@ -1,4 +1,5 @@
-﻿using CapitaModern.Core.Economy;
+﻿using CapitaModern.Core.Buildings;
+using CapitaModern.Core.Economy;
 using CapitaModern.Core.Loading;
 using CapitaModern.Core.World;
 
@@ -598,6 +599,40 @@ foreach (var iso in new[] { "USA", "FRA", "DEU", "GBR", "ITA", "JPN", "CHN", "RU
     }
 
     Console.WriteLine();
+}
+
+Console.WriteLine();
+Console.WriteLine("Услуги: отчего встаёт выпуск. Пустая полка любого входа рецепта");
+Console.WriteLine("обнуляет отрасль целиком, и дальше нечем платить за следующий ввоз.");
+
+foreach (var iso in new[] { "USA", "FRA", "DEU", "CHN", "RUS", "IND" })
+{
+    var whose = world.Countries.First(c => c.Iso == iso);
+    var serviceTypes = new[] { BuildingType.RetailFirm, BuildingType.TransportFirm,
+        BuildingType.PublicService, BuildingType.BusinessFirm };
+
+    var firms = serviceTypes.Sum(t => world.BuildingsOf(whose.Id, t));
+    var made = simulation.OutputOf(whose.Id, GoodType.Services);
+    var worth = constant.CostOf(GoodType.Services, made).Exact * 365 / 1e9;
+
+    Console.WriteLine();
+    Console.WriteLine($"{iso}: {firms} предприятий, множитель "
+        + $"{world.Efficiency.OutputTimes(whose.Id, Sector.Services) / 100.0:F2}, "
+        + $"выпуск {made.Exact:F0}, стоимость {worth:F2} трлн");
+
+    Console.WriteLine($"    курс {whose.ExchangeRate.Exact,8:F2}, "
+        + $"резервы {whose.State.Treasury.Reserves.Liquid.Exact / 1e6,8:F1} млрд, "
+        + $"ввоз в сутки {whose.ImportsPerDay.Exact / 1e3,8:F1} млн, "
+        + $"вывоз {whose.ExportsPerDay.Exact / 1e3,8:F1} млн");
+
+    foreach (var input in new[] { GoodType.Electricity, GoodType.Fuel, GoodType.Materials,
+                 GoodType.Electronics, GoodType.Medicine })
+    {
+        Console.WriteLine($"    {input,-12} на складе {whose.State.Stock.Of(input).Exact,10:F0}, "
+            + $"просят {simulation.InputOf(whose.Id, input).Exact,8:F0}, "
+            + $"своих {simulation.OutputOf(whose.Id, input).Exact,8:F0}, "
+            + $"ввезли {simulation.ImportedOf(whose.Id, input).Exact,8:F0}");
+    }
 }
 
 // --- Ш. ВВП по странам ---------------------------------------------------------------
