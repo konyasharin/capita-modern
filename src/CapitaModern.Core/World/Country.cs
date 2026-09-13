@@ -54,6 +54,9 @@ public sealed class Country
     /// выпуска. На старте — настоящая доля 2020 года из data/politics/defence.json.</summary>
     public int DefenceShare { get; set; } = 150;
 
+    /// <summary>К чему страна склонна: из этого и складывается её курс развития.</summary>
+    public Character Character { get; } = new();
+
     /// <summary>Печатный станок и денежная масса.</summary>
     public CentralBank Bank { get; init; } = new(default);
 

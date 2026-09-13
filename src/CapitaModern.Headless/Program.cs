@@ -29,7 +29,8 @@ GameWorld Load() => WorldDataLoader.LoadWorld(
     File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "map", "basins.json")),
     File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "economy", "currencies.json")),
     File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "economy", "companies.json")),
-    File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "politics", "defence.json")));
+    File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "politics", "defence.json")),
+    File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "politics", "traits.json")));
 
 var goods = Enum.GetValues<GoodType>();
 
@@ -664,6 +665,29 @@ foreach (var iso in new[] { "USA", "DEU", "CHN", "IND", "NGA", "SAU" })
             + $"ввезли {simulation.ImportedOf(whose.Id, input).Exact,8:F0}");
     }
 }
+
+// --- Ъ. Черты стран ------------------------------------------------------------------
+Console.WriteLine();
+Console.WriteLine("=== Ъ. Чем страны отличаются друг от друга ===");
+Console.WriteLine("Черты розданы по признакам из жизни; курс развития складывается из них.");
+Console.WriteLine();
+
+foreach (var iso in new[] { "USA", "CHN", "DEU", "RUS", "SAU", "TUR", "IND", "NGA", "VEN", "CHE" })
+{
+    var whose = world.Countries.FirstOrDefault(c => c.Iso == iso);
+    if (whose is null) continue;
+
+    var mind = whose.Character;
+
+    Console.WriteLine($"{iso}: {string.Join(", ", mind.Traits)}");
+    Console.WriteLine($"     станок {mind.Prints}, заём {mind.Borrows}, армия {mind.Arms}, "
+        + $"вложения {mind.Invests}, запас {mind.Hoards}, люди {mind.Feeds}, "
+        + $"рынок {mind.Holds}, заводы {mind.Builds}");
+}
+
+var without = world.Countries.Count(c => c.Character.Traits.Count == 0);
+Console.WriteLine();
+Console.WriteLine($"Без единой черты: {without} стран из {world.Countries.Count}");
 
 // --- Я. Загрузка мощностей -----------------------------------------------------------
 Console.WriteLine();

@@ -28,7 +28,8 @@ public static class WorldDataLoader
         string basinsJson,
         string currenciesJson,
         string companiesJson,
-        string defenceJson)
+        string defenceJson,
+        string traitsJson)
     {
         var consumptionFile = LoadConsumptionFile(consumptionJson);
         var needs = new Needs(consumptionFile.UnitPerMillionPeople, consumptionFile.IncomeElasticity);
@@ -43,6 +44,7 @@ public static class WorldDataLoader
         var basins = JsonReader.Read<BasinsFile>(basinsJson);
         var currencies = JsonReader.Read<CurrenciesFile>(currenciesJson).Currencies;
         var defence = JsonReader.Read<DefenceFile>(defenceJson);
+        var traits = JsonReader.Read<TraitsFile>(traitsJson);
         var goodDtos = JsonReader.Read<GoodDto[]>(goodsJson);
         var elasticity = new Elasticity(
             goodDtos.ToDictionary(dto => dto.Id, dto => dto.DemandElasticity),
@@ -73,6 +75,8 @@ public static class WorldDataLoader
                 moneySupply,
                 defence.Share.GetValueOrDefault(dto.Iso, defence.DefaultShare)))
             .ToArray();
+
+        GiveTraits(countries, traits);
 
         // Приходящую валюту по умолчанию кладут туда же, где лежит основная часть
         // резервов. Увести её в другое место — решение игрока.
@@ -318,6 +322,25 @@ public static class WorldDataLoader
             savings,
             rate
         ) { Bank = new CentralBank(supply), Currency = money, DefenceShare = defenceShare }; // склад - заглушка
+    }
+
+    /// <summary>Раздаёт странам черты по списку из файла.</summary>
+    /// <remarks>Ключи с пояснениями пропускаются: в файле рядом с каждым списком записано,
+    /// по какому признаку черта дана, и эти строки нужны читающему, а не коду.</remarks>
+    private static void GiveTraits(Country[] countries, TraitsFile file)
+    {
+        var byName = file.Traits.ToDictionary(dto => dto.Name, dto => dto.ToTrait());
+        var byIso = countries.ToDictionary(country => country.Iso);
+
+        foreach (var (name, isos) in file.Who)
+        {
+            if (!byName.TryGetValue(name, out var trait)) continue;
+
+            foreach (var iso in isos)
+            {
+                if (byIso.TryGetValue(iso, out var country)) country.Character.Take(trait);
+            }
+        }
     }
 
     /// <summary>Долларовую величину в деньги страны.</summary>

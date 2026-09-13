@@ -425,7 +425,10 @@ public sealed class Simulation
     {
         if (country.DefenceShare <= 0) return;
 
-        var budget = new Money(_added.GetValueOrDefault(country.Id).Raw * country.DefenceShare / 10_000);
+        // Склонность к армии — часть характера страны: при прочих равных она тратит на
+        // оружие охотнее или скупее соседа с той же долей в данных.
+        var budget = new Money(_added.GetValueOrDefault(country.Id).Raw * country.DefenceShare
+            / 10_000 * country.Character.Arms / Character.Usual);
         if (budget.Raw <= 0) return;
 
         var each = new Money(budget.Raw / Arms.Length);
@@ -1439,6 +1442,9 @@ public sealed class Simulation
 
             var want = need > have ? need - have : default;
 
+            // Кто живёт в долг — просит больше, кто копит — меньше или вовсе ничего.
+            want = new Money(want.Raw * country.Character.Borrows / Character.Usual);
+
             // За страну игрока заявку подаёт он сам: иначе долг рос бы сам собой, а
             // «попросить в долг» было бы нечего.
             if (country.Id == HandsOff) want = default;
@@ -1531,7 +1537,10 @@ public sealed class Simulation
             // которой MoveRates судит о курсе. Раньше подушки не было, и резервы уходили
             // в долг подчистую: курс за это же слабел каждый тик, страна переставала
             // покупать сырьё, отрасли вставали, вывоза не было — и резервы не возвращались.
-            var cushion = new Money(country.ImportsPerDay.Raw * Prices.TargetCoverDays);
+            // Копящая страна держит подушку толще нормы и гасит долг только сверх неё.
+            var cushion = new Money(country.ImportsPerDay.Raw * Prices.TargetCoverDays
+                * country.Character.Hoards / Character.Usual);
+
             var held = Valued(_bid, country.Id);
             if (cushion > held) held = cushion;
 
@@ -2897,7 +2906,8 @@ public sealed class Simulation
                 // вдвое меньше, чем нужно на одно возмещение износа, и мир терял по три
                 // процента предприятий в год.
                 var net = profit - TaxCode.Take(profit, country.Taxes.Profit);
-                var want = new Money(added.Raw * Construction.InvestmentShare / 100);
+                var want = new Money(added.Raw * Construction.InvestmentShare / 100
+                    * country.Character.Invests / Character.Usual);
 
                 // Но не меньше износа своих зданий: это не прибыль, а возврат вложенного,
                 // и раздавать его владельцам значит проедать завод.
