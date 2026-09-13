@@ -1234,8 +1234,6 @@ public sealed class Simulation
 
             // Товар, который вовсе никому не нужен, делают в самую малую силу: норма у
             // него нулевая, и делить на склад тут нечего.
-            // Товар, который вовсе никому не нужен, делают в самую малую силу: норма у
-            // него нулевая, и делить на склад тут нечего.
             var load = target.Raw <= 0 ? MinLoad : target.Raw * Load.Full / stock.Raw;
             var fits = runs * load / Load.Full;
             if (fits < runs) runs = fits;
