@@ -770,7 +770,24 @@ Console.WriteLine("страна   у нас   в жизни");
 foreach (var (iso, real2020) in new[] { ("USA", 6.7), ("DEU", 11.0), ("CHN", 22.0), ("IND", 30.0), ("NGA", 56.0) })
 {
     var id = world.Countries.First(c => c.Iso == iso).Id;
-    Console.WriteLine($"{iso}   {simulation.EngelOf(id),5}% {real2020,8:F1}%   корзин {simulation.CapacityIn(id) / 100.0,7:F1}");
+    var whose = world.CountryById(id);
+    var basket = world.Needs.BaseRates
+        .Aggregate(0.0, (sum, pair) => sum + whose.State.Prices.CostOf(pair.Key, pair.Value).Exact);
+    var people = world.PopulationOf(id).Whole;
+    var perHead = basket / 1e6;
+
+    Console.WriteLine($"{iso}   {simulation.EngelOf(id),5}% {real2020,8:F1}%   корзин {simulation.CapacityIn(id) / 100.0,7:F1}"
+        + $"   фонд {whose.Payroll.Exact / 1e3,9:F1} млн против корзины {perHead * people / 1e3,10:F1} млн");
+
+    foreach (var (good, _) in world.Needs.BaseRates)
+    {
+        var wanted = simulation.PeopleWantOf(id, good);
+        var got = simulation.BoughtOf(id, good);
+
+        Console.WriteLine($"     {good,-14} хотели {wanted.Exact,10:F0}, купили {got.Exact,10:F0}, "
+            + $"по стартовой цене {whose.State.Prices.StartOf(good).Exact,10:F2}, "
+            + $"вышло {whose.State.Prices.CostOf(good, got).Exact / 1e3,9:F1} млн");
+    }
 }
 
 Console.WriteLine();
