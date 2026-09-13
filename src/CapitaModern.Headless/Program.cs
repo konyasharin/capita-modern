@@ -623,7 +623,7 @@ Console.WriteLine();
 Console.WriteLine("Услуги: отчего встаёт выпуск. Пустая полка любого входа рецепта");
 Console.WriteLine("обнуляет отрасль целиком, и дальше нечем платить за следующий ввоз.");
 
-foreach (var iso in new[] { "USA", "FRA", "DEU", "CHN", "RUS", "IND" })
+foreach (var iso in new[] { "USA", "DEU", "CHN", "IND", "NGA", "SAU" })
 {
     var whose = world.Countries.First(c => c.Iso == iso);
     var serviceTypes = new[] { BuildingType.RetailFirm, BuildingType.TransportFirm,
@@ -650,6 +650,37 @@ foreach (var iso in new[] { "USA", "FRA", "DEU", "CHN", "RUS", "IND" })
             + $"просят {simulation.InputOf(whose.Id, input).Exact,8:F0}, "
             + $"своих {simulation.OutputOf(whose.Id, input).Exact,8:F0}, "
             + $"ввезли {simulation.ImportedOf(whose.Id, input).Exact,8:F0}");
+    }
+}
+
+// --- Ю. Добыча против настоящей ------------------------------------------------------
+Console.WriteLine();
+Console.WriteLine("=== Ю. Доля страны в мировой добыче ===");
+Console.WriteLine("Доли 2020 года: BP Statistical Review по нефти и газу, IEA по углю.");
+Console.WriteLine();
+
+foreach (var (dug, inLife) in new[]
+         {
+             (GoodType.Oil, new[] { ("USA", 18.6), ("SAU", 12.5), ("RUS", 12.1), ("CAN", 5.9),
+                 ("IRQ", 4.7), ("CHN", 4.7), ("BRA", 3.7), ("NGA", 2.0) }),
+             (GoodType.Gas, new[] { ("USA", 23.7), ("RUS", 16.6), ("IRN", 6.5), ("CHN", 5.0),
+                 ("QAT", 4.4), ("CAN", 4.3), ("AUS", 3.9), ("NOR", 3.1) }),
+             (GoodType.Coal, new[] { ("CHN", 50.7), ("IND", 9.8), ("IDN", 7.3), ("AUS", 6.4),
+                 ("USA", 6.1), ("RUS", 5.2), ("ZAF", 3.3), ("DEU", 1.1) }),
+         })
+{
+    var everywhere = simulation.WorldOutputOf(dug).Exact;
+    Console.WriteLine($"{dug}: мир {everywhere,10:F0} единиц в сутки");
+
+    foreach (var (iso, share) in inLife)
+    {
+        var whose = world.Countries.FirstOrDefault(c => c.Iso == iso);
+        if (whose is null) continue;
+
+        var made = simulation.OutputOf(whose.Id, dug).Exact;
+
+        Console.WriteLine($"   {iso}  {100 * made / Math.Max(1, everywhere),6:F1}% против {share,5:F1}%"
+            + $"   ({made,10:F0} единиц)");
     }
 }
 
