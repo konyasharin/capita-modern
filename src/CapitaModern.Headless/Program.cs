@@ -283,7 +283,7 @@ foreach (var good in goods)
 // --- Д. Что мир производит против того, что заказывает ----------------------------
 Console.WriteLine();
 Console.WriteLine("=== Д. Выпуск против заказа, за сутки ===");
-Console.WriteLine("товар               выпуск      заказ   покрытие");
+Console.WriteLine("товар               выпуск      заказ   покрытие   из заказа: стройка   люди   заводы");
 
 foreach (var good in goods.OrderBy(good =>
 {
@@ -294,13 +294,19 @@ foreach (var good in goods.OrderBy(good =>
     var made = simulation.WorldOutputOf(good).Exact;
     var asked = simulation.WorldDemandOf(good).Exact;
     var ratio = asked == 0 ? "заказа нет" : $"{made / asked,7:P0}";
-    Console.WriteLine($"{good,-18} {made,10:F0} {asked,10:F0}   {ratio}");
+    var forBuild = world.Countries.Sum(c => simulation.BuildWantOf(c.Id, good).Exact);
+    var forPeople = world.Countries.Sum(c => simulation.PeopleWantOf(c.Id, good).Exact);
+
+    Console.WriteLine($"{good,-18} {made,10:F0} {asked,10:F0}   {ratio}"
+        + $"{100 * forBuild / Math.Max(1, asked),18:F0}% {100 * forPeople / Math.Max(1, asked),6:F0}%"
+        + $" {100 * (asked - forBuild - forPeople) / Math.Max(1, asked),6:F0}%");
 }
 
 // --- Е. Пять лет: не стекутся ли деньги к экспортёрам -----------------------------
 Console.WriteLine();
 Console.WriteLine($"=== Е. Лет: {years} ===");
-Console.WriteLine("год   реальный ВВП   на рельсах   внешний долг   нагрузка >200%   валюта вдвое");
+Console.WriteLine("год   реальный ВВП   на рельсах   внешний долг   нагрузка >200%   валюта вдвое"
+    + "   предприятий   стройка   износ   отказов   занято млн");
 
 void Report(int year, double gdp)
 {
@@ -315,8 +321,15 @@ void Report(int year, double gdp)
     var heavy = world.Countries.Count(c =>
         c.State.Treasury.Debt.BurdenToExports(exports[c.Id] / Math.Max(year, 1)) > 200);
 
+    var standing = world.Regions.SelectMany(r => r.BuildingsCount).Sum(pair => pair.Value);
+    var busy = world.Countries.Sum(c => (long)simulation.EmployedIn(c.Id)) / 1_000_000;
+
     Console.WriteLine($"{year,3} {gdp,14:F2} трлн {100.0 * rails / (world.Countries.Count * goods.Length),9:F1}% " +
-                      $"{debt,10:F2} трлн {heavy,14} {weak,14}");
+                      $"{debt,10:F2} трлн {heavy,14} {weak,14}" +
+                      $"{standing,14} {simulation.BuiltSoFar,9} {simulation.WornSoFar,7}" +
+                      $" [ниша {Simulation.Stall[0]} касса {Simulation.Stall[1]} склад {Simulation.Stall[2]}" +
+                      $" руки {Simulation.Stall[3]} заказано {Simulation.Stall[4]}]" +
+                      $"{world.Countries.Count(c => c.DefaultedOnDay > 0),10} {busy,12}");
 }
 
 Report(1, worldGdp);

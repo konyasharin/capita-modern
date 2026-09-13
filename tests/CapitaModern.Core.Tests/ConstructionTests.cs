@@ -39,6 +39,41 @@ public class ConstructionTests
             .Where(pair => pair.Key == Mine).Sum(pair => pair.Value);
 
     /// <summary>Люди есть — шахты прибавляются: деньги и материалы в достатке.</summary>
+    /// <summary>Возведённое входит в ВВП: материалы стройки уже вычтены как потраченные,
+    /// и без этого страна, которая строит, теряет на этом измеренный выпуск.</summary>
+    [Fact]
+    public void BuildingCountsTowardsValueAdded()
+    {
+        var world = WorldWith(population: 50, workersPerMine: 1);
+        var simulation = new Simulation(world);
+        var prices = world.CountryById(1).State.Prices;
+
+        var wasBuilt = 0L;
+        var checkedDay = false;
+
+        for (var tick = 0; tick < 60 && !checkedDay; tick++)
+        {
+            simulation.Tick();
+            if (simulation.BuiltSoFar == wasBuilt) continue;
+
+            wasBuilt = simulation.BuiltSoFar;
+            checkedDay = true;
+
+            // Простая разница «выпуск минус потраченное» — то, чем ВВП был до правки.
+            var plain = default(Money);
+            foreach (var good in Enum.GetValues<GoodType>())
+            {
+                plain += prices.CostOf(good, simulation.OutputOf(1, good));
+                plain -= prices.CostOf(good, simulation.ConsumedOf(1, good));
+            }
+
+            Assert.True(simulation.ValueAddedOf(1) > plain,
+                $"возведённое не попало в ВВП: {simulation.ValueAddedOf(1).Exact:F0} против {plain.Exact:F0}");
+        }
+
+        Assert.True(checkedDay, "страна так ничего и не построила, проверять нечего");
+    }
+
     [Fact]
     public void FreeHandsLetTheCountryBuild()
     {

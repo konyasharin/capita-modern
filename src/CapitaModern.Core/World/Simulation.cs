@@ -182,6 +182,10 @@ public sealed class Simulation
     /// тик подорожал втрое: двести стран по пятьсот проверок склада на каждую.</summary>
     private const int MaxBuildsPerTick = 50;
 
+    /// <summary>Почему стройка не идёт: нет ниши, нет денег, нет материалов, нет рук,
+    /// и сколько зданий всё-таки заказано. Только для замера.</summary>
+    public static readonly long[] Stall = new long[5];
+
     /// <summary>Какую долю склада стройка может съесть за тик, в сотых.</summary>
     /// <remarks>Вычерпать полку за день нельзя. Заказ на тысячу зданий растягивается на
     /// несколько дней, и каждый следующий день платит уже подорожавшую цену: спрос стройки
@@ -310,6 +314,7 @@ public sealed class Simulation
         // _added не чистим: госзаказ и мера долга считаются до PayWages, и им нужен
         // вчерашний выпуск. Каждому тику он всё равно переписывается заново.
         _build.Clear();
+        _raised.Clear();
         _plan.Clear();
         _burnedFuel.Clear();
         _transit.Clear();
@@ -1801,13 +1806,20 @@ public sealed class Simulation
             // решает ничего — за неё решают компании, каждая в своём деле.
             var best = Ordered(country) ?? Chosen(country, builder, purse);
 
-            if (best is null) continue;
+            if (best is null)
+            {
+                Stall[0]++;
+                continue;
+            }
 
             _builder[country.Id] = builder;
 
             var info = _world.Buildings[best.Value.Type];
             var price = Construction.CostOf(info.BuildCost, country.State.Prices) + WagesFor(country, info);
             if (price.Raw <= 0) continue;
+
+            if (purse < price) Stall[1]++;
+            if (CanRaisePerTick(country.Id, best.Value.Type) <= 1) Stall[2]++;
 
             // За тик строится не больше потолка: не найдя материалов, страна заявляла бы
             // спрос, которого мир не выдержит. Режется именно число, а не кошелёк —
@@ -1829,8 +1841,13 @@ public sealed class Simulation
                 count = (int)Math.Min(count, Math.Max(0, free / perUnit));
             }
 
-            if (count <= 0) continue;
+            if (count <= 0)
+            {
+                Stall[3]++;
+                continue;
+            }
 
+            Stall[4] += count;
             _plan[country.Id] = (best.Value.Type, best.Value.Where, count);
 
             var weight = country.Priorities.WeightOf(info.Sector);
@@ -2538,13 +2555,26 @@ public sealed class Simulation
         {
             total += prices.CostOf(good, _outputs.Get(country, good));
             total -= prices.CostOf(good, _consumed.Get(country, good));
+
+            // Возведённое — тоже выпуск, и не считать его нельзя: материалы стройки уже
+            // вычтены строкой выше как потраченные. Без этого чем больше страна строит,
+            // тем ниже её измеренный ВВП, а в жизни стройка и есть валовое накопление.
+            total += prices.CostOf(good, _raised.Get(country, good));
         }
 
         return total;
     }
 
+    /// <summary>Во что обошлось возведённое за тик, по товарам рецепта стройки.</summary>
+    private readonly Tally<GoodType, GoodAmount> _raised = new();
+
     /// <summary>Изношенное разваливается. Считается остатком: за срок службы должен
     /// осыпаться весь капитал, а по одному заводу в тик этого не набрать.</summary>
+    /// <summary>Сколько зданий поднято и сколько рухнуло за всю игру. Только для замера.</summary>
+    public long BuiltSoFar { get; private set; }
+
+    public long WornSoFar { get; private set; }
+
     private void Wear()
     {
         foreach (var region in _world.Regions)
@@ -2579,6 +2609,7 @@ public sealed class Simulation
             var gone = Math.Min(due, most);
             if (!region.TryRemoveBuildings(worst, gone)) continue;
 
+            WornSoFar += gone;
             Strip(region.Id, worst, gone);
         }
     }
@@ -3389,7 +3420,11 @@ public sealed class Simulation
                 // Съеденное стройкой — такой же расход, как заводское сырьё. Без этого
                 // материалы попадали бы в добавленную стоимость дважды: и когда их
                 // сделали, и когда из них построили.
-                foreach (var (good, amount) in info.BuildCost) _consumed.Add(country.Id, good, amount);
+                foreach (var (good, amount) in info.BuildCost)
+                {
+                    _consumed.Add(country.Id, good, amount);
+                    _raised.Add(country.Id, good, amount);
+                }
 
                 // Строителям платят из того же кошелька, а не вторым разом из казны:
                 // зарплата уже сидит в цене постройки.
@@ -3411,6 +3446,7 @@ public sealed class Simulation
                 }
 
                 done++;
+                BuiltSoFar++;
             }
 
             _builders[country.Id] = _world.Efficiency.HandsFor(
