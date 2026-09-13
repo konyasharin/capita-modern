@@ -332,6 +332,13 @@ void Report(int year, double gdp)
                       $"{world.Countries.Count(c => c.DefaultedOnDay > 0),10} {busy,12}");
 }
 
+// Сколько добра лежит на складах мира, в постоянных ценах. Прирост за год — это та
+// часть ВВП, которая никому не досталась: выпуск, осевший на полке.
+double OnShelves() => world.Countries.Sum(c =>
+    goods.Sum(good => constant.CostOf(good, c.State.Stock.Of(good)).Exact));
+
+var shelvesWas = OnShelves();
+
 Report(1, worldGdp);
 
 for (var year = 2; year <= years; year++)
@@ -356,6 +363,11 @@ for (var year = 2; year <= years; year++)
 
     Report(year, yearGdp.Exact / 1e9);
 }
+
+Console.WriteLine();
+Console.WriteLine($"На складах мира {OnShelves() / 1e9:F2} трлн против {shelvesWas / 1e9:F2} год назад:");
+Console.WriteLine($"  прирост запасов {(OnShelves() - shelvesWas) / 1e9 / Math.Max(1, years - 1):F2} трлн в год —");
+Console.WriteLine("  это выпуск, осевший на полке, и он входит в ВВП наравне с проданным.");
 
 Console.WriteLine();
 Console.WriteLine("Крупнейшие должники в конце прогона:");
