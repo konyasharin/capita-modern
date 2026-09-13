@@ -90,6 +90,40 @@ public class ExchangeRateTests
             "цены выросли вдвое, а валюта не подешевела");
     }
 
+    /// <summary>Валюта, нарезанная тысячей за доллар, такой и остаётся: паритет считают
+    /// от её собственного старта, а не от единицы.</summary>
+    [Fact]
+    public void CheapCurrencyDoesNotClimbToOne()
+    {
+        // Третья страна живёт тем же, что и вторая, но её деньги нарезаны тысячей за
+        // доллар — значит и цены у неё в тысячу раз крупнее.
+        var world = Build.World(
+            [
+                Build.Region(1, 1, new Dictionary<BuildingType, int> { [Mine] = 100 }),
+                Build.Region(2, 2, new Dictionary<BuildingType, int> { [Mill] = 1 }),
+                Build.Region(3, 3, new Dictionary<BuildingType, int> { [Mill] = 1 }),
+            ],
+            [
+                Build.Country(1),
+                Build.Country(2, money: 200_000),
+                Build.Country(3, money: 200_000, rate: 1000,
+                    prices: new() { [Coal] = Money.FromWhole(100_000) }),
+            ],
+            Build.Catalog(
+                Build.Info(Mine, outputs: new() { [Coal] = Build.Whole(10) }),
+                Build.Info(Mill, inputs: new() { [Coal] = Build.Whole(10) },
+                                 outputs: new() { [GoodType.Metals] = Build.Whole(1) })),
+            new Dictionary<GoodType, Money> { [Coal] = Money.FromWhole(100) });
+
+        var pricey = world.CountryById(3);
+        var simulation = new Simulation(world);
+        for (var tick = 0; tick < 300; tick++) simulation.Tick();
+
+        // Вдвое в любую сторону — это уже много, но паритет к единице утащил бы её в тысячу раз.
+        Assert.True(pricey.ExchangeRate.Raw > pricey.StartRate.Raw / 2,
+            $"дорогая валюта уползла к единице: {pricey.ExchangeRate.Exact}");
+    }
+
     [Fact]
     public void RateStaysInsideTheCorridor()
     {

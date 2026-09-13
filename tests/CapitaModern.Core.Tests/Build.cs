@@ -78,11 +78,13 @@ internal static class Build
         Dictionary<GoodType, Money>? prices = null,
         long money = 0,
         long savings = 0,
-        long supply = 0) =>
+        long supply = 0,
+        long rate = 0) =>
         new(id, $"country {id}", $"C{id:00}",
             new Producer(id, new Stock(stock ?? []), new Treasury(Cash(money)), new Prices(prices)),
             new Priorities(weights),
-            Money.FromWhole(savings))
+            Money.FromWhole(savings),
+            Money.FromWhole(rate))
         {
             Bank = new CentralBank(Money.FromWhole(supply)),
         };

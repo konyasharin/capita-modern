@@ -945,6 +945,9 @@ public sealed class Simulation
     /// <see cref="PriceLevel.Scale"/>. Считается на прошлом тике вместе с якорем.</summary>
     public int PriceLevelOf(byte country) => _level.GetValueOrDefault(country, PriceLevel.Scale);
 
+    /// <summary>Уровень цен всего мира — то, вокруг чего ходят курсы.</summary>
+    public int WorldPriceLevel => _worldLevel;
+
     /// <summary>Загрузка предприятий страны в сотых долях от полной. Меньше единицы —
     /// значит рук не хватило и всё производство идёт вполсилы.</summary>
     public long LoadIn(byte country) => _hands.GetValueOrDefault(country, Load.Full);
@@ -1613,6 +1616,14 @@ public sealed class Simulation
     /// <summary>Курс идёт за сальдо: кто больше ввозит, у того валюта дешевеет.</summary>
     /// <remarks>Петля замыкается через эластичность: подешевевшая валюта поднимает
     /// местную цену импортного, и заявка сама срезается.</remarks>
+    /// <summary>Из чего сложился шаг курса за тик: паритет цен, сальдо, запас резервов.</summary>
+    public readonly record struct RatePush(long Parity, long Balance, long Cushion);
+
+    private readonly Dictionary<byte, RatePush> _ratePush = new();
+
+    /// <summary>Что тянуло курс в последнем тике.</summary>
+    public RatePush RatePushOf(byte country) => _ratePush.GetValueOrDefault(country);
+
     private void MoveRates()
     {
         foreach (var country in _world.Countries)
@@ -1628,14 +1639,26 @@ public sealed class Simulation
             // отклонение от паритета, а не весь курс: иначе курс уезжал бы куда угодно,
             // лишь бы баланс сходился.
             var rate = country.ExchangeRate.Raw;
+            var was = rate;
+
             if (_level.TryGetValue(country.Id, out var level) && _worldLevel > 0)
             {
-                var parity = Money.FromWhole(1).Raw * (long)level / _worldLevel;
+                // Считается от своего старта, а не от единицы: вона и донг стоят тысячи за
+                // доллар просто потому, что так нарезаны. Раньше паритет тянул к единице
+                // любую валюту, и почти все они укреплялись в сотню раз — до упора
+                // коридора, — а вместе с курсом уезжала и цена их заявки на мировом рынке.
+                var parity = country.StartRate.Raw * (long)level / _worldLevel;
                 rate = Drift.Step(rate, parity - rate, parity + rate, Prices.StepPercent);
             }
 
+            var fromParity = rate - was;
+            was = rate;
+
             rate = Drift.Step(
                 rate, outflow.Raw - inflow.Raw, outflow.Raw + inflow.Raw, Prices.StepPercent);
+
+            var fromBalance = rate - was;
+            was = rate;
 
             // Третья сила: сколько осталось резервов. Правило достаточности — запас на
             // сорок суток ввоза; кто проедает его, у того валюта слабеет, и ввоз дорожает
@@ -1647,6 +1670,7 @@ public sealed class Simulation
                 rate = Drift.Step(rate, norm - left, norm + left, Prices.StepPercent);
             }
 
+            _ratePush[country.Id] = new RatePush(fromParity, fromBalance, rate - was);
             country.MoveRate(new Money(rate));
         }
     }

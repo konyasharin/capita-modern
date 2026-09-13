@@ -3,6 +3,11 @@ using CapitaModern.Core.Economy;
 using CapitaModern.Core.Loading;
 using CapitaModern.Core.World;
 
+// Курс сам по себе ничего не говорит: донг и так стоит тысячи за доллар. Смотреть надо,
+// во сколько раз он уехал от старта.
+double Swing(Country country) =>
+    (double)country.ExchangeRate.Raw / Math.Max(1, country.StartRate.Raw);
+
 string Data(string name) => File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "economy", name));
 string Map(string name) => File.ReadAllText(Path.Combine(RepoPaths.GetRepoRoot(), "data", "map", name));
 
@@ -346,7 +351,7 @@ foreach (var country in world.Countries.OrderByDescending(c => c.State.Treasury.
     var burden = country.State.Treasury.Debt.BurdenToExports(exports[country.Id] / years);
     Console.WriteLine($"  {country.Iso} долг {country.State.Treasury.Debt.Owed().Exact / 1e9,6:F2} трлн, " +
                       $"нагрузка {(burden == int.MaxValue ? "без экспорта" : burden + "%"),12}, " +
-                      $"курс x{country.ExchangeRate.Exact:F2}");
+                      $"валюта {Swing(country):F2} от старта");
 }
 
 Console.WriteLine();
@@ -371,7 +376,7 @@ Console.WriteLine("Кто держит деньги в конце прогона
 foreach (var country in world.Countries.OrderByDescending(c => c.State.Treasury.Reserves.Value.Raw).Take(6))
 {
     Console.WriteLine($"  {country.Iso} {country.State.Treasury.Reserves.Value.Exact / 1e9,8:F2} трлн, " +
-                      $"курс ×{country.ExchangeRate.Exact:F2}");
+                      $"валюта {Swing(country):F2} от старта");
 }
 
 var median = world.Countries.Select(c => c.State.Treasury.Reserves.Value.Exact).OrderBy(x => x).ElementAt(100);
@@ -635,6 +640,26 @@ foreach (var iso in new[] { "USA", "FRA", "DEU", "CHN", "RUS", "IND" })
     }
 }
 
+// --- Э. Что тянет курс -----------------------------------------------------------
+Console.WriteLine();
+Console.WriteLine("=== Э. Что тянет курс ===");
+Console.WriteLine("Три силы в MoveRates, вклад каждой в шаг последнего тика, в сотых процента");
+Console.WriteLine("от самого курса. В жизни за пять лет курс ходит на проценты, не в разы.");
+Console.WriteLine();
+Console.WriteLine("страна   от старта   паритет   сальдо   резервы   уровень цен   мировой");
+
+foreach (var iso in new[] { "USA", "FRA", "DEU", "CHN", "JPN", "KOR", "RUS", "IND", "VNM", "BRA", "TUR" })
+{
+    var whose = world.Countries.First(c => c.Iso == iso);
+    var push = simulation.RatePushOf(whose.Id);
+    var rate = Math.Max(1, whose.ExchangeRate.Raw);
+
+    Console.WriteLine($"{iso,-8} {Swing(whose),9:F2} "
+        + $"{10_000.0 * push.Parity / rate,9:F1} {10_000.0 * push.Balance / rate,8:F1} "
+        + $"{10_000.0 * push.Cushion / rate,9:F1} "
+        + $"{simulation.PriceLevelOf(whose.Id) / 100.0,13:F1} {simulation.WorldPriceLevel / 100.0,9:F1}");
+}
+
 // --- Ш. ВВП по странам ---------------------------------------------------------------
 Console.WriteLine();
 Console.WriteLine("=== Ш. ВВП по странам против настоящего ===");
@@ -772,7 +797,7 @@ Console.WriteLine($"Печатали: {world.Countries.Count(c => c.Bank.Printed
 foreach (var country in printers)
 {
     var share = 100.0 * country.Bank.Printed.Exact / Math.Max(1, country.Bank.Supply.Exact);
-    Console.WriteLine($"  {country.Iso}: напечатано {share,6:F1}% массы, курс x{country.ExchangeRate.Exact:F2}");
+    Console.WriteLine($"  {country.Iso}: напечатано {share,6:F1}% массы, валюта {Swing(country):F2} от старта");
 }
 
 // --- П. Перевозка ------------------------------------------------------------------
