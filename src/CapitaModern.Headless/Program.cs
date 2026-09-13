@@ -566,6 +566,40 @@ if (refusals.Count > 0)
 Console.WriteLine($"Плавающих займов: {allLoans.Count(l => l.RateKind == RateKind.Floating)} из {allLoans.Length}");
 
 // --- К. Производительность: главный замер этого шага ------------------------------
+// --- Щ. Из чего складывается выпуск ---------------------------------------------------
+Console.WriteLine();
+Console.WriteLine("=== Щ. Из чего складывается выпуск ===");
+Console.WriteLine("Доля отрасли в добавленной стоимости страны, в постоянных ценах.");
+Console.WriteLine("В жизни на услуги приходится 70% ВВП богатой страны и 45% бедной.");
+Console.WriteLine();
+Console.Write("страна ");
+foreach (var sector in Enum.GetValues<Sector>()) Console.Write($"{sector,12}");
+Console.WriteLine();
+
+foreach (var iso in new[] { "USA", "FRA", "DEU", "GBR", "ITA", "JPN", "CHN", "RUS", "SAU", "VNM", "IND", "NGA" })
+{
+    var id = world.Countries.First(c => c.Iso == iso).Id;
+    var bySector = new Dictionary<Sector, double>();
+    var total = 0.0;
+
+    foreach (var good in goods)
+    {
+        var made = constant.CostOf(good, simulation.OutputOf(id, good)).Exact
+            - constant.CostOf(good, simulation.ConsumedOf(id, good)).Exact;
+
+        bySector[simulation.SectorOf(good)] = bySector.GetValueOrDefault(simulation.SectorOf(good)) + made;
+        total += made;
+    }
+
+    Console.Write($"{iso,-7}");
+    foreach (var sector in Enum.GetValues<Sector>())
+    {
+        Console.Write($"{(total > 0 ? 100 * bySector.GetValueOrDefault(sector) / total : 0),11:F0}%");
+    }
+
+    Console.WriteLine();
+}
+
 // --- Ш. ВВП по странам ---------------------------------------------------------------
 Console.WriteLine();
 Console.WriteLine("=== Ш. ВВП по странам против настоящего ===");

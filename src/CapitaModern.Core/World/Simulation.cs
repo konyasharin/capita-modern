@@ -717,7 +717,8 @@ public sealed class Simulation
 
     /// <summary>Чья это отрасль. Нужна, чтобы знать, насколько страна умеет делать
     /// именно этот товар: нефть качают везде одинаково, станки — нет.</summary>
-    private Sector SectorOf(GoodType good) => _sectorOf[(int)good];
+    /// <summary>Отрасль товара: кто его делает.</summary>
+    public Sector SectorOf(GoodType good) => _sectorOf[(int)good];
 
     /// <summary>Во что обойдётся покупателю единица товара у этого продавца.</summary>
     /// <remarks>Цена продавца плюс дорога от него до покупателя плюс пошлина покупателя.
@@ -950,6 +951,9 @@ public sealed class Simulation
 
     /// <summary>Что страна выпустила за тик по одному товару.</summary>
     public GoodAmount OutputOf(byte country, GoodType good) => _outputs.Get(country, good);
+
+    /// <summary>Сколько товара ушло в чужие рецепты за тик.</summary>
+    public GoodAmount ConsumedOf(byte country, GoodType good) => _consumed.Get(country, good);
 
     /// <summary>Сколько страна заказала по одному товару — и заводы, и население.</summary>
     public GoodAmount InputOf(byte country, GoodType good) => _inputs.Get(country, good);
