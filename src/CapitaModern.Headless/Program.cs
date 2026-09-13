@@ -720,6 +720,32 @@ foreach (var country in world.Countries)
 Console.WriteLine($"мир      {worldCould,15:F2} {worldDid,11:F2} "
     + $"{(worldCould > 0 ? 100 * worldDid / worldCould : 0),10:F0}%         84.90");
 
+Console.WriteLine();
+Console.WriteLine("Что именно стоит: выпуск против возможного, по товарам");
+
+foreach (var iso in new[] { "USA" })
+{
+    var whose = world.Countries.First(c => c.Iso == iso);
+
+    Console.WriteLine($"  {iso}:");
+    foreach (var good in goods)
+    {
+        var could = simulation.PotentialOutputOf(whose.Id, good).Exact;
+        if (could < 100) continue;
+
+        var did = simulation.OutputOf(whose.Id, good).Exact;
+
+        Console.WriteLine($"    {good,-18} {did,10:F0} из {could,10:F0} "
+            + $"({100 * did / could,5:F0}%), склад {whose.State.Stock.Of(good).Exact,10:F0}, "
+            + $"просят {simulation.InputOf(whose.Id, good).Exact,8:F0}, "
+            + $"заявка {simulation.BidOf(whose.Id, good).Exact,9:F0}, "
+            + $"ввезли {simulation.ImportedOf(whose.Id, good).Exact,8:F0}, "
+            + $"цена {whose.State.Prices.Of(good).Exact,9:F2} (старт "
+            + $"{whose.State.Prices.StartOf(good).Exact,8:F2}), в мире "
+            + $"{Simulation.InWorld(whose, whose.State.Prices.Of(good)).Exact,9:F2}");
+    }
+}
+
 // --- Ю. Добыча против настоящей ------------------------------------------------------
 Console.WriteLine();
 Console.WriteLine("=== Ю. Доля страны в мировой добыче ===");

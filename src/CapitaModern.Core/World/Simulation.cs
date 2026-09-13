@@ -921,9 +921,26 @@ public sealed class Simulation
             // покрытие двигает свои цены полным шагом, и подталкивание ему проигрывало.
             // Ограничена только скорость — не больше шага за тик, чтобы не прыгало.
             // Масса идёт за выпуском, и только напечатанное сверх этого двигает уровень.
-            country.Bank.Follow(new Money((long)((Int128)country.Bank.Start.Raw * real.Raw / realBefore.Raw)));
+            // За потенциалом, а не за нынешним выпуском. Выпуск падает и от нехватки сырья,
+            // а деньги от этого не исчезают: дефицит в жизни цены поднимает, а не роняет.
+            // Пока масса шла за фактом, выходила петля — у Германии встали цеха, масса
+            // упала следом, цены рухнули вчетверо ниже стартовых, и на мировом рынке ей
+            // перестали продавать вовсе: её заявка стоила копейки. Потенциал же меняется
+            // только когда строят или изнашивают, то есть по делу.
+            var could = PotentialValue(country);
+            if (could.Raw <= 0) continue;
 
-            var want = PriceLevel.Target(country.Bank.Supply, country.Bank.Start, real, realBefore);
+            if (!_basePotential.TryGetValue(country.Id, out var couldBefore))
+            {
+                _basePotential[country.Id] = could;
+                continue;
+            }
+
+            if (couldBefore.Raw <= 0) continue;
+
+            country.Bank.Follow(new Money((long)((Int128)country.Bank.Start.Raw * could.Raw / couldBefore.Raw)));
+
+            var want = PriceLevel.Target(country.Bank.Supply, country.Bank.Start, could, couldBefore);
             var step = Math.Clamp(
                 want,
                 level * (100 - PriceLevel.StepPercent) / 100,
@@ -936,6 +953,27 @@ public sealed class Simulation
 
         _worldLevel = PriceLevel.Of(nominalWorld, realWorld);
     }
+
+    /// <summary>Потенциальный выпуск страны в стартовых ценах: мера её мощности.</summary>
+    /// <remarks>Меняется только когда строят или изнашивают. Оттого за ним и следует
+    /// денежная масса: она про то, сколько экономика может, а не сколько вышло сегодня.</remarks>
+    private Money PotentialValue(Country country)
+    {
+        var prices = country.State.Prices;
+        var total = default(Money);
+
+        foreach (var good in AllGoods)
+        {
+            var could = PotentialOutputOf(country.Id, good);
+            if (could.Raw == 0) continue;
+
+            total += new Money((long)((Int128)prices.StartOf(good).Raw * could.Raw / GoodAmount.Scale));
+        }
+
+        return total;
+    }
+
+    private readonly Dictionary<byte, Money> _basePotential = new();
 
     /// <summary>Выпуск страны в своих ценах и в стартовых. Из их отношения выходит
     /// уровень цен, из знаменателя — реальный рост.</summary>
@@ -2616,6 +2654,7 @@ public sealed class Simulation
         {
             _world.CountryById(country).State.Stock.Store(good, amount);
         }
+
     }
 
     /// <summary>Цены двигаются в конце тика: спрос за тик против того запаса, что был
@@ -2687,6 +2726,30 @@ public sealed class Simulation
             {
                 total -= prices.CostOf(good, new GoodAmount(amount.Raw * count));
             }
+        }
+
+        return total;
+    }
+
+    /// <summary>Сколько товара дали бы все предприятия страны на полной загрузке.</summary>
+    public GoodAmount PotentialOutputOf(byte country, GoodType good)
+    {
+        var total = default(GoodAmount);
+
+        foreach (var building in AllBuildings)
+        {
+            var count = _working.Get(country, building);
+            if (count == 0) continue;
+
+            var recipe = _world.Buildings[building];
+            if (!recipe.Outputs.TryGetValue(good, out var amount)) continue;
+
+            var times = _world.Efficiency.OutputTimes(country, recipe.Sector);
+            var made = new GoodAmount(amount.Raw * count);
+
+            total += times == Efficiency.Scale
+                ? made
+                : new GoodAmount(made.Raw * times / Efficiency.Scale);
         }
 
         return total;

@@ -71,7 +71,8 @@ public class PriceTests
             prices.MoveFromCover(GoodType.Coal, default, Build.Whole(1));
         }
 
-        Assert.Equal(Money.FromWhole(1), prices.Of(GoodType.Coal));
+        // Пол коридора: стартовая сотня, делённая на разрешённый размах.
+        Assert.Equal(Money.FromWhole(100) / Prices.MaxSwingTimes, prices.Of(GoodType.Coal));
     }
 
     /// <summary>Вечная нехватка не должна разгонять цену без предела: пока нет торговли,
@@ -104,7 +105,7 @@ public class PriceTests
         var prices = Start();
         prices.Shock(GoodType.Oil, -100);
 
-        Assert.Equal(Money.FromWhole(1), prices.Of(GoodType.Oil));
+        Assert.Equal(Money.FromWhole(100) / Prices.MaxSwingTimes, prices.Of(GoodType.Oil));
     }
 
     /// <summary>Дешёвому товару коридор считается от его собственного старта, а не от
