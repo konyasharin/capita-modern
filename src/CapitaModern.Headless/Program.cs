@@ -94,7 +94,7 @@ void CountRails(int day)
                       $"в пределах вдвое от старта {100.0 * sane / total,5:F1}%");
 }
 
-Console.WriteLine("Куда уезжают цены:");
+Console.WriteLine("Куда уезжают цены и как идёт выпуск по месяцам:");
 var clock = new System.Diagnostics.Stopwatch();
 for (var tick = 1; tick <= 365; tick++)
 {
@@ -127,6 +127,19 @@ for (var tick = 1; tick <= 365; tick++)
     }
 
     if (tick is 1 or 7 or 30 or 90 or 365) CountRails(tick);
+
+    // Помесячно за первый год: годовая сводка прячет излом, а он именно здесь.
+    if ((tick + 1) % 30 == 0 && tick < 365)
+    {
+        var perDay = world.Countries.Sum(c => simulation.ValueAddedOf(c.Id, constant).Exact);
+        var shelves = world.Countries.Sum(c =>
+            goods.Sum(good => constant.CostOf(good, c.State.Stock.Of(good)).Exact));
+        var could = world.Countries.Sum(c => simulation.PotentialOf(c.Id, constant).Exact);
+
+        Console.WriteLine($"  месяц {(tick + 1) / 30,2}: выпуск {perDay / 1e9 * 365,7:F2} трлн в год "
+            + $"из {could / 1e9 * 365,7:F2} возможных ({100.0 * perDay / Math.Max(1, could),5:F1}%), "
+            + $"склады {shelves / 1e9,7:F2} трлн");
+    }
 }
 
 Console.WriteLine($"  тик: {clock.Elapsed.TotalMilliseconds / 365:F2} мс");
