@@ -181,7 +181,7 @@ public static class WorldDataLoader
     /// лишним выпуском. Теперь `Simulation.Ordered` сбавляет загрузку по спросу, и мощность
     /// с выпуском разошлись — можно дать запас, не прибавив ни единицы товара.
     /// </remarks>
-    private const int CapacityMargin = 128;
+    private const int CapacityMargin = 100;
 
     /// <summary>Добавляет заводам запас мощности.</summary>
     private static Dictionary<string, Dictionary<BuildingType, int>> WithMargin(
