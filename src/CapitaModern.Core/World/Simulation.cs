@@ -428,7 +428,7 @@ public sealed class Simulation
             // Из запаса берут годовую долю, а не месячную: накопленное копилось годами, и
             // тратить его двенадцать раз в год никто не станет. С месячной долей люди
             // просили услуг вдевятеро больше, чем мир способен дать.
-            var income = country.Payroll + new Money(country.Households.Savings.Raw / DaysInYear);
+            var income = country.Payroll + new Money(country.Households.Savings.Raw / SpendSavingsIn);
 
             foreach (var (good, rate) in _world.Needs.BaseRates)
             {
@@ -1972,6 +1972,11 @@ public sealed class Simulation
     }
 
 
+    /// <summary>За сколько суток люди проедают накопленное, если перестанут зарабатывать.</summary>
+    /// <remarks>Год. Полгода пробовал — хуже: спрос растёт, но вместе с ним цены, и
+    /// загрузка падает с 77% до 66%.</remarks>
+    public const int SpendSavingsIn = DaysInYear;
+
     /// <summary>Сколько прожиточных минимумов покрывает дневной доход людей, в сотых.</summary>
     /// <remarks>Сотня — доход ровно на минимум, двести — вдвое сверх него. Это и есть мера
     /// достатка: всё, что выше сотни, идёт на то, чего минимум не требует.</remarks>
@@ -1989,7 +1994,7 @@ public sealed class Simulation
 
         if (floor.Raw <= 0) return Character.Usual;
 
-        var income = whose.Payroll + new Money(whose.Households.Savings.Raw / DaysInYear);
+        var income = whose.Payroll + new Money(whose.Households.Savings.Raw / SpendSavingsIn);
 
         return (int)Math.Min(int.MaxValue, income.Raw * Spending.Spends / 100 * 100 / floor.Raw);
     }
@@ -2789,6 +2794,26 @@ public sealed class Simulation
             _world.CountryById(country).State.Stock.Store(good, amount);
         }
 
+        Perish();
+    }
+
+    /// <summary>Услуги не лежат на складе: неоказанная стрижка назавтра пропадает.</summary>
+    /// <remarks>
+    /// Остаётся ровно сегодняшний выпуск — его и потребят завтра, — а что не съели раньше,
+    /// гаснет. Пока услуги копились как товар, их набиралось сто восемь миллионов единиц
+    /// при суточном выпуске в два миллиона: полсотни дней запаса того, что хранить нельзя.
+    /// В приросте мировых запасов они и составляли большую часть.
+    /// </remarks>
+    private void Perish()
+    {
+        foreach (var country in _world.Countries)
+        {
+            var stock = country.State.Stock;
+            var fresh = _outputs.Get(country.Id, GoodType.Services);
+            var lying = stock.Of(GoodType.Services);
+
+            if (lying > fresh) stock.TakeUpTo(GoodType.Services, lying - fresh);
+        }
     }
 
     /// <summary>Цены двигаются в конце тика: спрос за тик против того запаса, что был
