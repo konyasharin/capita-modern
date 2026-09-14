@@ -1261,8 +1261,17 @@ public sealed class Simulation
         {
             if (amount.Raw <= 0) continue;
 
-            var wanted = _inputs.Get(country, good) + _replace.Get(country, good)
-                + _exported.Get(country, good);
+            // Своя нужда, замена изношенного и доля мирового спроса. Последнее важно:
+            // страна с полным складом глушила добычу, хотя мир просил товар, — а вывозить
+            // она может ровно столько, сколько у неё просят. Доля берётся по её месту в
+            // мировом предложении: кто может дать больше, на того больше и рассчитывают.
+            var mine = PotentialOutputOf(country, good);
+            var everyone = _worldPotential[(int)good];
+            var abroad = everyone.Raw <= 0
+                ? default
+                : new GoodAmount((long)((Int128)_wanted[(int)good].Raw * mine.Raw / everyone.Raw));
+
+            var wanted = _inputs.Get(country, good) + _replace.Get(country, good) + abroad;
             var target = new GoodAmount(wanted.Raw * Prices.TargetCoverDays * 2);
             var stock = _available.Get(country, good) + _outputs.Get(country, good);
             if (stock <= target) continue;
@@ -2088,7 +2097,26 @@ public sealed class Simulation
     /// <remarks>Склады, кассы, компании и счётчики у каждой страны свои — а Tally внутри
     /// плоский массив, и ячейки разных стран не пересекаются. Единственное общее здесь —
     /// справочники зданий и умений, а их только читают.</remarks>
-    private void CollectOutputs() => Parallel.ForEach(_world.Countries, MakeIn);
+    private void CollectOutputs()
+    {
+        // Мировая мощность по каждому товару: по ней делится мировой спрос между теми,
+        // кто может его закрыть. Считается раз на тик — внутри MakeIn страны идут разом.
+        foreach (var good in AllGoods)
+        {
+            var total = default(GoodAmount);
+            foreach (var country in _world.Countries) total += PotentialOutputOf(country.Id, good);
+
+            _worldPotential[(int)good] = total;
+        }
+
+        Parallel.ForEach(_world.Countries, MakeIn);
+    }
+
+    private readonly GoodAmount[] _worldPotential = new GoodAmount[Enum.GetValues<GoodType>().Length];
+
+    /// <summary>Сколько загрузки потеряно на каждом ограничении: сырьё, склад, деньги, и
+    /// сколько её было всего. Только для замера.</summary>
+    public static readonly long[] Lost = new long[4];
 
     private void MakeIn(Country owner)
     {
@@ -2124,10 +2152,19 @@ public sealed class Simulation
                 );
             }
 
-            if (runs == 0) continue;
+            var afterInputs = runs;
+            if (runs == 0)
+            {
+                Interlocked.Add(ref Lost[0], count * (long)Load.Full);
+                continue;
+            }
 
             runs = Ordered(owner, recipe, runs);
             if (runs <= 0) continue;
+
+            Interlocked.Add(ref Lost[0], count * (long)Load.Full - afterInputs);
+            Interlocked.Add(ref Lost[1], afterInputs - runs);
+            Interlocked.Add(ref Lost[3], count * (long)Load.Full);
 
             var prices = owner.State.Prices;
             var owners = _world.Holdings.OwnersIn(country, building);
@@ -2151,7 +2188,13 @@ public sealed class Simulation
                     var purse = default(Money);
                     foreach (var company in owners) purse += company.Cash;
 
-                    if (purse < bill) runs = (long)((Int128)runs * purse.Raw / bill.Raw);
+                    if (purse < bill)
+                    {
+                        var poorer = (long)((Int128)runs * purse.Raw / bill.Raw);
+                        Interlocked.Add(ref Lost[2], runs - poorer);
+                        runs = poorer;
+                    }
+
                     if (runs <= 0) continue;
                 }
             }

@@ -619,6 +619,16 @@ var without = world.Countries.Count(c => c.Character.Traits.Count == 0);
 Console.WriteLine();
 Console.WriteLine($"Без единой черты: {without} стран из {world.Countries.Count}");
 
+Console.WriteLine();
+Console.WriteLine("Где теряется загрузка за всю партию:");
+{
+    var all = (double)Math.Max(1, Simulation.Lost[3]);
+
+    Console.WriteLine($"  нет сырья  {100 * Simulation.Lost[0] / all,5:F1}%");
+    Console.WriteLine($"  склад полон{100 * Simulation.Lost[1] / all,5:F1}%");
+    Console.WriteLine($"  нет денег  {100 * Simulation.Lost[2] / all,5:F1}%");
+}
+
 // --- Я. Загрузка мощностей -----------------------------------------------------------
 Console.WriteLine();
 Console.WriteLine("=== Я. Сколько страна могла дать и сколько дала ===");
