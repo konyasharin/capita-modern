@@ -1225,6 +1225,22 @@ public sealed class Simulation
     public int MarkupOn(byte country, GoodType good) =>
         _world.TradeCosts.ImportMarkup(country, good, _world.Routes.CostTo(country));
 
+    /// <summary>Что страна видит, выбирая, что строить: прибыль, плата работникам, цена
+    /// постройки и окупаемость за век. Только для замера.</summary>
+    public (Money Profit, Money Pay, Money Cost, long Payback) WhyBuild(byte country, BuildingType type)
+    {
+        var whose = _world.CountryById(country);
+        var info = _world.Buildings[type];
+        var profit = Construction.ProfitOf(
+            new BuildingRecipe(info.Inputs, info.Outputs), whose.State.Prices, good => Faced(whose, good));
+
+        var hands = _world.Efficiency.HandsFor(country, info.Sector, info.OptimalWorkers);
+        var pay = new Money(whose.Payroll.Raw / Math.Max(1, EmployedIn(country)) * hands);
+        var cost = Construction.CostOf(info.BuildCost, whose.State.Prices);
+
+        return (profit, pay, cost, Construction.Payback(profit - pay, cost, info.LifeYears));
+    }
+
     /// <summary>Сколько таких зданий страна поднимет за один тик по нынешнему складу.</summary>
     /// <remarks>Хотя бы одно можно всегда: иначе дорогое здание в маленькой стране не
     /// построилось бы никогда, сколько ни копи.</remarks>
@@ -1304,7 +1320,11 @@ public sealed class Simulation
                 ? default
                 : new GoodAmount((long)((Int128)_wanted[(int)good].Raw * mine.Raw / everyone.Raw));
 
-            var wanted = _inputs.Get(country, good) + _replace.Get(country, good) + abroad;
+            // Стройка входит настоящей заявкой (_build), а не нуждой на замену (_replace):
+            // замену никто не выкупает, и норма от неё выходила вчетверо выше нужного. Полки
+            // набивались под неё — от девяноста до трёхсот суток расхода у всех товаров, — и
+            // правило загрузки глушило заводы: четырнадцать процентов мировой мощности.
+            var wanted = _inputs.Get(country, good) + _build.Get(country, good) + abroad;
             var target = new GoodAmount(wanted.Raw * Prices.TargetCoverDays);
             var stock = _available.Get(country, good) + _outputs.Get(country, good);
             if (stock <= target) continue;
@@ -4145,8 +4165,17 @@ public sealed class Simulation
             // число зданий.
             if (Construction.CostOf(info.BuildCost, country.State.Prices) > purse) Stall[6]++;
 
-            var value = Construction.ValuePerWorker(
-                profit, info.OptimalWorkers, _world.Efficiency.Of(country.Id, info.Sector));
+            // Чистая прибыль: из выручки за вычетом сырья вычитаем ещё и плату работникам.
+            var hands = _world.Efficiency.HandsFor(country.Id, info.Sector, info.OptimalWorkers);
+            var pay = new Money(country.Payroll.Raw / Math.Max(1, EmployedIn(country.Id)) * hands);
+            if (pay >= profit)
+            {
+                Stall[5]++;
+                continue;
+            }
+
+            var value = Construction.Payback(
+                profit - pay, Construction.CostOf(info.BuildCost, country.State.Prices), info.LifeYears);
 
             // Пока не выбрано ничего, берём любое прибыльное: отдача на работника у
             // большого завода делится в ноль, и страна с полной казной решала, что строить

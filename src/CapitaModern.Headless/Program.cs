@@ -612,6 +612,39 @@ foreach (var iso in new[] { "USA", "DEU", "CHN", "IND", "NGA", "SAU" })
     }
 }
 
+// --- Ы. Что выгодно строить -----------------------------------------------------------
+
+Console.WriteLine();
+Console.WriteLine("=== Ы. Что страна видит, выбирая стройку ===");
+Console.WriteLine("Прибыль за сутки, плата работникам за сутки, цена постройки и во сколько");
+Console.WriteLine("раз здание вернёт вложенное за свой век. Строят то, где возврат больше.");
+Console.WriteLine();
+
+foreach (var who in new[] { "CHN", "USA", "IND" })
+{
+    var one = world.Countries.FirstOrDefault(c => c.Iso == who);
+    if (one is null) continue;
+
+    Console.WriteLine($"{who}: занято {simulation.EmployedIn(one.Id) / 1e6:F0} млн, " +
+                      $"плата за сутки всем {one.Payroll.Whole / 1e9:F1} млрд");
+    Console.WriteLine("  здание                прибыль     плата      цена   возврат");
+
+    var rows = Enum.GetValues<BuildingType>()
+        .Select(t => (Type: t, Why: simulation.WhyBuild(one.Id, t)))
+        .Where(r => r.Why.Cost.Raw > 0)
+        .OrderByDescending(r => r.Why.Payback)
+        .ToList();
+
+    foreach (var row in rows.Take(4).Concat(rows.Where(r => r.Type is BuildingType.MaterialsPlant
+                 or BuildingType.SteelMill or BuildingType.LoggingCamp)))
+    {
+        Console.WriteLine($"  {row.Type,-20} {row.Why.Profit.Whole,9} {row.Why.Pay.Whole,9}" +
+                          $" {row.Why.Cost.Whole,9} {row.Why.Payback / 100.0,9:F2}");
+    }
+
+    Console.WriteLine();
+}
+
 // --- Ъ. Черты стран ------------------------------------------------------------------
 Console.WriteLine();
 Console.WriteLine("=== Ъ. Чем страны отличаются друг от друга ===");

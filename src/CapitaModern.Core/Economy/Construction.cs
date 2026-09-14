@@ -79,6 +79,24 @@ public static class Construction
         return profit.Raw / hands;
     }
 
+    /// <summary>Во сколько раз здание вернёт вложенное за свой век, в сотых.</summary>
+    /// <remarks>
+    /// Прежде выбирали по прибыли на работника. Это мерило годится, когда самое дефицитное
+    /// в стране — руки, а у нас на них теряется два с половиной процента загрузки против
+    /// четырнадцати на полном складе. Оттого мир и не строил заводы материалов, хотя
+    /// материалов ему не хватало: они маленькие, дешёвые и на работника дают немного.
+    ///
+    /// Считается по чистой прибыли — за вычетом платы работникам, — иначе трудоёмкое
+    /// здание выигрывало бы одним тем, что людей на нём больше.
+    /// </remarks>
+    public static long Payback(Money daily, Money cost, int lifeYears)
+    {
+        if (cost.Raw <= 0) return daily.Raw > 0 ? long.MaxValue : 0;
+        if (daily.Raw <= 0) return 0;
+
+        return (long)((Int128)daily.Raw * lifeYears * 365 * 100 / cost.Raw);
+    }
+
     /// <summary>Во что обойдётся стройка в местных ценах.</summary>
     public static Money CostOf(IReadOnlyDictionary<GoodType, GoodAmount> buildCost, Prices prices)
     {
