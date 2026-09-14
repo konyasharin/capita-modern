@@ -116,9 +116,40 @@ public sealed class Efficiency
     /// <summary>Во сколько раз больше выпуска даёт то же предприятие, в сотых.</summary>
     /// <remarks>Делится на среднюю по миру: множитель перераспределяет выпуск между
     /// странами, а мировой итог оставляет на месте — как и множитель для рук.</remarks>
-    public int OutputTimes(byte country, Sector sector) => ShowsInOutput(sector)
-        ? Math.Max(Floor, Of(country, sector) * Scale / _outputMean[(int)sector])
-        : Scale;
+    public int OutputTimes(byte country, Sector sector)
+    {
+        var own = ShowsInOutput(sector)
+            ? Math.Max(Floor, Of(country, sector) * Scale / _outputMean[(int)sector])
+            : Scale;
+
+        return (int)((long)own * Progress / Scale);
+    }
+
+    /// <summary>Во сколько раз тот же завод даёт больше, чем в первый день партии.</summary>
+    /// <remarks>
+    /// Умение страны считается от мирового среднего и потому не может поднять мировой итог:
+    /// оно перекладывает выпуск между странами. А в жизни половина роста приходится не на
+    /// новые заводы, а на то, что старые год от года дают больше: приёмы, обучение, станок
+    /// получше. В счетах это зовут общей производительностью факторов.
+    ///
+    /// Выпуску, а не экономии рук: сокращая штат, прогресс отнимал бы у людей заработок, а
+    /// с ним и спрос — проверено, выходило хуже, чем без прогресса вовсе.
+    /// </remarks>
+    public int Progress => (int)(_progress / Fine);
+
+    /// <summary>Сколько знаков хранится сверх <see cref="Scale"/>: за сутки прогресс меняет
+    /// сотые доли процента, и без запаса он округлялся бы в ноль.</summary>
+    private const long Fine = 1_000_000;
+
+    private long _progress = (long)Scale * Fine;
+
+    /// <summary>Двигает мировой прогресс на сутки. Доля — в десятитысячных за год.</summary>
+    public void Advance(int perYear)
+    {
+        if (perYear <= 0) return;
+
+        _progress += _progress * perYear / (10_000L * 365);
+    }
 
     private static int[] Filled(int countries)
     {

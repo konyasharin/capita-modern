@@ -612,6 +612,28 @@ foreach (var iso in new[] { "USA", "DEU", "CHN", "IND", "NGA", "SAU" })
     }
 }
 
+// --- Ь. Кто именно недогружен ---------------------------------------------------------
+
+Console.WriteLine();
+Console.WriteLine("=== Ь. Где стоят заводы, по типам ===");
+Console.WriteLine("Доля потерянной загрузки за всю партию. Всего — сколько её у типа было.");
+Console.WriteLine();
+Console.WriteLine("тип                    всего   сырьё   склад   деньги   руки");
+
+var slots = Enum.GetValues<BuildingType>()
+    .Select(t => (Type: t, All: Simulation.LostBy[(int)t * 5 + 3]))
+    .Where(r => r.All > 0)
+    .OrderByDescending(r => r.All)
+    .Take(10);
+
+foreach (var (type, all) in slots)
+{
+    double Share(int why) => 100.0 * Simulation.LostBy[(int)type * 5 + why] / all;
+
+    Console.WriteLine($"{type,-20} {all / 1e9,8:F1} {Share(0),7:F1} {Share(1),7:F1}" +
+                      $" {Share(2),8:F1} {Share(4),6:F1}");
+}
+
 // --- Ы. Что выгодно строить -----------------------------------------------------------
 
 Console.WriteLine();

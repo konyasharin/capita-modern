@@ -248,9 +248,15 @@ public sealed class Simulation
     private static readonly GoodType[] NeedsOrder =
         [GoodType.Food, GoodType.Medicine, GoodType.ConsumerGoods, GoodType.Electricity, GoodType.Fuel];
 
+    /// <summary>На сколько в год растёт выпуск того же завода, в десятитысячных.</summary>
+    /// <remarks>Полтора процента. В жизни мировая общая производительность факторов растёт
+    /// около процента в год, а здесь условия стерильные: ни кризисов, ни войн.</remarks>
+    private const int ProgressPerYear = 150;
+
     public void Tick()
     {
         _day++;
+        _world.Efficiency.Advance(ProgressPerYear);
         Run(nameof(Prepare), Prepare);
         Run(nameof(CollectInputs), CollectInputs);
         Run(nameof(PlanBuilds), PlanBuilds);
@@ -2236,6 +2242,13 @@ public sealed class Simulation
     /// сколько её было всего. Только для замера.</summary>
     public static readonly long[] Lost = new long[5];
 
+    /// <summary>То же по каждому типу зданий: сырьё, склад, деньги, всего, руки. Только для
+    /// замера — без разбивки по типам видно, что мир недогружен, но не видно, кто именно.</summary>
+    public static readonly long[] LostBy =
+        new long[Enum.GetValues<BuildingType>().Length * 5];
+
+    private static int Slot(BuildingType type, int why) => (int)type * 5 + why;
+
     /// <summary>Куда за партию ушли деньги компаний: добавленная стоимость, зарплаты,
     /// владельцам, на стройку, износ в деньгах. Только для замера.</summary>
     public static readonly long[] Flows = new long[7];
@@ -2276,7 +2289,11 @@ public sealed class Simulation
             var load = _hands.GetValueOrDefault(country, Load.Full);
             long runs = count * load;
 
-            if (load < Load.Full) Interlocked.Add(ref Lost[4], count * (long)(Load.Full - load));
+            if (load < Load.Full)
+            {
+                Interlocked.Add(ref Lost[4], count * (long)(Load.Full - load));
+                Interlocked.Add(ref LostBy[Slot(building, 4)], count * (long)(Load.Full - load));
+            }
             foreach (var (good, _) in recipe.Inputs)
             {
                 GoodAmount available = _available.Get(country, good);
@@ -2301,6 +2318,8 @@ public sealed class Simulation
             if (runs == 0)
             {
                 Interlocked.Add(ref Lost[0], count * (long)Load.Full);
+                Interlocked.Add(ref LostBy[Slot(building, 0)], count * (long)Load.Full);
+                Interlocked.Add(ref LostBy[Slot(building, 3)], count * (long)Load.Full);
                 continue;
             }
 
@@ -2310,6 +2329,9 @@ public sealed class Simulation
             Interlocked.Add(ref Lost[0], count * (long)Load.Full - afterInputs);
             Interlocked.Add(ref Lost[1], afterInputs - runs);
             Interlocked.Add(ref Lost[3], count * (long)Load.Full);
+            Interlocked.Add(ref LostBy[Slot(building, 0)], count * (long)Load.Full - afterInputs);
+            Interlocked.Add(ref LostBy[Slot(building, 1)], afterInputs - runs);
+            Interlocked.Add(ref LostBy[Slot(building, 3)], count * (long)Load.Full);
 
             var prices = owner.State.Prices;
             var owners = _world.Holdings.OwnersIn(country, building);
@@ -2337,6 +2359,7 @@ public sealed class Simulation
                     {
                         var poorer = (long)((Int128)runs * purse.Raw / bill.Raw);
                         Interlocked.Add(ref Lost[2], runs - poorer);
+                        Interlocked.Add(ref LostBy[Slot(building, 2)], runs - poorer);
                         runs = poorer;
                     }
 
