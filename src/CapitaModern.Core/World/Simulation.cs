@@ -2122,12 +2122,18 @@ public sealed class Simulation
 
                 count = Math.Min(count, fits);
 
-                // Стройке нужны руки, и берёт она их у заводов: больше, чем свободно, не
-                // построишь ни за какие деньги.
-                var perUnit = _world.Efficiency.HandsFor(
-                    country.Id, info.Sector, info.BuildWorkers / Construction.BuildDays);
+                // Стройке нужны руки: больше, чем свободно, не построишь ни за какие деньги.
+                // Считаем в руко-днях, а не в людях за сутки. Прежде делили BuildWorkers на
+                // срок стройки целыми числами, и у всякого здания, которому нужно меньше
+                // трёхсот шестидесяти пяти человек, стройка стоила ноль рук — ограничение
+                // не срабатывало почти никогда.
+                var perBuild = _world.Efficiency.HandsFor(country.Id, info.Sector, info.BuildWorkers);
 
-                if (perUnit > 0) count = (int)Math.Min(count, Math.Max(0, (free - hired) / perUnit));
+                if (perBuild > 0)
+                {
+                    var left = free * Construction.BuildDays - hired;
+                    count = (int)Math.Min(count, Math.Max(0, left / perBuild));
+                }
 
                 if (count <= 0)
                 {
@@ -2138,7 +2144,7 @@ public sealed class Simulation
                 Stall[4] += count;
                 plans.Add((builder, best.Value.Type, best.Value.Where, count));
                 room -= count;
-                hired += perUnit * count;
+                hired += perBuild * count;
 
                 var weight = country.Priorities.WeightOf(info.Sector);
                 foreach (var (good, amount) in info.BuildCost)

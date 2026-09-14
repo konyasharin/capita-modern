@@ -13,7 +13,8 @@ public class ConstructionTests
 
     /// <param name="needs">Сколько угля в сутки нужно миллиону человек. Без покупателя
     /// стране нечего заработать, а значит и нечего отложить на стройку.</param>
-    private static GameWorld WorldWith(int population, int workersPerMine, long needs = 1000) => new(
+    private static GameWorld WorldWith(
+        int population, int workersPerMine, long needs = 1000, int buildWorkers = 50) => new(
         [Build.Region(1, 1, new Dictionary<BuildingType, int> { [Mine] = 10 },
             deposits: new Dictionary<GoodType, int> { [Coal] = 100 },
             population: population)],
@@ -29,7 +30,7 @@ public class ConstructionTests
             deposit: Coal,
             workers: workersPerMine,
             buildCost: new() { [GoodType.Materials] = Build.Whole(100) },
-            buildWorkers: 50)),
+            buildWorkers: buildWorkers)),
         new Needs(new Dictionary<GoodType, GoodAmount> { [Coal] = Build.Whole(needs) }),
         Build.Market(new Dictionary<GoodType, Money> { [Coal] = Money.FromWhole(100) }),
         new Elasticity());
@@ -85,11 +86,13 @@ public class ConstructionTests
         Assert.True(MinesIn(world) > 10, "страна со свободными руками так и не построила ничего");
     }
 
-    /// <summary>Все руки уже на шахтах — строить некому, сколько бы ни было денег.</summary>
+    /// <summary>Строителей на такую шахту в стране нет — не поднимут её ни за какие деньги.</summary>
+    /// <remarks>Ограничивает именно стройка: работать на шахте некому и так, но у стройки
+    /// своя доля рабочей силы, и брать её надо на саму постройку.</remarks>
     [Fact]
     public void WithoutFreeHandsNothingIsBuilt()
     {
-        var world = WorldWith(population: 1000, workersPerMine: 1_000_000);
+        var world = WorldWith(population: 1000, workersPerMine: 1_000_000, buildWorkers: 1_000_000);
         var simulation = new Simulation(world);
 
         for (var tick = 0; tick < 50; tick++) simulation.Tick();
