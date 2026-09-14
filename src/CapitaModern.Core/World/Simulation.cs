@@ -396,26 +396,38 @@ public sealed class Simulation
             var people = _world.PopulationOf(country.Id).Whole;
             var prices = country.State.Prices;
             var floor = default(Money);
+            var pull = 0L;
 
             foreach (var (good, rate) in _world.Needs.BaseRates)
             {
-                floor += prices.CostOf(good, new GoodAmount(rate.Raw * people / 1_000_000));
+                var least = new GoodAmount(rate.Raw * people / 1_000_000);
+                var cost = prices.CostOf(good, least);
+
+                floor += cost;
+
+                // Свободные деньги делятся не по величине минимума, а по тому, насколько
+                // товар идёт за доходом: еда почти не идёт, услуги и потребтовары идут
+                // быстрее его.
+                pull += cost.Raw * _world.Needs.ByIncome(good) / Needs.Scale;
             }
 
             // Доход — это заработок плюс то, что берут из запаса: в первые дни партии
             // зарплат ещё не платили вовсе, и без запаса спрос выходил нулевым, а за ним
-            // нулевым и выпуск. Тридцатая доля — месячная трата накопленного.
-            var income = country.Payroll + new Money(country.Households.Savings.Raw / 30);
+            // нулевым и выпуск.
+            //
+            // Из запаса берут годовую долю, а не месячную: накопленное копилось годами, и
+            // тратить его двенадцать раз в год никто не станет. С месячной долей люди
+            // просили услуг вдевятеро больше, чем мир способен дать.
+            var income = country.Payroll + new Money(country.Households.Savings.Raw / DaysInYear);
 
             foreach (var (good, rate) in _world.Needs.BaseRates)
             {
                 var least = new GoodAmount(rate.Raw * people / 1_000_000);
 
-                // Доля свободных денег — по месту товара в самом минимуме: на что уходит
-                // больше при нужде, на то больше уходит и при достатке.
-                var share = floor.Raw <= 0
+                var share = pull <= 0
                     ? 0
-                    : (int)(prices.CostOf(good, least).Raw * 100 / floor.Raw);
+                    : (int)(prices.CostOf(good, least).Raw * _world.Needs.ByIncome(good)
+                        / Needs.Scale * 100 / pull);
 
                 var wanted = Spending.Wanted(income, floor, prices.Of(good), least, share);
                 _peopleWants.Add(country.Id, good, wanted);
@@ -1949,7 +1961,7 @@ public sealed class Simulation
 
         if (floor.Raw <= 0) return Character.Usual;
 
-        var income = whose.Payroll + new Money(whose.Households.Savings.Raw / 30);
+        var income = whose.Payroll + new Money(whose.Households.Savings.Raw / DaysInYear);
 
         return (int)Math.Min(int.MaxValue, income.Raw * Spending.Spends / 100 * 100 / floor.Raw);
     }

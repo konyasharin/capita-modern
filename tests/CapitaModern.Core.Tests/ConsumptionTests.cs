@@ -37,7 +37,7 @@ public class ConsumptionTests
             // Кошелька хватает ровно на прожиточный минимум: спрос теперь идёт за доходом,
             // и с бездонным кошельком люди скупали бы весь склад разом.
             [Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Food] = Build.Whole(foodInStock) },
-                weights, savings: millions * 67)],
+                weights, savings: millions * 815)],
             Build.Catalog(Build.Info(Farm, outputs: new() { [GoodType.Food] = Build.Whole(1) }, sector: Sector.Mining)),
             new Needs(rate ?? Rate),
             Build.Market(),
@@ -127,7 +127,7 @@ public class ConsumptionTests
             // Кошелька ровно на прожиточный минимум: спрос идёт за доходом, и с бездонным
             // запасом люди скупили бы всю еду, не оставив заводу ничего.
             [Build.Country(1, new Dictionary<GoodType, GoodAmount> { [GoodType.Food] = Build.Whole(1) },
-                savings: 67)],
+                savings: 815)],
             Build.Catalog(Build.Info(BuildingType.FoodPlant,
                 inputs: new() { [GoodType.Food] = Build.Whole(2) },
                 outputs: new() { [GoodType.ConsumerGoods] = Build.Whole(1) },
@@ -156,7 +156,7 @@ public class ConsumptionTests
             [Build.Country(1,
                 new Dictionary<GoodType, GoodAmount> { [GoodType.Food] = Build.Whole(1) },
                 new Dictionary<Sector, int> { [Sector.People] = 0 },
-                savings: 67)],
+                savings: 815)],
             Build.Catalog(Build.Info(BuildingType.FoodPlant,
                 inputs: new() { [GoodType.Food] = Build.Whole(2) },
                 outputs: new() { [GoodType.ConsumerGoods] = Build.Whole(1) },

@@ -13,10 +13,31 @@ namespace CapitaModern.Core.Economy;
 /// </remarks>
 public sealed class Needs
 {
-    private readonly IReadOnlyDictionary<GoodType, GoodAmount> _perMillion;
+    /// <summary>Обычная упругость по доходу, ×1 в сотых.</summary>
+    public const int Scale = 100;
 
-    public Needs(IReadOnlyDictionary<GoodType, GoodAmount> perMillion) => _perMillion = perMillion;
+    private readonly IReadOnlyDictionary<GoodType, GoodAmount> _perMillion;
+    private readonly IReadOnlyDictionary<GoodType, int> _byIncome;
+
+    public Needs(
+        IReadOnlyDictionary<GoodType, GoodAmount> perMillion,
+        IReadOnlyDictionary<GoodType, int>? byIncome = null)
+    {
+        _perMillion = perMillion;
+        _byIncome = byIncome ?? new Dictionary<GoodType, int>();
+    }
 
     /// <summary>Что вообще потребляют и сколько по минимуму.</summary>
     public IReadOnlyDictionary<GoodType, GoodAmount> BaseRates => _perMillion;
+
+    /// <summary>Насколько товар идёт за доходом, в сотых.</summary>
+    /// <remarks>
+    /// Минимум у всех один, а свободные деньги делятся по этой упругости: еда почти не
+    /// идёт за доходом (богатый ест 3800 калорий против 2100), потребтовары идут быстрее
+    /// дохода, услуги тоже.
+    ///
+    /// Без неё весь свободный доход уходил туда, где велик сам минимум, — а велик он в
+    /// услугах, и люди просили их впятеро больше, чем мир способен дать.
+    /// </remarks>
+    public int ByIncome(GoodType good) => _byIncome.GetValueOrDefault(good, Scale);
 }
