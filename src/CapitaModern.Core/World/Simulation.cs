@@ -77,7 +77,10 @@ public sealed class Simulation
 
     /// <summary>Накопленный износ по областям. Целыми заводами он осыпается редко,
     /// поэтому дробная часть копится.</summary>
-    private readonly Dictionary<int, int> _decay = new();
+    private readonly Dictionary<(int Region, BuildingType Type), int> _decay = new();
+
+    /// <summary>Чтобы не менять список зданий области, пока по нему идём.</summary>
+    private readonly List<(BuildingType Type, int Count)> _standing = [];
 
     /// <summary>Топливо, сожжённое перевозкой. Отдельно от прочего расхода: это не
     /// сырьё для завода, а плата за расстояние.</summary>
@@ -3117,38 +3120,38 @@ public sealed class Simulation
     {
         foreach (var region in _world.Regions)
         {
-            // Каждый тип осыпается со своей скоростью: здания стоят вдвое дольше заводов.
-            var wear = 0;
+            // Каждый тип осыпается со своей скоростью и сам за себя. Прежде износ всей
+            // области списывался с самого многочисленного типа: заводы материалов — самый
+            // частый тип почти везде — принимали на себя износ всех прочих и убывали с 4.14
+            // до 2.52 млн, а из них-то мир и строит. Отсюда и потолок роста.
+            _standing.Clear();
             foreach (var (type, count) in region.BuildingsCount)
             {
-                wear += count * WearScale / _world.Buildings[type].LifeYears;
+                if (count > 0) _standing.Add((type, count));
             }
 
-            if (wear == 0) continue;
-
-            _decay[region.Id] = _decay.GetValueOrDefault(region.Id) + wear;
             var span = WearScale * DaysInYear;
-            var due = _decay[region.Id] / span;
-            if (due == 0) continue;
 
-            _decay[region.Id] -= due * span;
-
-            // Осыпается самое многочисленное: так износ не выбивает единственный завод.
-            var worst = default(BuildingType);
-            var most = 0;
-            foreach (var (type, count) in region.BuildingsCount)
+            foreach (var (type, count) in _standing)
             {
-                if (count <= most) continue;
+                var wear = count * WearScale / _world.Buildings[type].LifeYears;
+                if (wear == 0) continue;
 
-                most = count;
-                worst = type;
+                // Копим дроби: за сутки осыпается меньше здания, и без накопления износ
+                // округлялся бы в ноль у всякой области, где заводов меньше срока службы.
+                var key = (region.Id, type);
+                var got = _decay.GetValueOrDefault(key) + wear;
+                var due = got / span;
+
+                _decay[key] = got - due * span;
+                if (due == 0) continue;
+
+                var gone = Math.Min(due, count);
+                if (!region.TryRemoveBuildings(type, gone)) continue;
+
+                WornSoFar += gone;
+                Strip(region.Id, type, gone);
             }
-
-            var gone = Math.Min(due, most);
-            if (!region.TryRemoveBuildings(worst, gone)) continue;
-
-            WornSoFar += gone;
-            Strip(region.Id, worst, gone);
         }
     }
 
@@ -3654,6 +3657,9 @@ public sealed class Simulation
     /// считалась безнадёжной.</summary>
     private const int BrokeAt = 5;
 
+    /// <summary>Во сколько годовых выручек компания сама готова залезть в долг ради стройки.</summary>
+    private const int SafeDebt = 1;
+
     private void Service(Country country, Company company, Bank bank, int rate)
     {
         // Проценты за сутки по годовой ставке.
@@ -3727,8 +3733,11 @@ public sealed class Simulation
         var want = whole - company.Cash;
         if (want > bank.Free) want = bank.Free;
 
-        // Больше пяти годовых выручек никто не даст: это и есть черта безнадёжности.
-        var room = new Money(yearly.Raw * BrokeAt) - company.Debt;
+        // Больше годовой выручки на стройку не занимают. Пять — это черта безнадёжности, и
+        // занимая до неё каждый тик, компания к ней и приходила: за двадцать лет разорялось
+        // пять тысяч компаний из девяти, а их здания доставались наследнику с другим делом —
+        // оттого мир и дрейфовал из заводов материалов в оружие.
+        var room = new Money(yearly.Raw * SafeDebt) - company.Debt;
         if (want > room) want = room;
 
         if (want.Raw > 0 && bank.Lend(want)) company.Borrow(want);
