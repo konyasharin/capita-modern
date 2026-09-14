@@ -86,16 +86,6 @@ public sealed class Prices
     /// </remarks>
     /// <param name="demand">Сколько товара заказали за тик все — и заводы, и население.</param>
     /// <param name="available">Что лежало на складе на начало тика.</param>
-    public void MoveFromCover(GoodType good, GoodAmount demand, GoodAmount available)
-    {
-        // перекос = (цель − покрытие) / (цель + покрытие), где покрытие = наличие / спрос.
-        // Числитель и знаменатель домножены на спрос, чтобы обойтись без дроби.
-        // Спроса нет вовсе: цель ноль, перекос ровно −1, цена падает полным шагом.
-        long target = TargetCoverDays * demand.Raw;
-
-        Apply(good, target - available.Raw, target + available.Raw);
-    }
-
     /// <summary>Тянет цену к полосе вокруг мировой. Внутри полосы не двигает.</summary>
     /// <remarks>
     /// Закон одной цены. Свободно возимый товар не может стоить втрое дороже мирового: его

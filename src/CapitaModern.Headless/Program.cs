@@ -41,92 +41,9 @@ var years = fast ? 1 : 5;
 
 if (fast) Console.WriteLine("### БЫСТРЫЙ РЕЖИМ: один год, опыты Ж и З пропущены\n");
 
-// --- А. Что формула делает при постоянном покрытии -------------------------------
-Console.WriteLine("=== А. Постоянное покрытие: во сколько раз меняется цена ===");
-Console.WriteLine("покрытие  сутки    неделя   месяц    год");
-
-foreach (var coverDays in new[] { 0, 5, 10, 20, 30, 40, 60, 100, 400 })
-{
-    var prices = new Prices(goods.ToDictionary(good => good, _ => Money.FromWhole(1000)));
-    var demand = GoodAmount.FromWhole(100);
-    var stock = GoodAmount.FromWhole(100 * coverDays);
-    var line = $"{coverDays,4} сут ";
-
-    for (var tick = 1; tick <= 365; tick++)
-    {
-        prices.MoveFromCover(GoodType.Coal, demand, stock);
-        if (tick is 1 or 7 or 30 or 365)
-        {
-            line += $"  ×{prices.Of(GoodType.Coal).Exact / 1000,-7:F3}";
-        }
-    }
-
-    Console.WriteLine(line);
-}
-
-// --- Б. Сколько суток нужно на известные из жизни движения ------------------------
-Console.WriteLine();
-Console.WriteLine("=== Б. Сколько суток нашей формуле на настоящий эпизод ===");
-
-(string Name, double Times, int RealDays)[] episodes =
-[
-    ("газ в Европе 2021, ×11", 11.0, 365),
-    ("уголь Newcastle 2021, ×3", 3.0, 365),
-    ("литий 2021-22, ×9", 9.0, 400),
-    ("нефть Brent зима-весна 2020, ×0.3", 0.3, 90),
-    ("нефть Brent 2022, ×1.6", 1.6, 90),
-    ("пшеница март 2022, ×1.4", 1.4, 21),
-    ("удобрения 2021, ×3", 3.0, 365),
-];
-
-foreach (var (name, times, realDays) in episodes)
-{
-    var prices = new Prices(goods.ToDictionary(good => good, _ => Money.FromWhole(10000)));
-    var rising = times > 1;
-    var demand = GoodAmount.FromWhole(100);
-    // Полный перекос: либо склад пуст, либо спроса нет вовсе.
-    var stock = rising ? default : GoodAmount.FromWhole(100);
-    var ourDays = 0;
-
-    while (ourDays < 5000)
-    {
-        var was = prices.Of(GoodType.Coal).Raw;
-        prices.MoveFromCover(GoodType.Coal, rising ? demand : default, stock);
-        ourDays++;
-        var ratio = prices.Of(GoodType.Coal).Exact / 10000;
-        if (rising ? ratio >= times : ratio <= times) break;
-        if (prices.Of(GoodType.Coal).Raw == was) break;
-    }
-
-    Console.WriteLine($"{name,-38} в жизни {realDays,4} сут, у нас {ourDays,4} сут " +
-                      $"({(double)realDays / ourDays,5:F1}× медленнее в жизни)");
-}
-
-// --- Б2. При каком запасе эпизод воспроизводится за настоящий срок ---------------
-Console.WriteLine();
-Console.WriteLine("=== Б2. Какое покрытие нужно, чтобы попасть в настоящий срок ===");
-
-foreach (var (name, times, realDays) in episodes)
-{
-    var best = -1.0;
-    var bestGap = double.MaxValue;
-
-    // Перебор покрытия по десятым доли суток: ищем то, при котором за настоящий срок
-    // цена уходит ровно во столько раз, во сколько ушла в жизни.
-    for (var tenths = 0; tenths <= 4000; tenths++)
-    {
-        var prices = new Prices(goods.ToDictionary(good => good, _ => Money.FromWhole(100000)));
-        var demand = GoodAmount.FromWhole(10);
-        var stock = new GoodAmount(GoodAmount.FromWhole(10).Raw * tenths / 10);
-
-        for (var day = 0; day < realDays; day++) prices.MoveFromCover(GoodType.Coal, demand, stock);
-
-        var gap = Math.Abs(prices.Of(GoodType.Coal).Exact / 100000 - times);
-        if (gap < bestGap) (bestGap, best) = (gap, tenths / 10.0);
-    }
-
-    Console.WriteLine($"{name,-38} запас на {best,5:F1} сут (норма — {Prices.TargetCoverDays})");
-}
+// Разделы А, Б и Б2 убраны вместе с механизмом, который они изучали: цена больше не ползёт
+// шагами от покрытия склада, а считается равновесием спроса и предложения. Что осталось от
+// тех замеров — в docs/09-reality-check.md.
 
 // --- В. Год настоящего мира ------------------------------------------------------
 Console.WriteLine();
@@ -915,7 +832,7 @@ foreach (var (iso, real2020) in new[] { ("USA", 6.7), ("DEU", 11.0), ("CHN", 22.
     var people = world.PopulationOf(id).Whole;
     var perHead = basket / 1e6;
 
-    Console.WriteLine($"{iso}   {simulation.EngelOf(id),5}% {real2020,8:F1}%   корзин {simulation.CapacityIn(id) / 100.0,7:F1}"
+    Console.WriteLine($"{iso}   {simulation.EngelOf(id),5}% {real2020,8:F1}%   корзин {simulation.BasketsIn(id) / 100.0,7:F1}"
         + $"   фонд {whose.Payroll.Exact / 1e3,9:F1} млн против корзины {perHead * people / 1e3,10:F1} млн");
 
     foreach (var (good, _) in world.Needs.BaseRates)

@@ -1931,27 +1931,27 @@ public sealed class Simulation
         }
     }
 
-    /// <summary>Сколько базовых корзин покупает дневной доход, в сотых.</summary>
-    /// <remarks>Считается в корзинах, а не в деньгах: так не нужен курс. Сравнивать
-    /// доходы разных стран через него сейчас нельзя — он сам сломан, и вышел бы круг.
-    ///
-    /// В первый тик зарплат ещё не платили, доход нулевой — выходит обычная нужда, и это
-    /// верно: голодают не оттого, что перехотели, а оттого, что не на что купить.</remarks>
-    private int CapacityOf(Country country)
+
+    /// <summary>Сколько прожиточных минимумов покрывает дневной доход людей, в сотых.</summary>
+    /// <remarks>Сотня — доход ровно на минимум, двести — вдвое сверх него. Это и есть мера
+    /// достатка: всё, что выше сотни, идёт на то, чего минимум не требует.</remarks>
+    public int BasketsIn(byte country)
     {
-        var basket = default(Money);
+        var whose = _world.CountryById(country);
+        var people = _world.PopulationOf(country).Whole;
+        var prices = whose.State.Prices;
+        var floor = default(Money);
+
         foreach (var (good, rate) in _world.Needs.BaseRates)
         {
-            basket += country.State.Prices.CostOf(good, rate);
+            floor += prices.CostOf(good, new GoodAmount(rate.Raw * people / 1_000_000));
         }
 
-        var people = _world.PopulationOf(country.Id).Whole;
-        if (basket.Raw <= 0 || people <= 0) return Needs.Scale;
+        if (floor.Raw <= 0) return Character.Usual;
 
-        // Корзина посчитана на миллион человек, фонд оплаты — на всю страну.
-        var capacity = (Int128)country.Payroll.Raw * 1_000_000 * Needs.Scale / ((Int128)basket.Raw * people);
+        var income = whose.Payroll + new Money(whose.Households.Savings.Raw / 30);
 
-        return (int)Int128.Clamp(capacity, Needs.MinCapacity, Needs.MaxCapacity);
+        return (int)Math.Min(int.MaxValue, income.Raw * Spending.Spends / 100 * 100 / floor.Raw);
     }
 
     /// <summary>Решает, что строить, и заявляет это как спрос наравне с заводами.</summary>
@@ -2645,8 +2645,6 @@ public sealed class Simulation
     public Money BudgetOf(byte country) =>
         _sales.GetValueOrDefault(country) - _wages.GetValueOrDefault(country);
 
-    /// <summary>Сколько базовых корзин покупает дневной доход, в сотых. Для показа и сверки.</summary>
-    public int CapacityIn(byte country) => CapacityOf(_world.CountryById(country));
 
     /// <summary>Доля еды в купленном населением, в сотых.</summary>
     /// <remarks>

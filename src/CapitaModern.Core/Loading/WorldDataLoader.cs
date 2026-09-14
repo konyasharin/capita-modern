@@ -32,7 +32,7 @@ public static class WorldDataLoader
         string traitsJson)
     {
         var consumptionFile = LoadConsumptionFile(consumptionJson);
-        var needs = new Needs(consumptionFile.UnitPerMillionPeople, consumptionFile.IncomeElasticity);
+        var needs = new Needs(consumptionFile.UnitPerMillionPeople);
         var startPrices = LoadPricesFile(pricesJson).Prices;
         var reserves = LoadReservesFile(reservesJson);
         var keyRates = JsonReader.Read<KeyRatesFile>(keyRatesJson);

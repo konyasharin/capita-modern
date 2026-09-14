@@ -110,7 +110,7 @@ public partial class OverviewPanel : SidePanel
         var engel = sim.EngelOf(Id);
         _engel.Set(Fmt.Percent(engel), engel switch { 0 => Skin.Dim, < 25 => Skin.Good, < 45 => Skin.Text, _ => Skin.Bad });
 
-        var capacity = sim.CapacityIn(Id) / (double)Needs.Scale;
+        var capacity = sim.BasketsIn(Id) / 100.0;
         _capacity.Set($"{capacity:0.00}");
 
         var load = sim.LoadIn(Id) / (double)Load.Full;

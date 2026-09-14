@@ -16,80 +16,13 @@ public class PriceTests
     private static Prices Start(long price = 100) =>
         new(Enum.GetValues<GoodType>().ToDictionary(good => good, _ => Money.FromWhole(price)));
 
-    private static Money Moved(GoodAmount demand, GoodAmount available)
-    {
-        var prices = Start();
-        prices.MoveFromCover(GoodType.Coal, demand, available);
 
-        return prices.Of(GoodType.Coal);
-    }
 
-    [Fact]
-    public void EmptyStockRaisesPriceByTheFullStep()
-    {
-        Assert.Equal(Money.FromWhole(100 + Prices.StepPercent), Moved(Build.Whole(10), default));
-    }
 
-    /// <summary>Спроса нет вовсе — перекос ровно −1, полный шаг вниз.</summary>
-    [Fact]
-    public void NobodyWantsItSoItGetsCheaperByTheFullStep()
-    {
-        Assert.Equal(Money.FromWhole(100 - Prices.StepPercent), Moved(default, Build.Whole(10)));
-    }
 
-    /// <summary>Запаса ровно на норму — цену двигать незачем.</summary>
-    [Fact]
-    public void PriceHoldsAtTheTargetCover()
-    {
-        Assert.Equal(Money.FromWhole(100), Moved(Build.Whole(1), Build.Whole(Prices.TargetCoverDays)));
-    }
 
-    /// <summary>Половина нормы даёт треть перекоса, а не весь шаг: (40−20)/(40+20).</summary>
-    [Fact]
-    public void HalfTheStockMovesPriceByPartOfTheStep()
-    {
-        // Половина нормы покрытия — значит и шаг половинный, считая от полного.
-        var expected = Money.FromWhole(100)
-            + new Money(Money.Scale * 100 * Prices.StepPercent * 20 / (60 * 100));
 
-        Assert.Equal(expected, Moved(Build.Whole(1), Build.Whole(Prices.TargetCoverDays / 2)));
-    }
 
-    /// <summary>Ни спроса, ни запаса — про товар ничего не известно, цена стоит.</summary>
-    [Fact]
-    public void NothingKnownMeansNoMove()
-    {
-        Assert.Equal(Money.FromWhole(100), Moved(default, default));
-    }
-
-    /// <summary>Цена не должна доехать до нуля: оттуда товар уже не оживёт. Останавливает
-    /// её коридор вокруг стартовой — сотая часть от ста.</summary>
-    [Fact]
-    public void PriceNeverReachesZero()
-    {
-        var prices = Start();
-        for (var tick = 0; tick < 5_000; tick++)
-        {
-            prices.MoveFromCover(GoodType.Coal, default, Build.Whole(1));
-        }
-
-        // Пол коридора: стартовая сотня, делённая на разрешённый размах.
-        Assert.Equal(Money.FromWhole(100) / Prices.MaxSwingTimes, prices.Of(GoodType.Coal));
-    }
-
-    /// <summary>Вечная нехватка не должна разгонять цену без предела: пока нет торговли,
-    /// упереться она обязана в потолок коридора.</summary>
-    [Fact]
-    public void EndlessShortageStopsAtTheCeiling()
-    {
-        var prices = Start();
-        for (var tick = 0; tick < 5_000; tick++)
-        {
-            prices.MoveFromCover(GoodType.Coal, Build.Whole(10), default);
-        }
-
-        Assert.Equal(Money.FromWhole(100 * Prices.MaxSwingTimes), prices.Of(GoodType.Coal));
-    }
 
     /// <summary>Резкое движение приходит событием, а не ежедневной формулой.</summary>
     [Fact]
@@ -101,32 +34,7 @@ public class PriceTests
         Assert.Equal(Money.FromWhole(500), prices.Of(GoodType.Oil));
     }
 
-    [Fact]
-    public void ShockDownStopsAtTheFloor()
-    {
-        var prices = Start();
-        for (var tick = 0; tick < 1000; tick++)
-        {
-            prices.MoveFromCover(GoodType.Oil, default, Build.Whole(10));
-        }
 
-        Assert.Equal(Money.FromWhole(100) / Prices.MaxSwingTimes, prices.Of(GoodType.Oil));
-    }
-
-    /// <summary>Дешёвому товару коридор считается от его собственного старта, а не от
-    /// общего числа.</summary>
-    [Fact]
-    public void CorridorIsCountedFromTheStartPrice()
-    {
-        var prices = Start(2);
-        for (var tick = 0; tick < 1000; tick++)
-        {
-            prices.MoveFromCover(GoodType.Oil, Build.Whole(10), default);
-        }
-
-        Assert.Equal(Money.FromWhole(2 * Prices.MaxSwingTimes), prices.Of(GoodType.Oil));
-        Assert.Equal(Money.FromWhole(2), prices.StartOf(GoodType.Oil));
-    }
 
     [Fact]
     public void CostOfCountsFractionsOfAUnit()
