@@ -1767,6 +1767,16 @@ public sealed class Simulation
     /// <summary>Курс идёт за сальдо: кто больше ввозит, у того валюта дешевеет.</summary>
     /// <remarks>Петля замыкается через эластичность: подешевевшая валюта поднимает
     /// местную цену импортного, и заявка сама срезается.</remarks>
+    /// <summary>Во сколько раз курс может отойти от паритета. Худшие настоящие обвалы —
+    /// это разы за годы, а не за день.</summary>
+    public const int RateSwing = 3;
+
+    /// <summary>Насколько вывоз и ввоз отзываются на курс, в сотых.</summary>
+    /// <remarks>Сумма упругостей больше единицы — условие Маршалла и Лернера, при котором
+    /// ослабление валюты и правда улучшает сальдо. Полтора у каждой стороны с запасом его
+    /// покрывают.</remarks>
+    public const int TradeStretch = 150;
+
     /// <summary>Из чего сложился шаг курса за тик: паритет цен, сальдо, запас резервов.</summary>
     public readonly record struct RatePush(long Parity, long Balance, long Cushion);
 
@@ -1789,37 +1799,44 @@ public sealed class Simulation
             // кого цены выросли вдвое против мира, у того и валюта вдвое дешевле. Сальдо —
             // отклонение от паритета, а не весь курс: иначе курс уезжал бы куда угодно,
             // лишь бы баланс сходился.
-            var rate = country.ExchangeRate.Raw;
-            var was = rate;
-
+            // Курс — такая же цена, и считается он так же: не ползёт шагами, а сразу
+            // берётся тот, при котором сходится платёжный баланс. Прежде три силы двигали
+            // его по проценту за тик, и выходил тот же интегратор, что и у цен: за пять
+            // лет от старта вдвое уходили полторы сотни стран из двухсот.
+            //
+            // Паритет — куда курс тянет разница уровней цен: у кого цены выросли вдвое
+            // против мира, у того и валюта вдвое дешевле. Сальдо отклоняет от паритета:
+            // тратишь больше, чем получаешь, — валюта слабеет, и это делает твой вывоз
+            // дешевле, а ввоз дороже, пока баланс не сойдётся.
+            var parity = country.StartRate.Raw;
             if (_level.TryGetValue(country.Id, out var level) && _worldLevel > 0)
             {
-                // Считается от своего старта, а не от единицы: вона и донг стоят тысячи за
-                // доллар просто потому, что так нарезаны. Раньше паритет тянул к единице
-                // любую валюту, и почти все они укреплялись в сотню раз — до упора
-                // коридора, — а вместе с курсом уезжала и цена их заявки на мировом рынке.
-                var parity = country.StartRate.Raw * (long)level / _worldLevel;
-                rate = Drift.Step(rate, parity - rate, parity + rate, Prices.StepPercent);
+                parity = country.StartRate.Raw * (long)level / _worldLevel;
             }
 
-            var fromParity = rate - was;
-            was = rate;
+            var even = Clearing.Price(
+                new Money(parity),
+                new GoodAmount(outflow.Raw),
+                new GoodAmount(inflow.Raw),
+                TradeStretch,
+                TradeStretch).Raw;
 
-            rate = Drift.Step(
-                rate, outflow.Raw - inflow.Raw, outflow.Raw + inflow.Raw, Prices.StepPercent);
+            // От паритета курс отходит втрое, не больше. Для товара стократный размах —
+            // защита от вырожденного случая, а для валюты это уже нелепость: страна,
+            // которой нечего вывезти, получала стократную девальвацию за один тик и
+            // выпадала из мировой торговли вовсе, не успев даже занять.
+            even = Math.Clamp(even, parity / RateSwing, parity * RateSwing);
 
-            var fromBalance = rate - was;
-            was = rate;
+            // Не прыжком, а половиной пути: цель считается заново каждый тик от паритета,
+            // так что расходиться тут нечему, — но и мгновенным курс быть не должен. Без
+            // задержки платёжный баланс сходился в тот же день, и занимать за границей
+            // становилось незачем вовсе: внешний долг мира падал с шестидесяти семи
+            // триллионов до четырёх, а кредит переставал работать как механизм.
+            var rate = country.ExchangeRate.Raw + (even - country.ExchangeRate.Raw) / 2;
 
-            // Третья сила: сколько осталось резервов. Правило достаточности — запас на
-            // сорок суток ввоза; кто проедает его, у того валюта слабеет, и ввоз дорожает
-            // сам. Без этого страна с пустой казной продолжала покупать в долг без конца.
-            var norm = country.ImportsPerDay.Raw * Prices.TargetCoverDays;
-            if (norm > 0)
-            {
-                var left = country.State.Treasury.Reserves.Liquid.Raw;
-                rate = Drift.Step(rate, norm - left, norm + left, Prices.StepPercent);
-            }
+            var fromParity = parity - country.ExchangeRate.Raw;
+            var fromBalance = even - parity;
+            var was = rate;
 
             _ratePush[country.Id] = new RatePush(fromParity, fromBalance, rate - was);
             country.MoveRate(new Money(rate));

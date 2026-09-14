@@ -162,8 +162,12 @@ public class TradeTests
         var buyer = world.CountryById(2);
 
         // Завод просит 10 в сутки, норма — сорок суток. Съеденное за тик страна докупает
-        // тем же тиком: заявка это нехватка плюс дневной расход.
-        Assert.Equal(Build.Whole(10 * Prices.TargetCoverDays), buyer.State.Stock.Of(Coal));
+        // тем же тиком: заявка это нехватка плюс дневной расход. Точно до единицы не
+        // сходится: цену теперь ставит равновесие, и она чуть ходит вокруг обычной, а за
+        // ней ходит и норма запаса.
+        var norm = Build.Whole(10 * Prices.TargetCoverDays);
+
+        Assert.InRange(buyer.State.Stock.Of(Coal).Exact, norm.Exact * 0.95, norm.Exact * 1.05);
         Assert.True(buyer.State.Stock.Of(GoodType.Metals) > default(GoodAmount), "завод так и не заработал");
     }
 
