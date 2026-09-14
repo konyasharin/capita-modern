@@ -3577,9 +3577,16 @@ public sealed class Simulation
         if (!_choice.TryGetValue(company.Id, out var plan)) return;
 
         var price = Construction.CostOf(_world.Buildings[plan.Type].BuildCost, country.State.Prices);
-        if (price.Raw <= 0 || company.Cash >= price) return;
+        if (price.Raw <= 0) return;
 
-        var want = price - company.Cash;
+        // Занимает не на одно здание, а на столько, сколько сегодня позволит склад: стройка
+        // упиралась в кассу, касса — в непроданные запасы, запасы — в несостоявшуюся
+        // стройку. Больше, чем можно поднять, брать незачем — материалов всё равно нет.
+        var fits = Math.Max(1, RoomFor(country.Id, plan.Type));
+        var whole = new Money(price.Raw * fits);
+        if (company.Cash >= whole) return;
+
+        var want = whole - company.Cash;
         if (want > bank.Free) want = bank.Free;
 
         // Больше пяти годовых выручек никто не даст: это и есть черта безнадёжности.
