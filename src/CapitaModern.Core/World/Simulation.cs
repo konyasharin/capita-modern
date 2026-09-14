@@ -3112,10 +3112,21 @@ public sealed class Simulation
                 var added = company.MadeToday - company.BoughtToday;
                 if (added.Raw <= 0) continue;
 
+                // Сперва откладывают на развитие, потом платят. Деньгами приходит только
+                // за проданное, а начисляется за сделанное, и зарплата съедала кассу
+                // подчистую: у всех крупных компаний стоял ноль, строить было не на что —
+                // семь миллионов отказов «нет денег» за партию.
+                //
+                // Порядок тут и есть решение: возмещение капитала — не остаток после всех
+                // выплат, а первая статья расхода. Проели его — завтра работать не на чем.
+                var toGrow = new Money(added.Raw * Construction.InvestmentShare / 100);
+                var spare = company.Cash > toGrow ? company.Cash - toGrow : default;
+
                 // Труд стоит работодателю всё, что он на него потратил: и зарплату, и
                 // взносы, и удержанный подоходный. Делится эта сумма, а не прибавляется
                 // сверху — иначе взносы упирались бы в пустую кассу.
-                var given = company.Give(new Money(added.Raw * country.LabourShare / 100));
+                var owed = new Money(added.Raw * country.LabourShare / 100);
+                var given = company.Give(owed < spare ? owed : spare);
                 var dues = TaxCode.Take(given, country.Taxes.Payroll);
                 var onHand = given - dues;
                 var income = TaxCode.Take(onHand, country.Taxes.Income);
