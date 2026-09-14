@@ -14,7 +14,7 @@ public static class Construction
 {
     /// <summary>Какая доля добавленной стоимости уходит на стройку, в сотых.</summary>
     /// <remarks>В жизни валовое накопление основного капитала — около четверти ВВП.</remarks>
-    public const int InvestmentShare = 25;
+    public const int InvestmentShare = 30;
 
     /// <summary>Срок службы теперь у каждого типа свой, см. BuildingInfo.LifeYears.
     /// Здесь остаётся средний по миру — для прикидок и для инструментов.</summary>

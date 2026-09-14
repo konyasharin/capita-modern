@@ -269,6 +269,13 @@ void Report(int year, double gdp)
                       $"{standing,14} {simulation.BuiltSoFar,9} {simulation.WornSoFar,7}" +
                       $" [ниша {Simulation.Stall[0]} касса {Simulation.Stall[1]} склад {Simulation.Stall[2]}" +
                       $" руки {Simulation.Stall[3]} заказано {Simulation.Stall[4]}]" +
+                      $" [добавка {new Money(Simulation.Flows[0]).Whole / 1e12,6:F1} зарплаты" +
+                      $" {new Money(Simulation.Flows[1]).Whole / 1e12,6:F1} владельцам" +
+                      $" {new Money(Simulation.Flows[2]).Whole / 1e12,6:F1} стройка" +
+                      $" {new Money(Simulation.Flows[3]).Whole / 1e12,6:F1} износ" +
+                      $" {new Money(Simulation.Flows[4]).Whole / 1e12,6:F1}" +
+                      $" касса {simulation.CompanyPurses().Cash.Whole / 1e12,6:F1}" +
+                      $" долг {simulation.CompanyPurses().Debt.Whole / 1e12,6:F1}]" +
                       $"{world.Countries.Count(c => c.DefaultedOnDay > 0),10} {busy,12}");
 }
 

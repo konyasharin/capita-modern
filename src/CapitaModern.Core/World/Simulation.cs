@@ -41,8 +41,6 @@ public sealed class Simulation
     /// что заказ мог не сбыться, а ещё в нём сидит население. По нему считается ВВП.</summary>
     private readonly Tally<GoodType, GoodAmount> _consumed = new();
 
-    /// <summary>Сколько людей просят предприятия страны. С поправкой на эффективность:
-    /// один и тот же завод в отстающей стране обслуживает куда больше народу.</summary>
     private readonly Dictionary<byte, long> _jobs = new();
 
     /// <summary>Во сколько урезана загрузка нехваткой людей, в долях Load.Full.</summary>
@@ -1307,7 +1305,7 @@ public sealed class Simulation
                 : new GoodAmount((long)((Int128)_wanted[(int)good].Raw * mine.Raw / everyone.Raw));
 
             var wanted = _inputs.Get(country, good) + _replace.Get(country, good) + abroad;
-            var target = new GoodAmount(wanted.Raw * Prices.TargetCoverDays * 2);
+            var target = new GoodAmount(wanted.Raw * Prices.TargetCoverDays);
             var stock = _available.Get(country, good) + _outputs.Get(country, good);
             if (stock <= target) continue;
 
@@ -2041,7 +2039,7 @@ public sealed class Simulation
                 foreach (var (type, _) in region.BuildingsCount) plants += region.BuildingsOf(type, country.Id);
             }
 
-            var room = Math.Max(MaxBuildsPerTick, plants / (10 * DaysInYear));
+            var room = Math.Max(MaxBuildsPerTick, plants / (5 * DaysInYear));
             // Своя доля рабочей силы, а не остаток после заводов. В жизни строителей около
             // восьми процентов занятых, и берутся они не из тех, кого заводы не разобрали:
             // стройка нанимает наравне со всеми.
@@ -2165,6 +2163,11 @@ public sealed class Simulation
     /// <summary>Какой была загрузка страны на прошлом тике, в долях <see cref="Load.Full"/>.</summary>
     private readonly Dictionary<byte, int> _loadWas = new();
 
+    /// <summary>За сколько суток занятость догоняет загрузку.</summary>
+    /// <remarks>Квартал. Чем короче, тем сильнее качает: при единице занятость прыгала
+    /// с 1976 до 2959 миллионов через год.</remarks>
+    private const int HiringDays = 90;
+
     private void CollectOutputs()
     {
         // Мировая мощность по каждому товару: по ней делится мировой спрос между теми,
@@ -2186,9 +2189,15 @@ public sealed class Simulation
             var could = PotentialOf(country.Id, country.State.Prices);
             var did = ValueAddedOf(country.Id);
 
-            _loadWas[country.Id] = could.Raw <= 0
+            var today = could.Raw <= 0
                 ? Load.Full
                 : (int)Math.Clamp(did.Raw * Load.Full / could.Raw, Load.Full / 10, Load.Full);
+
+            // Не сегодняшняя загрузка, а сглаженная: завод не набирает и не увольняет людей
+            // за сутки. Без этого занятость качалась вдвое через тик — руки считались по
+            // вчерашней загрузке, а нехватка рук резала сегодняшнюю, и круг замыкался.
+            var was = _loadWas.GetValueOrDefault(country.Id, today);
+            _loadWas[country.Id] = (int)((was * (long)(HiringDays - 1) + today) / HiringDays);
         }
     }
 
@@ -2197,6 +2206,30 @@ public sealed class Simulation
     /// <summary>Сколько загрузки потеряно на каждом ограничении: сырьё, склад, деньги, и
     /// сколько её было всего. Только для замера.</summary>
     public static readonly long[] Lost = new long[5];
+
+    /// <summary>Куда за партию ушли деньги компаний: добавленная стоимость, зарплаты,
+    /// владельцам, на стройку, износ в деньгах. Только для замера.</summary>
+    public static readonly long[] Flows = new long[7];
+
+    /// <summary>Сколько денег и долга у всех компаний мира прямо сейчас. Только для замера.</summary>
+    public (Money Cash, Money Debt) CompanyPurses()
+    {
+        var cash = default(Money);
+        var debt = default(Money);
+
+        foreach (var country in _world.Countries)
+        {
+            foreach (var company in _world.CompaniesOf(country.Id))
+            {
+                if (!company.Alive) continue;
+
+                cash += company.Cash;
+                debt += company.Debt;
+            }
+        }
+
+        return (cash, debt);
+    }
 
     private void MakeIn(Country owner)
     {
@@ -3169,7 +3202,7 @@ public sealed class Simulation
                 // людям не доставалось, купить они не могли, склад рос ещё быстрее, и
                 // правило загрузки глушило заводы. Первые три месяца мир работал на 85%
                 // мощности, а дальше садился на 52%.
-                var added = company.MadeToday - company.BoughtToday;
+                var added = company.SoldToday - company.BoughtToday;
                 if (added.Raw <= 0) continue;
 
                 // Сперва откладывают на развитие, потом платят. Деньгами приходит только
@@ -3179,6 +3212,8 @@ public sealed class Simulation
                 //
                 // Порядок тут и есть решение: возмещение капитала — не остаток после всех
                 // выплат, а первая статья расхода. Проели его — завтра работать не на чем.
+                Interlocked.Add(ref Flows[0], added.Raw);
+
                 var toGrow = new Money(added.Raw * Construction.InvestmentShare / 100);
                 var spare = company.Cash > toGrow ? company.Cash - toGrow : default;
 
@@ -3191,6 +3226,7 @@ public sealed class Simulation
                 var onHand = given - dues;
                 var income = TaxCode.Take(onHand, country.Taxes.Income);
 
+                Interlocked.Add(ref Flows[1], given.Raw);
                 country.Budget.Collect(TaxKind.Payroll, dues);
                 country.Budget.Collect(TaxKind.Income, income);
                 country.Households.Earn(onHand - income);
@@ -3217,11 +3253,22 @@ public sealed class Simulation
                 // Но не меньше износа своих зданий: это не прибыль, а возврат вложенного,
                 // и раздавать его владельцам значит проедать завод.
                 var wear = WearCost(country, company.ByType);
+                Interlocked.Add(ref Flows[4], wear.Raw);
                 if (wear > want) want = wear;
 
                 var keep = net < want ? net : want;
+                var owners = net - keep;
 
-                country.Households.Earn(company.Give(net - keep));
+                // Владельцам достаётся только то, что есть в кассе сверх отложенного на
+                // стройку. Прежде этой защиты не было: запас вычитался из зарплат, а следом
+                // дивиденды выгребали кассу до дна вместе с ним. Оттого у компаний и стоял
+                // ноль — двадцать семь миллионов отказов «нет денег» за партию, — и мир
+                // строил ровно столько, сколько изнашивал.
+                var loose = company.Cash > toGrow ? company.Cash - toGrow : default;
+                if (owners > loose) owners = loose;
+
+                Interlocked.Add(ref Flows[2], owners.Raw);
+                country.Households.Earn(company.Give(owners));
             }
 
             _wages[country.Id] = wages;
@@ -3630,10 +3677,10 @@ public sealed class Simulation
             company.Expand(Founders.Next(company.Focus[^1]));
         }
 
-        // Сперва на оборот. Труд оплачен за сделанное, а деньгами приходит только за
-        // проданное, и разницу — товар, легший на склад, — в жизни закрывают кредитом под
-        // запасы. Без этого касса у всех крупных компаний стояла на нуле, и строить было
-        // не на что даже при выбранном деле.
+        // Занимают ровно под то, что сегодня не продалось: сырьё на него ушло, а выручка не
+        // пришла. Прежде брали под весь дневной выпуск, и каждый день заново — долг рос сам
+        // себя до шестисот сорока триллионов, и компании разорялись пачками на пятнадцатом
+        // году.
         if (company.Cash < company.MadeToday && company.MadeToday.Raw > 0)
         {
             var gap = company.MadeToday - company.Cash;
@@ -4021,6 +4068,7 @@ public sealed class Simulation
                     _sales[country.Id] = _sales.GetValueOrDefault(country.Id) + forStuff - vat;
                 }
 
+                Interlocked.Add(ref Flows[3], price.Raw);
                 done++;
                 BuiltSoFar++;
             }
