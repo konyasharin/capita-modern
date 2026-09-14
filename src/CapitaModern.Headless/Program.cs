@@ -37,7 +37,12 @@ var goods = Enum.GetValues<GoodType>();
 // Быстрый режим для итераций: один год вместо пяти и без двух опытов на отдельных мирах.
 // Полный прогон — только перед коммитом, числа из быстрого с ним не сравнивать.
 var fast = args.Contains("--fast");
-var years = fast ? 1 : 5;
+// Сколько лет прогонять: --years 20 для проверки на длинной дистанции.
+var yearsAt = Array.IndexOf(args, "--years");
+var years = yearsAt >= 0 && yearsAt + 1 < args.Length
+    && int.TryParse(args[yearsAt + 1], out var howLong)
+    ? howLong
+    : fast ? 1 : 5;
 
 if (fast) Console.WriteLine("### БЫСТРЫЙ РЕЖИМ: один год, опыты Ж и З пропущены\n");
 

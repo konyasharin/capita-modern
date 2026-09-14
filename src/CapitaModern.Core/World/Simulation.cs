@@ -183,6 +183,22 @@ public sealed class Simulation
     /// тик подорожал втрое: двести стран по пятьсот проверок склада на каждую.</summary>
     private const int MaxBuildsPerTick = 50;
 
+    /// <summary>Сколько компания может занять сверх того, что у неё есть.</summary>
+    /// <remarks>Меньшее из двух: что банк ещё не раздал и сколько ей дадут по мере долга —
+    /// пять годовых выручек, дальше черта безнадёжности.</remarks>
+    private Money CanBorrow(Country country, Company company)
+    {
+        var yearly = Worth(country, company);
+        if (yearly.Raw <= 0) return default;
+
+        var room = new Money(yearly.Raw * BrokeAt) - company.Debt;
+        if (room.Raw <= 0) return default;
+
+        var free = country.Banks.Free;
+
+        return room < free ? room : free;
+    }
+
     /// <summary>Какая доля рабочей силы приходится на стройку, в сотых.</summary>
     /// <remarks>В жизни строители — семь-восемь процентов занятых почти в любой стране.</remarks>
     public const int BuildersShare = 8;
@@ -2012,7 +2028,20 @@ public sealed class Simulation
 
             // Общие на страну потолки: материалы со склада и свободные руки одни на всех,
             // и вторая компания берёт то, что осталось после первой.
-            var room = MaxBuildsPerTick;
+            // Потолок на тик — доля своего же капитала, а не одно число на всех. Полсотни
+            // зданий в тик это восемнадцать тысяч в год: Китаю с четырьмя миллионами
+            // зданий столько нужно только на замену двух недель износа. Оттого капитал и
+            // таял у крупных стран, сколько бы денег и материалов у них ни было.
+            //
+            // Двадцатая доля капитала в год — предел того, что страна физически успевает
+            // отстроить; в жизни быстрее не выходит даже на подъёме.
+            var plants = 0;
+            foreach (var region in _world.RegionsOf(country.Id))
+            {
+                foreach (var (type, _) in region.BuildingsCount) plants += region.BuildingsOf(type, country.Id);
+            }
+
+            var room = Math.Max(MaxBuildsPerTick, plants / (20 * DaysInYear));
             // Своя доля рабочей силы, а не остаток после заводов. В жизни строителей около
             // восьми процентов занятых, и берутся они не из тех, кого заводы не разобрали:
             // стройка нанимает наравне со всеми.
@@ -2030,7 +2059,13 @@ public sealed class Simulation
             {
                 if (room <= 0) break;
 
+                // Кошелёк — это касса плюс то, что компания может занять. Заём приходит в
+                // Banking, а план составляется здесь, за двадцать шагов до него: планируя
+                // по одной кассе, компания заказывала меньше, чем могла поднять, и
+                // капитал таял при полном банке. Двадцать восемь миллионов отказов
+                // «нет денег» за партию.
                 var purse = builder?.Cash ?? _investment.GetValueOrDefault(country.Id);
+                if (builder is not null) purse += CanBorrow(country, builder);
                 var best = order ?? Chosen(country, builder, purse);
 
                 if (best is null)
