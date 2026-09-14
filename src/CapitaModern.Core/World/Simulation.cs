@@ -183,6 +183,10 @@ public sealed class Simulation
     /// тик подорожал втрое: двести стран по пятьсот проверок склада на каждую.</summary>
     private const int MaxBuildsPerTick = 50;
 
+    /// <summary>Какая доля рабочей силы приходится на стройку, в сотых.</summary>
+    /// <remarks>В жизни строители — семь-восемь процентов занятых почти в любой стране.</remarks>
+    public const int BuildersShare = 8;
+
     /// <summary>Почему стройка не идёт: нет ниши, нет денег, нет материалов, нет рук,
     /// и сколько зданий всё-таки заказано. Только для замера.</summary>
     public static readonly long[] Stall = new long[7];
@@ -376,8 +380,14 @@ public sealed class Simulation
 
                 // Отстающей стране тот же завод обходится в большее число рук: комбайн
                 // против полусотни человек с мотыгами.
+                //
+                // По вчерашней загрузке, а не по полной мощности: цех, работающий вполсилы,
+                // и людей держит вполовину. Пока считали по мощности, заводы занимали всех
+                // до единого, и на стройку рук не оставалось вовсе — четыре миллиона
+                // отказов за партию.
+                var busy = _loadWas.GetValueOrDefault(owner, Load.Full);
                 var hands = _world.Efficiency.HandsFor(
-                    owner, info.Sector, (long)info.OptimalWorkers * building.Value);
+                    owner, info.Sector, (long)info.OptimalWorkers * building.Value * busy / Load.Full);
 
                 _jobs[owner] = _jobs.GetValueOrDefault(owner) + hands;
                 if (info.Sector == Sector.Services) _serviceJobs += hands;
@@ -1998,7 +2008,13 @@ public sealed class Simulation
             // Общие на страну потолки: материалы со склада и свободные руки одни на всех,
             // и вторая компания берёт то, что осталось после первой.
             var room = MaxBuildsPerTick;
-            var free = _world.WorkersOf(country.Id) - _jobs.GetValueOrDefault(country.Id);
+            // Своя доля рабочей силы, а не остаток после заводов. В жизни строителей около
+            // восьми процентов занятых, и берутся они не из тех, кого заводы не разобрали:
+            // стройка нанимает наравне со всеми.
+            //
+            // Пока брали остаток, заводы занимали всех до единого — четыре миллиона отказов
+            // «нет рук» за партию, — и капитал таял оттого, что строить его было некому.
+            var free = _world.WorkersOf(country.Id) * BuildersShare / 100;
             var hired = 0L;
 
             // Заказ игрока идёт мимо ниш: государство строит что велено. Сама страна не
@@ -2106,6 +2122,9 @@ public sealed class Simulation
     /// <remarks>Склады, кассы, компании и счётчики у каждой страны свои — а Tally внутри
     /// плоский массив, и ячейки разных стран не пересекаются. Единственное общее здесь —
     /// справочники зданий и умений, а их только читают.</remarks>
+    /// <summary>Какой была загрузка страны на прошлом тике, в долях <see cref="Load.Full"/>.</summary>
+    private readonly Dictionary<byte, int> _loadWas = new();
+
     private void CollectOutputs()
     {
         // Мировая мощность по каждому товару: по ней делится мировой спрос между теми,
@@ -2119,6 +2138,18 @@ public sealed class Simulation
         }
 
         Parallel.ForEach(_world.Countries, MakeIn);
+
+        // Запоминаем, на какой доле мощности страна и правда работала: по ней завтра
+        // считаются руки.
+        foreach (var country in _world.Countries)
+        {
+            var could = PotentialOf(country.Id, country.State.Prices);
+            var did = ValueAddedOf(country.Id);
+
+            _loadWas[country.Id] = could.Raw <= 0
+                ? Load.Full
+                : (int)Math.Clamp(did.Raw * Load.Full / could.Raw, Load.Full / 10, Load.Full);
+        }
     }
 
     private readonly GoodAmount[] _worldPotential = new GoodAmount[Enum.GetValues<GoodType>().Length];
