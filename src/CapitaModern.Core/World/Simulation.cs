@@ -2041,7 +2041,7 @@ public sealed class Simulation
                 foreach (var (type, _) in region.BuildingsCount) plants += region.BuildingsOf(type, country.Id);
             }
 
-            var room = Math.Max(MaxBuildsPerTick, plants / (20 * DaysInYear));
+            var room = Math.Max(MaxBuildsPerTick, plants / (10 * DaysInYear));
             // Своя доля рабочей силы, а не остаток после заводов. В жизни строителей около
             // восьми процентов занятых, и берутся они не из тех, кого заводы не разобрали:
             // стройка нанимает наравне со всеми.
