@@ -594,7 +594,13 @@ public sealed class Simulation
                 // при какой дешевизне, и курс уезжает до упора вместо равновесия.
                 // Запас держат под заводы и людей; стройке нужно ровно на сегодня.
                 var forBuilding = _build.Get(country.Id, good);
-                var flow = _inputs.Get(country.Id, good) - forBuilding;
+
+                // Замена изношенного входит в поток: это нужда завтрашнего дня, но
+                // покупать под неё надо сегодня. Пока её не было в заявке, страна, которой
+                // материалы нужны, за границей их не просила, а страна, у которой мощности
+                // есть, видела свой полный склад и глушила заводы. Материалы шли на
+                // тридцати восьми процентах мощности при избытке сырья для них.
+                var flow = _inputs.Get(country.Id, good) + _replace.Get(country.Id, good) - forBuilding;
 
                 var target = Elasticity.Adjust(
                     _world.Elasticity.Demand(good),
@@ -1059,6 +1065,9 @@ public sealed class Simulation
 
     /// <summary>Сколько страна заказала по одному товару — и заводы, и население.</summary>
     public GoodAmount InputOf(byte country, GoodType good) => _inputs.Get(country, good);
+
+    /// <summary>Сколько материала нужно стране на замену изношенного за сутки.</summary>
+    public GoodAmount ReplaceWantOf(byte country, GoodType good) => _replace.Get(country, good);
 
     /// <summary>Сколько страна просила у внешнего рынка.</summary>
     public GoodAmount BidOf(byte country, GoodType good) => _bid.Get(country, good);

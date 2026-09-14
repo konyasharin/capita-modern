@@ -227,10 +227,14 @@ foreach (var good in goods.OrderBy(good =>
     var ratio = asked == 0 ? "заказа нет" : $"{made / asked,7:P0}";
     var forBuild = world.Countries.Sum(c => simulation.BuildWantOf(c.Id, good).Exact);
     var forPeople = world.Countries.Sum(c => simulation.PeopleWantOf(c.Id, good).Exact);
+    var forWear = world.Countries.Sum(c => simulation.ReplaceWantOf(c.Id, good).Exact);
 
     Console.WriteLine($"{good,-18} {made,10:F0} {asked,10:F0}   {ratio}"
         + $"{100 * forBuild / Math.Max(1, asked),18:F0}% {100 * forPeople / Math.Max(1, asked),6:F0}%"
-        + $" {100 * (asked - forBuild - forPeople) / Math.Max(1, asked),6:F0}%");
+        + $" {100 * (asked - forBuild - forPeople) / Math.Max(1, asked),6:F0}%"
+        + $"   на замену {forWear,9:F0}"
+        + $", склад {world.Countries.Sum(c => c.State.Stock.Of(good).Exact),12:F0}"
+        + $", мощность {world.Countries.Sum(c => simulation.PotentialOutputOf(c.Id, good).Exact),10:F0}");
 }
 
 // --- Е. Пять лет: не стекутся ли деньги к экспортёрам -----------------------------
