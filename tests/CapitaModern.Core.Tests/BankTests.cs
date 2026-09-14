@@ -12,9 +12,13 @@ public class BankTests
         var bank = new Bank();
         bank.Take(Money.FromWhole(1000));
 
-        Assert.Equal(Money.FromWhole(900), bank.Free);
-        Assert.False(bank.Lend(Money.FromWhole(901)));
-        Assert.True(bank.Lend(Money.FromWhole(900)));
+        // Свободно не то, что принесли, а принесённое за вычетом резерва и умноженное на
+        // мультипликатор: кредит создаёт вклад, и тот возвращается в банковскую систему.
+        var free = Money.FromWhole(1000 * (100 - Bank.Reserve) / 100 * Bank.Multiplier);
+
+        Assert.Equal(free, bank.Free);
+        Assert.False(bank.Lend(free + Money.FromWhole(1)));
+        Assert.True(bank.Lend(free));
         Assert.Equal(default, bank.Free);
     }
 

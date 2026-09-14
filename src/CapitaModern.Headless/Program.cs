@@ -631,6 +631,7 @@ Console.WriteLine("Где теряется загрузка за всю парт
     Console.WriteLine($"  нет сырья  {100 * Simulation.Lost[0] / all,5:F1}%");
     Console.WriteLine($"  склад полон{100 * Simulation.Lost[1] / all,5:F1}%");
     Console.WriteLine($"  нет денег  {100 * Simulation.Lost[2] / all,5:F1}%");
+    Console.WriteLine($"  нет рук    {100 * Simulation.Lost[4] / all,5:F1}%");
 }
 
 // --- Я. Загрузка мощностей -----------------------------------------------------------

@@ -2116,7 +2116,7 @@ public sealed class Simulation
 
     /// <summary>Сколько загрузки потеряно на каждом ограничении: сырьё, склад, деньги, и
     /// сколько её было всего. Только для замера.</summary>
-    public static readonly long[] Lost = new long[4];
+    public static readonly long[] Lost = new long[5];
 
     private void MakeIn(Country owner)
     {
@@ -2131,7 +2131,10 @@ public sealed class Simulation
 
             // Доля общая на всех, поэтому расход рецепта в ней сокращается.
             // Умножаем до деления, иначе целые числа дадут ноль.
-            long runs = count * _hands.GetValueOrDefault(country, Load.Full);
+            var load = _hands.GetValueOrDefault(country, Load.Full);
+            long runs = count * load;
+
+            if (load < Load.Full) Interlocked.Add(ref Lost[4], count * (long)(Load.Full - load));
             foreach (var (good, _) in recipe.Inputs)
             {
                 GoodAmount available = _available.Get(country, good);
@@ -3514,6 +3517,20 @@ public sealed class Simulation
             && company.Debt.Raw * 2 < yearly.Raw)
         {
             company.Expand(Founders.Next(company.Focus[^1]));
+        }
+
+        // Сперва на оборот. Труд оплачен за сделанное, а деньгами приходит только за
+        // проданное, и разницу — товар, легший на склад, — в жизни закрывают кредитом под
+        // запасы. Без этого касса у всех крупных компаний стояла на нуле, и строить было
+        // не на что даже при выбранном деле.
+        if (company.Cash < company.MadeToday && company.MadeToday.Raw > 0)
+        {
+            var gap = company.MadeToday - company.Cash;
+            var limit = new Money(yearly.Raw * BrokeAt) - company.Debt;
+
+            if (gap > limit) gap = limit;
+            if (gap > bank.Free) gap = bank.Free;
+            if (gap.Raw > 0 && bank.Lend(gap)) company.Borrow(gap);
         }
 
         // Занимает, если на стройку не хватает своего, а дело того стоит.

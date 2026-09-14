@@ -50,7 +50,7 @@ public static class WorldDataLoader
             goodDtos.ToDictionary(dto => dto.Id, dto => dto.DemandElasticity),
             goodDtos.ToDictionary(dto => dto.Id, dto => dto.SupplyElasticity),
             goodDtos.ToDictionary(dto => dto.Id, dto => dto.Substitution));
-        var startBuildings = LoadStartBuildingsFile(startBuildingsJson).StartBuildings;
+        var startBuildings = WithMargin(LoadStartBuildingsFile(startBuildingsJson).StartBuildings);
         var countriesFile = LoadCountriesFile(countriesJson);
         var regionsFile = LoadRegionsFile(regionsJson);
         if (countriesFile.Height != regionsFile.Height || countriesFile.Width != regionsFile.Width)
@@ -170,6 +170,34 @@ public static class WorldDataLoader
     /// населения. Настоящего спроса до первого тика взять неоткуда.
     /// </remarks>
     /// <seealso cref="StartCoverDays"/>
+    /// <summary>Во сколько сотых мощность больше выпуска, из которого выведена.</summary>
+    /// <remarks>
+    /// Число заводов посчитано из настоящего мирового выпуска, а настоящие заводы загружены
+    /// примерно на три четверти. Значит мощностей в жизни на четверть больше того, что они
+    /// дают, и без этой прибавки мир сведён впритык: узкие товары — материалы, электричество,
+    /// электроника — идут с запасом в один-два процента, и любая неровность рвёт цепочку.
+    ///
+    /// Раньше прибавить было нельзя: заводы работали на полную, и лишняя мощность стала бы
+    /// лишним выпуском. Теперь `Simulation.Ordered` сбавляет загрузку по спросу, и мощность
+    /// с выпуском разошлись — можно дать запас, не прибавив ни единицы товара.
+    /// </remarks>
+    private const int CapacityMargin = 128;
+
+    /// <summary>Добавляет заводам запас мощности.</summary>
+    private static Dictionary<string, Dictionary<BuildingType, int>> WithMargin(
+        Dictionary<string, Dictionary<BuildingType, int>> start)
+    {
+        foreach (var byType in start.Values)
+        {
+            foreach (var type in byType.Keys.ToArray())
+            {
+                byType[type] = byType[type] * CapacityMargin / 100;
+            }
+        }
+
+        return start;
+    }
+
     /// <summary>На сколько суток расхода хватает стартового запаса.</summary>
     /// <remarks>
     /// Вдвое больше нормы <see cref="Prices.TargetCoverDays"/>, по которой стоит цена, и
