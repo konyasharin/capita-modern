@@ -185,7 +185,7 @@ public sealed class Simulation
 
     /// <summary>Почему стройка не идёт: нет ниши, нет денег, нет материалов, нет рук,
     /// и сколько зданий всё-таки заказано. Только для замера.</summary>
-    public static readonly long[] Stall = new long[5];
+    public static readonly long[] Stall = new long[7];
 
     /// <summary>Какую долю склада стройка может съесть за тик, в сотых.</summary>
     /// <remarks>Вычерпать полку за день нельзя. Заказ на тысячу зданий растягивается на
@@ -3947,8 +3947,20 @@ public sealed class Simulation
                 new BuildingRecipe(info.Inputs, info.Outputs),
                 country.State.Prices,
                 good => Faced(country, good));
-            if (profit.Raw <= 0) continue;
-            if (Construction.CostOf(info.BuildCost, country.State.Prices) > purse) continue;
+            if (profit.Raw <= 0)
+            {
+                Stall[5]++;
+                continue;
+            }
+
+            // По карману не смотрим: выбор дела — это выбор дела, а недостающее занимают.
+            // Пока смотрели, выходил круг: денег нет — ниша не выбрана — плана нет — заём
+            // не под что брать — денег так и нет. Сорок восемь миллионов отказов за партию
+            // против одиннадцати по убыточности.
+            //
+            // Сколько построится на самом деле, решает PlanBuilds: там кошелёк и режет
+            // число зданий.
+            if (Construction.CostOf(info.BuildCost, country.State.Prices) > purse) Stall[6]++;
 
             var value = Construction.ValuePerWorker(
                 profit, info.OptimalWorkers, _world.Efficiency.Of(country.Id, info.Sector));

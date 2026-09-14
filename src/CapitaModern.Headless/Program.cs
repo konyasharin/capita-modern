@@ -620,6 +620,10 @@ Console.WriteLine();
 Console.WriteLine($"Без единой черты: {without} стран из {world.Countries.Count}");
 
 Console.WriteLine();
+Console.WriteLine($"Почему ниша не нашлась: убыточно {Simulation.Stall[5]}, "
+    + $"не по карману {Simulation.Stall[6]}");
+
+Console.WriteLine();
 Console.WriteLine("Где теряется загрузка за всю партию:");
 {
     var all = (double)Math.Max(1, Simulation.Lost[3]);
