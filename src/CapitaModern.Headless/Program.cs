@@ -251,6 +251,38 @@ Console.WriteLine("год   реальный ВВП   на рельсах   вн
 // Потери загрузки за год, а не за всю партию: провал виден только в разнице.
 var lostWas = new long[5];
 
+// Курс и уровень цен год назад: по ним считается, насколько они за год ушли. Медиана по
+// странам, а не среднее: несколько развалившихся валют иначе перекрывают всю картину.
+var rateWas = world.Countries.ToDictionary(c => c.Id, c => c.ExchangeRate.Exact);
+var levelWas = world.Countries.ToDictionary(c => c.Id, c => (double)simulation.BasketLevelOf(c.Id));
+
+string Swings()
+{
+    var rates = new List<double>();
+    var levels = new List<double>();
+
+    foreach (var one in world.Countries)
+    {
+        var rateNow = one.ExchangeRate.Exact;
+        var levelNow = (double)simulation.BasketLevelOf(one.Id);
+
+        if (rateWas[one.Id] > 0) rates.Add(100 * Math.Abs(rateNow - rateWas[one.Id]) / rateWas[one.Id]);
+        if (levelWas[one.Id] > 0) levels.Add(100 * (levelNow - levelWas[one.Id]) / levelWas[one.Id]);
+
+        rateWas[one.Id] = rateNow;
+        levelWas[one.Id] = levelNow;
+    }
+
+    rates.Sort();
+    levels.Sort();
+
+    double Mid(List<double> what) => what.Count == 0 ? 0 : what[what.Count / 2];
+    double Worst(List<double> what) => what.Count == 0 ? 0 : what[what.Count * 9 / 10];
+
+    return $"курс {Mid(rates),5:F1} худший {Worst(rates),6:F1} цены {Mid(levels),6:F1}"
+        + $" худший {Worst(levels),7:F1}";
+}
+
 string Yearly()
 {
     var all = Simulation.Lost[3] - lostWas[3];
@@ -287,7 +319,7 @@ void Report(int year, double gdp)
                       $"{standing,14} {simulation.BuiltSoFar,9} {simulation.WornSoFar,7}" +
                       $" [ниша {Simulation.Stall[0]} касса {Simulation.Stall[1]} склад {Simulation.Stall[2]}" +
                       $" руки {Simulation.Stall[3]} заказано {Simulation.Stall[4]}]" +
-                      $" [{Yearly()}]" +
+                      $" [{Yearly()}] [{Swings()}]" +
                       $" [добавка {new Money(Simulation.Flows[0]).Whole / 1e12,6:F1} зарплаты" +
                       $" {new Money(Simulation.Flows[1]).Whole / 1e12,6:F1} владельцам" +
                       $" {new Money(Simulation.Flows[2]).Whole / 1e12,6:F1} стройка" +
@@ -1230,14 +1262,16 @@ Console.WriteLine();
 Console.WriteLine("=== Ф. Выбросы ===");
 Console.WriteLine("Где цены ушли дальше всего и что их туда двинуло. Масса — во сколько раз");
 Console.WriteLine("выросла денежная масса, печать — сколько из неё напечатано.");
+Console.WriteLine("Уровень — по корзине потребления: стоимость выпуска, делённая на его объём,");
+Console.WriteLine("взлетает у страны, чей выпуск съёжился, хотя цены при этом не двигались.");
 Console.WriteLine();
 Console.WriteLine("страна  уровень цен   масса   печать   курс    на рельсах");
 
 foreach (var country in world.Countries
-             .OrderByDescending(c => simulation.PriceLevelOf(c.Id))
+             .OrderByDescending(c => simulation.BasketLevelOf(c.Id))
              .Take(8))
 {
-    var level = simulation.PriceLevelOf(country.Id) / (double)PriceLevel.Scale;
+    var level = simulation.BasketLevelOf(country.Id) / (double)PriceLevel.Scale;
     var supply = country.Bank.Start.Raw > 0
         ? country.Bank.Supply.Exact / country.Bank.Start.Exact
         : 0;

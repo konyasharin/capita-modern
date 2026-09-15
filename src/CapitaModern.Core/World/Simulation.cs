@@ -1938,8 +1938,73 @@ public sealed class Simulation
     /// <summary>Что тянуло курс в последнем тике.</summary>
     public RatePush RatePushOf(byte country) => _ratePush.GetValueOrDefault(country);
 
+    /// <summary>За сколько суток усредняется уровень цен, по которому считается паритет.</summary>
+    /// <remarks>
+    /// Квартал. Сам уровень меряется по сегодняшнему выпуску и скачет каждый день, а курс
+    /// брал его напрямую и шёл за этим шумом случайным блужданием: за год он набегал на
+    /// треть у половины стран, тогда как в жизни за пять лет ходит на проценты.
+    ///
+    /// Успокаивать надо именно паритет. Прочее проверено и отвергнуто: сглаживание потоков
+    /// торговли за месяц успокаивает курс до 8%, но рост падает с 4.4% до 3.2% в год, за
+    /// неделю мир и вовсе валится после пятнадцатого года — с 200 до 153 трлн; замедление
+    /// самого шага до декады даёт курс 9-15%, но теряет шестую часть выпуска, и теряет её в
+    /// первые же пять лет. Быстрый курс нужен миру, чтобы найти равновесие на старте.
+    /// </remarks>
+    private const int ParityDays = 90;
+
+    private readonly Dictionary<byte, int> _levelCalm = new();
+
+
+
+
+    /// <summary>Во сколько раз подорожала корзина потребления против старта, в долях
+    /// <see cref="PriceLevel.Scale"/>.</summary>
+    /// <remarks>
+    /// Настоящий индекс цен: своя же корзина по своим же ценам против своих стартовых.
+    /// Прежде паритет брал `_level` — стоимость выпуска, делённую на его объём. У страны,
+    /// чей выпуск съёжился, это отношение взлетает, хотя цены не двигались: у Коста-Рики
+    /// уровень доходил до 38.9 при денежной массе в 1.3 раза, нулевой печати и нуле товаров
+    /// на рельсах коридора. Валюта от такого паритета падала в две тысячи раз.
+    ///
+    /// Корзина одна на всех и не меняется, поэтому индекс не может уехать дальше коридора
+    /// цен — а состав выпуска на него не влияет вовсе.
+    /// </remarks>
+    public int BasketLevelOf(byte country) => BasketLevel(_world.CountryById(country));
+
+    private int BasketLevel(Country country)
+    {
+        var prices = country.State.Prices;
+        var now = default(Money);
+        var was = default(Money);
+
+        foreach (var (good, rate) in _world.Needs.BaseRates)
+        {
+            now += prices.CostOf(good, rate);
+            was += new Money((long)((Int128)prices.StartOf(good).Raw * rate.Raw / GoodAmount.Scale));
+        }
+
+        return was.Raw <= 0 ? PriceLevel.Scale : (int)(now.Raw * PriceLevel.Scale / was.Raw);
+    }
+
     private void MoveRates()
     {
+        // Мировая корзина — средняя по выпуску, а не по людям: от неё и считается, чья
+        // валюта дороже. По людям её тянули бедные многолюдные страны, и у прочих паритет
+        // выходил завышенным — их вывоз умирал, а мир сползал с 551 до 346 трлн за сорок лет.
+        Int128 basketSum = 0;
+        Int128 weight = 0;
+
+        foreach (var country in _world.Countries)
+        {
+            var made = ValueAddedOf(country.Id).Raw;
+            if (made <= 0) continue;
+
+            basketSum += (Int128)BasketLevel(country) * made;
+            weight += made;
+        }
+
+        var worldBasket = weight > 0 ? (long)(basketSum / weight) : PriceLevel.Scale;
+
         foreach (var country in _world.Countries)
         {
             // Полный платёжный баланс: товары плюс движение капитала. Только по товарам
@@ -1961,11 +2026,16 @@ public sealed class Simulation
             // против мира, у того и валюта вдвое дешевле. Сальдо отклоняет от паритета:
             // тратишь больше, чем получаешь, — валюта слабеет, и это делает твой вывоз
             // дешевле, а ввоз дороже, пока баланс не сойдётся.
-            var parity = country.StartRate.Raw;
-            if (_level.TryGetValue(country.Id, out var level) && _worldLevel > 0)
-            {
-                parity = country.StartRate.Raw * (long)level / _worldLevel;
-            }
+            var level = BasketLevel(country);
+            var calm = _levelCalm.TryGetValue(country.Id, out var before) && before > 0
+                ? (before * (ParityDays - 1) + level) / ParityDays
+                : level;
+
+            _levelCalm[country.Id] = calm;
+
+            var parity = worldBasket > 0
+                ? country.StartRate.Raw * (long)calm / worldBasket
+                : country.StartRate.Raw;
 
             var even = Clearing.Price(
                 new Money(parity),
@@ -1980,12 +2050,14 @@ public sealed class Simulation
             // выпадала из мировой торговли вовсе, не успев даже занять.
             even = Math.Clamp(even, parity / RateSwing, parity * RateSwing);
 
+
             // Не прыжком, а половиной пути: цель считается заново каждый тик от паритета,
             // так что расходиться тут нечему, — но и мгновенным курс быть не должен. Без
             // задержки платёжный баланс сходился в тот же день, и занимать за границей
             // становилось незачем вовсе: внешний долг мира падал с шестидесяти семи
             // триллионов до четырёх, а кредит переставал работать как механизм.
             var rate = country.ExchangeRate.Raw + (even - country.ExchangeRate.Raw) / 2;
+
 
             var fromParity = parity - country.ExchangeRate.Raw;
             var fromBalance = even - parity;
