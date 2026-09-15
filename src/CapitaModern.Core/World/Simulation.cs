@@ -260,6 +260,7 @@ public sealed class Simulation
         Run(nameof(Prepare), Prepare);
         Run(nameof(CollectInputs), CollectInputs);
         Run(nameof(PlanBuilds), PlanBuilds);
+        Run(nameof(NoteNorm), NoteNorm);
         Run(nameof(CountHands), CountHands);
         Run(nameof(Trade), Trade);
         Run(nameof(PayAbroad), PayAbroad);
@@ -1312,6 +1313,34 @@ public sealed class Simulation
     /// Вывоз считается наравне со своими: он уже прошёл в этом тике, и без него страна,
     /// которая кормит полмира, считала бы свой склад лишним.
     /// </remarks>
+    /// <summary>Спрос заводов и стройки, сглаженный за месяц.</summary>
+    private readonly Tally<GoodType, GoodAmount> _norm = new();
+
+    /// <summary>За сколько суток норма запаса догоняет спрос.</summary>
+    /// <remarks>Месяц. Заявка стройки скачет от тика к тику — она упирается то в кассу, то
+    /// в склад, — и по сегодняшней заявке норма скакала вместе с ней: за нормой загрузка,
+    /// за загрузкой выпуск материалов, за ним снова стройка. Занятость от этого качало на
+    /// десятую часть с ходом в четыре-шесть лет.</remarks>
+    private const int NormDays = 30;
+
+    /// <summary>Подтягивает спокойный спрос к сегодняшнему. Зовётся раз за тик, после того
+    /// как посчитаны и заявка заводов, и заявка стройки.</summary>
+    private void NoteNorm()
+    {
+        foreach (var country in _world.Countries)
+        {
+            foreach (var good in AllGoods)
+            {
+                var today = _inputs.Get(country.Id, good) + _build.Get(country.Id, good);
+                var was = _norm.Get(country.Id, good);
+
+                _norm.Set(country.Id, good, was.Raw <= 0
+                    ? today
+                    : new GoodAmount((was.Raw * (NormDays - 1) + today.Raw) / NormDays));
+            }
+        }
+    }
+
     /// <summary>Сколько места на полке под этот товар: полная загрузка, пока запас не
     /// выше нормы, и тем меньше, чем он выше.</summary>
     /// <remarks>Одно правило на два дела. Им завод сбавляет ход, когда склад полон, — и им
@@ -1320,7 +1349,7 @@ public sealed class Simulation
     /// отраслях с вечным избытком, и шестая часть мировой мощности стояла.</remarks>
     private long ShelfRoom(byte country, GoodType good, GoodAmount abroad, GoodAmount stock)
     {
-        var wanted = _inputs.Get(country, good) + _build.Get(country, good) + abroad;
+        var wanted = _norm.Get(country, good) + abroad;
         var target = new GoodAmount(wanted.Raw * Prices.TargetCoverDays);
 
         if (stock <= target) return Load.Full;

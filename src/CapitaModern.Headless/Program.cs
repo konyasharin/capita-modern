@@ -248,6 +248,24 @@ Console.WriteLine($"=== Е. Лет: {years} ===");
 Console.WriteLine("год   реальный ВВП   на рельсах   внешний долг   нагрузка >200%   валюта вдвое"
     + "   предприятий   стройка   износ   отказов   занято млн");
 
+// Потери загрузки за год, а не за всю партию: провал виден только в разнице.
+var lostWas = new long[5];
+
+string Yearly()
+{
+    var all = Simulation.Lost[3] - lostWas[3];
+    if (all <= 0) return "потерь нет";
+
+    var row = $"сырьё {100.0 * (Simulation.Lost[0] - lostWas[0]) / all,4:F1}"
+        + $" склад {100.0 * (Simulation.Lost[1] - lostWas[1]) / all,4:F1}"
+        + $" деньги {100.0 * (Simulation.Lost[2] - lostWas[2]) / all,4:F1}"
+        + $" руки {100.0 * (Simulation.Lost[4] - lostWas[4]) / all,4:F1}";
+
+    Array.Copy(Simulation.Lost, lostWas, 5);
+
+    return row;
+}
+
 void Report(int year, double gdp)
 {
     var rails = world.Countries.Sum(c => goods.Count(good =>
@@ -269,6 +287,7 @@ void Report(int year, double gdp)
                       $"{standing,14} {simulation.BuiltSoFar,9} {simulation.WornSoFar,7}" +
                       $" [ниша {Simulation.Stall[0]} касса {Simulation.Stall[1]} склад {Simulation.Stall[2]}" +
                       $" руки {Simulation.Stall[3]} заказано {Simulation.Stall[4]}]" +
+                      $" [{Yearly()}]" +
                       $" [добавка {new Money(Simulation.Flows[0]).Whole / 1e12,6:F1} зарплаты" +
                       $" {new Money(Simulation.Flows[1]).Whole / 1e12,6:F1} владельцам" +
                       $" {new Money(Simulation.Flows[2]).Whole / 1e12,6:F1} стройка" +
