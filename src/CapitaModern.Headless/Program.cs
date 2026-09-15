@@ -959,6 +959,19 @@ foreach (var group in world.Regions.SelectMany(r => r.BuildingsCount)
     Console.WriteLine($"  {group.Key,-24} {group.Count}");
 }
 
+Console.WriteLine();
+Console.WriteLine("тип                    стоит    в деле   в деле %");
+foreach (var type in Enum.GetValues<BuildingType>())
+{
+    var standingOf = world.Regions.Sum(r => (long)r.BuildingsOf(type));
+    if (standingOf == 0) continue;
+
+    var working = world.Countries.Sum(c => simulation.WorkingOf(c.Id, type));
+    if (working >= standingOf) continue;
+
+    Console.WriteLine($"{type,-20} {standingOf,9} {working,9} {100.0 * working / standingOf,9:F0}%");
+}
+
 // --- О. Эмиссия --------------------------------------------------------------------
 Console.WriteLine();
 Console.WriteLine("=== О. Печатный станок ===");

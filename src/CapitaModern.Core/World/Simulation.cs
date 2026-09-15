@@ -1241,7 +1241,8 @@ public sealed class Simulation
         var whose = _world.CountryById(country);
         var info = _world.Buildings[type];
         var profit = Construction.ProfitOf(
-            new BuildingRecipe(info.Inputs, info.Outputs), whose.State.Prices, good => Faced(whose, good));
+            new BuildingRecipe(info.Inputs, info.Outputs), whose.State.Prices, good => Faced(whose, good),
+            _world.Efficiency.OutputTimes(country, info.Sector));
 
         var hands = _world.Efficiency.HandsFor(country, info.Sector, info.OptimalWorkers);
         var pay = new Money(whose.Payroll.Raw / Math.Max(1, EmployedIn(country)) * hands);
@@ -1311,6 +1312,50 @@ public sealed class Simulation
     /// Вывоз считается наравне со своими: он уже прошёл в этом тике, и без него страна,
     /// которая кормит полмира, считала бы свой склад лишним.
     /// </remarks>
+    /// <summary>Сколько места на полке под этот товар: полная загрузка, пока запас не
+    /// выше нормы, и тем меньше, чем он выше.</summary>
+    /// <remarks>Одно правило на два дела. Им завод сбавляет ход, когда склад полон, — и им
+    /// же компания решает, стоит ли строить: нет смысла поднимать ферму там, где зерно и так
+    /// лежит триста дней. Пока правило было только в Ordered, мир продолжал строить в
+    /// отраслях с вечным избытком, и шестая часть мировой мощности стояла.</remarks>
+    private long ShelfRoom(byte country, GoodType good, GoodAmount abroad, GoodAmount stock)
+    {
+        var wanted = _inputs.Get(country, good) + _build.Get(country, good) + abroad;
+        var target = new GoodAmount(wanted.Raw * Prices.TargetCoverDays);
+
+        if (stock <= target) return Load.Full;
+
+        // Товар, который вовсе никому не нужен, делают в самую малую силу: норма у него
+        // нулевая, и делить на склад тут нечего.
+        return target.Raw <= 0 ? MinLoad : target.Raw * Load.Full / stock.Raw;
+    }
+
+    /// <summary>Во сколько раз полка уже забита тем, что здание станет делать. Полная
+    /// загрузка — полка пуста, меньше — товар лежит без покупателя.</summary>
+    /// <remarks>Склад берётся настоящий, а не сегодняшний `_available`: выбор стройки идёт
+    /// в начале тика, когда тот ещё не собран, и правило молча возвращало полную полку
+    /// всегда. Мировой спрос — вчерашний, по той же причине.</remarks>
+    private long ShelfRoomFor(Country owner, Buildings.BuildingInfo info)
+    {
+        var country = owner.Id;
+        var least = (long)Load.Full;
+
+        foreach (var (good, amount) in info.Outputs)
+        {
+            if (amount.Raw <= 0) continue;
+
+            var mine = PotentialOutputOf(country, good);
+            var everyone = _worldPotential[(int)good];
+            var abroad = everyone.Raw <= 0
+                ? default
+                : new GoodAmount((long)((Int128)_wanted[(int)good].Raw * mine.Raw / everyone.Raw));
+
+            least = Math.Min(least, ShelfRoom(country, good, abroad, owner.State.Stock.Of(good)));
+        }
+
+        return least;
+    }
+
     private long Ordered(Country owner, Buildings.BuildingInfo recipe, long runs)
     {
         var country = owner.Id;
@@ -1333,14 +1378,10 @@ public sealed class Simulation
             // замену никто не выкупает, и норма от неё выходила вчетверо выше нужного. Полки
             // набивались под неё — от девяноста до трёхсот суток расхода у всех товаров, — и
             // правило загрузки глушило заводы: четырнадцать процентов мировой мощности.
-            var wanted = _inputs.Get(country, good) + _build.Get(country, good) + abroad;
-            var target = new GoodAmount(wanted.Raw * Prices.TargetCoverDays);
-            var stock = _available.Get(country, good) + _outputs.Get(country, good);
-            if (stock <= target) continue;
+            var load = ShelfRoom(
+                country, good, abroad, _available.Get(country, good) + _outputs.Get(country, good));
+            if (load >= Load.Full) continue;
 
-            // Товар, который вовсе никому не нужен, делают в самую малую силу: норма у
-            // него нулевая, и делить на склад тут нечего.
-            var load = target.Raw <= 0 ? MinLoad : target.Raw * Load.Full / stock.Raw;
             var fits = runs * load / Load.Full;
             if (fits < runs) runs = fits;
         }
@@ -4187,7 +4228,8 @@ public sealed class Simulation
             var profit = Construction.ProfitOf(
                 new BuildingRecipe(info.Inputs, info.Outputs),
                 country.State.Prices,
-                good => Faced(country, good));
+                good => Faced(country, good),
+                _world.Efficiency.OutputTimes(country.Id, info.Sector));
             if (profit.Raw <= 0)
             {
                 Stall[5]++;
@@ -4214,6 +4256,12 @@ public sealed class Simulation
 
             var value = Construction.Payback(
                 profit - pay, Construction.CostOf(info.BuildCost, country.State.Prices), info.LifeYears);
+
+            // Полка уже забита — новое здание будет стоять рядом с нынешними. Считаем это
+            // прямо в окупаемость: стоящий завод возвращает вложенное во столько же раз
+            // медленнее.
+            var room = ShelfRoomFor(country, info);
+            if (room < Load.Full) value = value * room / Load.Full;
 
             // Пока не выбрано ничего, берём любое прибыльное: отдача на работника у
             // большого завода делится в ноль, и страна с полной казной решала, что строить

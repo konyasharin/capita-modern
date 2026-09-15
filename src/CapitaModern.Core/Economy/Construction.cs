@@ -57,10 +57,23 @@ public static class Construction
     /// <param name="faced">По какой цене страна на самом деле имеет дело с товаром, в
     /// сотых процента к обычной: чего не хватает — дороже на перевозку и пошлину, чего в
     /// избытке — дешевле на ту же перевозку, потому что вывозя, за неё платишь сам.</param>
-    public static Money ProfitOf(BuildingRecipe recipe, Prices prices, Func<GoodType, int> faced)
+    /// <param name="times">Во сколько раз этот завод в этой стране даст больше обычного, в
+    /// сотых. Без множителя выгода считалась по сырому рецепту, а в отстающей стране добыча
+    /// и услуги дают вчетверо меньше: мир строил там, где дешевле, и завод потом выдавал
+    /// четверть обещанного — заводов материалов стало вдвое больше, а мощность не
+    /// сдвинулась.</param>
+    public static Money ProfitOf(
+        BuildingRecipe recipe, Prices prices, Func<GoodType, int> faced, int times = Efficiency.Scale)
     {
         var made = default(Money);
-        foreach (var (good, amount) in recipe.Outputs) made += AsFaced(prices, good, amount, faced);
+        foreach (var (good, amount) in recipe.Outputs)
+        {
+            var mine = times == Efficiency.Scale
+                ? amount
+                : new GoodAmount(amount.Raw * times / Efficiency.Scale);
+
+            made += AsFaced(prices, good, mine, faced);
+        }
 
         var spent = default(Money);
         foreach (var (good, amount) in recipe.Inputs) spent += AsFaced(prices, good, amount, faced);

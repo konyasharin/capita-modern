@@ -110,8 +110,21 @@ public sealed class Efficiency
     public bool ShowsInOutput(Sector sector) => _inOutput[(int)sector];
 
     /// <summary>Сколько рук просит предприятие с таким штатом.</summary>
-    public long HandsFor(byte country, Sector sector, long workers) =>
-        ShowsInOutput(sector) ? workers : workers * Scale / Of(country, sector);
+    /// <remarks>
+    /// Тот же завод год от года обходится меньшим числом людей: это капиталовооружённость,
+    /// и без неё рост упирается в население. Заводов становится больше, рук на них не
+    /// прибавляется, занятость встаёт — у нас она вставала на 2800 млн при рабочей силе в
+    /// 3240, и рост ВВП сползал с 4.6% к 1.1% на двадцатом году.
+    ///
+    /// Заработок людей от этого не страдает: он считается долей добавленной стоимости, а не
+    /// числом занятых. Освободившиеся руки уходят на новые заводы — за тем и освобождаются.
+    /// </remarks>
+    public long HandsFor(byte country, Sector sector, long workers)
+    {
+        var own = ShowsInOutput(sector) ? workers : workers * Scale / Of(country, sector);
+
+        return own * Scale / Progress;
+    }
 
     /// <summary>Во сколько раз больше выпуска даёт то же предприятие, в сотых.</summary>
     /// <remarks>Делится на среднюю по миру: множитель перераспределяет выпуск между
