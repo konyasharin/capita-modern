@@ -1954,9 +1954,6 @@ public sealed class Simulation
 
     private readonly Dictionary<byte, int> _levelCalm = new();
 
-
-
-
     /// <summary>Во сколько раз подорожала корзина потребления против старта, в долях
     /// <see cref="PriceLevel.Scale"/>.</summary>
     /// <remarks>
