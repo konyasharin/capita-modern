@@ -249,14 +249,23 @@ public sealed class Simulation
         [GoodType.Food, GoodType.Medicine, GoodType.ConsumerGoods, GoodType.Electricity, GoodType.Fuel];
 
     /// <summary>На сколько в год растёт выпуск того же завода, в десятитысячных.</summary>
-    /// <remarks>Полтора процента. В жизни мировая общая производительность факторов растёт
-    /// около процента в год, а здесь условия стерильные: ни кризисов, ни войн.</remarks>
-    private const int ProgressPerYear = 150;
+    /// <remarks>Два с половиной процента. В жизни мировая общая производительность факторов
+    /// растёт около процента, а здесь условия стерильные: ни кризисов, ни войн. Было полтора,
+    /// и с успокоенным курсом этого перестало хватать — рост падал до 2.4% в год.</remarks>
+    private const int ProgressPerYear = 250;
+
+    /// <summary>На сколько в год тот же завод обходится меньшим числом рук, в десятитысячных.</summary>
+    /// <remarks>
+    /// Процент. Считается отдельно от выпуска и медленнее его: пока это было одно число, руки
+    /// убывали со скоростью выпуска, и занятость падала с 2590 до 1444 млн при жизненных 3240.
+    /// При проценте она стоит ровно тридцать лет — 2608 и 2601 млн.
+    /// </remarks>
+    private const int HandsPerYear = 100;
 
     public void Tick()
     {
         _day++;
-        _world.Efficiency.Advance(ProgressPerYear);
+        _world.Efficiency.Advance(ProgressPerYear, HandsPerYear);
         Run(nameof(Prepare), Prepare);
         Run(nameof(CollectInputs), CollectInputs);
         Run(nameof(PlanBuilds), PlanBuilds);
@@ -1954,6 +1963,11 @@ public sealed class Simulation
 
     private readonly Dictionary<byte, int> _levelCalm = new();
 
+    /// <summary>Ниже какой доли дневного выпуска поток платёжного баланса не считается,
+    /// в процентах. В жизни дневная торговля — около трети выпуска, так что подпорка задевает
+    /// только те потоки, что меньше шестой части обычного.</summary>
+    private const int FlowFloor = 5;
+
     /// <summary>Во сколько раз подорожала корзина потребления против старта, в долях
     /// <see cref="PriceLevel.Scale"/>.</summary>
     /// <remarks>
@@ -2033,6 +2047,25 @@ public sealed class Simulation
             var parity = worldBasket > 0
                 ? country.StartRate.Raw * (long)calm / worldBasket
                 : country.StartRate.Raw;
+
+            // Ни один поток не считается ниже доли своего выпуска. У крошечных потоков
+            // отношение ввоза к вывозу ничего не значит — это шум, делённый на шум, — и курс
+            // шёл за ним случайным блужданием: медианная страна уводила его на 10-19% в год.
+            //
+            // Оба разом, а не каждый по себе. Подпирая их порознь, стране с рухнувшим вывозом
+            // при обычном ввозе подставляли вывоз, которого нет: настоящий кризис выглядел
+            // как мелочь, девальвации не было, страна не поднималась — и мир сползал с 268 до
+            // 139 трлн к сороковому году. Прибавлять же долю к обоим нельзя тем более: это
+            // смещает цель к паритету и у здоровых потоков.
+            //
+            // Выпуск берётся вчерашний (_added): MoveRates идёт до CollectOutputs, и
+            // сегодняшний на этот час ещё ноль.
+            var steady = new Money(_added.GetValueOrDefault(country.Id).Raw * FlowFloor / 100);
+            if (outflow < steady && inflow < steady)
+            {
+                outflow = steady;
+                inflow = steady;
+            }
 
             var even = Clearing.Price(
                 new Money(parity),

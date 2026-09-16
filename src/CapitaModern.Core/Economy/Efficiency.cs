@@ -123,7 +123,7 @@ public sealed class Efficiency
     {
         var own = ShowsInOutput(sector) ? workers : workers * Scale / Of(country, sector);
 
-        return own * Scale / Progress;
+        return own * Scale / Deepening;
     }
 
     /// <summary>Во сколько раз больше выпуска даёт то же предприятие, в сотых.</summary>
@@ -156,12 +156,24 @@ public sealed class Efficiency
 
     private long _progress = (long)Scale * Fine;
 
-    /// <summary>Двигает мировой прогресс на сутки. Доля — в десятитысячных за год.</summary>
-    public void Advance(int perYear)
-    {
-        if (perYear <= 0) return;
+    /// <summary>Во сколько раз тот же завод обходится меньшим числом людей, чем в первый
+    /// день партии.</summary>
+    /// <remarks>
+    /// Считается отдельно от <see cref="Progress"/> и медленнее его. Пока это было одно
+    /// число, руки убывали с той же скоростью, с какой прибавлялся выпуск, и занятость
+    /// падала с 2590 до 1444 млн при жизненных 3240 — вдвое. Убывать они должны ровно так
+    /// же быстро, как прибавляется число заводов: тогда занятость стоит на месте.
+    /// </remarks>
+    public int Deepening => (int)(_deepen / Fine);
 
-        _progress += _progress * perYear / (10_000L * 365);
+    private long _deepen = (long)Scale * Fine;
+
+    /// <summary>Двигает мировой прогресс на сутки. Доли — в десятитысячных за год: первая
+    /// на выпуск, вторая на экономию рук.</summary>
+    public void Advance(int perYear, int handsPerYear)
+    {
+        if (perYear > 0) _progress += _progress * perYear / (10_000L * 365);
+        if (handsPerYear > 0) _deepen += _deepen * handsPerYear / (10_000L * 365);
     }
 
     private static int[] Filled(int countries)
