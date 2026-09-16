@@ -256,6 +256,23 @@ var lostWas = new long[5];
 var rateWas = world.Countries.ToDictionary(c => c.Id, c => c.ExchangeRate.Exact);
 var levelWas = world.Countries.ToDictionary(c => c.Id, c => (double)simulation.BasketLevelOf(c.Id));
 
+// Ход курса и цен у нескольких стран по годам: по медиане не видно ни ползучести, ни всплесков.
+var traced = new[] { "USA", "RUS", "CHN", "DEU", "IND" };
+var trace = traced.ToDictionary(iso => iso, _ => new List<(double Rate, double Level)>());
+
+void Trace()
+{
+    var dollar = world.Countries.First(c => c.Iso == "USA").ExchangeRate.Exact;
+
+    foreach (var iso in traced)
+    {
+        var one = world.Countries.First(c => c.Iso == iso);
+        trace[iso].Add((
+            iso == "USA" ? one.ExchangeRate.Exact : dollar > 0 ? one.ExchangeRate.Exact / dollar : 0,
+            simulation.BasketLevelOf(one.Id) / (double)PriceLevel.Scale));
+    }
+}
+
 string Swings()
 {
     var rates = new List<double>();
@@ -319,7 +336,7 @@ void Report(int year, double gdp)
                       $"{standing,14} {simulation.BuiltSoFar,9} {simulation.WornSoFar,7}" +
                       $" [ниша {Simulation.Stall[0]} касса {Simulation.Stall[1]} склад {Simulation.Stall[2]}" +
                       $" руки {Simulation.Stall[3]} заказано {Simulation.Stall[4]}]" +
-                      $" [{Yearly()}] [{Swings()}]" +
+                      $" [{Yearly()}] [{Swings()}]{Watch()}" +
                       $" [добавка {new Money(Simulation.Flows[0]).Whole / 1e12,6:F1} зарплаты" +
                       $" {new Money(Simulation.Flows[1]).Whole / 1e12,6:F1} владельцам" +
                       $" {new Money(Simulation.Flows[2]).Whole / 1e12,6:F1} стройка" +
@@ -334,6 +351,13 @@ void Report(int year, double gdp)
 // часть ВВП, которая никому не досталась: выпуск, осевший на полке.
 double OnShelves() => world.Countries.Sum(c =>
     goods.Sum(good => constant.CostOf(good, c.State.Stock.Of(good)).Exact));
+
+string Watch()
+{
+    Trace();
+
+    return string.Empty;
+}
 
 var shelvesWas = OnShelves();
 
@@ -404,6 +428,22 @@ foreach (var country in world.Countries.OrderByDescending(c => c.State.Treasury.
 
 var median = world.Countries.Select(c => c.State.Treasury.Reserves.Value.Exact).OrderBy(x => x).ElementAt(100);
 Console.WriteLine($"  медиана: {median / 1e6:F0} млн $");
+
+Console.WriteLine();
+Console.WriteLine("Курс к доллару и индекс цен по годам. Курс — во сколько раз валюта слабее");
+Console.WriteLine("доллара, у самого доллара — к мировой мере. Индекс — во сколько раз");
+Console.WriteLine("подорожала своя корзина против старта.");
+
+foreach (var iso in traced)
+{
+    Console.WriteLine();
+    Console.Write($"{iso} курс:");
+    foreach (var (rate, _) in trace[iso]) Console.Write($" {rate,7:F2}");
+    Console.WriteLine();
+    Console.Write($"{iso} цены:");
+    foreach (var (_, level) in trace[iso]) Console.Write($" {level,7:F2}");
+    Console.WriteLine();
+}
 
 // --- Ж. Опыт: что если деньги не кончаются -----------------------------------------
 // Отделяет нехватку мощностей от нехватки денег. Если с бездонной казной мир выходит

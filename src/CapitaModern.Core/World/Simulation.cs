@@ -132,6 +132,7 @@ public sealed class Simulation
     /// поэтому берёт вчерашние: сутки задержки здесь ничего не решают.</summary>
     private readonly Dictionary<byte, int> _level = new();
 
+
     /// <summary>Куда якорь двинул уровень цен на прошлом тике, в сотых долях процента.</summary>
     private readonly Dictionary<byte, int> _levelPush = new();
     private int _worldLevel = PriceLevel.Scale;
@@ -1968,6 +1969,7 @@ public sealed class Simulation
     /// только те потоки, что меньше шестой части обычного.</summary>
     private const int FlowFloor = 5;
 
+
     /// <summary>Во сколько раз подорожала корзина потребления против старта, в долях
     /// <see cref="PriceLevel.Scale"/>.</summary>
     /// <remarks>
@@ -1982,6 +1984,9 @@ public sealed class Simulation
     /// </remarks>
     public int BasketLevelOf(byte country) => BasketLevel(_world.CountryById(country));
 
+    private readonly Dictionary<byte, int> _basketWas = new();
+
+
     private int BasketLevel(Country country)
     {
         var prices = country.State.Prices;
@@ -1990,11 +1995,28 @@ public sealed class Simulation
 
         foreach (var (good, rate) in _world.Needs.BaseRates)
         {
+            // Цена, упёршаяся в край коридора, о деньгах не говорит ничего: она стоит там не
+            // от денег, а оттого, что товара завались или нет вовсе. В индекс такая не идёт.
+            //
+            // Без этого корзина США сидела на 0.25 — ровно дно коридора, — паритет вместе с
+            // ней, и доллар был прижат туда же. Стоило ценам на год отлипнуть, как он прыгал
+            // вдвое, а с ним разом прыгали все прочие валюты.
+            var start = prices.StartOf(good).Raw;
+            var live = prices.Of(good).Raw;
+            if (start <= 0) continue;
+            if (live * Prices.MaxSwingTimes <= start || live >= start * Prices.MaxSwingTimes) continue;
+
             now += prices.CostOf(good, rate);
-            was += new Money((long)((Int128)prices.StartOf(good).Raw * rate.Raw / GoodAmount.Scale));
+            was += new Money((long)((Int128)start * rate.Raw / GoodAmount.Scale));
         }
 
-        return was.Raw <= 0 ? PriceLevel.Scale : (int)(now.Raw * PriceLevel.Scale / was.Raw);
+        // Все до одной упёрлись — мерить нечем, берём вчерашнее.
+        if (was.Raw <= 0) return _basketWas.GetValueOrDefault(country.Id, PriceLevel.Scale);
+
+        var index = (int)(now.Raw * PriceLevel.Scale / was.Raw);
+        _basketWas[country.Id] = index;
+
+        return index;
     }
 
     private void MoveRates()
@@ -2079,6 +2101,7 @@ public sealed class Simulation
             // которой нечего вывезти, получала стократную девальвацию за один тик и
             // выпадала из мировой торговли вовсе, не успев даже занять.
             even = Math.Clamp(even, parity / RateSwing, parity * RateSwing);
+
 
 
             // Не прыжком, а половиной пути: цель считается заново каждый тик от паритета,
