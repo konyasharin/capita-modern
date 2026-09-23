@@ -703,6 +703,42 @@ foreach (var iso in new[] { "USA", "DEU", "CHN", "IND", "NGA", "SAU" })
     }
 }
 
+// --- Э2. Что залежалось к концу партии ------------------------------------------------
+
+Console.WriteLine();
+Console.WriteLine("=== Э2. Чем забиты полки в конце ===");
+Console.WriteLine("Склад в днях расхода, загрузка мощностей и цена к старту. Раздел Д");
+Console.WriteLine("показывает начало партии, а затоваривание накапливается к концу.");
+Console.WriteLine();
+Console.WriteLine("товар                дней  загрузка  цена к старту  спрос/сут  выпуск/сут");
+
+foreach (var good in goods
+             .OrderByDescending(good =>
+             {
+                 var used = world.Countries.Sum(c => simulation.ConsumedOf(c.Id, good).Exact
+                     + simulation.BoughtOf(c.Id, good).Exact);
+                 var have = world.Countries.Sum(c => c.State.Stock.Of(good).Exact);
+                 return used <= 0 ? double.MaxValue : have / used;
+             })
+             .Take(12))
+{
+    var used = world.Countries.Sum(c => simulation.ConsumedOf(c.Id, good).Exact
+        + simulation.BoughtOf(c.Id, good).Exact);
+    var have = world.Countries.Sum(c => c.State.Stock.Of(good).Exact);
+    var made = simulation.WorldOutputOf(good).Exact;
+    var could = world.Countries.Sum(c => simulation.PotentialOutputOf(c.Id, good).Exact);
+    var asked = simulation.WorldDemandOf(good).Exact;
+
+    var times = world.Countries
+        .Where(c => c.State.Prices.StartOf(good).Raw > 0)
+        .Select(c => c.State.Prices.Of(good).Exact / c.State.Prices.StartOf(good).Exact)
+        .DefaultIfEmpty(1)
+        .Average();
+
+    Console.WriteLine($"{good,-18} {(used <= 0 ? 9999 : have / used),7:F0} {(could <= 0 ? 0 : 100 * made / could),8:F0}%"
+        + $" {times,14:F2} {asked,10:F0} {made,11:F0}");
+}
+
 // --- Ь. Кто именно недогружен ---------------------------------------------------------
 
 Console.WriteLine();
