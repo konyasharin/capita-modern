@@ -133,6 +133,7 @@ public sealed class Simulation
     private readonly Dictionary<byte, int> _level = new();
 
 
+
     /// <summary>Куда якорь двинул уровень цен на прошлом тике, в сотых долях процента.</summary>
     private readonly Dictionary<byte, int> _levelPush = new();
     private int _worldLevel = PriceLevel.Scale;
@@ -1026,6 +1027,7 @@ public sealed class Simulation
             country.Bank.Follow(new Money((long)((Int128)country.Bank.Start.Raw * could.Raw / couldBefore.Raw)));
 
             var want = PriceLevel.Target(country.Bank.Supply, country.Bank.Start, could, couldBefore);
+
             var step = Math.Clamp(
                 want,
                 level * (100 - PriceLevel.StepPercent) / 100,
@@ -3153,7 +3155,11 @@ public sealed class Simulation
 
             foreach (var good in AllGoods)
             {
-                var wanted = _inputs.Get(country.Id, good);
+                // Со стройкой: в _inputs сидят заводы и люди, а заявка стройки считается
+                // отдельно. Без неё у стройматериалов спрос выходил заниженным, и цена их
+                // сползала к дну коридора — а из них-то мир и строит.
+                var wanted = _inputs.Get(country.Id, good) + _build.Get(country.Id, good);
+
                 var kept = _available.Get(country.Id, good);
                 var norm = new GoodAmount(wanted.Raw * Prices.TargetCoverDays);
                 var spare = kept > norm
