@@ -214,8 +214,12 @@ public sealed class Simulation
     /// <remarks>Вычерпать полку за день нельзя. Заказ на тысячу зданий растягивается на
     /// несколько дней, и каждый следующий день платит уже подорожавшую цену: спрос стройки
     /// попадает в заявку и двигает цену на конце тика. Без этого вся тысяча покупалась бы
-    /// по вчерашней цене разом.</remarks>
-    private const int BiteOfStock = 34;
+    /// по вчерашней цене разом.
+    ///
+    /// Было 34. С тех пор как стройка платит заводам, у компаний стало больше денег, и при
+    /// трети склада за тик стройка отнимала материалы у заводов: на втором году ВВП проседал
+    /// на 5.5%.</remarks>
+    private const int BiteOfStock = 15;
 
     /// <summary>По каким товарам за тик сошлась хоть одна сделка.</summary>
     private readonly bool[] _dealt = new bool[Enum.GetValues<GoodType>().Length];
@@ -251,10 +255,13 @@ public sealed class Simulation
         [GoodType.Food, GoodType.Medicine, GoodType.ConsumerGoods, GoodType.Electricity, GoodType.Fuel];
 
     /// <summary>На сколько в год растёт выпуск того же завода, в десятитысячных.</summary>
-    /// <remarks>Два с половиной процента. В жизни мировая общая производительность факторов
-    /// растёт около процента, а здесь условия стерильные: ни кризисов, ни войн. Было полтора,
-    /// и с успокоенным курсом этого перестало хватать — рост падал до 2.4% в год.</remarks>
-    private const int ProgressPerYear = 250;
+    /// <remarks>Полтора процента. В жизни мировая общая производительность факторов растёт
+    /// около процента, а здесь условия стерильные: ни кризисов, ни войн.
+    ///
+    /// Поднимали до двух с половиной, пока стройка платила за материалы казне и денег у
+    /// компаний не хватало. Когда утечку закрыли, два с половиной разгоняли рост до 6% в
+    /// год.</remarks>
+    private const int ProgressPerYear = 150;
 
     /// <summary>На сколько в год тот же завод обходится меньшим числом рук, в десятитысячных.</summary>
     /// <remarks>
@@ -2454,6 +2461,12 @@ public sealed class Simulation
     /// выплачено. Только для замера.</summary>
     public static readonly long[] WageLimit = new long[3];
 
+    /// <summary>Добавленная стоимость компаний страны по продажам, накопленная за партию.
+    /// Только для замера: её сравнивают с добавленной по выпуску.</summary>
+    public Money SoldAddedOf(byte country) => _soldAdded.GetValueOrDefault(country);
+
+    private readonly Dictionary<byte, Money> _soldAdded = new();
+
     /// <summary>Сколько денег и долга у всех компаний мира прямо сейчас. Только для замера.</summary>
     public (Money Cash, Money Debt) CompanyPurses()
     {
@@ -3518,6 +3531,7 @@ public sealed class Simulation
                 var spare = company.Cash > toGrow ? company.Cash - toGrow : default;
 
                 Interlocked.Add(ref WageLimit[0], added.Raw);
+                lock (_soldAdded) _soldAdded[country.Id] = _soldAdded.GetValueOrDefault(country.Id) + added;
 
                 // Труд стоит работодателю всё, что он на него потратил: и зарплату, и
                 // взносы, и удержанный подоходный. Делится эта сумма, а не прибавляется
@@ -4374,7 +4388,7 @@ public sealed class Simulation
                     var vat = TaxCode.Take(forStuff, country.Taxes.Vat);
 
                     country.Budget.Collect(TaxKind.Vat, vat);
-                    country.State.Treasury.Receive(forStuff - vat);
+                    country.State.Treasury.Receive(PayMakers(country, info.BuildCost, forStuff - vat));
                     _sales[country.Id] = _sales.GetValueOrDefault(country.Id) + forStuff - vat;
                 }
 
@@ -4401,6 +4415,55 @@ public sealed class Simulation
             _builders[country.Id] = hands;
             _raisedToday[country.Id] = raised;
         }
+    }
+
+    /// <summary>Платит за материалы стройки тем, кто их сделал. Возвращает то, что платить
+    /// оказалось некому, — оно уходит в казну, как прежде.</summary>
+    /// <remarks>
+    /// Стройка берёт материалы прямо с общего склада страны, и деньги за них уходили в казну.
+    /// Заводы, которые эти материалы сделали, не получали ничего, а стройка съедает почти весь
+    /// выпуск материалов: компании выходили вдвое беднее своего выпуска — добавленная по
+    /// продажам была 47-64% добавленной по выпуску, — а казна копила сотни тысяч триллионов
+    /// местных денег, которые никуда не шли: для стран с компаниями PayProfits их не раздаёт.
+    ///
+    /// Делится как всякая покупка: по товарам — по их стоимости в постройке, внутри товара —
+    /// между продавцами по тому, сколько у каждого лежит.
+    /// </remarks>
+    private Money PayMakers(Country country, IReadOnlyDictionary<GoodType, GoodAmount> cost, Money money)
+    {
+        if (money.Raw <= 0) return money;
+
+        var prices = country.State.Prices;
+        var whole = default(Money);
+        foreach (var (good, amount) in cost) whole += prices.CostOf(good, amount);
+        if (whole.Raw <= 0) return money;
+
+        var left = money;
+
+        foreach (var (good, amount) in cost)
+        {
+            var part = new Money((long)((Int128)money.Raw * prices.CostOf(good, amount).Raw / whole.Raw));
+            if (part.Raw <= 0) continue;
+
+            var sellers = _sellersOf[Slot(country.Id, good)];
+            var held = 0L;
+            foreach (var seller in sellers) held += seller.Holds(good).Raw;
+            if (held <= 0) continue;
+
+            foreach (var seller in sellers)
+            {
+                var has = seller.Holds(good).Raw;
+                if (has <= 0) continue;
+
+                var pay = new Money((long)((Int128)part.Raw * has / held));
+                seller.Take(good, new GoodAmount((long)((Int128)amount.Raw * has / held)));
+                seller.NoteSold(pay);
+                seller.Earn(pay);
+                left -= pay;
+            }
+        }
+
+        return left;
     }
 
     /// <summary>Сколько зданий страна подняла за последний тик.</summary>

@@ -748,6 +748,21 @@ foreach (var good in goods
         + $" {times,14:F2} {asked,10:F0} {made,11:F0}");
 }
 
+Console.WriteLine();
+Console.WriteLine("И наоборот — чего не хватает: выпуск против заявки, по нехватке.");
+Console.WriteLine("товар                выпуск/сут   заявка/сут   покрытие   загрузка");
+foreach (var good in goods
+             .Where(good => simulation.WorldDemandOf(good).Exact > 0)
+             .OrderBy(good => simulation.WorldOutputOf(good).Exact / simulation.WorldDemandOf(good).Exact)
+             .Take(8))
+{
+    var made = simulation.WorldOutputOf(good).Exact;
+    var asked = simulation.WorldDemandOf(good).Exact;
+    var could = world.Countries.Sum(c => simulation.PotentialOutputOf(c.Id, good).Exact);
+
+    Console.WriteLine($"{good,-18} {made,12:F0} {asked,12:F0} {100 * made / asked,9:F0}% {(could <= 0 ? 0 : 100 * made / could),9:F0}%");
+}
+
 // --- Ь. Кто именно недогружен ---------------------------------------------------------
 
 Console.WriteLine();
@@ -1208,6 +1223,27 @@ foreach (var (iso, labour) in new[] { ("RUS", 47), ("USA", 57), ("DEU", 60), ("C
         Console.WriteLine("но выручки не приносит: оттого зарплаты и налоги к ВВП выходят заниженными.");
         Console.WriteLine($"  положено труду {100 * Simulation.WageLimit[1] / added,7:F1}%");
         Console.WriteLine($"  выплачено      {100 * Simulation.WageLimit[2] / added,7:F1}%");
+    }
+}
+
+{
+    // Сколько зданий у живых компаний. Здание разорившейся без наследника остаётся ничьим:
+    // выпуск его продаётся через казну, и зарплату за него не платит никто.
+    var standing = world.Regions.SelectMany(r => r.BuildingsCount).Sum(pair => (long)pair.Value);
+    var owned = world.Companies.Where(c => c.Alive)
+        .Sum(c => Enum.GetValues<BuildingType>().Sum(t => (long)c.CountOf(t)));
+
+    Console.WriteLine();
+    Console.WriteLine($"Зданий у живых компаний: {owned} из {standing} ({100.0 * owned / Math.Max(1, standing):F1}%)");
+
+    Console.WriteLine();
+    Console.WriteLine("Добавленная по продажам (компании) к добавленной по выпуску (страна), за партию:");
+    foreach (var iso in new[] { "RUS", "USA", "DEU", "CHN", "IND" })
+    {
+        var whose = world.Countries.First(c => c.Iso == iso);
+        var made = addedNominal[whose.Id];
+
+        Console.WriteLine($"  {iso}: {(made > 0 ? 100 * simulation.SoldAddedOf(whose.Id).Exact / made : 0),6:F1}%");
     }
 }
 
