@@ -74,6 +74,12 @@ var realGdp = world.Countries.ToDictionary(country => country.Id, _ => default(M
 // Зарплата копится в местных деньгах, поэтому складываем сразу в мировой мере: курс
 // за год уезжает, и делить в конце на конечный было бы неверно.
 var wagesYear = world.Countries.ToDictionary(country => country.Id, _ => 0.0);
+
+// Выплаченное, собранное и добавленное — все в своих нынешних ценах: делить одно на другое
+// можно только одной линейкой. wagesYear — это норма (добавленная × LabourShare), а не факт.
+var paidNominal = world.Countries.ToDictionary(country => country.Id, _ => 0.0);
+var taxNominal = world.Countries.ToDictionary(country => country.Id, _ => 0.0);
+var addedNominal = world.Countries.ToDictionary(country => country.Id, _ => 0.0);
 var employedYear = world.Countries.ToDictionary(country => country.Id, _ => 0L);
 var transitYear = world.Countries.ToDictionary(country => country.Id, _ => default(Money));
 var exports = world.Countries.ToDictionary(country => country.Id, _ => default(Money));
@@ -380,6 +386,9 @@ for (var year = 2; year <= years; year++)
             wagesYear[country.Id] +=
                 simulation.ValueAddedOf(country.Id, constant).Exact * country.LabourShare / 100;
             employedYear[country.Id] += simulation.EmployedIn(country.Id);
+            paidNominal[country.Id] += country.Payroll.Exact;
+            taxNominal[country.Id] += country.Budget.Collected.Exact;
+            addedNominal[country.Id] += simulation.ValueAddedOf(country.Id).Exact;
         }
     }
 
@@ -1174,6 +1183,32 @@ foreach (var (iso, inLife) in new[] { ("RUS", 33.0), ("USA", 27.0), ("DEU", 40.0
         + $"{Share(TaxKind.Vat)} {Share(TaxKind.Income)} {Share(TaxKind.Payroll)} "
         + $"{Share(TaxKind.Profit)} {Share(TaxKind.Extraction)} {Share(TaxKind.Excise)} "
         + $"{Share(TaxKind.Tariff)}");
+}
+
+Console.WriteLine();
+Console.WriteLine("То же честно: за всю партию, в своих нынешних ценах. Верхняя таблица делит");
+Console.WriteLine("номинальный сбор на ВВП в постоянных ценах и при дефляции занижает долю.");
+Console.WriteLine("страна   налоги к добавленной   зарплаты к добавленной   в жизни труд");
+foreach (var (iso, labour) in new[] { ("RUS", 47), ("USA", 57), ("DEU", 60), ("CHN", 51), ("IND", 35) })
+{
+    var whose = world.Countries.First(c => c.Iso == iso);
+    var made = addedNominal[whose.Id];
+
+    Console.WriteLine($"{iso}   {(made > 0 ? 100 * taxNominal[whose.Id] / made : 0),20:F1}% "
+        + $"{(made > 0 ? 100 * paidNominal[whose.Id] / made : 0),23:F1}% {labour,13}%");
+}
+
+{
+    var added = (double)Simulation.WageLimit[0];
+    if (added > 0)
+    {
+        Console.WriteLine();
+        Console.WriteLine("Зарплата внутри компаний — к их добавленной стоимости по продажам. Страна");
+        Console.WriteLine("меряет добавленную по выпуску, и всё, что легло на полку, входит в её ВВП,");
+        Console.WriteLine("но выручки не приносит: оттого зарплаты и налоги к ВВП выходят заниженными.");
+        Console.WriteLine($"  положено труду {100 * Simulation.WageLimit[1] / added,7:F1}%");
+        Console.WriteLine($"  выплачено      {100 * Simulation.WageLimit[2] / added,7:F1}%");
+    }
 }
 
 // --- Т. Компании ---------------------------------------------------------------------

@@ -2450,6 +2450,10 @@ public sealed class Simulation
     /// владельцам, на стройку, износ в деньгах. Только для замера.</summary>
     public static readonly long[] Flows = new long[7];
 
+    /// <summary>Добавленная стоимость компаний по продажам, сколько положено труду и сколько
+    /// выплачено. Только для замера.</summary>
+    public static readonly long[] WageLimit = new long[3];
+
     /// <summary>Сколько денег и долга у всех компаний мира прямо сейчас. Только для замера.</summary>
     public (Money Cash, Money Debt) CompanyPurses()
     {
@@ -3513,11 +3517,15 @@ public sealed class Simulation
                 var toGrow = new Money(added.Raw * Construction.InvestmentShare / 100);
                 var spare = company.Cash > toGrow ? company.Cash - toGrow : default;
 
+                Interlocked.Add(ref WageLimit[0], added.Raw);
+
                 // Труд стоит работодателю всё, что он на него потратил: и зарплату, и
                 // взносы, и удержанный подоходный. Делится эта сумма, а не прибавляется
                 // сверху — иначе взносы упирались бы в пустую кассу.
                 var owed = new Money(added.Raw * country.LabourShare / 100);
                 var given = company.Give(owed < spare ? owed : spare);
+                Interlocked.Add(ref WageLimit[1], owed.Raw);
+                Interlocked.Add(ref WageLimit[2], given.Raw);
                 var dues = TaxCode.Take(given, country.Taxes.Payroll);
                 var onHand = given - dues;
                 var income = TaxCode.Take(onHand, country.Taxes.Income);
