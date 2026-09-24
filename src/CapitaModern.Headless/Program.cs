@@ -124,6 +124,10 @@ var plainWas = new Dictionary<byte, double>();
 // Корзина по дням с нулевым днём — стартовыми ценами. По ней считается недельная инфляция, как
 // её рисует игра: худшая неделя в каждом месяце.
 var baskets = world.Countries.ToDictionary(c => c.Id, c => new List<double> { 1.0 });
+
+// Военные расходы и выпуск за весь первый год: замер одного дня шумит вдвое.
+var armsYear = new Dictionary<byte, double>();
+var addedYear = new Dictionary<byte, double>();
 var plainJitter = new Dictionary<byte, double>();
 
 // Корзина без исключений: все товары минимума по своим ценам против стартовых.
@@ -162,6 +166,8 @@ for (var tick = 1; tick <= 365; tick++)
             plainJitter[country.Id] = plainJitter.GetValueOrDefault(country.Id) + Math.Abs(Math.Log(plainNow / plainWas[country.Id]));
         plainWas[country.Id] = plainNow;
         baskets[country.Id].Add(simulation.BasketLevelOf(country.Id) / (double)PriceLevel.Scale);
+        armsYear[country.Id] = armsYear.GetValueOrDefault(country.Id) + (double)simulation.ArmsBoughtOf(country.Id).Exact;
+        addedYear[country.Id] = addedYear.GetValueOrDefault(country.Id) + (double)simulation.ValueAddedOf(country.Id).Exact;
 
         dayRate[country.Id] = (double)rateNow;
         dayBasket[country.Id] = basketNow;
@@ -170,7 +176,9 @@ for (var tick = 1; tick <= 365; tick++)
     if (tick <= 60 || tick % 15 == 0)
     {
         var workers = world.WorkersOf(me.Id);
-        daily.Add($"{tick,4} деньги {simulation.MoneyLevelOf(me.Id) / (double)PriceLevel.Scale,5:F2} уровень {simulation.PriceLevelOf(me.Id) / (double)PriceLevel.Scale,6:F2}"
+        var dayNow = world.Countries.Sum(c => simulation.ValueAddedOf(c.Id, constant).Exact);
+        var dayCould = world.Countries.Sum(c => simulation.PotentialOf(c.Id, constant).Exact);
+        daily.Add($"{tick,4} мир {100.0 * dayNow / Math.Max(1, dayCould),5:F1}% деньги {simulation.MoneyLevelOf(me.Id) / (double)PriceLevel.Scale,5:F2} уровень {simulation.PriceLevelOf(me.Id) / (double)PriceLevel.Scale,6:F2}"
             + $" корзина {simulation.BasketLevelOf(me.Id) / (double)PriceLevel.Scale,6:F2}"
             + $" курс {me.ExchangeRate.Exact,8:F2}"
             + $" занято {(workers > 0 ? simulation.EmployedIn(me.Id) * 100.0 / workers : 0),6:F1}%"
@@ -252,7 +260,10 @@ var worldGdp = realGdp.Values.Aggregate(default(Money), (a, b) => a + b).Exact /
 var worldExport = exports.Values.Aggregate(default(Money), (a, b) => a + b).Exact / 1e9;
 Console.WriteLine();
 Console.WriteLine($"Мир: реальный ВВП {worldGdp:F2} трлн (в жизни 130 трлн по ППС)");
-Console.WriteLine($"     товарный экспорт {worldExport:F2} трлн (в жизни 17.6 трлн)");
+// Доли, а не абсолюты: ВВП модели в масштабе ППС, а 17.6 трлн вывоза — номинальные доллары
+// при номинальном мировом ВВП около 85 трлн.
+Console.WriteLine($"     товарный экспорт {worldExport:F2} трлн, {100 * worldExport / Math.Max(1e-9, worldGdp):F1}% ВВП"
+    + " (в жизни 17.6 трлн при номинальных 85 — 20.7%)");
 
 var (refused, empty) = simulation.UnfilledBids;
 var askedTotal = refused + empty;
@@ -290,6 +301,10 @@ double WorstWeek(List<double> line, int from, int to)
 Console.WriteLine("  худшая недельная инфляция по месяцам, %: Россия / медиана по миру");
 Console.WriteLine("   " + string.Join("  ", Enumerable.Range(0, 12).Select(m =>
     $"{WorstWeek(baskets[me.Id], m * 30 + 1, m * 30 + 30):F0}/{Median(baskets.Values.Select(l => WorstWeek(l, m * 30 + 1, m * 30 + 30))):F0}")));
+Console.WriteLine("  военные расходы за первый год к выпуску, %: " + string.Join("  ",
+    new[] { ("USA", 3.7), ("CHN", 1.7), ("RUS", 4.3), ("SAU", 8.4), ("DEU", 1.4), ("IND", 2.9), ("JPN", 1.0), ("BRA", 1.4) }
+        .Select(p => { var c = world.Countries.First(x => x.Iso == p.Item1); var a = addedYear.GetValueOrDefault(c.Id);
+            return $"{p.Item1} {(a > 0 ? 100 * armsYear.GetValueOrDefault(c.Id) / a : 0):F1} ({p.Item2})"; })));
 Console.WriteLine($"  простая: медиана по миру {Median(plainJitter.Values) * 100 / 364:F2}, Россия {plainJitter.GetValueOrDefault(me.Id) * 100 / 364:F2}");
 
 // --- Г. Что осталось на рельсах и почему ------------------------------------------

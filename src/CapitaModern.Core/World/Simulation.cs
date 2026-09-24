@@ -267,8 +267,10 @@ public sealed class Simulation
 
     /// <summary>В каком порядке население тратит кошелёк. Еда прежде всего — на этом и
     /// стоит закон Энгеля.</summary>
+    /// <remarks>Услуги сюда забыли внести, когда они попали в потребление: спрос людей на них
+    /// двигал цену, а платить за них не платил никто, и фирмы услуг жили на одном госзаказе.</remarks>
     private static readonly GoodType[] NeedsOrder =
-        [GoodType.Food, GoodType.Medicine, GoodType.ConsumerGoods, GoodType.Electricity, GoodType.Fuel];
+        [GoodType.Food, GoodType.Medicine, GoodType.ConsumerGoods, GoodType.Electricity, GoodType.Fuel, GoodType.Services];
 
     /// <summary>На сколько в год растёт выпуск того же завода, в десятитысячных.</summary>
     /// <remarks>Полтора процента. В жизни мировая общая производительность факторов растёт
@@ -591,10 +593,9 @@ public sealed class Simulation
     {
         if (country.DefenceShare <= 0) return;
 
-        // Склонность к армии — часть характера страны: при прочих равных она тратит на
-        // оружие охотнее или скупее соседа с той же долей в данных.
-        var budget = new Money(_addedCalm.GetValueOrDefault(country.Id).Raw * country.DefenceShare
-            / 10_000 * country.Character.Arms / Character.Usual);
+        // Размер — ровно доля из данных: в ней милитаризм страны уже учтён. Прежде её ещё
+        // умножали на черту «строит армию», и США тратили 5.1% выпуска вместо 3.7%.
+        var budget = new Money(_addedCalm.GetValueOrDefault(country.Id).Raw * country.DefenceShare / 10_000);
         if (budget.Raw <= 0) return;
 
         // На технику в жизни уходит около четверти военного бюджета, остальное — люди, содержание
@@ -604,7 +605,8 @@ public sealed class Simulation
         budget = new Money(budget.Raw * EquipmentShare / 100);
 
         var each = new Money(budget.Raw / Arms.Length);
-        var weight = country.Priorities.WeightOf(Sector.Military);
+        // Черта «строит армию» решает очерёдность: в дефицит армия берёт прежде гражданских.
+        var weight = country.Priorities.WeightOf(Sector.Military) * country.Character.Arms / Character.Usual;
 
         foreach (var good in Arms)
         {
@@ -3167,8 +3169,11 @@ public sealed class Simulation
 
             foreach (var good in EstateGoods)
             {
+                // Жильё берёт материалы по тому же правилу, что и стройка заводов, — только сверх их
+                // нужды. Прежде оно выгребало склад подчистую: у Британии на двенадцатый день
+                // материалов не осталось, и встали все её услуги, а с ними три четверти выпуска.
                 var before = _sales.GetValueOrDefault(country.Id);
-                var take = Buy(country, good, _houseWants.Get(country.Id, good),
+                var take = Buy(country, good, Capped(_houseWants.Get(country.Id, good), SpareOf(country.Id, good)),
                     cost => country.Households.SpendUpTo(cost), taxed: true);
 
                 built += take;
@@ -3184,7 +3189,7 @@ public sealed class Simulation
             foreach (var good in EstateGoods)
             {
                 var before = _sales.GetValueOrDefault(country.Id);
-                var take = Buy(country, good, _roadWants.Get(country.Id, good),
+                var take = Buy(country, good, Capped(_roadWants.Get(country.Id, good), SpareOf(country.Id, good)),
                     cost => country.Budget.SpendUpTo(cost));
 
                 built += take;
@@ -3195,6 +3200,9 @@ public sealed class Simulation
             _roads[country.Id] = spent;
         }
     }
+
+    private static GoodAmount Capped(GoodAmount wanted, long most) =>
+        wanted.Raw > most ? new GoodAmount(most) : wanted;
 
     /// <summary>Из чего строят жильё и дороги.</summary>
     private static readonly GoodType[] EstateGoods =
@@ -4411,7 +4419,6 @@ public sealed class Simulation
     /// поднимали, и выдуманная заявка гнала цену материалов в потолок коридора.</remarks>
     private int RoomFor(byte country, BuildingType type)
     {
-        var stock = _world.CountryById(country).State.Stock;
         var most = MaxBuildsPerTick;
 
         foreach (var (good, amount) in _world.Buildings[type].BuildCost)
@@ -4423,14 +4430,21 @@ public sealed class Simulation
             // только компании получили деньги, они разом бросились строить, выгребли
             // материалы, заводам не хватило сырья, и занятость за два года просела с 2459 до
             // 2078 млн — первый провал ВВП партии.
-            var have = stock.Of(good).Raw;
-            var factories = _inputs.Get(country, good).Raw * Prices.TargetCoverDays;
-            var spare = Math.Min(have - factories, have * BiteOfStock / 100);
-            var free = spare - _build.Get(country, good).Raw;
-            most = (int)Math.Min(most, Math.Max(0, free) / amount.Raw);
+            most = (int)Math.Min(most, SpareOf(country, good) / amount.Raw);
         }
 
         return most;
+    }
+
+    /// <summary>Сколько товара стройка может взять со склада: сверх нужды заводов, не больше
+    /// доли склада за тик и за вычетом того, что уже заявлено на стройку сегодня.</summary>
+    private long SpareOf(byte country, GoodType good)
+    {
+        var have = _world.CountryById(country).State.Stock.Of(good).Raw;
+        var factories = _inputs.Get(country, good).Raw * Prices.TargetCoverDays;
+        var spare = Math.Min(have - factories, have * BiteOfStock / 100);
+
+        return Math.Max(0, spare - _build.Get(country, good).Raw);
     }
 
     /// <summary>Кто строит в стране на этом тике. Пусто — никто.</summary>
