@@ -141,7 +141,7 @@ public sealed class Prices
     {
         if (price.Raw <= 0) return;
 
-        _values[(int)good] = price;
+        _values[(int)good] = Clamped(good, price.Raw);
     }
 
     public void Rescale(long times, long by)

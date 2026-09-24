@@ -114,7 +114,9 @@ public partial class GameLoop : Node
 
     /// <summary>Во сколько раз цены ушли от начала партии, в процентах. Для графиков и
     /// сравнений; на виду держат годовую, <see cref="History.Yearly"/>.</summary>
-    public double Inflation => (Simulation.PriceLevelOf(Player) - PriceLevel.Scale) * 100.0 / PriceLevel.Scale;
+    /// <remarks>По корзине потребителя. Уровень по выпуску зависит от того, что сделали за
+    /// день, и скакал на половину от суток к суткам — отсюда и была недельная гармошка.</remarks>
+    public double Inflation => (Simulation.BasketLevelOf(Player) - PriceLevel.Scale) * 100.0 / PriceLevel.Scale;
 
     /// <summary>Что лежит в казне, в местных деньгах.</summary>
     public double Treasury => PlayerCountry.State.Treasury.Balance.Exact;

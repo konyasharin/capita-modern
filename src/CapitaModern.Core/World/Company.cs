@@ -324,6 +324,16 @@ public sealed class Company
 
     public void ForgetBought() => BoughtToday = default;
 
+    /// <summary>Добавленная стоимость за день, усреднённая за квартал. От неё платят зарплату.</summary>
+    /// <remarks>Дневная рваная: в день закупки сырья минус, в день крупной продажи — вчетверо
+    /// больше обычного. Зарплата шла за ней, и спрос людей с ценами прыгали следом.</remarks>
+    public Money AddedCalm { get; private set; }
+
+    public const int CalmDays = 90;
+
+    public void NoteAdded(Money today) =>
+        AddedCalm = AddedCalm.Raw == 0 ? today : new Money((AddedCalm.Raw * (CalmDays - 1) + today.Raw) / CalmDays);
+
     /// <summary>Тратит, если хватает. Не хватило — не тратит вовсе.</summary>
     public bool TrySpend(Money amount)
     {

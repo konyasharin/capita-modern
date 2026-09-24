@@ -107,11 +107,74 @@ void CountRails(int day)
 
 Console.WriteLine("Куда уезжают цены и как идёт выпуск по месяцам:");
 var clock = new System.Diagnostics.Stopwatch();
+
+// Суточная трасса страны игрока за первый год — то, что видно на графиках в игре. Годовые
+// средние по миру прятали и недельную дрожь, и провалы первого года.
+var me = world.Countries.First(c => c.Iso == "RUS");
+var daily = new List<string>();
+
+// Дрожь: средний модуль суточного изменения курса и корзины по каждой стране. Годовые
+// средние её не видят вовсе, а в игре она и есть «гармошка» на недельном графике.
+var dayRate = new Dictionary<byte, double>();
+var dayBasket = new Dictionary<byte, double>();
+var rateJitter = new Dictionary<byte, double>();
+var basketJitter = new Dictionary<byte, double>();
+var plainWas = new Dictionary<byte, double>();
+var plainJitter = new Dictionary<byte, double>();
+
+// Корзина без исключений: все товары минимума по своим ценам против стартовых.
+double PlainBasket(Country country)
+{
+    double now = 0, was = 0;
+    foreach (var (good, rate) in world.Needs.BaseRates)
+    {
+        now += country.State.Prices.CostOf(good, rate).Exact;
+        was += (double)country.State.Prices.StartOf(good).Exact * rate.Raw / GoodAmount.Scale;
+    }
+
+    return was > 0 ? now / was : 1;
+}
+
 for (var tick = 1; tick <= 365; tick++)
 {
     clock.Start();
     simulation.Tick();
     clock.Stop();
+
+    foreach (var country in world.Countries)
+    {
+        var rateNow = country.ExchangeRate.Exact;
+        var basketNow = (double)simulation.BasketLevelOf(country.Id);
+        if (tick > 1 && dayRate[country.Id] > 0 && dayBasket[country.Id] > 0)
+        {
+            rateJitter[country.Id] = rateJitter.GetValueOrDefault(country.Id)
+                + Math.Abs(Math.Log(rateNow / dayRate[country.Id]));
+            basketJitter[country.Id] = basketJitter.GetValueOrDefault(country.Id)
+                + Math.Abs(Math.Log(basketNow / dayBasket[country.Id]));
+        }
+
+        var plainNow = PlainBasket(country);
+        if (tick > 1 && plainWas[country.Id] > 0)
+            plainJitter[country.Id] = plainJitter.GetValueOrDefault(country.Id) + Math.Abs(Math.Log(plainNow / plainWas[country.Id]));
+        plainWas[country.Id] = plainNow;
+
+        dayRate[country.Id] = (double)rateNow;
+        dayBasket[country.Id] = basketNow;
+    }
+
+    if (tick <= 60 || tick % 15 == 0)
+    {
+        var workers = world.WorkersOf(me.Id);
+        daily.Add($"{tick,4} деньги {simulation.MoneyLevelOf(me.Id) / (double)PriceLevel.Scale,5:F2} уровень {simulation.PriceLevelOf(me.Id) / (double)PriceLevel.Scale,6:F2}"
+            + $" корзина {simulation.BasketLevelOf(me.Id) / (double)PriceLevel.Scale,6:F2}"
+            + $" курс {me.ExchangeRate.Exact,8:F2}"
+            + $" занято {(workers > 0 ? simulation.EmployedIn(me.Id) * 100.0 / workers : 0),6:F1}%"
+            + $" ВВП {simulation.ValueAddedOf(me.Id, constant).Exact * 365 / 1e9,7:F2}"
+            + $" предпр {world.RegionsOf(me.Id).SelectMany(r => r.BuildingsCount).Sum(p => (long)p.Value),8}"
+            + $" ввоз {simulation.ImportsOf(me.Id).Exact * 365 / 1e9,6:F2} вывоз {simulation.ExportsOf(me.Id).Exact * 365 / 1e9,6:F2}"
+            + $" кап+ {simulation.CapitalOf(me.Id).In.Exact * 365 / 1e9,6:F2} кап- {simulation.CapitalOf(me.Id).Out.Exact * 365 / 1e9,6:F2}"
+            + $" ВВП$ {Simulation.InWorld(me, simulation.ValueAddedOf(me.Id)).Exact * 365 / 1e9,6:F2}");
+    }
 
     foreach (var country in world.Countries)
     {
@@ -192,6 +255,22 @@ Console.WriteLine($"     не куплено за год: дорога дост�
     $"нет товара {empty.Exact / 1e9:F1} млрд ед.");
 Console.WriteLine($"     денег в мире {world.Countries.Sum(c => c.State.Treasury.Reserves.Value.Exact) / 1e9:F2} трлн " +
                   $"(на старте {startMoney / 1e9:F2})");
+
+Console.WriteLine();
+Console.WriteLine("=== В2. Россия посуточно в первый год ===");
+foreach (var line in daily) Console.WriteLine(line);
+
+static double Median(IEnumerable<double> values)
+{
+    var sorted = values.OrderBy(v => v).ToArray();
+    return sorted.Length == 0 ? 0 : sorted[sorted.Length / 2];
+}
+
+Console.WriteLine();
+Console.WriteLine("Средний суточный ход, % (в жизни курс ~0.5, цены ~0.01):");
+Console.WriteLine($"  курс:    медиана по миру {Median(rateJitter.Values) * 100 / 364:F2}, Россия {rateJitter.GetValueOrDefault(me.Id) * 100 / 364:F2}");
+Console.WriteLine($"  корзина: медиана по миру {Median(basketJitter.Values) * 100 / 364:F2}, Россия {basketJitter.GetValueOrDefault(me.Id) * 100 / 364:F2}");
+Console.WriteLine($"  простая: медиана по миру {Median(plainJitter.Values) * 100 / 364:F2}, Россия {plainJitter.GetValueOrDefault(me.Id) * 100 / 364:F2}");
 
 // --- Г. Что осталось на рельсах и почему ------------------------------------------
 Console.WriteLine();

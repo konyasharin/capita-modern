@@ -177,7 +177,7 @@ public partial class SelectionPanel : PanelContainer
         _stats[0].Set(Fmt.Count(world.PopulationOf(they).Whole));
         _stats[1].Set(Fmt.Cash(sim.ValueAddedOf(they).Exact * 365));
 
-        var inflation = (sim.PriceLevelOf(they) - PriceLevel.Scale) * 100.0 / PriceLevel.Scale;
+        var inflation = (sim.BasketLevelOf(they) - PriceLevel.Scale) * 100.0 / PriceLevel.Scale;
         _stats[2].Set(Fmt.Percent(inflation, signed: true), Fmt.Sign(inflation, moreIsBetter: false));
 
         _stats[3].Set($"×{country.ExchangeRate.Exact:0.00}");

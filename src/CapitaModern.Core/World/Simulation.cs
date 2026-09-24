@@ -146,6 +146,11 @@ public sealed class Simulation
     /// сырья, а стройка съедает своё в тот же тик: цемент впрок не закупают.</summary>
     private readonly Tally<GoodType, GoodAmount> _build = new();
 
+    /// <summary>Та часть спроса, что задана деньгами: купят на столько-то, сколько бы ни стоило.</summary>
+    /// <remarks>Её отклик на цену — ровно единица, а не упругость из данных. Цена обязана это
+    /// знать, иначе принимает вчерашний заказ за спрос при обычной цене и качается через день.</remarks>
+    private readonly Tally<GoodType, GoodAmount> _paid = new();
+
     /// <summary>Что страна собралась строить в этот тик. Решается вместе со спросом,
     /// чтобы стройку видели и цена, и мировой рынок: без этого главный потребитель
     /// материалов не создавал спроса, и они лежали на полу у 196 стран.</summary>
@@ -164,6 +169,13 @@ public sealed class Simulation
     /// <summary>Добавленная стоимость за тик. Считается в PayWages и переиспользуется:
     /// перебор всех товаров на каждую страну стоит дороже самого тика.</summary>
     private readonly Dictionary<byte, Money> _added = new();
+
+    /// <summary>Добавленная стоимость за день, усреднённая за квартал. От неё считают бюджеты.</summary>
+    /// <remarks>Дневная скачет на половину от стройки и цепочек, а казённые заказы шли за ней, и
+    /// цена услуг прыгала на десятую часть за день. Бюджет в жизни планируют не по вчерашнему дню.</remarks>
+    private readonly Dictionary<byte, Money> _addedCalm = new();
+
+    private const int BudgetDays = 90;
 
     /// <summary>Страна, за которую модель ничего не решает сама: ни строит, ни занимает.
     /// За неё это делает игрок.</summary>
@@ -365,6 +377,7 @@ public sealed class Simulation
         // _added не чистим: госзаказ и мера долга считаются до PayWages, и им нужен
         // вчерашний выпуск. Каждому тику он всё равно переписывается заново.
         _build.Clear();
+        _paid.Clear();
         _replace.Clear();
         _raised.Clear();
         _burnedFuel.Clear();
@@ -444,6 +457,8 @@ public sealed class Simulation
         // карточная система станет обычным законом, который этот вес поднимает.
         foreach (var country in _world.Countries)
         {
+            if (_day == 1) SeedIncome(country);
+
             var weight = country.Priorities.WeightOf(Sector.People);
 
             // Сперва прожиточный минимум по норме, затем то, что осталось от дохода, —
@@ -488,6 +503,10 @@ public sealed class Simulation
                 var wanted = Spending.Wanted(income, floor, prices.Of(good), least, share);
                 _peopleWants.Add(country.Id, good, wanted);
                 _inputs.Add(country.Id, good, wanted);
+
+                // Сверх минимума люди тратят деньги, а не берут штуки. На голодном пайке и
+                // сам минимум урезан по деньгам.
+                _paid.Add(country.Id, good, wanted > least ? wanted - least : wanted);
                 _claims.Add(country.Id, good, wanted * weight / Priorities.NormalWeight);
             }
 
@@ -497,9 +516,25 @@ public sealed class Simulation
             // Школы, больницы, управление — казённые услуги. В жизни на них уходит около
             // шестой части ВВП, и без них услуги в модели покупало одно население.
             Want(country, GoodType.Services,
-                new Money(_added.GetValueOrDefault(country.Id).Raw * StateServiceShare / 10_000),
+                new Money(_addedCalm.GetValueOrDefault(country.Id).Raw * StateServiceShare / 10_000),
                 _stateWants);
         }
+    }
+
+    /// <summary>Доход первого дня — из стартового выпуска, а не с нуля.</summary>
+    /// <remarks>Зарплату платят в конце тика, и в первый день люди жили на одни сбережения:
+    /// спрос проваливался, цены России падали втрое, а назавтра взлетали обратно. На старте
+    /// выпуск и есть откалиброванный ВВП, и доля труда в нём — вчерашняя зарплата.</remarks>
+    private void SeedIncome(Country country)
+    {
+        if (_world.CompaniesOf(country.Id).Count == 0) return;
+
+        var made = PotentialOf(country.Id, country.State.Prices);
+        if (made.Raw <= 0) return;
+
+        _added[country.Id] = made;
+        _addedCalm[country.Id] = made;
+        if (country.Payroll.Raw == 0) country.Payroll = new Money(made.Raw * country.LabourShare / 100);
     }
 
     /// <summary>Госзаказ: сколько оружия страна хочет купить за сутки.</summary>
@@ -518,7 +553,7 @@ public sealed class Simulation
 
         // Склонность к армии — часть характера страны: при прочих равных она тратит на
         // оружие охотнее или скупее соседа с той же долей в данных.
-        var budget = new Money(_added.GetValueOrDefault(country.Id).Raw * country.DefenceShare
+        var budget = new Money(_addedCalm.GetValueOrDefault(country.Id).Raw * country.DefenceShare
             / 10_000 * country.Character.Arms / Character.Usual);
         if (budget.Raw <= 0) return;
 
@@ -535,6 +570,7 @@ public sealed class Simulation
 
             _armsWants.Add(country.Id, good, wanted);
             _inputs.Add(country.Id, good, wanted);
+            _paid.Add(country.Id, good, wanted);
             _claims.Add(country.Id, good, wanted * weight / Priorities.NormalWeight);
         }
     }
@@ -547,7 +583,7 @@ public sealed class Simulation
     /// </remarks>
     private void OrderEstate(Country country)
     {
-        var added = _added.GetValueOrDefault(country.Id);
+        var added = _addedCalm.GetValueOrDefault(country.Id);
         if (added.Raw <= 0) return;
 
         Want(country, GoodType.Materials, new Money(added.Raw * HousingShare / 10_000 * 2 / 3), _houseWants);
@@ -569,6 +605,7 @@ public sealed class Simulation
 
         into.Add(country.Id, good, wanted);
         _inputs.Add(country.Id, good, wanted);
+        _paid.Add(country.Id, good, wanted);
         _claims.Add(country.Id, good, wanted);
     }
 
@@ -804,7 +841,7 @@ public sealed class Simulation
         // Выпуск за год в мировой мере. Раньше он выводился из фонда оплаты труда, но фонд
         // теперь считается от проданного, а не от всего выпуска, и выводить из него выпуск
         // стало нельзя: у Китая мера долга падала вчетверо на ровном месте.
-        var daily = _added.GetValueOrDefault(country.Id);
+        var daily = _addedCalm.GetValueOrDefault(country.Id);
         var yearly = new Money(daily.Raw * DaysInYear * Money.Scale /
             Math.Max(1, country.ExchangeRate.Raw));
 
@@ -1037,17 +1074,13 @@ public sealed class Simulation
 
             country.Bank.Follow(new Money((long)((Int128)country.Bank.Start.Raw * could.Raw / couldBefore.Raw)));
 
+            // Уровень денег входит в обычную цену, от которой MovePrices считает равновесие.
+            // Прежде им каждый день пересчитывали все цены, а утром MovePrices стирал сдвиг:
+            // якорь вечно упирался в свои шесть процентов и лишь дёргал цены за шумным _level.
             var want = PriceLevel.Target(country.Bank.Supply, country.Bank.Start, could, couldBefore);
+            var wanted = _moneyLevel.GetValueOrDefault(country.Id, PriceLevel.Scale);
+            _levelPush[country.Id] = wanted > 0 ? (int)((long)(want - wanted) * 10_000 / wanted) : 0;
             _moneyLevel[country.Id] = want;
-
-            var step = Math.Clamp(
-                want,
-                level * (100 - PriceLevel.StepPercent) / 100,
-                level * (100 + PriceLevel.StepPercent) / 100);
-
-            _levelPush[country.Id] = level > 0 ? (int)((long)(step - level) * 10_000 / level) : 0;
-
-            country.State.Prices.Rescale(step, level);
         }
 
         _worldLevel = PriceLevel.Of(nominalWorld, realWorld);
@@ -1355,7 +1388,7 @@ public sealed class Simulation
         {
             foreach (var good in AllGoods)
             {
-                var today = _inputs.Get(country.Id, good) + _build.Get(country.Id, good);
+                var today = _inputs.Get(country.Id, good);
                 var was = _norm.Get(country.Id, good);
 
                 _norm.Set(country.Id, good, was.Raw <= 0
@@ -1528,6 +1561,10 @@ public sealed class Simulation
 
         return total;
     }
+
+    /// <summary>Приток и отток капитала за тик, в мировых деньгах.</summary>
+    public (Money In, Money Out) CapitalOf(byte country) =>
+        (_capitalIn.GetValueOrDefault(country), _capitalOut.GetValueOrDefault(country));
 
     /// <summary>Пришло больше, чем было, — приток капитала; меньше — отток.</summary>
     private void NoteCapital(byte country, Money before, Money after)
@@ -1949,10 +1986,9 @@ public sealed class Simulation
     public const int RateSwing = 3;
 
     /// <summary>Насколько вывоз и ввоз отзываются на курс, в сотых.</summary>
-    /// <remarks>Сумма упругостей больше единицы — условие Маршалла и Лернера, при котором
-    /// ослабление валюты и правда улучшает сальдо. Полтора у каждой стороны с запасом его
-    /// покрывают.</remarks>
-    public const int TradeStretch = 150;
+    /// <remarks>Измерено на самой модели: при сдвиге рубля на 15% ввоз менялся впятеро, это
+    /// около десяти. При прежних полутора курс перелетал равновесие вдвое каждый день.</remarks>
+    public const int TradeStretch = 1000;
 
     /// <summary>Из чего сложился шаг курса за тик: паритет цен, сальдо, запас резервов.</summary>
     public readonly record struct RatePush(long Parity, long Balance, long Cushion);
@@ -2007,6 +2043,9 @@ public sealed class Simulation
     /// денежный уровень везде ровно единица. Печатает страна — он растёт, и валюта слабеет.
     /// </remarks>
     private int MoneyLevelOf(Country country) => _moneyLevel.GetValueOrDefault(country.Id, PriceLevel.Scale);
+
+    /// <summary>Во сколько раз денег стало больше, чем нужно выпуску, в долях <see cref="PriceLevel.Scale"/>.</summary>
+    public int MoneyLevelOf(byte country) => _moneyLevel.GetValueOrDefault(country, PriceLevel.Scale);
 
     private readonly Dictionary<byte, int> _basketWas = new();
 
@@ -2106,12 +2145,14 @@ public sealed class Simulation
             //
             // Выпуск берётся вчерашний (_added): MoveRates идёт до CollectOutputs, и
             // сегодняшний на этот час ещё ноль.
-            var steady = new Money(_added.GetValueOrDefault(country.Id).Raw * FlowFloor / 100);
-            if (outflow < steady && inflow < steady)
-            {
-                outflow = steady;
-                inflow = steady;
-            }
+            //
+            // В мировых деньгах, как и сами потоки. Прежде подпорка была в своей валюте, у
+            // России в семьдесят раз выше нужного: курс стоял как вкопанный, а когда поток
+            // разово её пробивал — прыгал вдвое. Каждый поток подпирается сам, без порога,
+            // на котором соотношение переключается рывком.
+            var steady = InWorld(country, new Money(_addedCalm.GetValueOrDefault(country.Id).Raw * FlowFloor / 100));
+            if (outflow < steady) outflow = steady;
+            if (inflow < steady) inflow = steady;
 
             var even = Clearing.Price(
                 new Money(parity),
@@ -2735,6 +2776,9 @@ public sealed class Simulation
         {
             var made = ValueAddedOf(country.Id);
             _added[country.Id] = made;
+            _addedCalm[country.Id] = _addedCalm.TryGetValue(country.Id, out var calm) && calm.Raw != 0
+                ? new Money((calm.Raw * (BudgetDays - 1) + made.Raw) / BudgetDays)
+                : made;
             if (made.Raw <= 0) continue;
 
             // Платят с проданного, а не со всего выпуска. То, что легло на склад, денег в
@@ -3245,13 +3289,13 @@ public sealed class Simulation
         foreach (var country in _world.Countries)
         {
             var prices = country.State.Prices;
+            var money = MoneyLevelOf(country);
 
             foreach (var good in AllGoods)
             {
-                // Со стройкой: в _inputs сидят заводы и люди, а заявка стройки считается
-                // отдельно. Без неё у стройматериалов спрос выходил заниженным, и цена их
-                // сползала к дну коридора — а из них-то мир и строит.
-                var wanted = _inputs.Get(country.Id, good) + _build.Get(country.Id, good);
+                // Стройка уже внутри _inputs. Прежде её прибавляли ещё раз, и стройматериалы
+                // видели её спрос вдвое.
+                var wanted = _inputs.Get(country.Id, good);
 
                 var kept = _available.Get(country.Id, good);
                 var norm = new GoodAmount(wanted.Raw * Prices.TargetCoverDays);
@@ -3259,11 +3303,23 @@ public sealed class Simulation
                     ? new GoodAmount((kept - norm).Raw / Prices.TargetCoverDays)
                     : default;
 
+                // Заказ сделан по сегодняшней цене, а формуле нужен спрос при обычной. Деньгами
+                // заданная доля отзывается на цену единицей, заводская — упругостью из данных.
+                // Без этого приведения спрос казённого заказа (−1) принимался за −0.3, и цена
+                // оружия уходила за тик вдвое дальше равновесия: качели через день.
+                var own = Math.Abs(_world.Elasticity.Demand(good));
+                var paid = Math.Min(_paid.Get(country.Id, good).Raw, wanted.Raw);
+                var stretch = wanted.Raw <= 0 || own + _world.Elasticity.Supply(good) == 0
+                    ? own
+                    : (int)((paid * Elasticity.Scale + (wanted.Raw - paid) * own) / wanted.Raw);
+
+                var usual = new Money((long)((Int128)prices.StartOf(good).Raw * money / PriceLevel.Scale));
+
                 prices.SetTo(good, Clearing.Price(
-                    prices.StartOf(good),
-                    wanted,
+                    usual,
+                    Elasticity.Adjust(stretch, wanted, prices.Of(good), usual),
                     PotentialOutputOf(country.Id, good) + spare,
-                    _world.Elasticity.Demand(good),
+                    stretch,
                     _world.Elasticity.Supply(good)));
             }
         }
@@ -3552,7 +3608,8 @@ public sealed class Simulation
                 // людям не доставалось, купить они не могли, склад рос ещё быстрее, и
                 // правило загрузки глушило заводы. Первые три месяца мир работал на 85%
                 // мощности, а дальше садился на 52%.
-                var added = company.SoldToday - company.BoughtToday;
+                company.NoteAdded(company.SoldToday > company.BoughtToday ? company.SoldToday - company.BoughtToday : default);
+                var added = company.AddedCalm;
                 if (added.Raw <= 0) continue;
 
                 // Сперва откладывают на развитие, потом платят. Деньгами приходит только
