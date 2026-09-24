@@ -363,6 +363,7 @@ public sealed class Simulation
 
         _sales.Clear();
         _armsWants.Clear();
+        _troopsWants.Clear();
         _armsBought.Clear();
         _stateWants.Clear();
         _stateBought.Clear();
@@ -596,6 +597,12 @@ public sealed class Simulation
             / 10_000 * country.Character.Arms / Character.Usual);
         if (budget.Raw <= 0) return;
 
+        // На технику в жизни уходит около четверти военного бюджета, остальное — люди, содержание
+        // и учения, то есть услуги. Пока на оружие шла вся доля, его не хватало никому: США
+        // получали треть заказанного, а Японии и Саудовской Аравии не продавали вовсе.
+        Want(country, GoodType.Services, new Money(budget.Raw * (100 - EquipmentShare) / 100), _troopsWants);
+        budget = new Money(budget.Raw * EquipmentShare / 100);
+
         var each = new Money(budget.Raw / Arms.Length);
         var weight = country.Priorities.WeightOf(Sector.Military);
 
@@ -683,10 +690,16 @@ public sealed class Simulation
 
     private readonly Tally<GoodType, GoodAmount> _armsWants = new();
 
+    /// <summary>Что армия заказала из услуг: содержание людей и техники.</summary>
+    private readonly Tally<GoodType, GoodAmount> _troopsWants = new();
+
+    /// <summary>Доля техники в военном бюджете, в процентах. У стран НАТО в 2020-м около четверти.</summary>
+    private const int EquipmentShare = 25;
+
     /// <summary>Сколько оружия страна заказала за тик.</summary>
     public GoodAmount ArmsWantOf(byte country, GoodType good) => _armsWants.Get(country, good);
 
-    /// <summary>Сколько страна потратила на оружие за тик.</summary>
+    /// <summary>Военные расходы страны за тик: техника и содержание армии.</summary>
     public Money ArmsBoughtOf(byte country) => _armsBought.GetValueOrDefault(country);
 
     private readonly Dictionary<byte, Money> _armsBought = new();
@@ -3072,7 +3085,8 @@ public sealed class Simulation
         // и складывали: к сороковому году дронов лежало по двенадцать тысяч дней расхода.
         var prices = country.State.Prices;
         var services = _stateWants.Get(country.Id, GoodType.Services);
-        var wanted = prices.CostOf(GoodType.Services, services);
+        var troops = _troopsWants.Get(country.Id, GoodType.Services);
+        var wanted = prices.CostOf(GoodType.Services, services + troops);
         foreach (var good in Arms) wanted += prices.CostOf(good, _armsWants.Get(country.Id, good));
 
         var have = country.Budget.Balance;
@@ -3087,7 +3101,12 @@ public sealed class Simulation
 
         _stateBought[country.Id] = _sales.GetValueOrDefault(country.Id) - before;
 
-        Arm(country, share);
+        var armyBefore = _sales.GetValueOrDefault(country.Id);
+        Buy(country, GoodType.Services, new GoodAmount(troops.Raw * share / Load.Full),
+            cost => country.Budget.SpendUpTo(cost));
+        var upkeep = _sales.GetValueOrDefault(country.Id) - armyBefore;
+
+        Arm(country, share, upkeep);
     }
 
     /// <summary>Сколько государство купило услуг за тик.</summary>
@@ -3191,9 +3210,9 @@ public sealed class Simulation
     /// сколько лежит на складе и сколько есть в бюджете. Бюджет здесь и становится
     /// рычагом — поднял налоги, смог вооружаться.
     /// </remarks>
-    private void Arm(Country country, long share)
+    private void Arm(Country country, long share, Money upkeep)
     {
-        var spent = default(Money);
+        var spent = upkeep;
 
         foreach (var good in Arms)
         {
