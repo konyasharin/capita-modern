@@ -120,6 +120,10 @@ var dayBasket = new Dictionary<byte, double>();
 var rateJitter = new Dictionary<byte, double>();
 var basketJitter = new Dictionary<byte, double>();
 var plainWas = new Dictionary<byte, double>();
+
+// Корзина по дням с нулевым днём — стартовыми ценами. По ней считается недельная инфляция, как
+// её рисует игра: худшая неделя в каждом месяце.
+var baskets = world.Countries.ToDictionary(c => c.Id, c => new List<double> { 1.0 });
 var plainJitter = new Dictionary<byte, double>();
 
 // Корзина без исключений: все товары минимума по своим ценам против стартовых.
@@ -157,6 +161,7 @@ for (var tick = 1; tick <= 365; tick++)
         if (tick > 1 && plainWas[country.Id] > 0)
             plainJitter[country.Id] = plainJitter.GetValueOrDefault(country.Id) + Math.Abs(Math.Log(plainNow / plainWas[country.Id]));
         plainWas[country.Id] = plainNow;
+        baskets[country.Id].Add(simulation.BasketLevelOf(country.Id) / (double)PriceLevel.Scale);
 
         dayRate[country.Id] = (double)rateNow;
         dayBasket[country.Id] = basketNow;
@@ -270,6 +275,21 @@ Console.WriteLine();
 Console.WriteLine("Средний суточный ход, % (в жизни курс ~0.5, цены ~0.01):");
 Console.WriteLine($"  курс:    медиана по миру {Median(rateJitter.Values) * 100 / 364:F2}, Россия {rateJitter.GetValueOrDefault(me.Id) * 100 / 364:F2}");
 Console.WriteLine($"  корзина: медиана по миру {Median(basketJitter.Values) * 100 / 364:F2}, Россия {basketJitter.GetValueOrDefault(me.Id) * 100 / 364:F2}");
+double WorstWeek(List<double> line, int from, int to)
+{
+    var worst = 0.0;
+    for (var day = Math.Max(from, 1); day <= to && day < line.Count; day++)
+    {
+        var was = line[Math.Max(0, day - 7)];
+        if (was > 0) worst = Math.Max(worst, Math.Abs(line[day] / was - 1) * 100);
+    }
+
+    return worst;
+}
+
+Console.WriteLine("  худшая недельная инфляция по месяцам, %: Россия / медиана по миру");
+Console.WriteLine("   " + string.Join("  ", Enumerable.Range(0, 12).Select(m =>
+    $"{WorstWeek(baskets[me.Id], m * 30 + 1, m * 30 + 30):F0}/{Median(baskets.Values.Select(l => WorstWeek(l, m * 30 + 1, m * 30 + 30))):F0}")));
 Console.WriteLine($"  простая: медиана по миру {Median(plainJitter.Values) * 100 / 364:F2}, Россия {plainJitter.GetValueOrDefault(me.Id) * 100 / 364:F2}");
 
 // --- Г. Что осталось на рельсах и почему ------------------------------------------
@@ -969,7 +989,7 @@ Console.WriteLine($"мир      {worldCould,15:F2} {worldDid,11:F2} "
 Console.WriteLine();
 Console.WriteLine("Что именно стоит: выпуск против возможного, по товарам");
 
-foreach (var iso in new[] { "DEU" })
+foreach (var iso in new[] { "DEU", "JPN" })
 {
     var whose = world.Countries.First(c => c.Iso == iso);
 

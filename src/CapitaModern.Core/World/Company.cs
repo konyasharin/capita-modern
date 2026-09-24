@@ -331,6 +331,9 @@ public sealed class Company
 
     public const int CalmDays = 90;
 
+    /// <summary>Средняя на старте — из выпуска её заводов, иначе она три месяца ползёт от нуля.</summary>
+    public void SeedAdded(Money usual) => AddedCalm = usual;
+
     public void NoteAdded(Money today) =>
         AddedCalm = AddedCalm.Raw == 0 ? today : new Money((AddedCalm.Raw * (CalmDays - 1) + today.Raw) / CalmDays);
 

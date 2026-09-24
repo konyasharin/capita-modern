@@ -236,6 +236,10 @@ public static class WorldDataLoader
 
             foreach (var (good, amount) in daily)
             {
+                // Услуги в запас не кладут: они сгорали в конце первого дня, а до того валили свою
+                // цену на дно, и назавтра она прыгала вчетверо — у бедных стран вся корзина.
+                if (good == GoodType.Services) continue;
+
                 country.State.Stock.Store(good, new GoodAmount(amount.Raw * StartCoverDays));
             }
         }

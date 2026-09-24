@@ -154,18 +154,23 @@ public class TradeTests
                 Build.Info(Mine, outputs: new() { [Coal] = Build.Whole(10) }),
                 Build.Info(Mill, inputs: new() { [Coal] = Build.Whole(10) },
                                  outputs: new() { [GoodType.Metals] = Build.Whole(1) })),
-            new Dictionary<GoodType, Money> { [Coal] = Money.FromWhole(1) });
+            new Dictionary<GoodType, Money> { [Coal] = Money.FromWhole(1) },
+            // Без упругости цене у покупателя не от чего подняться, и возить выгодно было
+            // только в дни, когда курс перелетал равновесие.
+            demand: new Dictionary<GoodType, int> { [Coal] = -50 },
+            supply: new Dictionary<GoodType, int> { [Coal] = 30 });
 
         var simulation = new Simulation(world);
         for (var tick = 0; tick < 20; tick++) simulation.Tick();
 
         var buyer = world.CountryById(2);
 
-        // Завод просит 10 в сутки, норма — сорок суток. Съеденное за тик страна докупает
-        // тем же тиком: заявка это нехватка плюс дневной расход. Точно до единицы не
-        // сходится: цену теперь ставит равновесие, и она чуть ходит вокруг обычной, а за
-        // ней ходит и норма запаса.
-        var norm = Build.Whole(10 * Prices.TargetCoverDays);
+        // Завод просит 10 в сутки, норма — сорок суток, но норма идёт от цены: у страны, которая
+        // только ввозит, валюта слабее, уголь дороже, и запас она держит меньше.
+        var norm = Elasticity.Adjust(
+            -50, Build.Whole(10 * Prices.TargetCoverDays),
+            buyer.State.Prices.Of(Coal), buyer.State.Prices.StartOf(Coal),
+            Elasticity.MinStockFactor, Elasticity.MaxStockFactor);
 
         Assert.InRange(buyer.State.Stock.Of(Coal).Exact, norm.Exact * 0.95, norm.Exact * 1.05);
         Assert.True(buyer.State.Stock.Of(GoodType.Metals) > default(GoodAmount), "завод так и не заработал");

@@ -315,6 +315,7 @@ public sealed class Simulation
         Run(nameof(MovePrices), MovePrices);
         Run(nameof(AnchorPrices), AnchorPrices);
         Run(nameof(PullPrices), PullPrices);
+        Run(nameof(NoteBasket), NoteBasket);
         Run(nameof(Wear), Wear);
         Run(nameof(Banking), Banking);
         Run(nameof(Build), Build);
@@ -489,7 +490,7 @@ public sealed class Simulation
             // Из запаса берут годовую долю, а не месячную: накопленное копилось годами, и
             // тратить его двенадцать раз в год никто не станет. С месячной долей люди
             // просили услуг вдевятеро больше, чем мир способен дать.
-            var income = country.Payroll + new Money(country.Households.Savings.Raw / SpendSavingsIn);
+            var income = PayrollCalm(country) + new Money(country.Households.Savings.Raw / SpendSavingsIn);
 
             foreach (var (good, rate) in _world.Needs.BaseRates)
             {
@@ -521,6 +522,24 @@ public sealed class Simulation
         }
     }
 
+    /// <summary>Зарплата, усреднённая за месяц: от неё люди и тратят.</summary>
+    /// <remarks>В день, когда компаниям не хватило кассы, зарплата проседала на четверть, люди
+    /// урезали покупки, и корзина падала на 7% до следующего дня. Настоящая семья из-за одного
+    /// дня задержки расходы не режет — на то у неё сбережения.</remarks>
+    private Money PayrollCalm(Country country)
+    {
+        var calm = _payrollCalm.TryGetValue(country.Id, out var was) && was.Raw > 0
+            ? new Money((was.Raw * (IncomeDays - 1) + country.Payroll.Raw) / IncomeDays)
+            : country.Payroll;
+        _payrollCalm[country.Id] = calm;
+
+        return calm;
+    }
+
+    private readonly Dictionary<byte, Money> _payrollCalm = new();
+
+    private const int IncomeDays = 30;
+
     /// <summary>Доход первого дня — из стартового выпуска, а не с нуля.</summary>
     /// <remarks>Зарплату платят в конце тика, и в первый день люди жили на одни сбережения:
     /// спрос проваливался, цены России падали втрое, а назавтра взлетали обратно. На старте
@@ -535,6 +554,26 @@ public sealed class Simulation
         _added[country.Id] = made;
         _addedCalm[country.Id] = made;
         if (country.Payroll.Raw == 0) country.Payroll = new Money(made.Raw * country.LabourShare / 100);
+
+        // Зарплату назавтра платят компании от своей средней добавленной. Не засеять её — она
+        // стартует с выручки первого дня, почти нуля, и спрос с ценами на второй день падали вдвое.
+        var prices = country.State.Prices;
+        foreach (var company in _world.CompaniesOf(country.Id))
+        {
+            var own = default(Money);
+            foreach (var (type, count) in company.ByType)
+            {
+                var recipe = _world.Buildings[type];
+                var times = _world.Efficiency.OutputTimes(country.Id, recipe.Sector);
+
+                foreach (var (good, amount) in recipe.Outputs)
+                    own += prices.CostOf(good, new GoodAmount(amount.Raw * count * times / Efficiency.Scale));
+                foreach (var (good, amount) in recipe.Inputs)
+                    own -= prices.CostOf(good, new GoodAmount(amount.Raw * count));
+            }
+
+            if (own.Raw > 0) company.SeedAdded(own);
+        }
     }
 
     /// <summary>Госзаказ: сколько оружия страна хочет купить за сутки.</summary>
@@ -2014,25 +2053,82 @@ public sealed class Simulation
 
     private readonly Dictionary<byte, int> _levelCalm = new();
 
+    private readonly Dictionary<byte, Money> _outCalm = new();
+    private readonly Dictionary<byte, Money> _inCalm = new();
+
+    /// <summary>За сколько суток усредняется платёжный баланс, по которому идёт курс.</summary>
+    private const int BalanceDays = 30;
+
+    private static Money Calmed(Dictionary<byte, Money> calm, byte country, Money today)
+    {
+        var next = calm.TryGetValue(country, out var was) && was.Raw > 0
+            ? new Money((was.Raw * (BalanceDays - 1) + today.Raw) / BalanceDays)
+            : today;
+        calm[country] = next;
+
+        return next;
+    }
+
     /// <summary>Ниже какой доли дневного выпуска поток платёжного баланса не считается,
     /// в процентах. В жизни дневная торговля — около трети выпуска, так что подпорка задевает
     /// только те потоки, что меньше шестой части обычного.</summary>
     private const int FlowFloor = 5;
 
 
-    /// <summary>Во сколько раз подорожала корзина потребления против старта, в долях
+    /// <summary>Во сколько раз подорожала корзина потребления с первого дня партии, в долях
     /// <see cref="PriceLevel.Scale"/>.</summary>
     /// <remarks>
-    /// Настоящий индекс цен: своя же корзина по своим же ценам против своих стартовых.
-    /// Прежде паритет брал `_level` — стоимость выпуска, делённую на его объём. У страны,
-    /// чей выпуск съёжился, это отношение взлетает, хотя цены не двигались: у Коста-Рики
-    /// уровень доходил до 38.9 при денежной массе в 1.3 раза, нулевой печати и нуле товаров
-    /// на рельсах коридора. Валюта от такого паритета падала в две тысячи раз.
-    ///
-    /// Корзина одна на всех и не меняется, поэтому индекс не может уехать дальше коридора
-    /// цен — а состав выпуска на него не влияет вовсе.
+    /// Цепной индекс, как у статистических служб: каждый день умножается на отношение сегодняшней
+    /// корзины к вчерашней. База — цены после первого тика: цены из данных для модели не
+    /// равновесие, первый же тик их переоценивал, и первая неделя показывала +69%. Прежний индекс
+    /// против стартовых цен ещё и прыгал, когда товар отлипал от края коридора и возвращался в состав.
     /// </remarks>
-    public int BasketLevelOf(byte country) => BasketLevel(_world.CountryById(country));
+    public int BasketLevelOf(byte country) => _basketIndex.GetValueOrDefault(country, PriceLevel.Scale);
+
+    private readonly Dictionary<byte, int> _basketIndex = new();
+    private readonly Dictionary<byte, long[]> _basketPrices = new();
+
+    /// <summary>Подвигает цепной индекс корзины на сегодняшние цены.</summary>
+    private void NoteBasket()
+    {
+        foreach (var country in _world.Countries)
+        {
+            var prices = country.State.Prices;
+            var today = AllGoods.Select(good => prices.Of(good).Raw).ToArray();
+
+            if (_basketPrices.TryGetValue(country.Id, out var before))
+            {
+                Int128 now = 0;
+                Int128 was = 0;
+
+                foreach (var (good, rate) in _world.Needs.BaseRates)
+                {
+                    // Цена на краю коридора о деньгах не говорит ничего: она стоит там оттого,
+                    // что товара завались или нет вовсе.
+                    if (Railed(prices, good, today[(int)good]) || Railed(prices, good, before[(int)good])) continue;
+
+                    now += (Int128)today[(int)good] * rate.Raw;
+                    was += (Int128)before[(int)good] * rate.Raw;
+                }
+
+                if (was > 0)
+                {
+                    var index = _basketIndex.GetValueOrDefault(country.Id, PriceLevel.Scale);
+                    var next = index * now / was;
+                    _basketIndex[country.Id] = next < 1 ? 1 : next > PriceLevel.Ceiling ? PriceLevel.Ceiling : (int)next;
+                }
+            }
+
+            _basketPrices[country.Id] = today;
+        }
+    }
+
+    private static bool Railed(Prices prices, GoodType good, long live)
+    {
+        var start = prices.StartOf(good).Raw;
+
+        return start <= 0 || live * Prices.MaxSwingTimes <= start || live >= start * Prices.MaxSwingTimes;
+    }
 
     /// <summary>Уровень цен для паритета: сколько денег против выпуска.</summary>
     /// <remarks>
@@ -2046,41 +2142,6 @@ public sealed class Simulation
 
     /// <summary>Во сколько раз денег стало больше, чем нужно выпуску, в долях <see cref="PriceLevel.Scale"/>.</summary>
     public int MoneyLevelOf(byte country) => _moneyLevel.GetValueOrDefault(country, PriceLevel.Scale);
-
-    private readonly Dictionary<byte, int> _basketWas = new();
-
-
-    private int BasketLevel(Country country)
-    {
-        var prices = country.State.Prices;
-        var now = default(Money);
-        var was = default(Money);
-
-        foreach (var (good, rate) in _world.Needs.BaseRates)
-        {
-            // Цена, упёршаяся в край коридора, о деньгах не говорит ничего: она стоит там не
-            // от денег, а оттого, что товара завались или нет вовсе. В индекс такая не идёт.
-            //
-            // Без этого корзина США сидела на 0.25 — ровно дно коридора, — паритет вместе с
-            // ней, и доллар был прижат туда же. Стоило ценам на год отлипнуть, как он прыгал
-            // вдвое, а с ним разом прыгали все прочие валюты.
-            var start = prices.StartOf(good).Raw;
-            var live = prices.Of(good).Raw;
-            if (start <= 0) continue;
-            if (live * Prices.MaxSwingTimes <= start || live >= start * Prices.MaxSwingTimes) continue;
-
-            now += prices.CostOf(good, rate);
-            was += new Money((long)((Int128)start * rate.Raw / GoodAmount.Scale));
-        }
-
-        // Все до одной упёрлись — мерить нечем, берём вчерашнее.
-        if (was.Raw <= 0) return _basketWas.GetValueOrDefault(country.Id, PriceLevel.Scale);
-
-        var index = (int)(now.Raw * PriceLevel.Scale / was.Raw);
-        _basketWas[country.Id] = index;
-
-        return index;
-    }
 
     private void MoveRates()
     {
@@ -2154,10 +2215,15 @@ public sealed class Simulation
             if (outflow < steady) outflow = steady;
             if (inflow < steady) inflow = steady;
 
+            // Курс идёт за балансом месяца, а не дня: дневные потоки скачут вдесятеро, и курс
+            // за ними дёргал всё хозяйство — провалы роста на второй декаде шли отсюда.
+            var calmOut = Calmed(_outCalm, country.Id, outflow);
+            var calmIn = Calmed(_inCalm, country.Id, inflow);
+
             var even = Clearing.Price(
                 new Money(parity),
-                new GoodAmount(outflow.Raw),
-                new GoodAmount(inflow.Raw),
+                new GoodAmount(calmOut.Raw),
+                new GoodAmount(calmIn.Raw),
                 TradeStretch,
                 TradeStretch).Raw;
 
@@ -3315,10 +3381,14 @@ public sealed class Simulation
 
                 var usual = new Money((long)((Int128)prices.StartOf(good).Raw * money / PriceLevel.Scale));
 
+                // Предложение — что и правда сделали, а не что могли бы. У Японии электроника
+                // стояла без редкоземельных, а цена видела мощность втрое выше спроса и держалась
+                // на дне: ввозить было невыгодно, и за электроникой стояли все её услуги.
+
                 prices.SetTo(good, Clearing.Price(
                     usual,
                     Elasticity.Adjust(stretch, wanted, prices.Of(good), usual),
-                    PotentialOutputOf(country.Id, good) + spare,
+                    _outputs.Get(country.Id, good) + spare,
                     stretch,
                     _world.Elasticity.Supply(good)));
             }
@@ -3739,24 +3809,10 @@ public sealed class Simulation
         if (want.Raw <= 0 || usual.Raw <= 0) return (default, default);
 
         var sellers = _sellersOf[Slot(country.Id, good)];
-        if (sellers.Count == 0)
-        {
-            // Хозяев нет — берём со склада по общей цене, как было до компаний. Так живут
-            // тестовые миры и страны, у которых компании все разорились.
-            var plain = country.State.Stock.Of(good);
-            var takePlain = want < plain ? want : plain;
-            var askPlain = country.State.Prices.CostOf(good, takePlain);
-            var gotPlain = purse(askPlain);
 
-            if (gotPlain < askPlain && askPlain.Raw > 0)
-            {
-                takePlain = new GoodAmount((long)((Int128)takePlain.Raw * gotPlain.Raw / askPlain.Raw));
-            }
-
-            country.State.Treasury.Receive(gotPlain);
-
-            return (takePlain, gotPlain);
-        }
+        // Хозяев нет — берём со склада по общей цене, как было до компаний. Так живут
+        // тестовые миры и страны, у которых компании все разорились.
+        if (sellers.Count == 0) return DrawUnowned(country, good, want, country.State.Stock.Of(good), purse);
 
         var left = want.Raw;
         var took = 0L;
@@ -3795,7 +3851,39 @@ public sealed class Simulation
             if (paid < ask + vat) break;
         }
 
+        // Ввезённое лежит на складе страны без хозяина, и продавцы его не видят. Пока его не
+        // брали вовсе, у Японии армия не купила ни одного ствола: оружие ввезли, а своя
+        // оборонная компания стояла с пустым складом.
+        if (left > 0)
+        {
+            var owned = 0L;
+            foreach (var seller in sellers) owned += seller.Holds(good).Raw;
+
+            var free = country.State.Stock.Of(good).Raw - owned - took;
+            if (free > 0)
+            {
+                var (extra, extraCost) = DrawUnowned(country, good, new GoodAmount(left), new GoodAmount(free), purse);
+                took += extra.Raw;
+                cost += extraCost;
+            }
+        }
+
         return (new GoodAmount(took), cost);
+    }
+
+    /// <summary>Берёт бесхозный товар по общей цене; деньги идут в казну, она за него и платила.</summary>
+    private static (GoodAmount Took, Money Cost) DrawUnowned(
+        Country country, GoodType good, GoodAmount want, GoodAmount have, Func<Money, Money> purse)
+    {
+        var take = want < have ? want : have;
+        var ask = country.State.Prices.CostOf(good, take);
+        var got = purse(ask);
+
+        if (got < ask && ask.Raw > 0) take = new GoodAmount((long)((Int128)take.Raw * got.Raw / ask.Raw));
+
+        country.State.Treasury.Receive(got);
+
+        return (take, got);
     }
 
     /// <summary>Кто в стране продаёт этот товар, от дешёвого к дорогому. Плоским массивом,
