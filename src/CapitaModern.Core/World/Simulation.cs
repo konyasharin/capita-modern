@@ -77,7 +77,7 @@ public sealed class Simulation
 
     /// <summary>Накопленный износ по областям. Целыми заводами он осыпается редко,
     /// поэтому дробная часть копится.</summary>
-    private readonly Dictionary<(int Region, BuildingType Type), int> _decay = new();
+    private readonly Dictionary<(int Region, BuildingType Type), long> _decay = new();
 
     /// <summary>Чтобы не менять список зданий области, пока по нему идём.</summary>
     private readonly List<(BuildingType Type, int Count)> _standing = [];
@@ -131,6 +131,10 @@ public sealed class Simulation
     /// <summary>Уровень цен страны и мира с прошлого тика. Курс считается до выпуска,
     /// поэтому берёт вчерашние: сутки задержки здесь ничего не решают.</summary>
     private readonly Dictionary<byte, int> _level = new();
+
+    /// <summary>Уровень цен, которого требуют деньги: масса против потенциального выпуска.
+    /// По нему считается паритет курса.</summary>
+    private readonly Dictionary<byte, int> _moneyLevel = new();
 
 
 
@@ -1034,6 +1038,7 @@ public sealed class Simulation
             country.Bank.Follow(new Money((long)((Int128)country.Bank.Start.Raw * could.Raw / couldBefore.Raw)));
 
             var want = PriceLevel.Target(country.Bank.Supply, country.Bank.Start, could, couldBefore);
+            _moneyLevel[country.Id] = want;
 
             var step = Math.Clamp(
                 want,
@@ -1993,6 +1998,16 @@ public sealed class Simulation
     /// </remarks>
     public int BasketLevelOf(byte country) => BasketLevel(_world.CountryById(country));
 
+    /// <summary>Уровень цен для паритета: сколько денег против выпуска.</summary>
+    /// <remarks>
+    /// Не корзина потребления. Корзина плавает от затоваривания, а оно в каждой стране своё:
+    /// у США она за сорок лет таяла с 1.14 до 0.55, у России на втором году прыгала с 1.29 до
+    /// 2.49, и рубль к доллару полз с 83 до 569 — ровно в разницу корзин. Валюту в жизни
+    /// определяют деньги, и это как раз то, что держит якорь цен: в стерильном мире без печати
+    /// денежный уровень везде ровно единица. Печатает страна — он растёт, и валюта слабеет.
+    /// </remarks>
+    private int MoneyLevelOf(Country country) => _moneyLevel.GetValueOrDefault(country.Id, PriceLevel.Scale);
+
     private readonly Dictionary<byte, int> _basketWas = new();
 
 
@@ -2041,7 +2056,7 @@ public sealed class Simulation
             var made = ValueAddedOf(country.Id).Raw;
             if (made <= 0) continue;
 
-            basketSum += (Int128)BasketLevel(country) * made;
+            basketSum += (Int128)MoneyLevelOf(country) * made;
             weight += made;
         }
 
@@ -2068,7 +2083,7 @@ public sealed class Simulation
             // против мира, у того и валюта вдвое дешевле. Сальдо отклоняет от паритета:
             // тратишь больше, чем получаешь, — валюта слабеет, и это делает твой вывоз
             // дешевле, а ввоз дороже, пока баланс не сойдётся.
-            var level = BasketLevel(country);
+            var level = MoneyLevelOf(country);
             var calm = _levelCalm.TryGetValue(country.Id, out var before) && before > 0
                 ? (before * (ParityDays - 1) + level) / ParityDays
                 : level;
@@ -3434,11 +3449,15 @@ public sealed class Simulation
                 if (count > 0) _standing.Add((type, count));
             }
 
-            var span = WearScale * DaysInYear;
+            var span = (long)WearScale * DaysInYear;
 
             foreach (var (type, count) in _standing)
             {
-                var wear = count * WearScale / _world.Buildings[type].LifeYears;
+                // В long: в одной области бывает больше двух миллионов зданий одного типа —
+                // PlaceFor кладёт всю новую стройку страны в её первую область, — и в int
+                // произведение переполнялось, износ уходил в минус, а снос отрицательного
+                // числа зданий ронял партию на тридцать девятом году.
+                var wear = (long)count * WearScale / _world.Buildings[type].LifeYears;
                 if (wear == 0) continue;
 
                 // Копим дроби: за сутки осыпается меньше здания, и без накопления износ
@@ -3450,7 +3469,7 @@ public sealed class Simulation
                 _decay[key] = got - due * span;
                 if (due == 0) continue;
 
-                var gone = Math.Min(due, count);
+                var gone = (int)Math.Min(due, count);
                 if (!region.TryRemoveBuildings(type, gone)) continue;
 
                 WornSoFar += gone;
