@@ -2936,15 +2936,29 @@ public sealed class Simulation
     /// <summary>Государство тратит собранное: бюджетникам и пособиями.</summary>
     private void Spend(Country country)
     {
-        // Сперва школы и больницы, потом оружие: содержание идёт вперёд закупок.
+        // Денег не хватает на всё — режут все статьи в одной доле, а не обнуляют последнюю.
+        // Прежде сперва закупались школы и больницы, потом оружие; услуги просят семнадцать
+        // процентов добавленной стоимости, а налогов собирается меньше, и армии не оставалось
+        // ничего. США, Китай, Германия, Япония покупали оружия на ноль, а заводы его делали
+        // и складывали: к сороковому году дронов лежало по двенадцать тысяч дней расхода.
+        var prices = country.State.Prices;
+        var services = _stateWants.Get(country.Id, GoodType.Services);
+        var wanted = prices.CostOf(GoodType.Services, services);
+        foreach (var good in Arms) wanted += prices.CostOf(good, _armsWants.Get(country.Id, good));
+
+        var have = country.Budget.Balance;
+        var share = wanted.Raw <= 0 || have >= wanted
+            ? Load.Full
+            : (long)((Int128)have.Raw * Load.Full / wanted.Raw);
+
         var before = _sales.GetValueOrDefault(country.Id);
 
-        Buy(country, GoodType.Services, _stateWants.Get(country.Id, GoodType.Services),
+        Buy(country, GoodType.Services, new GoodAmount(services.Raw * share / Load.Full),
             cost => country.Budget.SpendUpTo(cost));
 
         _stateBought[country.Id] = _sales.GetValueOrDefault(country.Id) - before;
 
-        Arm(country);
+        Arm(country, share);
     }
 
     /// <summary>Сколько государство купило услуг за тик.</summary>
@@ -3048,7 +3062,7 @@ public sealed class Simulation
     /// сколько лежит на складе и сколько есть в бюджете. Бюджет здесь и становится
     /// рычагом — поднял налоги, смог вооружаться.
     /// </remarks>
-    private void Arm(Country country)
+    private void Arm(Country country, long share)
     {
         var spent = default(Money);
 
@@ -3058,7 +3072,7 @@ public sealed class Simulation
             country.Army.Wear(good, DaysInYear);
 
             var before = _sales.GetValueOrDefault(country.Id);
-            var take = Buy(country, good, _armsWants.Get(country.Id, good),
+            var take = Buy(country, good, new GoodAmount(_armsWants.Get(country.Id, good).Raw * share / Load.Full),
                 cost => country.Budget.SpendUpTo(cost));
 
             if (take.Raw <= 0) continue;
