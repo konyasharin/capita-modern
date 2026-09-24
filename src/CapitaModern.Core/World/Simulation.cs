@@ -4250,7 +4250,15 @@ public sealed class Simulation
         {
             if (amount.Raw <= 0) continue;
 
-            var free = stock.Of(good).Raw * BiteOfStock / 100 - _build.Get(country, good).Raw;
+            // Стройка берёт только то, что лежит сверх нужды заводов, и не больше доли склада
+            // за тик. Прежде ей было позволено шесть суточных выпусков материалов за раз: как
+            // только компании получили деньги, они разом бросились строить, выгребли
+            // материалы, заводам не хватило сырья, и занятость за два года просела с 2459 до
+            // 2078 млн — первый провал ВВП партии.
+            var have = stock.Of(good).Raw;
+            var factories = _inputs.Get(country, good).Raw * Prices.TargetCoverDays;
+            var spare = Math.Min(have - factories, have * BiteOfStock / 100);
+            var free = spare - _build.Get(country, good).Raw;
             most = (int)Math.Min(most, Math.Max(0, free) / amount.Raw);
         }
 
