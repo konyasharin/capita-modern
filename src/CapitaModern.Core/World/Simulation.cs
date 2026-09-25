@@ -2135,8 +2135,24 @@ public sealed class Simulation
             }
 
             _basketPrices[country.Id] = today;
+
+            // Центробанк держит цены: корзина ниже первого дня — политика мягче, выше — жёстче.
+            // Без этого цены падали на шесть-десять процентов в год и к тридцатому году уходили в ноль.
+            var level = _basketIndex.GetValueOrDefault(country.Id, PriceLevel.Scale);
+            var policy = PolicyOf(country.Id);
+            _policy[country.Id] = Math.Max(1, policy + (long)((Int128)policy * (PriceLevel.Scale - level)
+                / ((long)PriceLevel.Scale * PolicyDays)));
         }
     }
+
+    private long PolicyOf(byte country) => _policy.GetValueOrDefault(country, PolicyFine);
+
+    private readonly Dictionary<byte, long> _policy = new();
+
+    private const long PolicyFine = 1_000_000;
+
+    /// <summary>За сколько суток политика выбирает отклонение цен от цели.</summary>
+    private const int PolicyDays = 1095;
 
     private static bool Railed(Prices prices, GoodType good, long live)
     {
@@ -3406,7 +3422,8 @@ public sealed class Simulation
                     ? own
                     : (int)((paid * Elasticity.Scale + (wanted.Raw - paid) * own) / wanted.Raw);
 
-                var usual = new Money((long)((Int128)prices.StartOf(good).Raw * money / PriceLevel.Scale));
+                var usual = new Money((long)((Int128)prices.StartOf(good).Raw * money / PriceLevel.Scale
+                    * PolicyOf(country.Id) / PolicyFine));
 
                 // Предложение — что и правда сделали, а не что могли бы. У Японии электроника
                 // стояла без редкоземельных, а цена видела мощность втрое выше спроса и держалась
@@ -3589,6 +3606,9 @@ public sealed class Simulation
 
     /// <summary>Сколько зданий поднято и сколько рухнуло за всю игру. Только для замера.</summary>
     public long BuiltSoFar { get; private set; }
+
+    /// <summary>Сколько раз вместо нового цеха переоснастили старые.</summary>
+    public long ModernizedSoFar { get; private set; }
 
     public long WornSoFar { get; private set; }
 
@@ -4584,8 +4604,23 @@ public sealed class Simulation
 
                 if (builder is null) _investment[country.Id] -= price;
 
-                plan.Where.AddBuildings(plan.Type, 1);
-                builder?.Add(plan.Where.Id, plan.Type, 1);
+                // Рук на новые цеха уже нет — те же деньги и материалы идут в станки, и старые
+                // заводы обходятся меньшим штатом. Пока строили цеха, к сороковому году
+                // заводы США просили вдвое больше людей, чем у страны есть.
+                var asked = _jobs.GetValueOrDefault(country.Id);
+                if (builder is not null && asked > _world.WorkersOf(country.Id))
+                {
+                    var freed = _world.Efficiency.HandsFor(country.Id, info.Sector,
+                        (long)info.OptimalWorkers * _loadWas.GetValueOrDefault(country.Id, Load.Full) / Load.Full);
+                    _world.Efficiency.SaveHands(country.Id, freed, asked);
+                    _jobs[country.Id] = asked - freed;
+                    ModernizedSoFar++;
+                }
+                else
+                {
+                    plan.Where.AddBuildings(plan.Type, 1);
+                    builder?.Add(plan.Where.Id, plan.Type, 1);
+                }
 
                 // Съеденное стройкой — такой же расход, как заводское сырьё. Без этого
                 // материалы попадали бы в добавленную стоимость дважды: и когда их

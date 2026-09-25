@@ -453,7 +453,7 @@ void Report(int year, double gdp)
 
     Console.WriteLine($"{year,3} {gdp,14:F2} трлн {100.0 * rails / (world.Countries.Count * goods.Length),9:F1}% " +
                       $"{debt,10:F2} трлн {heavy,14} {weak,14}" +
-                      $"{standing,14} {simulation.BuiltSoFar,9} {simulation.WornSoFar,7}" +
+                      $"{standing,14} {simulation.BuiltSoFar,9} {simulation.WornSoFar,7} модерн {simulation.ModernizedSoFar}" +
                       $" [ниша {Simulation.Stall[0]} касса {Simulation.Stall[1]} склад {Simulation.Stall[2]}" +
                       $" руки {Simulation.Stall[3]} заказано {Simulation.Stall[4]}]" +
                       $" [{Yearly()}] [{Swings()}]{Watch()}" +

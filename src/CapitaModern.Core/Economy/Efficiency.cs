@@ -42,6 +42,8 @@ public sealed class Efficiency
         int countries = 256)
     {
         _skill = Filled(countries);
+        _saved = new long[countries];
+        Array.Fill(_saved, (long)Scale * Fine);
         _tech = Filled(countries);
         _condition = Filled(countries);
         _sensitivity = new int[Enum.GetValues<Sector>().Length];
@@ -123,7 +125,21 @@ public sealed class Efficiency
     {
         var own = ShowsInOutput(sector) ? workers : workers * Scale / Of(country, sector);
 
-        return own * Scale / Deepening;
+        return (long)((Int128)own * Scale * Fine / Deepening * Scale / _saved[country]);
+    }
+
+    /// <summary>Во сколько раз страна своими вложениями сократила штат против начала партии, в сотых.</summary>
+    public int SavedHands(byte country) => (int)(_saved[country] / Fine);
+
+    private readonly long[] _saved;
+
+    /// <summary>Модернизация: из <paramref name="total"/> рук, что просят заводы страны, станет
+    /// нужно на <paramref name="freed"/> меньше.</summary>
+    public void SaveHands(byte country, long freed, long total)
+    {
+        if (freed <= 0 || total <= freed) return;
+
+        _saved[country] = (long)((Int128)_saved[country] * total / (total - freed));
     }
 
     /// <summary>Во сколько раз больше выпуска даёт то же предприятие, в сотых.</summary>
