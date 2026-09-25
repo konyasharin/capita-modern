@@ -483,9 +483,14 @@ var shelvesWas = OnShelves();
 
 Report(1, worldGdp);
 
+// Худшая недельная инфляция по годам — то, что игрок видит на графике и в поздние годы.
+var weekRing = world.Countries.ToDictionary(c => c.Id, c => new Queue<double>());
+var worstWeeks = new List<string>();
+
 for (var year = 2; year <= years; year++)
 {
     var yearGdp = default(Money);
+    var worstWeek = world.Countries.ToDictionary(c => c.Id, c => 0.0);
     for (var tick = 0; tick < 365; tick++)
     {
         simulation.Tick();
@@ -503,11 +508,23 @@ for (var year = 2; year <= years; year++)
             paidNominal[country.Id] += country.Payroll.Exact;
             taxNominal[country.Id] += country.Budget.Collected.Exact;
             addedNominal[country.Id] += simulation.ValueAddedOf(country.Id).Exact;
+
+            var ring = weekRing[country.Id];
+            var basketToday = simulation.BasketLevelOf(country.Id) / (double)PriceLevel.Scale;
+            ring.Enqueue(basketToday);
+            if (ring.Count > 8) ring.Dequeue();
+            if (ring.Count == 8 && ring.Peek() > 0)
+                worstWeek[country.Id] = Math.Max(worstWeek[country.Id], Math.Abs(basketToday / ring.Peek() - 1) * 100);
         }
     }
 
+    worstWeeks.Add($"{year}: {worstWeek[me.Id]:F0}/{Median(worstWeek.Values):F0}");
     Report(year, yearGdp.Exact / 1e9);
 }
+
+Console.WriteLine();
+Console.WriteLine("Худшая недельная инфляция по годам, %: Россия / медиана по миру");
+Console.WriteLine("  " + string.Join("  ", worstWeeks));
 
 Console.WriteLine();
 Console.WriteLine($"На складах мира {OnShelves() / 1e9:F2} трлн против {shelvesWas / 1e9:F2} год назад:");

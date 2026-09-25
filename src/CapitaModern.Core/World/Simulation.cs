@@ -3393,6 +3393,9 @@ public sealed class Simulation
     /// ту же норму, — иначе полный склад ронял бы цену во столько же раз, во сколько
     /// пустой её поднимал.
     /// </remarks>
+    /// <summary>За сколько суток цена проходит путь до равновесия.</summary>
+    private const int StickyDays = 7;
+
     private void MovePrices()
     {
         foreach (var country in _world.Countries)
@@ -3429,12 +3432,19 @@ public sealed class Simulation
                 // стояла без редкоземельных, а цена видела мощность втрое выше спроса и держалась
                 // на дне: ввозить было невыгодно, и за электроникой стояли все её услуги.
 
-                prices.SetTo(good, Clearing.Price(
+                var clear = Clearing.Price(
                     usual,
                     Elasticity.Adjust(stretch, wanted, prices.Of(good), usual),
                     _outputs.Get(country.Id, good) + spare,
                     stretch,
-                    _world.Elasticity.Supply(good)));
+                    _world.Elasticity.Supply(good));
+
+                // Цена идёт к равновесию за неделю, а не встаёт на него за день: равновесие каждый
+                // день новое, и цена за ним дрожала, давая скачки недельной инфляции в разы выше жизни.
+                var now = prices.Of(good);
+                prices.SetTo(good, _day <= 1 || now.Raw <= 0
+                    ? clear
+                    : new Money(now.Raw + (clear.Raw - now.Raw) / StickyDays));
             }
         }
     }
