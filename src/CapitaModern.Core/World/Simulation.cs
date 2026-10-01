@@ -714,7 +714,7 @@ public sealed class Simulation
     /// всё сверх. Одна константа на два механизма, и торговля сама чинит цены, которые
     /// иначе упирались бы в коридор.</remarks>
     /// <summary>Во сколько раз дороже своей цены страна отдаёт рабочий запас.</summary>
-    private const int PremiumTimes = 2;
+    private const int PremiumTimes = 3;
 
     private void Trade()
     {
