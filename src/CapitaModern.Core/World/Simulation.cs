@@ -792,9 +792,11 @@ public sealed class Simulation
                 // её возьмёт лишь тот, кому товар и правда нужен. Лекарств в мире хватало, а сверх
                 // своей нормы их не держал никто, и России с её ценой впятеро выше мировой не
                 // продавали вовсе — у неё вставали больницы.
-                if (offer.Raw == 0 && stock.Raw > 0)
+                // Не ниже половины нормы: без этого Германия по тройной цене распродавала свой склад
+                // до нуля, и к шестому году вставали её собственные заводы.
+                if (offer.Raw == 0 && stock.Raw > target.Raw / 4)
                 {
-                    var spare = new GoodAmount(Math.Min(stock.Raw, target.Raw) / Prices.TargetCoverDays);
+                    var spare = new GoodAmount((Math.Min(stock.Raw, target.Raw) - target.Raw / 4) / Prices.TargetCoverDays);
                     if (spare.Raw > 0)
                     {
                         market.Add(new MarketOrder(
@@ -3635,6 +3637,20 @@ public sealed class Simulation
     /// <summary>Сколько зданий поднято и сколько рухнуло за всю игру. Только для замера.</summary>
     public long BuiltSoFar { get; private set; }
 
+    /// <summary>Товар здания в стране в явном дефиците: цена вдвое выше стартовой.</summary>
+    /// <remarks>Такой цех ставят и при нехватке рук: иначе мощность по дефициту не росла вовсе, и
+    /// у России кончались лекарства, а с ними вставали её больницы.</remarks>
+    private static bool Scarce(Country country, Buildings.BuildingInfo info)
+    {
+        var prices = country.State.Prices;
+        foreach (var good in info.Outputs.Keys)
+        {
+            if (prices.Of(good).Raw >= prices.StartOf(good).Raw * 2) return true;
+        }
+
+        return false;
+    }
+
     /// <summary>Сколько раз вместо нового цеха переоснастили старые.</summary>
     public long ModernizedSoFar { get; private set; }
 
@@ -4636,7 +4652,7 @@ public sealed class Simulation
                 // заводы обходятся меньшим штатом. Пока строили цеха, к сороковому году
                 // заводы США просили вдвое больше людей, чем у страны есть.
                 var asked = _jobs.GetValueOrDefault(country.Id);
-                if (builder is not null && asked > _world.WorkersOf(country.Id))
+                if (builder is not null && asked > _world.WorkersOf(country.Id) && !Scarce(country, info))
                 {
                     var freed = _world.Efficiency.HandsFor(country.Id, info.Sector,
                         (long)info.OptimalWorkers * _loadWas.GetValueOrDefault(country.Id, Load.Full) / Load.Full);
