@@ -713,6 +713,9 @@ public sealed class Simulation
     /// <remarks>Норма запаса та же, что двигает цену: страна докупает до неё и продаёт
     /// всё сверх. Одна константа на два механизма, и торговля сама чинит цены, которые
     /// иначе упирались бы в коридор.</remarks>
+    /// <summary>Во сколько раз дороже своей цены страна отдаёт рабочий запас.</summary>
+    private const int PremiumTimes = 2;
+
     private void Trade()
     {
         CountAfford();
@@ -783,6 +786,21 @@ public sealed class Simulation
                         Elasticity.MinFactor, Elasticity.MaxSupplyFactor);
 
                     if (offer > stock) offer = stock;
+                }
+
+                // Излишка нет — часть рабочего запаса всё же продают, но вдвое дороже своей цены:
+                // её возьмёт лишь тот, кому товар и правда нужен. Лекарств в мире хватало, а сверх
+                // своей нормы их не держал никто, и России с её ценой впятеро выше мировой не
+                // продавали вовсе — у неё вставали больницы.
+                if (offer.Raw == 0 && stock.Raw > 0)
+                {
+                    var spare = new GoodAmount(Math.Min(stock.Raw, target.Raw) / Prices.TargetCoverDays);
+                    if (spare.Raw > 0)
+                    {
+                        market.Add(new MarketOrder(
+                            country.Id, country.State, spare, default, new Money(inWorld.Raw * PremiumTimes), inWorld,
+                            _world.Efficiency.Of(country.Id, SectorOf(good))));
+                    }
                 }
 
                 if (bid.Raw == 0 && offer.Raw == 0) continue;
