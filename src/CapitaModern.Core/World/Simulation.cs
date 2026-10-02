@@ -1481,6 +1481,17 @@ public sealed class Simulation
     private long ShelfRoom(byte country, GoodType good, GoodAmount abroad, GoodAmount stock)
     {
         var wanted = _norm.Get(country, good) + abroad;
+
+        // Услуги не хранятся: склад у них всегда равен дневному выпуску, меньше любой нормы, и фирмы
+        // работали на полную при любом спросе. У Германии выходило втрое больше услуг, чем просили,
+        // продавалась треть, и зарплаты, считаемые с продаж, уходили в ноль.
+        if (good == GoodType.Services)
+        {
+            var could = PotentialOutputOf(country, good);
+            if (could.Raw <= 0 || wanted >= could) return Load.Full;
+
+            return Math.Max(MinLoad, wanted.Raw * Load.Full / could.Raw);
+        }
         var target = new GoodAmount(wanted.Raw * Prices.TargetCoverDays);
 
         if (stock <= target) return Load.Full;
