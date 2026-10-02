@@ -2113,48 +2113,38 @@ public sealed class Simulation
     /// <summary>Во сколько раз подорожала корзина потребления с первого дня партии, в долях
     /// <see cref="PriceLevel.Scale"/>.</summary>
     /// <remarks>
-    /// Цепной индекс, как у статистических служб: каждый день умножается на отношение сегодняшней
-    /// корзины к вчерашней. База — цены после первого тика: цены из данных для модели не
-    /// равновесие, первый же тик их переоценивал, и первая неделя показывала +69%. Прежний индекс
-    /// против стартовых цен ещё и прыгал, когда товар отлипал от края коридора и возвращался в состав.
+    /// Постоянная корзина против цен после первого тика: цены из данных для модели не равновесие,
+    /// первый же тик их переоценивал. Без исключений и без цепочки — цепной индекс, выкидывавший
+    /// товары у края коридора, уползал: рост до потолка в него не попадал, а спуск попадал, и у
+    /// Германии он показывал 0.23 при ценах около единицы, а центробанк гнался за этой тенью.
     /// </remarks>
     public int BasketLevelOf(byte country) => _basketIndex.GetValueOrDefault(country, PriceLevel.Scale);
 
     private readonly Dictionary<byte, int> _basketIndex = new();
-    private readonly Dictionary<byte, long[]> _basketPrices = new();
+    private readonly Dictionary<byte, long> _basketBase = new();
 
-    /// <summary>Подвигает цепной индекс корзины на сегодняшние цены.</summary>
+    /// <summary>Считает индекс корзины по сегодняшним ценам.</summary>
     private void NoteBasket()
     {
         foreach (var country in _world.Countries)
         {
             var prices = country.State.Prices;
-            var today = AllGoods.Select(good => prices.Of(good).Raw).ToArray();
 
-            if (_basketPrices.TryGetValue(country.Id, out var before))
+            Int128 now = 0;
+            foreach (var (good, rate) in _world.Needs.BaseRates) now += (Int128)prices.Of(good).Raw * rate.Raw;
+
+            var cost = (long)(now / GoodAmount.Scale);
+            if (!_basketBase.TryGetValue(country.Id, out var first) || first <= 0)
             {
-                Int128 now = 0;
-                Int128 was = 0;
-
-                foreach (var (good, rate) in _world.Needs.BaseRates)
-                {
-                    // Цена на краю коридора о деньгах не говорит ничего: она стоит там оттого,
-                    // что товара завались или нет вовсе.
-                    if (Railed(prices, good, today[(int)good]) || Railed(prices, good, before[(int)good])) continue;
-
-                    now += (Int128)today[(int)good] * rate.Raw;
-                    was += (Int128)before[(int)good] * rate.Raw;
-                }
-
-                if (was > 0)
-                {
-                    var index = _basketIndex.GetValueOrDefault(country.Id, PriceLevel.Scale);
-                    var next = index * now / was;
-                    _basketIndex[country.Id] = next < 1 ? 1 : next > PriceLevel.Ceiling ? PriceLevel.Ceiling : (int)next;
-                }
+                _basketBase[country.Id] = cost;
+                first = cost;
             }
 
-            _basketPrices[country.Id] = today;
+            if (first > 0)
+            {
+                var index = (Int128)cost * PriceLevel.Scale / first;
+                _basketIndex[country.Id] = index < 1 ? 1 : index > PriceLevel.Ceiling ? PriceLevel.Ceiling : (int)index;
+            }
 
             // Центробанк держит цены: корзина ниже первого дня — политика мягче, выше — жёстче.
             // Без этого цены падали на шесть-десять процентов в год и к тридцатому году уходили в ноль.
@@ -2174,12 +2164,6 @@ public sealed class Simulation
     /// <summary>За сколько суток политика выбирает отклонение цен от цели.</summary>
     private const int PolicyDays = 1095;
 
-    private static bool Railed(Prices prices, GoodType good, long live)
-    {
-        var start = prices.StartOf(good).Raw;
-
-        return start <= 0 || live * Prices.MaxSwingTimes <= start || live >= start * Prices.MaxSwingTimes;
-    }
 
     /// <summary>Уровень цен для паритета: сколько денег против выпуска.</summary>
     /// <remarks>
