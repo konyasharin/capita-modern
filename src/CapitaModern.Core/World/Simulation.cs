@@ -3743,6 +3743,9 @@ public sealed class Simulation
     ///
     /// Идёт после стройки: стройка тоже покупка, и её надо учесть в дневном расходе.
     /// </remarks>
+    /// <summary>На сколько суток стройки компания держит деньги в кассе.</summary>
+    private const int HoardDays = 90;
+
     private void Settle()
     {
         foreach (var country in _world.Countries)
@@ -3834,6 +3837,11 @@ public sealed class Simulation
                 // строил ровно столько, сколько изнашивал.
                 var loose = company.Cash > toGrow ? company.Cash - toGrow : default;
                 if (owners > loose) owners = loose;
+
+                // Сверх квартала стройки касса не копится — излишек уходит владельцам, то есть людям.
+                // Иначе деньги, которым нечего было строить, выпадали из спроса, и мир стоял на трети мощности.
+                var hoard = new Money(want.Raw * HoardDays);
+                if (company.Cash - owners > hoard) owners = company.Cash - hoard;
 
                 Interlocked.Add(ref Flows[2], owners.Raw);
                 country.Households.Earn(company.Give(owners));
@@ -4779,6 +4787,9 @@ public sealed class Simulation
         return where is null ? null : (order.Type, where);
     }
 
+    /// <summary>Ниже какой загрузки, в процентах, новые фирмы услуг не строят.</summary>
+    private const int IdleCeiling = 80;
+
     /// <param name="focus">Отрасли, в которых компания работает. Пусто — берётся за что
     /// угодно; так строит государство по заказу игрока.</param>
     private (BuildingType Type, Region Where)? BestBuild(
@@ -4831,7 +4842,11 @@ public sealed class Simulation
             // Полка уже забита — новое здание будет стоять рядом с нынешними. Считаем это
             // прямо в окупаемость: стоящий завод возвращает вложенное во столько же раз
             // медленнее.
+            // Услуги не лежат на складе: если их мощность уже выше спроса, новая фирма будет просто
+            // стоять. Прежде простой лишь снижал выгоду, и у США к сороковому году фирм услуг было
+            // вдвадцатеро больше, чем покупали.
             var room = ShelfRoomFor(country, info);
+            if (info.Outputs.ContainsKey(GoodType.Services) && room < Load.Full * IdleCeiling / 100) continue;
             if (room < Load.Full) value = value * room / Load.Full;
 
             // Пока не выбрано ничего, берём любое прибыльное: отдача на работника у
