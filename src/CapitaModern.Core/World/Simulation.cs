@@ -3744,7 +3744,7 @@ public sealed class Simulation
     /// Идёт после стройки: стройка тоже покупка, и её надо учесть в дневном расходе.
     /// </remarks>
     /// <summary>На сколько суток стройки компания держит деньги в кассе.</summary>
-    private const int HoardDays = 90;
+    private const int HoardDays = 60;
 
     private void Settle()
     {
@@ -3838,7 +3838,7 @@ public sealed class Simulation
                 var loose = company.Cash > toGrow ? company.Cash - toGrow : default;
                 if (owners > loose) owners = loose;
 
-                // Сверх квартала стройки касса не копится — излишек уходит владельцам, то есть людям.
+                // Сверх двух месяцев стройки касса не копится — излишек уходит владельцам, то есть людям.
                 // Иначе деньги, которым нечего было строить, выпадали из спроса, и мир стоял на трети мощности.
                 var hoard = new Money(want.Raw * HoardDays);
                 if (company.Cash - owners > hoard) owners = company.Cash - hoard;
