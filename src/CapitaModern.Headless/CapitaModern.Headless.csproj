@@ -11,7 +11,5 @@
     <ProjectReference Include="..\CapitaModern.Core\CapitaModern.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <!-- Алиасы дробных величин: global using не переходит границу проекта, подключаем файлом -->
-    <Compile Include="$(MSBuildThisFileDirectory)..\CapitaModern.Core\Aliases.cs" Link="Aliases.cs" />
   </ItemGroup>
 </Project>

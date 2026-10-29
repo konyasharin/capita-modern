@@ -1,178 +1,66 @@
-﻿using CapitaModern.Core.Buildings;
 using CapitaModern.Core.Economy;
-using CapitaModern.Core.Politics;
+using CapitaModern.Core.Map;
 
 namespace CapitaModern.Core.World;
 
-/// <summary>Состояние партии. Владеет областями и странами, остальные берут их ссылкой.</summary>
+/// <summary>Всё состояние партии. Логика живёт в шагах симуляции, здесь только данные и поиск.</summary>
 public sealed class GameWorld
 {
-    public BuildingCatalog Buildings { get; }
+    public required Catalog Catalog { get; init; }
+    public required WorldMap Map { get; init; }
+    public required RegionGrid Grid { get; init; }
 
-    /// <summary>Мировой рынок: один на партию, цены на нём свои.</summary>
-    public WorldMarket Market { get; }
+    /// <summary>Страны по id, тот же байт, что в карте; пустые места — null.</summary>
+    public required Country?[] CountryById { get; init; }
 
-    /// <summary>Насколько спрос отзывается на цену. Одна на мир: свойство товара,
-    /// а не страны.</summary>
-    public Elasticity Elasticity { get; }
+    /// <summary>Регионы по id; нулевой — пустое место.</summary>
+    public required Region?[] RegionById { get; init; }
 
-    /// <summary>Как страна добирается до рынка: своим портом или через соседей.</summary>
-    public Routes Routes { get; }
+    public required IReadOnlyList<DivisionTemplate> Templates { get; init; }
 
-    /// <summary>Что удорожает ввоз сверх цены товара: перевозка и пошлины.</summary>
-    public TradeCosts TradeCosts { get; }
+    /// <summary>Сколько товара съедает за сутки миллион человек: (товар, ставка).</summary>
+    public required (int Good, double Rate)[] Needs { get; init; }
 
-    /// <summary>Кто кому даёт в долг. Один на партию, как и товарный рынок.</summary>
-    public CreditMarket Credit { get; } = new();
+    /// <summary>Насколько потребление каждого товара из <see cref="Needs"/> идёт за доходом на душу.</summary>
+    public required double[] NeedElasticity { get; init; }
 
-    /// <summary>Кто кому друг. Пока влияет на кредит, дальше — на санкции и войну.</summary>
-    public Relations Relations { get; }
+    /// <summary>Во сколько раз больше перерабатывает тот же завод тем же штатом, чем на старте.</summary>
+    public double Productivity { get; set; } = 1.0;
 
-    /// <summary>Насколько хорошо страна умеет производить. Вся разница в
-    /// производительности между странами лежит здесь: завод везде одинаковый.</summary>
-    public Efficiency Efficiency { get; }
-    /// <summary>Что и сколько нужно населению. Зависит от дохода, а не только от числа душ.</summary>
-    public readonly Needs Needs;
+    public List<Company> Companies { get; } = [];
+    public List<Project> Projects { get; } = [];
+    public List<Division> Divisions { get; } = [];
 
-    private readonly Region[] _regions;
-    private readonly Country[] _countries;
-    private readonly Region[] _regionsById;
-    private readonly Country[] _countriesById;
-    private readonly Population[] _populationsByCountry;
+    /// <summary>Пары стран в войне, меньший id первым.</summary>
+    public HashSet<(int, int)> Wars { get; } = [];
 
-    /// <summary>Области страны, отсортированные по населению. Пересобираются вместе с
-    /// населением: перебирать две с половиной тысячи областей на каждую стройку нельзя.</summary>
-    private readonly List<Region>[] _regionsByCountry;
+    public DateOnly Date { get; set; } = new(2020, 1, 1);
+    public int Day { get; set; }
+    public int NextDivisionId { get; set; } = 1;
 
-    public GameWorld(
-        Region[] regions,
-        Country[] countries,
-        BuildingCatalog buildings,
-        Needs needs,
-        WorldMarket market,
-        Elasticity elasticity,
-        Relations? relations = null,
-        Efficiency? efficiency = null,
-        TradeCosts? tradeCosts = null,
-        Routes? routes = null
-    ) {
-        Buildings = buildings;
-        Market = market;
-        Elasticity = elasticity;
-        Relations = relations ?? new Relations();
-        Efficiency = efficiency ?? new Efficiency();
-        TradeCosts = tradeCosts ?? new TradeCosts();
-        Routes = routes ?? new Routes();
-        Needs = needs;
-        _regions = regions;
-        _countries = countries;
+    public IEnumerable<Country> Countries => CountryById.OfType<Country>();
+    public IEnumerable<Region> Regions => RegionById.OfType<Region>();
 
-        _regionsById = new Region[regions.Max(region => region.Id) + 1];
-        foreach (var region in regions) _regionsById[region.Id] = region;
+    public Region Region(int id) => RegionById[id] ?? throw new ArgumentException($"нет региона {id}");
+    public Country Country(int id) => CountryById[id] ?? throw new ArgumentException($"нет страны {id}");
 
-        _countriesById = new Country[countries.Max(country => country.Id) + 1];
-        foreach (var country in countries) _countriesById[country.Id] = country;
+    public IEnumerable<Region> ControlledBy(int country) => Regions.Where(r => r.Controller == country);
+    public IEnumerable<Region> OwnedBy(int country) => Regions.Where(r => r.Owner == country);
 
-        _populationsByCountry = new Population[_countries.Max(country => country.Id) + 1];
-        _regionsByCountry = new List<Region>[_populationsByCountry.Length];
-        for (var i = 0; i < _regionsByCountry.Length; i++) _regionsByCountry[i] = [];
+    public bool AtWar(int a, int b) => a != b && Wars.Contains(a < b ? (a, b) : (b, a));
 
-        UpdatePopulations();
-    }
+    public IEnumerable<int> Enemies(int country) =>
+        Wars.Where(w => w.Item1 == country || w.Item2 == country)
+            .Select(w => w.Item1 == country ? w.Item2 : w.Item1);
 
-    public IReadOnlyList<Region> Regions => _regions;
-    public Region RegionById(int id) =>
-        id > 0 && id < _regionsById.Length && _regionsById[id] is {} region ?
-            region :
-            throw new ArgumentOutOfRangeException(nameof(id), id, "Региона не найдено");
-
-    public IReadOnlyList<Country> Countries => _countries;
-
-    /// <summary>Частные компании. Пусто, пока мир не заселён ими: тесты строят мир
-    /// руками, и хозяин там один.</summary>
-    public IReadOnlyList<Company> Companies => _companies;
-
-    /// <summary>Компании страны. Список короткий, перебор дешевле словаря.</summary>
-    public IReadOnlyList<Company> CompaniesOf(byte country) =>
-        _byCountry.TryGetValue(country, out var list) ? list : [];
-
-    /// <summary>Заселяет мир компаниями и раздаёт им стартовые здания.</summary>
-    public void Settle(IReadOnlyList<Company> companies)
+    /// <summary>Регион под ячейкой карты, null — океан.</summary>
+    public Region? RegionAt(int x, int y)
     {
-        _companies = companies;
-        _byCountry.Clear();
+        if (x < 0 || y < 0 || x >= Grid.Width || y >= Grid.Height) return null;
 
-        foreach (var company in companies)
-        {
-            if (!_byCountry.TryGetValue(company.Country, out var list)) _byCountry[company.Country] = list = [];
-
-            list.Add(company);
-
-            // Здания компаниям раздали до заселения, поэтому указатель наполняем разом, а
-            // дальше он обновляется сам — стройкой, износом, продажей и разорением.
-            company.Ledger = Holdings;
-            foreach (var ((region, type), _) in company.Buildings) Holdings.Note(company, region, type);
-        }
+        var id = Grid.Cell[y * Grid.Width + x];
+        return id == RegionGrid.None ? null : RegionById[id];
     }
 
-    /// <summary>Кто чем владеет. Нужен износу: он рушит здания области, а списать их надо
-    /// у настоящих хозяев.</summary>
-    public Holdings Holdings { get; } = new();
-
-    private IReadOnlyList<Company> _companies = [];
-    private readonly Dictionary<byte, List<Company>> _byCountry = [];
-    public Country CountryById(byte id) =>
-        id < _countriesById.Length && _countriesById[id] is {} country ?
-            country :
-            throw new ArgumentOutOfRangeException(nameof(id), id, "Страны не найдено");
-
-    public Population PopulationOf(byte country) =>
-        country < _populationsByCountry.Length ?
-            _populationsByCountry[country] :
-            throw new ArgumentOutOfRangeException(nameof(country), country, "Страны не найдено");
-
-    /// <summary>Сколько людей страна может поставить на производство.</summary>
-    /// <remarks>Не всё население: дети, старики и те, кто занят вне нашей модели —
-    /// в услугах и на стройке. В жизни рабочая сила примерно 44% населения.</remarks>
-    public long WorkersOf(byte country) => PopulationOf(country).Whole * WorkingShare / 100;
-
-    /// <summary>Доля населения в рабочей силе, в процентах.</summary>
-    public const int WorkingShare = 44;
-
-    public void UpdatePopulations()
-    {
-        Array.Clear(_populationsByCountry);
-        foreach (var list in _regionsByCountry) list.Clear();
-
-        foreach (var region in _regions)
-        {
-            _populationsByCountry[region.LargestOwner] += region.Demographics.Population;
-            _regionsByCountry[region.LargestOwner].Add(region);
-        }
-
-        // Самая населённая — первая: туда и ставят завод, там есть кому работать.
-        foreach (var list in _regionsByCountry)
-        {
-            list.Sort((a, b) => b.Demographics.Population.Raw.CompareTo(a.Demographics.Population.Raw));
-        }
-    }
-
-    /// <summary>Области страны, от самой населённой к самой пустой.</summary>
-    public IReadOnlyList<Region> RegionsOf(byte country) =>
-        country < _regionsByCountry.Length ? _regionsByCountry[country] : [];
-
-    /// <summary>Сколько у страны зданий одного типа по всем её регионам.</summary>
-    public int BuildingsOf(byte country, BuildingType type)
-    {
-        var total = 0;
-        foreach (var region in RegionsOf(country)) total += region.BuildingsOf(type, country);
-
-        return total;
-    }
-
-    public void TransferCells(int region, byte from, byte to, int count)
-    {
-        _regionsById[region].TransferCells(from, to, count);
-        UpdatePopulations();
-    }
+    public Company? CompanyOf(int id) => id == Company.State ? null : Companies[id];
 }

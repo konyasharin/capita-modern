@@ -15,10 +15,9 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\CapitaModern.Core\CapitaModern.Core.csproj" />
+    <Using Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
-    <!-- Алиасы дробных величин: global using не переходит границу проекта, подключаем файлом -->
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\src\CapitaModern.Core\Aliases.cs" Link="Aliases.cs" />
+    <ProjectReference Include="..\..\src\CapitaModern.Core\CapitaModern.Core.csproj" />
   </ItemGroup>
 </Project>
