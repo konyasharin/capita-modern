@@ -141,9 +141,8 @@ public static class WorldBuilder
     /// <summary>Сколько недель мир прогоняется до старта партии.</summary>
     private const int WarmUpWeeks = 52;
 
-    /// <summary>Год экономики вхолостую: склады, загрузка, цены и торговля садятся на свой ход до первого дня партии,
-    /// иначе игрок видел бы, как ВВП экспортёров проседает в первые месяцы.</summary>
-    /// <remarks>Рост и стройка в разминку не идут: население, прогресс и заводы остаются стартовыми.</remarks>
+    /// <summary>Год экономики вхолостую, без роста и стройки: склады, загрузка, цены и торговля садятся на свой ход.</summary>
+    /// <remarks>Иначе в первые месяцы партии ВВП экспортёров проседал.</remarks>
     private static void WarmUp(GameWorld world)
     {
         for (var week = 0; week < WarmUpWeeks; week++)
@@ -157,6 +156,11 @@ public static class WorldBuilder
         foreach (var country in world.Countries)
         {
             country.WorkNeed0 = Math.Max(1, EconomyStep.Jobs(world.Catalog, world.OwnedBy(country.Id).SelectMany(r => r.Plants)));
+
+            // Нужды после разминки и есть стартовые: иначе на первой неделе они сдвигались на 3–6%.
+            country.IncomeStart *= country.Income;
+            country.Income = 1.0;
+            country.Needs0 = country.Needs.ToArray();
             country.PriceLevel = 1.0;
             country.Inflation = 0.02;
             country.Treasury = country.GdpReal * 0.05;
@@ -188,7 +192,7 @@ public static class WorldBuilder
             {
                 var building = catalog.Buildings[catalog.BuildingIndex(type)];
                 var count = start * building.Split;
-                var added = count * (Value(catalog, building.Outputs) - Value(catalog, building.Inputs));
+                var added = count * EconomyStep.Added(catalog, building.Index);
                 var output = count * building.Outputs.Where(o => o.Good == services).Sum(o => o.Amount);
 
                 if (output > 0)
@@ -360,7 +364,7 @@ public static class WorldBuilder
             foreach (var (good, amount) in building.Inputs) country.DailyUse[good] += amount * plant.Count;
             foreach (var (good, amount) in building.Upkeep) country.DailyUse[good] += amount * plant.Count;
 
-            added += plant.Count * (Value(catalog, building.Outputs) - Value(catalog, building.Inputs));
+            added += plant.Count * EconomyStep.Added(catalog, building.Index);
             workers += plant.Count * building.Workers;
             plant.Load = 1.0;
         }
@@ -443,9 +447,6 @@ public static class WorldBuilder
 
         foreach (var region in world.Regions) region.Plants.RemoveAll(p => p.Count <= 0);
     }
-
-    private static double Value(Catalog catalog, (int Good, double Amount)[] items) =>
-        items.Sum(item => item.Amount * catalog.Goods[item.Good].BasePrice);
 
     private static List<DivisionTemplate> Templates(GameData data, Catalog catalog)
     {

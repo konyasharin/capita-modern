@@ -159,6 +159,12 @@ public sealed class Country
     /// <summary>Доля нужд населения, которую удалось закрыть за неделю.</summary>
     public double Satisfaction { get; set; } = 1.0;
 
+    /// <summary>Добавленная стоимость закрытых зданий за сутки: в мерке дохода они остаются, их люди просто перешли.</summary>
+    public double Retired { get; set; }
+
+    /// <summary>Доход на душу к стартовому, по которому считались нужды на этой неделе.</summary>
+    public double Income { get; set; } = 1.0;
+
     /// <summary>Привычная нехватка, сглаженная за полгода: цены гонит только её рост.</summary>
     public double ShortageUsual { get; set; }
 

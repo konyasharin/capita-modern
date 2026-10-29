@@ -24,11 +24,9 @@ sealed class Checks(GameWorld world)
     private readonly Dictionary<(int, int), (double Value, string Iso)> _worstStep = [];
     private readonly Dictionary<(int, int), int> _outside = [];
     private readonly Dictionary<(int, int), (double Value, string Iso)> _extreme = [];
-    private int _weeks;
 
     public void Week()
     {
-        _weeks++;
         foreach (var c in world.Countries.Where(c => c.GdpReal > 1e5))
         {
             for (var m = 0; m < Metrics.Length; m++)
@@ -49,14 +47,14 @@ sealed class Checks(GameWorld world)
                     continue;
                 }
 
-                if (_weeks > 1 && _last.TryGetValue((c.Id, m), out var last))
+                if (_last.TryGetValue((c.Id, m), out var last))
                 {
                     var step = metric.Unit == "%" ? (last > 0 ? Math.Abs(value / last - 1) : 0) : Math.Abs(value - last);
                     Note(m, c, step);
                 }
 
                 _last[(c.Id, m)] = value;
-                if (_weeks > 1 && (value < metric.Min || value > metric.Max))
+                if (value < metric.Min || value > metric.Max)
                 {
                     _outside[(m, c.Id)] = _outside.GetValueOrDefault((m, c.Id)) + 1;
                     var key = (m, value < metric.Min ? -1 : 1);

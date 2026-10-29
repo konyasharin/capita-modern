@@ -22,7 +22,10 @@ public static class BuildStep
     /// <summary>При рынке государство вкладывается само, только когда цена товара настолько выше обычной.</summary>
     private const double MarketStateShortage = 1.25;
 
-    /// <summary>Цена услуг при нехватке каждой десятой: 1 + 0.5 × 0.1.</summary>
+    /// <summary>Ниже этой доли полученного сырья новые заводы на нём не строят.</summary>
+    private const double InputsFill = 0.95;
+
+    /// <summary>Цена услуг, когда людям не хватает каждой десятой.</summary>
     private const double ServicesShortage = 1.05;
 
     /// <summary>Для замера: нечего строить, мало денег, пауза, начато, нет рук.</summary>
@@ -172,7 +175,14 @@ public static class BuildStep
         foreach (var (company, choice) in wishes.OrderByDescending(w => w.Choice.Score))
         {
 
-            // Самому нужному не хватает рук — остальные ждут, а не разбирают руки по мелочи.
+            var cost = Cost(world.Catalog, country, choice.Building);
+            if (company.Cash < cost)
+            {
+                Stall[1]++;
+                continue;
+            }
+
+            // Самому нужному из тех, кому по карману, не хватает рук — остальные ждут, а не разбирают руки по мелочи.
             var workers = world.Catalog.Buildings[choice.Building].Workers;
             if (workers > hands)
             {
@@ -180,8 +190,7 @@ public static class BuildStep
                 break;
             }
 
-            var cost = Cost(world.Catalog, country, choice.Building);
-            if (company.Cash < cost || !Book(world, country, booked, choice.Building))
+            if (!Book(world, country, booked, choice.Building))
             {
                 Stall[1]++;
                 continue;
@@ -249,6 +258,10 @@ public static class BuildStep
             var scarcity = building.Outputs.Max(o => country.PriceMult[o.Good]);
             var enough = building.Outputs.Any(o => catalog.Goods[o.Good].Perishable) ? Math.Min(bar, ServicesShortage) : bar;
             if (scarcity < enough) continue;
+
+            // Сырьё не доходит и до стоящих заводов — новый не из чего кормить: иначе металлургию строили
+            // где угодно, спрос на бокситы рос всемеро, и нехватка расползалась по цепочке.
+            if (building.Inputs.Any(i => country.Fill[i.Good] < InputsFill)) continue;
 
             var revenue = building.Outputs.Sum(o => o.Amount * country.Price(o.Good, catalog.Goods[o.Good].BasePrice));
             var cost = building.Inputs.Sum(i => i.Amount * country.Price(i.Good, catalog.Goods[i.Good].BasePrice));

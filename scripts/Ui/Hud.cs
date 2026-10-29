@@ -169,7 +169,7 @@ public partial class Hud : Control
         _countryInfo.Text = ShownCountry is { } country ? CountryText(country) : "";
 
         var key = $"{_session.Selected?.Id}|{_session.Selected?.Controller}|{_session.Selected?.Owner}|{_session.Game.Player}|"
-            + $"{ShownCountry?.System}|{ShownCountry?.AutoBuild}|{ShownCountry?.AutoTax}|{world.Wars.Count}";
+            + $"{ShownCountry?.System}|{ShownCountry?.AutoBuild}|{ShownCountry?.AutoTax}|{Math.Round((ShownCountry?.TaxRate ?? 0) * 100)}|{world.Wars.Count}";
         if (key == _actionsKey) return;
 
         _actionsKey = key;

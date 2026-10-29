@@ -43,6 +43,9 @@ public static class EconomyStep
     public const double PriceCeiling = 1.6;
 
     private const double TaxStep = 0.002;
+
+    /// <summary>Сколько сверх расходов советник оставляет казне на госстройку.</summary>
+    private const double TaxSurplus = 1.15;
     private const double MinTax = 0.10;
     private const double MaxTax = 0.45;
 
@@ -111,7 +114,8 @@ public static class EconomyStep
         var population = regions.Sum(r => (double)r.Population);
         var stacks = regions.Where(r => r.Supplied).SelectMany(r => r.Plants).Where(p => p.Count > 0).ToList();
 
-        country.Potential = regions.SelectMany(r => r.Plants).Sum(p => p.Count * Added(catalog, p.Building)) * 365 * world.Productivity;
+        country.Potential = (regions.SelectMany(r => r.Plants).Sum(p => p.Count * Added(catalog, p.Building)) + country.Retired)
+            * 365 * world.Productivity;
         var labour = Labour(world, country, population, stacks);
         Grow(world, country, population, labour);
         Capacity(world, country, population, stacks, labour);
@@ -162,6 +166,7 @@ public static class EconomyStep
                 var used = Math.Min(country.Stock[good], runs * amount * WeekDays);
                 country.Stock[good] -= used;
                 cost += used * country.Price(good, catalog.Goods[good].BasePrice);
+                addedReal -= used * catalog.Goods[good].BasePrice;
             }
 
             foreach (var (good, amount) in building.Outputs)
@@ -213,12 +218,12 @@ public static class EconomyStep
     public static double Jobs(Catalog catalog, IEnumerable<PlantStack> stacks) =>
         stacks.Sum(p => p.Count * catalog.Buildings[p.Building].Workers);
 
-    /// <summary>Добавленная стоимость одного здания за сутки на полном ходу, в базовых ценах.</summary>
+    /// <summary>Добавленная стоимость одного здания за сутки на полном ходу, в базовых ценах, за вычетом ремонта.</summary>
     public static double Added(Catalog catalog, int building)
     {
         var info = catalog.Buildings[building];
-        return info.Outputs.Sum(o => o.Amount * catalog.Goods[o.Good].BasePrice)
-            - info.Inputs.Sum(i => i.Amount * catalog.Goods[i.Good].BasePrice);
+        double Value((int Good, double Amount)[] items) => items.Sum(i => i.Amount * catalog.Goods[i.Good].BasePrice);
+        return Value(info.Outputs) - Value(info.Inputs) - Value(info.Upkeep);
     }
 
     /// <summary>Потребление на душу идёт за достатком. Мерка достатка — мощность заводов на душу,
@@ -228,6 +233,7 @@ public static class EconomyStep
         if (country.IncomeStart <= 0 || population <= 0 || country.Needs0.Length != country.Needs.Length) return;
 
         var income = Math.Clamp(country.Potential * labour / population / country.IncomeStart, 0.2, 5);
+        country.Income = income;
         var spentBefore = 0.0;
         var spentNow = 0.0;
         for (var i = 0; i < country.Needs.Length; i++)
@@ -340,7 +346,7 @@ public static class EconomyStep
         }
 
         Companies(world);
-        Close(world.Catalog, world.Regions);
+        ClosePlants(world);
     }
 
     /// <summary>Ниже этой загрузки мирный завод понемногу закрывают.</summary>
@@ -352,27 +358,29 @@ public static class EconomyStep
     /// <summary>Из малой стопки не закрывают: у микрогосударства одно здание — заметная доля всей экономики.</summary>
     private const int CloseMinCount = 10;
 
-    /// <summary>Долго недогруженные заводы закрываются, и их люди уходят туда, где товара не хватает.</summary>
-    /// <remarks>Без этого фермы с ростом дохода стояли на треть, а руки на услуги не освобождались.
-    /// Военные заводы не трогают: в мирное время им и положено простаивать.</remarks>
-    private static void Close(Catalog catalog, IEnumerable<Region> regions)
+    /// <summary>Долго недогруженные мирные заводы закрываются, и их люди уходят туда, где товара не хватает.</summary>
+    /// <remarks>Без этого фермы с ростом дохода стояли на треть, а руки на услуги не освобождались.</remarks>
+    private static void ClosePlants(GameWorld world)
     {
-        foreach (var region in regions)
+        foreach (var region in world.Regions)
         {
             foreach (var plant in region.Plants)
             {
-                var building = catalog.Buildings[plant.Building];
-                if (plant.Count < CloseMinCount || building.Sector == "Military" || plant.Load >= CloseBelow) continue;
+                var building = world.Catalog.Buildings[plant.Building];
+                if (plant.Count < CloseMinCount || building.Sector == "Military" || plant.Load >= CloseBelow)
+                {
+                    plant.Closing = 0;
+                    continue;
+                }
 
                 plant.Closing += plant.Count * CloseRate * (CloseBelow - plant.Load) / CloseBelow;
-                while (plant.Closing >= 1 && plant.Count >= CloseMinCount)
+                while (plant.Closing >= 1 && plant.Count > CloseMinCount)
                 {
                     plant.Count--;
                     plant.Closing -= 1;
+                    world.Country(region.Owner).Retired += Added(world.Catalog, plant.Building);
                 }
             }
-
-            region.Plants.RemoveAll(p => p.Count <= 0);
         }
     }
 
@@ -394,12 +402,11 @@ public static class EconomyStep
         country.SpentWeek += spending;
         country.PrintedWeek = 0;
 
-        // Советник двигает налог по чуть-чуть: казна меньше двух месяцев трат — выше, больше полугода — ниже.
+        // Советник смотрит на поток, а не на остаток: казну тратит и госстройка, и это не дефицит.
         if (country.AutoTax && spending > 0)
         {
-            var weeks = country.Treasury / spending;
-            if (weeks < 8) country.TaxRate = Math.Min(MaxTax, country.TaxRate + TaxStep);
-            else if (weeks > 26) country.TaxRate = Math.Max(MinTax, country.TaxRate - TaxStep);
+            if (country.TaxesWeek < spending) country.TaxRate = Math.Min(MaxTax, country.TaxRate + TaxStep);
+            else if (country.TaxesWeek > spending * TaxSurplus) country.TaxRate = Math.Max(MinTax, country.TaxRate - TaxStep);
         }
 
         if (country.Treasury < 0)

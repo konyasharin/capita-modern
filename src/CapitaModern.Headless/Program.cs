@@ -16,7 +16,7 @@ Console.WriteLine($"мир собран за {clock.ElapsedMilliseconds} мс: �
 var traceAt = Array.IndexOf(args, "--trace");
 var traced = traceAt >= 0 && traceAt + 1 < args.Length ? world.Countries.First(c => c.Iso == args[traceAt + 1]) : null;
 
-var goodAt = Array.IndexOf(args, "--good");
+var goodAt = Array.IndexOf(args, "--good") is var at && at >= 0 && at + 1 < args.Length ? at : -1;
 var traceAll = args.Contains("--weekly");
 var war = Array.IndexOf(args, "--war");
 if (war >= 0 && war + 2 < args.Length)
@@ -75,7 +75,7 @@ for (var year = 1; year <= years; year++)
             }
         }
 
-        if (goodAt >= 0 && year == 1 && world.Day / 7 is 1 or 4 or 10 or 30 or 52)
+        if (goodAt >= 0 && (year == 1 && world.Day / 7 is 1 or 4 or 10 or 30 or 52 || year % 10 == 0 && day >= 358))
         {
             var g = world.Catalog.GoodIndex(args[goodAt + 1]);
             Console.WriteLine($"  неделя {world.Day / 7}: {args[goodAt + 1]} — мощн/нед, выпуск, вывоз, ввоз, расход/нед, запас сут, цена");
