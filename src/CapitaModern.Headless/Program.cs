@@ -27,6 +27,7 @@ if (war >= 0 && war + 2 < args.Length)
     Console.WriteLine($"война: {a.Name} против {b.Name}");
 }
 
+var export0 = new Dictionary<int, double>();
 var use0 = new double[world.Catalog.Goods.Count];
 var cap0 = new double[world.Catalog.Goods.Count];
 string[] watched = ["USA", "CHN", "RUS", "DEU", "IND", "BRA", "PRK"];
@@ -68,6 +69,12 @@ for (var year = 1; year <= years; year++)
 
         if (world.Day == 7)
         {
+            foreach (var c in world.Countries)
+            {
+                export0[c.Id] = world.Catalog.Goods.Sum(g => c.ExportedWeek[g.Index] * g.BasePrice)
+                    / Math.Max(1e-9, world.Catalog.Goods.Where(g => !g.Perishable).Sum(g => c.ProducedWeek[g.Index] * g.BasePrice));
+            }
+
             for (var g = 0; g < use0.Length; g++)
             {
                 use0[g] = world.Countries.Sum(c => c.DailyUse[g]) * 7;
@@ -155,6 +162,29 @@ if (growth.Count > 0)
         + string.Join(", ", growth.TakeLast(5).Select(x => $"{x.Iso} {x.Rate * 100:F1}%")));
 }
 
+Console.WriteLine("глубже всех проседали (по годам, от пика): страна, просадка, годы, выработка рудников, вывоз/выпуск сейчас против старта");
+var drops = world.Countries.Where(c => series[c.Id][0] > 1e6 && series[c.Id].Count > 104).Select(c =>
+{
+    var years = series[c.Id].Skip(1).Chunk(52).Where(ch => ch.Length == 52).Select(ch => ch.Average()).ToList();
+    var (worst, from, to, peak, at) = (1.0, 0, 0, years[0], 0);
+    for (var i = 1; i < years.Count; i++)
+    {
+        if (years[i] > peak) (peak, at) = (years[i], i);
+        if (years[i] / peak < worst) (worst, from, to) = (years[i] / peak, at, i);
+    }
+
+    return (c, worst, from, to);
+}).Where(d => d.worst < 0.99).OrderBy(d => d.worst).Take(10).ToList();
+foreach (var (c, worst, from, to) in drops)
+{
+    var mines = world.Regions.Where(r => r.Owner == c.Id).SelectMany(r => r.Plants.Select(p => (r, p)))
+        .Where(x => world.Catalog.Buildings[x.p.Building].Deposit >= 0).ToList();
+    var richness = mines.Count > 0 ? mines.Sum(x => x.p.Count * EconomyStep.Richness(x.r, world.Catalog.Buildings[x.p.Building])) / mines.Sum(x => (double)x.p.Count) : 1;
+    var exported = world.Catalog.Goods.Sum(g => c.ExportedWeek[g.Index] * g.BasePrice)
+        / Math.Max(1e-9, world.Catalog.Goods.Where(g => !g.Perishable).Sum(g => c.ProducedWeek[g.Index] * g.BasePrice));
+    Console.WriteLine($"  {c.Iso,-4} −{(1 - worst) * 100,4:F0}%  годы {from + 1}–{to + 1}  рудники {richness * 100,3:F0}%  вывоз {exported * 100,3:F0}% (старт {export0[c.Id] * 100:F0}%)");
+}
+
 foreach (var iso in new[] { "USA", "CHN", "RUS", "DEU" })
 {
     var c = world.Countries.First(x => x.Iso == iso);
@@ -165,6 +195,22 @@ foreach (var iso in new[] { "USA", "CHN", "RUS", "DEU" })
 
 Console.WriteLine();
 checks.Print();
+
+Console.WriteLine();
+Console.WriteLine("страна  выработка  её рост  налог  цена труда  издержки  замена ввозом  вывоз/выпуск");
+foreach (var iso in watched.Concat(["JPN", "NGA", "SAU"]))
+{
+    var c = world.Countries.FirstOrDefault(x => x.Iso == iso);
+    if (c is null) continue;
+
+    var shift = Enumerable.Range(0, c.ImportShift.Length).Where(g => c.ProducedWeek[g] > 0)
+        .Sum(g => c.ImportShift[g] * c.ProducedWeek[g] * world.Catalog.Goods[g].BasePrice)
+        / Math.Max(1e-9, Enumerable.Range(0, c.ImportShift.Length).Sum(g => c.ProducedWeek[g] * world.Catalog.Goods[g].BasePrice));
+    var exported = world.Catalog.Goods.Sum(g => c.ExportedWeek[g.Index] * g.BasePrice)
+        / Math.Max(1e-9, world.Catalog.Goods.Where(g => !g.Perishable).Sum(g => c.ProducedWeek[g.Index] * g.BasePrice));
+    Console.WriteLine($"{iso,-6} {c.Productivity,9:F2}  {c.ProductivityGrowth * 100,6:F1}%  {c.TaxRate * 100,5:F0}%  {c.Wage,10:F2}  {c.Wage / c.Productivity,8:F2}  "
+        + $"{shift * 100,12:F0}%  {exported * 100,11:F0}%");
+}
 
 Console.WriteLine();
 Console.WriteLine("страна  ВВП трлн  инфляция  уровень цен  нужды  казна/ВВП  цены товаров: мин..макс");

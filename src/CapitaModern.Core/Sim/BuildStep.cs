@@ -19,6 +19,12 @@ public static class BuildStep
 
     private const int CompanyProjects = 3;
 
+    /// <summary>Какую долю уже стоящих зданий этого типа в стране строят разом.</summary>
+    private const double BatchShare = 0.005;
+
+    /// <summary>Партией строят, только когда товара заметно не хватает; иначе по одному зданию.</summary>
+    private const double BatchShortage = 1.05;
+
     /// <summary>При рынке государство вкладывается само, только когда цена товара настолько выше обычной.</summary>
     private const double MarketStateShortage = 1.25;
 
@@ -43,7 +49,7 @@ public static class BuildStep
         var busy = world.Projects.GroupBy(p => p.Company).ToDictionary(g => g.Key, g => g.Count());
         var reserved = Reserved(world);
         var coming = world.Projects.GroupBy(p => p.Country)
-            .ToDictionary(g => g.Key, g => g.Sum(p => world.Catalog.Buildings[p.Building].Workers));
+            .ToDictionary(g => g.Key, g => g.Sum(p => world.Catalog.Buildings[p.Building].Workers * p.Count));
 
         foreach (var country in world.Countries)
         {
@@ -79,13 +85,13 @@ public static class BuildStep
 
             foreach (var (good, amount) in building.BuildCost)
             {
-                var need = amount * part;
+                var need = amount * part * project.Count;
                 country.DemandWeek[good] += need;
                 fill = Math.Min(fill, need <= 0 ? 1 : country.Stock[good] / need);
             }
 
             fill = Math.Clamp(fill, 0, 1);
-            foreach (var (good, amount) in building.BuildCost) country.Stock[good] -= amount * part * fill;
+            foreach (var (good, amount) in building.BuildCost) country.Stock[good] -= amount * part * project.Count * fill;
 
             project.DaysDone += EconomyStep.WeekDays * fill;
             if (project.DaysDone < project.DaysTotal) continue;
@@ -93,15 +99,15 @@ public static class BuildStep
             world.Projects.Remove(project);
             // Компания могла разориться или уйти под план, пока шла стройка: тогда завод государству.
             var owner = world.CompanyOf(project.Company) is { Alive: true } company ? company.Id : Company.State;
-            Raise(region, project.Building, owner);
+            Raise(region, project.Building, owner, project.Count);
         }
     }
 
-    public static void Raise(Region region, int building, int company)
+    public static void Raise(Region region, int building, int company, int count = 1)
     {
         var stack = region.Plants.FirstOrDefault(p => p.Building == building && p.Company == company);
-        if (stack is null) region.Plants.Add(new PlantStack(building, 1, company));
-        else stack.Count++;
+        if (stack is null) region.Plants.Add(new PlantStack(building, count, company));
+        else stack.Count += count;
     }
 
     /// <summary>Сколько материалов страна уже обещала идущим стройкам на ближайшие недели.</summary>
@@ -118,7 +124,7 @@ public static class BuildStep
 
             foreach (var (good, amount) in world.Catalog.Buildings[project.Building].BuildCost)
             {
-                need[good] += amount * EconomyStep.WeekDays / project.DaysTotal * MaterialWeeks;
+                need[good] += amount * project.Count * EconomyStep.WeekDays / project.DaysTotal * MaterialWeeks;
             }
         }
 
@@ -126,16 +132,28 @@ public static class BuildStep
     }
 
     /// <summary>Хватит ли материалов на новую стройку сверх обещанного идущим. Если да — бронирует.</summary>
-    private static bool Book(GameWorld world, Country country, double[] booked, int building)
+    private static bool Book(GameWorld world, Country country, double[] booked, int building, int count)
     {
         var cost = world.Catalog.Buildings[building].BuildCost;
         foreach (var (good, amount) in cost)
         {
-            if (country.Stock[good] < booked[good] + amount) return false;
+            if (country.Stock[good] < booked[good] + amount * count) return false;
         }
 
-        foreach (var (good, amount) in cost) booked[good] += amount;
+        foreach (var (good, amount) in cost) booked[good] += amount * count;
         return true;
+    }
+
+    /// <summary>Сколько зданий строить разом: до доли от уже стоящих в стране, сколько позволяют деньги и руки.</summary>
+    /// <remarks>По одному зданию в месяц большая страна не могла нарастить добычу, и к 30-му году в мире кончалась нефть.</remarks>
+    private static int Batch(Country country, List<Region> regions, Building building, double money, double cost, double hands)
+    {
+        var short_ = building.Outputs.Max(o => country.PriceMult[o.Good]) >= BatchShortage;
+        var standing = short_ ? regions.Sum(r => r.Count(building.Index)) : 0;
+        var wanted = Math.Max(1, (int)(standing * BatchShare));
+        var affordable = cost > 0 ? (int)(money / cost) : wanted;
+        var staffed = building.Workers > 0 ? (int)(hands / building.Workers) : wanted;
+        return Math.Min(wanted, Math.Min(affordable, staffed));
     }
 
     /// <summary>Сколько рабочих мест ещё можно открыть, чтобы на старых заводах людей не стало меньше, чем на старте.</summary>
@@ -175,6 +193,7 @@ public static class BuildStep
         foreach (var (company, choice) in wishes.OrderByDescending(w => w.Choice.Score))
         {
 
+            var building = world.Catalog.Buildings[choice.Building];
             var cost = Cost(world.Catalog, country, choice.Building);
             if (company.Cash < cost)
             {
@@ -183,25 +202,25 @@ public static class BuildStep
             }
 
             // Самому нужному из тех, кому по карману, не хватает рук — остальные ждут, а не разбирают руки по мелочи.
-            var workers = world.Catalog.Buildings[choice.Building].Workers;
-            if (workers > hands)
+            if (building.Workers > hands)
             {
                 Stall[4]++;
                 break;
             }
 
-            if (!Book(world, country, booked, choice.Building))
+            var count = Batch(country, regions, building, company.Cash, cost, hands);
+            if (!Book(world, country, booked, choice.Building, count))
             {
                 Stall[1]++;
                 continue;
             }
 
             Stall[3]++;
-            hands -= workers;
+            hands -= building.Workers * count;
 
-            company.Cash -= cost;
+            company.Cash -= cost * count;
             company.BuiltAt = world.Day;
-            Start(world, country, choice.Building, choice.Region, company.Id);
+            Start(world, country, choice.Building, choice.Region, company.Id, count);
         }
     }
 
@@ -217,18 +236,21 @@ public static class BuildStep
             var choice = Best(world, country, regions, _ => true, bar);
             if (choice is null) return;
 
-            var workers = world.Catalog.Buildings[choice.Value.Building].Workers;
+            var building = world.Catalog.Buildings[choice.Value.Building];
             var cost = Cost(world.Catalog, country, choice.Value.Building);
-            if (workers > hands || cost > spare || !Book(world, country, booked, choice.Value.Building)) return;
+            if (building.Workers > hands || cost > spare) return;
 
-            hands -= workers;
-            country.Treasury -= cost;
-            spare -= cost;
-            Start(world, country, choice.Value.Building, choice.Value.Region, Company.State);
+            var count = Batch(country, regions, building, spare, cost, hands);
+            if (!Book(world, country, booked, choice.Value.Building, count)) return;
+
+            hands -= building.Workers * count;
+            country.Treasury -= cost * count;
+            spare -= cost * count;
+            Start(world, country, choice.Value.Building, choice.Value.Region, Company.State, count);
         }
     }
 
-    public static void Start(GameWorld world, Country country, int building, int region, int company) =>
+    public static void Start(GameWorld world, Country country, int building, int region, int company, int count = 1) =>
         world.Projects.Add(new Project
         {
             Building = building,
@@ -236,6 +258,7 @@ public static class BuildStep
             Country = country.Id,
             Company = company,
             DaysTotal = BuildDays,
+            Count = count,
         });
 
     public static double Cost(Catalog catalog, Country country, int building) =>
@@ -282,10 +305,11 @@ public static class BuildStep
     }
 
     /// <summary>Добыча — туда, где месторождение; остальное — где людей много, а таких зданий мало.</summary>
+    /// <remarks>Рудник ставят по остатку запаса, а не по стартовому богатству: на выработанное не идут.</remarks>
     public static Region? Place(IEnumerable<Region> regions, Building building) =>
         regions
-            .Where(r => building.Deposit < 0 || r.Deposits.ContainsKey(building.Deposit))
+            .Where(r => building.Deposit < 0 || r.Deposits.ContainsKey(building.Deposit) && EconomyStep.Richness(r, building) >= 1)
             .MaxBy(r => building.Deposit >= 0
-                ? r.Deposits[building.Deposit] / (1.0 + r.Count(building.Index))
+                ? r.Reserve.GetValueOrDefault(building.Deposit, r.Deposits[building.Deposit]) / (1.0 + r.Count(building.Index))
                 : r.Population / (1.0 + r.Count(building.Index)));
 }

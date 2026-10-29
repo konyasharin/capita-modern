@@ -19,8 +19,35 @@ public static class EconomyStep
     /// <summary>Доля мощности, на которой завод держится, даже когда его товар никому не нужен.</summary>
     public const double MinLoad = 0.01;
 
-    /// <summary>Технический прогресс в год: тот же завод тем же штатом перерабатывает больше.</summary>
-    public const double ProductivityGrowth = 0.015;
+    /// <summary>Рост производительности за год у лидеров при обычном налоге и рынке.</summary>
+    private const double BaseGrowth = 0.015;
+
+    /// <summary>Сколько прибавляет отставание от лидеров: за каждое «в e раз беднее».</summary>
+    private const double CatchUp = 0.007;
+
+    /// <summary>Без усилий заводы стареют, и производительность сползает.</summary>
+    private const double Decay = -0.005;
+
+    private const double MaxGrowth = 0.06;
+
+    /// <summary>Налог, при котором частные вложения обычные; каждый пункт сверху режет их на два процента.</summary>
+    private const double NeutralTax = 0.20;
+
+    /// <summary>План строит не там, где выгодно: отдача вложений вдвое ниже.</summary>
+    private const double PlannedReturn = 0.5;
+
+    /// <summary>Лидеры по выпуску на душу берутся только среди стран крупнее этого: не карлики и не эмираты.</summary>
+    private const double FrontierPopulation = 20e6;
+
+    /// <summary>Склад начинают беречь, когда его меньше чем на столько недель: нехватка нарастает плавно, а не обрушивается в день,
+    /// когда склад опустел.</summary>
+    private const double RationWeeks = 2;
+
+    /// <summary>Какую долю добытого мир за то же время находит заново.</summary>
+    private const double Discovery = 0.9;
+
+    /// <summary>Какая доля стартового запаса месторождения выбирается без потерь; дальше рудник сбавляет по остатку.</summary>
+    private const double DepletionTail = 0.25;
 
     /// <summary>Прирост населения в год.</summary>
     public const double PopulationGrowth = 0.009;
@@ -57,12 +84,65 @@ public static class EconomyStep
     {
         if (grow)
         {
-            world.Productivity *= Math.Pow(1 + ProductivityGrowth, WeekDays / 365.0);
+            Advance(world);
             foreach (var region in world.Regions) region.Population = (long)(region.Population * Math.Pow(1 + PopulationGrowth, WeekDays / 365.0));
         }
 
         foreach (var country in world.Countries) Supply(world, country);
         foreach (var country in world.Countries) Produce(world, country);
+        Discover(world);
+    }
+
+    /// <summary>Разведка: мир находит чуть меньше, чем добыл, и по богатству недр, а не там, где копают.</summary>
+    /// <remarks>Без неё запасы у всех кончались разом лет через тридцать, и мир вставал. Так перекопанные регионы
+    /// выдыхаются, а сырьё с годами понемногу дорожает.</remarks>
+    private static void Discover(GameWorld world)
+    {
+        var deposits = world.Regions.Where(r => r.Reserve0.Count > 0).ToList();
+        foreach (var good in deposits.SelectMany(r => r.Reserve0.Keys).Distinct())
+        {
+            var mined = world.Countries.Sum(c => c.ProducedWeek[good]);
+            var richness = deposits.Sum(r => r.Deposits.GetValueOrDefault(good));
+            if (mined <= 0 || richness <= 0) continue;
+
+            foreach (var region in deposits.Where(r => r.Deposits.ContainsKey(good)))
+            {
+                region.Reserve[good] = region.Reserve.GetValueOrDefault(good) + mined * Discovery * region.Deposits[good] / richness;
+            }
+        }
+    }
+
+    /// <summary>Производительность каждой страны: бедная догоняет лидеров, но только пока вкладывается.</summary>
+    private static void Advance(GameWorld world)
+    {
+        var people = world.Regions.GroupBy(r => r.Owner).ToDictionary(g => g.Key, g => g.Sum(r => (double)r.Population));
+        var leaders = world.Countries
+            .Where(c => c.GdpReal > 0 && people.GetValueOrDefault(c.Id) > FrontierPopulation)
+            .Select(c => c.GdpReal / people[c.Id]).OrderByDescending(x => x).Take(5).ToList();
+        var frontier = leaders.Count > 0 ? leaders.Average() : 0;
+
+        foreach (var country in world.Countries)
+        {
+            var population = people.GetValueOrDefault(country.Id);
+            if (country.GdpReal <= 0 || population <= 0) continue;
+
+            var gap = frontier > 0 ? Math.Log(Math.Max(1, frontier / (country.GdpReal / population))) : 0;
+            // Стройка в модели — плохая мерка вложений: крупным странам её режут руки, и они «не вкладывались».
+            // Усилие задают налоговое бремя и строй.
+            var effort = Math.Clamp(1 - 2 * (country.TaxRate - NeutralTax), 0.4, 1.2);
+            if (country.System == EconomicSystem.Planned) effort *= PlannedReturn;
+
+            var growth = Math.Min(MaxGrowth, Decay + effort * (BaseGrowth + CatchUp * gap));
+            country.ProductivityGrowth = growth;
+            country.Productivity *= Math.Pow(1 + growth, WeekDays / 365.0);
+        }
+    }
+
+    /// <summary>Какую долю рудник ещё выдаёт: пока выбрано меньше трёх четвертей запаса — всё, дальше по остатку.</summary>
+    public static double Richness(Region region, Building building)
+    {
+        if (building.Deposit < 0 || !region.Reserve0.TryGetValue(building.Deposit, out var start) || start <= 0) return 1;
+        return Math.Clamp(region.Reserve.GetValueOrDefault(building.Deposit) / (start * DepletionTail), 0, 1);
     }
 
     /// <summary>Регион снабжается, если от него до столицы держателя можно дойти по его же регионам.</summary>
@@ -112,14 +192,18 @@ public static class EconomyStep
         }
 
         var population = regions.Sum(r => (double)r.Population);
-        var stacks = regions.Where(r => r.Supplied).SelectMany(r => r.Plants).Where(p => p.Count > 0).ToList();
+        var units = regions.Where(r => r.Supplied)
+            .SelectMany(r => r.Plants.Where(p => p.Count > 0).Select(p => (Region: r, Plant: p)))
+            .ToList();
+        var stacks = units.Select(u => u.Plant).ToList();
+        var rates = units.Select(u => country.Productivity * Richness(u.Region, catalog.Buildings[u.Plant.Building])).ToArray();
 
         country.Potential = (regions.SelectMany(r => r.Plants).Sum(p => p.Count * Added(catalog, p.Building)) + country.Retired)
-            * 365 * world.Productivity;
+            * 365 * country.Productivity;
         var labour = Labour(world, country, population, stacks);
         Grow(world, country, population, labour);
-        Capacity(world, country, population, stacks, labour);
-        var shelf = Shelf(world, country, population, stacks);
+        Capacity(world, country, population, stacks, rates, labour);
+        var shelf = Shelf(world, country, population, stacks, rates);
 
         // Сколько каждая стопка хотела бы сделать и сколько ей на это нужно сырья.
         var wanted = new double[stacks.Count];
@@ -128,7 +212,7 @@ public static class EconomyStep
         {
             var building = catalog.Buildings[stacks[i].Building];
             var room = building.Outputs.Length == 0 ? 1.0 : building.Outputs.Min(o => shelf[o.Good]);
-            wanted[i] = stacks[i].Count * labour * room * world.Productivity;
+            wanted[i] = stacks[i].Count * labour * room * rates[i];
 
             foreach (var (good, amount) in building.Inputs) request[good] += wanted[i] * amount * WeekDays;
             foreach (var (good, amount) in building.Upkeep) request[good] += wanted[i] * amount * WeekDays;
@@ -138,7 +222,8 @@ public static class EconomyStep
         for (var g = 0; g < goods; g++)
         {
             country.DemandWeek[g] += request[g];
-            fill[g] = request[g] <= 0 ? 1 : Math.Min(1, country.Stock[g] / request[g]);
+            var ration = catalog.Goods[g].Perishable ? 1 : RationWeeks;
+            fill[g] = request[g] <= 0 ? 1 : Math.Min(1, country.Stock[g] / (request[g] * ration));
         }
 
         var addedReal = 0.0;
@@ -148,7 +233,8 @@ public static class EconomyStep
             var building = catalog.Buildings[plant.Building];
             var share = building.Inputs.Length == 0 ? 1.0 : building.Inputs.Min(input => fill[input.Good]);
             var runs = wanted[i] * share;
-            plant.Load = plant.Count > 0 ? runs / (plant.Count * world.Productivity) : 0;
+            // Загрузка меряется от полной отдачи: выработанный рудник выглядит простаивающим и со временем закрывается.
+            plant.Load = plant.Count > 0 ? runs / (plant.Count * country.Productivity) : 0;
 
             var revenue = 0.0;
             var cost = 0.0;
@@ -172,6 +258,7 @@ public static class EconomyStep
             foreach (var (good, amount) in building.Outputs)
             {
                 var made = runs * amount * WeekDays;
+                if (good == building.Deposit) units[i].Region.Reserve[good] = Math.Max(0, units[i].Region.Reserve.GetValueOrDefault(good) - made);
                 country.Stock[good] += made;
                 country.ProducedWeek[good] += made;
                 revenue += made * country.Price(good, catalog.Goods[good].BasePrice);
@@ -188,16 +275,18 @@ public static class EconomyStep
 
     /// <summary>Расход при полной загрузке. Полка мерится им, а не нынешним расходом: тот падал вслед
     /// за срезанным выпуском, «запас в днях» рос, и выпуск резался снова — до нуля.</summary>
-    private static void Capacity(GameWorld world, Country country, double population, List<PlantStack> stacks, double labour)
+    private static void Capacity(GameWorld world, Country country, double population, List<PlantStack> stacks, double[] rates, double labour)
     {
         Array.Clear(country.CapacityUse);
         Array.Clear(country.CapacityOut);
-        foreach (var plant in stacks)
+        for (var i = 0; i < stacks.Count; i++)
         {
+            var plant = stacks[i];
+            var full = plant.Count * labour * rates[i];
             var building = world.Catalog.Buildings[plant.Building];
-            foreach (var (good, amount) in building.Inputs) country.CapacityUse[good] += plant.Count * labour * amount * world.Productivity;
-            foreach (var (good, amount) in building.Upkeep) country.CapacityUse[good] += plant.Count * labour * amount * world.Productivity;
-            foreach (var (good, amount) in building.Outputs) country.CapacityOut[good] += plant.Count * labour * amount * world.Productivity;
+            foreach (var (good, amount) in building.Inputs) country.CapacityUse[good] += full * amount;
+            foreach (var (good, amount) in building.Upkeep) country.CapacityUse[good] += full * amount;
+            foreach (var (good, amount) in building.Outputs) country.CapacityOut[good] += full * amount;
         }
 
         foreach (var (good, rate) in country.Needs) country.CapacityUse[good] += population / 1e6 * rate;
@@ -251,7 +340,7 @@ public static class EconomyStep
     }
 
     /// <summary>Сколько места на полке под каждый товар: полная загрузка, пока запас не выше нормы.</summary>
-    private static double[] Shelf(GameWorld world, Country country, double population, List<PlantStack> stacks)
+    private static double[] Shelf(GameWorld world, Country country, double population, List<PlantStack> stacks, double[] rates)
     {
         var catalog = world.Catalog;
         var shelf = new double[catalog.Goods.Count];
@@ -263,8 +352,8 @@ public static class EconomyStep
             {
                 // Услуги не лежат на складе: делают ровно столько, сколько просят люди.
                 var need = country.Needs.Where(n => n.Good == g).Sum(n => population / 1e6 * n.Rate);
-                var could = stacks.Sum(p => p.Count * catalog.Buildings[p.Building].Outputs
-                    .Where(o => o.Good == g).Sum(o => o.Amount)) * world.Productivity;
+                var could = stacks.Select((p, i) => p.Count * rates[i] * catalog.Buildings[p.Building].Outputs
+                    .Where(o => o.Good == g).Sum(o => o.Amount)).Sum();
                 shelf[g] = could <= 0 ? 1 : Math.Clamp(need / could, MinLoad, 1);
                 continue;
             }
@@ -308,7 +397,8 @@ public static class EconomyStep
         foreach (var (good, rate) in country.Needs)
         {
             var need = population / 1e6 * rate * WeekDays;
-            var taken = Math.Min(need, country.Stock[good]);
+            var ration = catalog.Goods[good].Perishable ? 1 : RationWeeks;
+            var taken = need <= 0 ? 0 : need * Math.Min(1, country.Stock[good] / (need * ration));
 
             country.Stock[good] -= taken;
             country.DemandWeek[good] += need;
@@ -340,6 +430,9 @@ public static class EconomyStep
                 country.DailyUse[g] = country.DailyUse[g] <= 0 ? today : country.DailyUse[g] + (today - country.DailyUse[g]) / 4;
                 country.ExportUse[g] += (country.ExportedWeek[g] / WeekDays - country.ExportUse[g]) / 4;
             }
+
+            // Зарплата растёт за доходом за три года, а падает втрое медленнее: после удара страна долго остаётся дорогой.
+            country.Wage += (country.Income - country.Wage) / (country.Income > country.Wage ? 156 : 468);
 
             // Спрос копится всю неделю, с боями и стройкой, и обнуляется только здесь.
             Array.Clear(country.DemandWeek);

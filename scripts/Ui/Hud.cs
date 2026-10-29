@@ -215,7 +215,7 @@ public partial class Hud : Control
             {
                 var owner = world.CompanyOf(group.Key.Company)?.Name ?? "государство";
                 var done = group.Average(p => p.DaysDone / p.DaysTotal);
-                text.AppendLine($"• {catalog.Buildings[group.Key.Building].Name} ×{group.Count()} — готово {done * 100:F0}%, {owner}");
+                text.AppendLine($"• {catalog.Buildings[group.Key.Building].Name} ×{group.Sum(p => p.Count)} — готово {done * 100:F0}%, {owner}");
             }
         }
 
@@ -248,6 +248,7 @@ public partial class Hud : Control
         text.AppendLine($"Инфляция: {c.Inflation * 100:F1}% · уровень цен ×{c.PriceLevel:F2}");
         text.AppendLine($"Казна: {Money(c.Treasury)} · налоги {Money(c.TaxesLast)} и расходы {Money(c.SpentLast)} в неделю");
         text.AppendLine($"Налог: {c.TaxRate * 100:F1}%{(c.AutoTax ? ", подбирает советник" : "")}");
+        text.AppendLine($"Выработка: ×{c.Productivity:F2} к старту, растёт на {c.ProductivityGrowth * 100:F1}% в год · издержки ×{TradeStep.Cost(c, 0) / c.PriceMult[0]:F2}");
         text.AppendLine($"Нужды людей закрыты на {c.Satisfaction * 100:F0}%");
 
         var enemies = world.Enemies(c.Id).ToList();
@@ -400,6 +401,29 @@ public partial class Hud : Control
         });
         taxRow.AddChild(tax);
         _countryActions.AddChild(taxRow);
+
+        _countryActions.AddChild(new HSeparator());
+        _countryActions.AddChild(new Label { Text = "Торговля товаром" });
+
+        var good = new OptionButton();
+        foreach (var item in world.Catalog.Goods.Where(g => !g.Perishable)) good.AddItem(item.Name, item.Index);
+        _countryActions.AddChild(good);
+
+        var subsidy = new SpinBox { MinValue = 0, MaxValue = 50, Step = 1, Prefix = "доплата экспортёрам", Suffix = "%" };
+        var tariff = new SpinBox { MinValue = 0, MaxValue = 100, Step = 1, Prefix = "пошлина на ввоз", Suffix = "%" };
+        void ShowTrade()
+        {
+            subsidy.SetValueNoSignal(Math.Round(country.ExportSubsidy[good.GetSelectedId()] * 100));
+            tariff.SetValueNoSignal(Math.Round(country.Tariff[good.GetSelectedId()] * 100));
+        }
+
+        good.ItemSelected += _ => ShowTrade();
+        subsidy.ValueChanged += value => _session.Act(() => country.ExportSubsidy[good.GetSelectedId()] = value / 100);
+        tariff.ValueChanged += value => _session.Act(() => country.Tariff[good.GetSelectedId()] = value / 100);
+        ShowTrade();
+
+        _countryActions.AddChild(subsidy);
+        _countryActions.AddChild(tariff);
 
         foreach (var enemy in world.Enemies(country.Id).ToList())
         {

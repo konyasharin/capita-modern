@@ -24,9 +24,6 @@ public sealed class GameWorld
     /// <summary>Насколько потребление каждого товара из <see cref="Needs"/> идёт за доходом на душу.</summary>
     public required double[] NeedElasticity { get; init; }
 
-    /// <summary>Во сколько раз больше перерабатывает тот же завод тем же штатом, чем на старте.</summary>
-    public double Productivity { get; set; } = 1.0;
-
     public List<Company> Companies { get; } = [];
     public List<Project> Projects { get; } = [];
     public List<Division> Divisions { get; } = [];

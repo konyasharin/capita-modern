@@ -1,0 +1,13 @@
+{
+	"note": "Сколько лет добычи 2020 года хватит разведанных запасов мира (R/P). Округлено по BP Statistical Review 2020 (нефть, газ, уголь) и USGS Mineral Commodity Summaries 2021 (руды, уран, редкие земли). Запас мира делится между регионами по богатству месторождения из deposits.json.",
+	"years": {
+		"Oil": 50,
+		"Gas": 50,
+		"Coal": 130,
+		"IronOre": 75,
+		"CopperOre": 43,
+		"Bauxite": 80,
+		"Uranium": 90,
+		"RareEarth": 500
+	}
+}

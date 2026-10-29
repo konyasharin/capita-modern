@@ -66,6 +66,9 @@ public sealed class GameData
 
     public required IReadOnlyList<DivisionDto> Divisions { get; init; }
 
+    /// <summary>На сколько лет стартовой добычи хватит запасов мира, по товарам.</summary>
+    public required IReadOnlyDictionary<string, double> ReserveYears { get; init; }
+
     /// <summary>Насколько потребление товара идёт за доходом на душу, в сотых.</summary>
     public required IReadOnlyDictionary<string, double> IncomeElasticity { get; init; }
 
@@ -101,6 +104,7 @@ public sealed class GameData
             DefaultDefence = defence.DefaultShare,
             Divisions = Read<DivisionsFile>(readText("data/military/divisions.json")).Divisions,
             IncomeElasticity = consumptionFile.IncomeElasticity,
+            ReserveYears = Read<ReservesFile>(readText("data/economy/deposit-reserves.json")).Years,
         };
     }
 
@@ -120,4 +124,5 @@ public sealed class GameData
     private sealed record CompaniesFile(Dictionary<string, List<CompanyDto>> Companies);
     private sealed record DefenceFile(int DefaultShare, Dictionary<string, int> Share);
     private sealed record DivisionsFile(List<DivisionDto> Divisions);
+    private sealed record ReservesFile(Dictionary<string, double> Years);
 }

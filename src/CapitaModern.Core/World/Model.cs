@@ -37,6 +37,12 @@ public sealed class Region
 
     public required long Population { get; set; }
     public required Dictionary<int, double> Deposits { get; init; }
+
+    /// <summary>Сколько ещё можно добыть, по товарам; кончается — рудники сбавляют.</summary>
+    public Dictionary<int, double> Reserve { get; } = [];
+
+    /// <summary>Запас на старте партии: от него меряется истощение.</summary>
+    public Dictionary<int, double> Reserve0 { get; } = [];
     public required int[] Neighbours { get; init; }
     public required float X { get; init; }
     public required float Y { get; init; }
@@ -78,6 +84,9 @@ public sealed class Project
     public required int Company { get; init; }
     public required double DaysTotal { get; init; }
     public double DaysDone { get; set; }
+
+    /// <summary>Сколько одинаковых зданий строится разом.</summary>
+    public int Count { get; init; } = 1;
 }
 
 public sealed class Country
@@ -132,6 +141,15 @@ public sealed class Country
     /// <summary>Сглаженный суточный вывоз — его полка тоже учитывает.</summary>
     public required double[] ExportUse { get; init; }
 
+    /// <summary>Доплата своим экспортёрам товара, доля цены: их товар дешевле у покупателя, платит казна.</summary>
+    public required double[] ExportSubsidy { get; init; }
+
+    /// <summary>Пошлина на ввоз товара, доля цены: чужой товар дороже, сбор идёт в казну.</summary>
+    public required double[] Tariff { get; init; }
+
+    /// <summary>Какую долю своего выпуска страна сейчас заменяет ввозом, потому что чужое дешевле.</summary>
+    public required double[] ImportShift { get; init; }
+
     /// <summary>Какую долю просимого сырья заводы получили за неделю, по товарам.</summary>
     public required double[] Fill { get; init; }
 
@@ -161,6 +179,15 @@ public sealed class Country
 
     /// <summary>Добавленная стоимость закрытых зданий за сутки: в мерке дохода они остаются, их люди просто перешли.</summary>
     public double Retired { get; set; }
+
+    /// <summary>Во сколько раз больше перерабатывает тот же завод тем же штатом, чем на старте.</summary>
+    public double Productivity { get; set; } = 1.0;
+
+    /// <summary>Рост производительности за год, как он сложился на этой неделе.</summary>
+    public double ProductivityGrowth { get; set; }
+
+    /// <summary>Цена труда к стартовой: идёт за доходом на душу с отставанием в три года.</summary>
+    public double Wage { get; set; } = 1.0;
 
     /// <summary>Доход на душу к стартовому, по которому считались нужды на этой неделе.</summary>
     public double Income { get; set; } = 1.0;

@@ -42,6 +42,9 @@ public static class WorldBuilder
                 CapacityUse = new double[goods],
                 CapacityOut = new double[goods],
                 ExportUse = new double[goods],
+                ExportSubsidy = new double[goods],
+                Tariff = new double[goods],
+                ImportShift = new double[goods],
                 ProducedWeek = new double[goods],
                 ConsumedWeek = new double[goods],
                 ImportedWeek = new double[goods],
@@ -102,6 +105,7 @@ public static class WorldBuilder
         foreach (var country in world.Countries) Prepare(world, country);
         StockForExport(world);
         WarmUp(world);
+        FillReserves(world, data);
 
         return world;
     }
@@ -134,6 +138,26 @@ public static class WorldBuilder
                 var export = Math.Max(0, made[country.Id][g] - country.DailyUse[g]) * Math.Min(1, imports / surplus);
                 country.ExportUse[g] = export;
                 country.Stock[g] += export * EconomyStep.NormDays;
+            }
+        }
+    }
+
+    /// <summary>Запас мира — столько лет добычи после разминки, сколько в данных; между регионами — по богатству месторождения.</summary>
+    private static void FillReserves(GameWorld world, GameData data)
+    {
+        foreach (var (id, years) in data.ReserveYears)
+        {
+            if (!world.Catalog.TryGood(id, out var good)) continue;
+
+            var yearly = world.Countries.Sum(c => c.ProducedWeek[good]) * 365 / EconomyStep.WeekDays;
+            var richness = world.Regions.Sum(r => r.Deposits.GetValueOrDefault(good));
+            if (yearly <= 0 || richness <= 0) continue;
+
+            foreach (var region in world.Regions.Where(r => r.Deposits.ContainsKey(good)))
+            {
+                var reserve = years * yearly * region.Deposits[good] / richness;
+                region.Reserve[good] = reserve;
+                region.Reserve0[good] = reserve;
             }
         }
     }
