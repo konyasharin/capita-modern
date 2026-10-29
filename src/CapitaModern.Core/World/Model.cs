@@ -21,6 +21,9 @@ public sealed class PlantStack(int building, int count, int company)
 
     /// <summary>Какой долей мощности стопка работала на прошлой неделе.</summary>
     public double Load { get; set; }
+
+    /// <summary>Накопленная доля здания к закрытию; дошла до единицы — одно здание закрыли.</summary>
+    public double Closing { get; set; }
 }
 
 public sealed class Region
@@ -86,6 +89,9 @@ public sealed class Country
 
     /// <summary>Строит ли государство само, без игрока.</summary>
     public bool AutoBuild { get; set; } = true;
+
+    /// <summary>Налог подбирает советник, чтобы казна сходилась с расходами.</summary>
+    public bool AutoTax { get; set; } = true;
 
     public int Capital { get; set; }
     public double TaxRate { get; set; } = 0.20;

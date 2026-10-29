@@ -11,6 +11,7 @@ public sealed record Good(int Index, string Id, string Name, string Category, st
 /// <param name="Inputs">Расход за сутки на одно здание: (товар, количество).</param>
 /// <param name="Outputs">Выпуск за сутки на одно здание.</param>
 /// <param name="Deposit">Месторождение, без которого здание не ставят; -1 — не нужно.</param>
+/// <param name="Split">На сколько частей разрезано здание из данных; столько же частей ставится на старте.</param>
 public sealed record Building(
     int Index,
     string Type,
@@ -21,13 +22,24 @@ public sealed record Building(
     (int Good, double Amount)[] Outputs,
     (int Good, double Amount)[] BuildCost,
     double Workers,
-    double LifeYears);
+    double LifeYears,
+    int Split)
+{
+    /// <summary>Ремонт за сутки работы: стоимость стройки, растянутая на срок службы.</summary>
+    /// <remarks>Ровный спрос на стройматериалы и металлы; без него их заводы ждали стройки и вставали.</remarks>
+    public (int Good, double Amount)[] Upkeep { get; } =
+        LifeYears > 0 ? BuildCost.Select(c => (c.Good, c.Amount / (LifeYears * 365))).ToArray() : [];
+}
 
 /// <summary>Товары и рецепты. Всё по индексам: недельный расчёт гоняет их сотни тысяч раз.</summary>
 public sealed class Catalog
 {
     public IReadOnlyList<Good> Goods { get; }
     public IReadOnlyList<Building> Buildings { get; }
+
+    /// <summary>Больше рабочих на одно здание не бывает: крупные режутся на части.</summary>
+    /// <remarks>Ферма на 9920 человек в Бутане — 17% всех рук, и стройка в малой стране не могла сдвинуться.</remarks>
+    public const double MaxWorkers = 500;
 
     private readonly Dictionary<string, int> _goodIndex;
     private readonly Dictionary<string, int> _buildingIndex;
@@ -37,11 +49,15 @@ public sealed class Catalog
         Goods = goods.Select((g, i) => new Good(i, g.Id, g.Name, g.Category, g.Unit, prices.GetValueOrDefault(g.Id, 1))).ToList();
         _goodIndex = Goods.ToDictionary(g => g.Id, g => g.Index);
 
-        Buildings = buildings.Select((b, i) => new Building(
-            i, b.Type, b.Name, b.Sector,
-            b.RequiresDeposit is { } d ? GoodIndex(d) : -1,
-            Pairs(b.Inputs), Pairs(b.Outputs), Pairs(b.BuildCost),
-            b.OptimalWorkers, b.LifeYears)).ToList();
+        Buildings = buildings.Select((b, i) =>
+        {
+            var split = Math.Max(1, (int)Math.Ceiling(b.OptimalWorkers / MaxWorkers));
+            return new Building(
+                i, b.Type, b.Name, b.Sector,
+                b.RequiresDeposit is { } d ? GoodIndex(d) : -1,
+                Pairs(b.Inputs, split), Pairs(b.Outputs, split), Pairs(b.BuildCost, split),
+                b.OptimalWorkers / split, b.LifeYears, split);
+        }).ToList();
         _buildingIndex = Buildings.ToDictionary(b => b.Type, b => b.Index);
     }
 
@@ -53,6 +69,6 @@ public sealed class Catalog
 
     public bool TryGood(string id, out int index) => _goodIndex.TryGetValue(id, out index);
 
-    private (int, double)[] Pairs(Dictionary<string, double> map) =>
-        map.Select(pair => (GoodIndex(pair.Key), pair.Value)).ToArray();
+    private (int, double)[] Pairs(Dictionary<string, double> map, int split) =>
+        map.Select(pair => (GoodIndex(pair.Key), pair.Value / split)).ToArray();
 }

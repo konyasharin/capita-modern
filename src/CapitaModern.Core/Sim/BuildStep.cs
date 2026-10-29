@@ -8,9 +8,6 @@ public static class BuildStep
 {
     public const double BuildDays = 180;
 
-    /// <summary>На какой рост капитала в год рассчитаны стройматериалы мира.</summary>
-    public const double GrowthPlan = 0.03;
-
     /// <summary>Сколько недель вперёд материалы должны быть на складе под уже идущие стройки.</summary>
     private const int MaterialWeeks = 8;
 
@@ -25,8 +22,11 @@ public static class BuildStep
     /// <summary>При рынке государство вкладывается само, только когда цена товара настолько выше обычной.</summary>
     private const double MarketStateShortage = 1.25;
 
-    /// <summary>Для замера: нечего строить, мало денег, пауза, начато.</summary>
-    public static readonly long[] Stall = new long[4];
+    /// <summary>Цена услуг при нехватке каждой десятой: 1 + 0.5 × 0.1.</summary>
+    private const double ServicesShortage = 1.05;
+
+    /// <summary>Для замера: нечего строить, мало денег, пауза, начато, нет рук.</summary>
+    public static readonly long[] Stall = new long[5];
 
     public static void Run(GameWorld world)
     {
@@ -39,14 +39,18 @@ public static class BuildStep
 
         var busy = world.Projects.GroupBy(p => p.Company).ToDictionary(g => g.Key, g => g.Count());
         var reserved = Reserved(world);
+        var coming = world.Projects.GroupBy(p => p.Country)
+            .ToDictionary(g => g.Key, g => g.Sum(p => world.Catalog.Buildings[p.Building].Workers));
 
         foreach (var country in world.Countries)
         {
             if (!held.TryGetValue(country.Id, out var regions)) continue;
 
             var booked = reserved.GetValueOrDefault(country.Id) ?? new double[world.Catalog.Goods.Count];
-            if (country.System == EconomicSystem.Market) CompaniesBuild(world, country, regions, busy, booked);
-            if (country.AutoBuild) StateBuilds(world, country, regions, booked);
+            var hands = FreeHands(world, country, regions) - coming.GetValueOrDefault(country.Id);
+            // Сначала государство закрывает явный дефицит, потом компании — руки достаются нужному в первую очередь.
+            if (country.AutoBuild) StateBuilds(world, country, regions, booked, ref hands);
+            if (country.System == EconomicSystem.Market) CompaniesBuild(world, country, regions, busy, booked, ref hands);
         }
     }
 
@@ -131,9 +135,21 @@ public static class BuildStep
         return true;
     }
 
-    private static void CompaniesBuild(
-        GameWorld world, Country country, List<Region> regions, Dictionary<int, int> busy, double[] booked)
+    /// <summary>Сколько рабочих мест ещё можно открыть, чтобы на старых заводах людей не стало меньше, чем на старте.</summary>
+    /// <remarks>Без этого стройка отнимала руки у услуг: у Ботсваны за 8 лет услуг стало на треть меньше.</remarks>
+    private static double FreeHands(GameWorld world, Country country, List<Region> regions)
     {
+        if (country.Workforce0 <= 0) return 0;
+
+        var workforce = regions.Sum(r => (double)r.Population) * EconomyStep.WorkingShare;
+        var jobs = EconomyStep.Jobs(world.Catalog, regions.SelectMany(r => r.Plants));
+        return workforce / country.Workforce0 * country.WorkNeed0 - jobs;
+    }
+
+    private static void CompaniesBuild(
+        GameWorld world, Country country, List<Region> regions, Dictionary<int, int> busy, double[] booked, ref double hands)
+    {
+        var wishes = new List<(Company Company, (int Building, int Region, double Score) Choice)>();
         foreach (var company in world.Companies.Where(c => c.Alive && c.Country == country.Id))
         {
             if (world.Day - company.BuiltAt < CompanyPause || busy.GetValueOrDefault(company.Id) >= CompanyProjects)
@@ -142,30 +158,46 @@ public static class BuildStep
                 continue;
             }
 
-            var choice = Best(world, country, regions, b => b.Sector == company.Sector && b.Type != "PublicService", 0.9);
-            if (choice is null)
+            var wish = Best(world, country, regions, b => b.Sector == company.Sector && b.Type != "PublicService", 0.9);
+            if (wish is null)
             {
                 Stall[0]++;
                 continue;
             }
 
-            var cost = Cost(world.Catalog, country, choice.Value.Building);
-            if (company.Cash < cost || !Book(world, country, booked, choice.Value.Building))
+            wishes.Add((company, wish.Value));
+        }
+
+        // Руки получает тот, чей товар нужнее и выгоднее, а не тот, кто первый в списке.
+        foreach (var (company, choice) in wishes.OrderByDescending(w => w.Choice.Score))
+        {
+
+            // Самому нужному не хватает рук — остальные ждут, а не разбирают руки по мелочи.
+            var workers = world.Catalog.Buildings[choice.Building].Workers;
+            if (workers > hands)
+            {
+                Stall[4]++;
+                break;
+            }
+
+            var cost = Cost(world.Catalog, country, choice.Building);
+            if (company.Cash < cost || !Book(world, country, booked, choice.Building))
             {
                 Stall[1]++;
                 continue;
             }
 
             Stall[3]++;
+            hands -= workers;
 
             company.Cash -= cost;
             company.BuiltAt = world.Day;
-            Start(world, country, choice.Value.Building, choice.Value.Region, company.Id);
+            Start(world, country, choice.Building, choice.Region, company.Id);
         }
     }
 
     /// <summary>Государство строит из запаса казны. При рынке — только туда, где явный дефицит.</summary>
-    private static void StateBuilds(GameWorld world, Country country, List<Region> regions, double[] booked)
+    private static void StateBuilds(GameWorld world, Country country, List<Region> regions, double[] booked, ref double hands)
     {
         var weekly = country.GdpReal * country.PriceLevel / 52 * (EconomyStep.CivilSpending + country.DefenceShare);
         var spare = country.Treasury - weekly * ReserveWeeks;
@@ -176,9 +208,11 @@ public static class BuildStep
             var choice = Best(world, country, regions, _ => true, bar);
             if (choice is null) return;
 
+            var workers = world.Catalog.Buildings[choice.Value.Building].Workers;
             var cost = Cost(world.Catalog, country, choice.Value.Building);
-            if (cost > spare || !Book(world, country, booked, choice.Value.Building)) return;
+            if (workers > hands || cost > spare || !Book(world, country, booked, choice.Value.Building)) return;
 
+            hands -= workers;
             country.Treasury -= cost;
             spare -= cost;
             Start(world, country, choice.Value.Building, choice.Value.Region, Company.State);
@@ -200,19 +234,21 @@ public static class BuildStep
 
     /// <summary>Что выгоднее всего строить: доход на вложенное, умноженный на дефицит товара.</summary>
     /// <param name="bar">Ниже какого множителя цены товара его не строят: значит, его хватает.</param>
-    private static (int Building, int Region)? Best(
+    private static (int Building, int Region, double Score)? Best(
         GameWorld world, Country country, List<Region> regions, Func<Building, bool> allowed, double bar)
     {
         var catalog = world.Catalog;
-        (int, int)? best = null;
+        (int, int, double)? best = null;
         var bestScore = 0.0;
 
         foreach (var building in catalog.Buildings.Where(allowed))
         {
             if (building.Outputs.Length == 0 || building.BuildCost.Length == 0) continue;
 
+            // Услуги не привезёшь из-за границы: их достраивают, как только людям не хватает каждой десятой.
             var scarcity = building.Outputs.Max(o => country.PriceMult[o.Good]);
-            if (scarcity < bar) continue;
+            var enough = building.Outputs.Any(o => catalog.Goods[o.Good].Perishable) ? Math.Min(bar, ServicesShortage) : bar;
+            if (scarcity < enough) continue;
 
             var revenue = building.Outputs.Sum(o => o.Amount * country.Price(o.Good, catalog.Goods[o.Good].BasePrice));
             var cost = building.Inputs.Sum(i => i.Amount * country.Price(i.Good, catalog.Goods[i.Good].BasePrice));
@@ -226,7 +262,7 @@ public static class BuildStep
             if (region is null) continue;
 
             bestScore = score;
-            best = (building.Index, region.Id);
+            best = (building.Index, region.Id, score);
         }
 
         return best;

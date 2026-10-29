@@ -42,13 +42,21 @@ public static class EconomyStep
     public const double PriceFloor = 0.6;
     public const double PriceCeiling = 1.6;
 
+    private const double TaxStep = 0.002;
+    private const double MinTax = 0.10;
+    private const double MaxTax = 0.45;
+
     /// <summary>Выше этого годовая инфляция не идёт даже при печати.</summary>
     private const double MaxInflation = 0.30;
 
-    public static void Run(GameWorld world)
+    /// <param name="grow">Растут ли население и прогресс; в разминке перед партией — нет.</param>
+    public static void Run(GameWorld world, bool grow = true)
     {
-        world.Productivity *= Math.Pow(1 + ProductivityGrowth, WeekDays / 365.0);
-        foreach (var region in world.Regions) region.Population = (long)(region.Population * Math.Pow(1 + PopulationGrowth, WeekDays / 365.0));
+        if (grow)
+        {
+            world.Productivity *= Math.Pow(1 + ProductivityGrowth, WeekDays / 365.0);
+            foreach (var region in world.Regions) region.Population = (long)(region.Population * Math.Pow(1 + PopulationGrowth, WeekDays / 365.0));
+        }
 
         foreach (var country in world.Countries) Supply(world, country);
         foreach (var country in world.Countries) Produce(world, country);
@@ -119,6 +127,7 @@ public static class EconomyStep
             wanted[i] = stacks[i].Count * labour * room * world.Productivity;
 
             foreach (var (good, amount) in building.Inputs) request[good] += wanted[i] * amount * WeekDays;
+            foreach (var (good, amount) in building.Upkeep) request[good] += wanted[i] * amount * WeekDays;
         }
 
         var fill = country.Fill;
@@ -145,6 +154,14 @@ public static class EconomyStep
                 country.Stock[good] = Math.Max(0, country.Stock[good] - used);
                 cost += used * country.Price(good, catalog.Goods[good].BasePrice);
                 addedReal -= used * catalog.Goods[good].BasePrice;
+            }
+
+            // Ремонт не останавливает завод: чего нет на складе, того и не потратят.
+            foreach (var (good, amount) in building.Upkeep)
+            {
+                var used = Math.Min(country.Stock[good], runs * amount * WeekDays);
+                country.Stock[good] -= used;
+                cost += used * country.Price(good, catalog.Goods[good].BasePrice);
             }
 
             foreach (var (good, amount) in building.Outputs)
@@ -174,6 +191,7 @@ public static class EconomyStep
         {
             var building = world.Catalog.Buildings[plant.Building];
             foreach (var (good, amount) in building.Inputs) country.CapacityUse[good] += plant.Count * labour * amount * world.Productivity;
+            foreach (var (good, amount) in building.Upkeep) country.CapacityUse[good] += plant.Count * labour * amount * world.Productivity;
             foreach (var (good, amount) in building.Outputs) country.CapacityOut[good] += plant.Count * labour * amount * world.Productivity;
         }
 
@@ -183,12 +201,17 @@ public static class EconomyStep
     /// <summary>Рук хватает на столько же заводов на душу, сколько на старте.</summary>
     private static double Labour(GameWorld world, Country country, double population, List<PlantStack> stacks)
     {
-        var need = stacks.Sum(p => p.Count * world.Catalog.Buildings[p.Building].Workers);
+        var need = Jobs(world.Catalog, stacks);
         if (need <= 0 || country.WorkNeed0 <= 0 || country.Workforce0 <= 0) return 1;
 
         var workforce = population * WorkingShare;
         return Math.Clamp(workforce / country.Workforce0 / (need / country.WorkNeed0), 0, 1);
     }
+
+    /// <summary>Рабочие места на полном ходу. По загрузке считать нельзя: руки то освобождались, то разбирались,
+    /// и ВВП малых стран качался каждую неделю.</summary>
+    public static double Jobs(Catalog catalog, IEnumerable<PlantStack> stacks) =>
+        stacks.Sum(p => p.Count * catalog.Buildings[p.Building].Workers);
 
     /// <summary>Добавленная стоимость одного здания за сутки на полном ходу, в базовых ценах.</summary>
     public static double Added(Catalog catalog, int building)
@@ -205,10 +228,20 @@ public static class EconomyStep
         if (country.IncomeStart <= 0 || population <= 0 || country.Needs0.Length != country.Needs.Length) return;
 
         var income = Math.Clamp(country.Potential * labour / population / country.IncomeStart, 0.2, 5);
+        var spentBefore = 0.0;
+        var spentNow = 0.0;
         for (var i = 0; i < country.Needs.Length; i++)
         {
+            var price = world.Catalog.Goods[country.Needs[i].Good].BasePrice;
             country.Needs[i].Rate = country.Needs0[i].Rate * Math.Pow(income, world.NeedElasticity[i]);
+            spentBefore += country.Needs0[i].Rate * price;
+            spentNow += country.Needs[i].Rate * price;
         }
+
+        // Эластичность меняет доли трат, но не их сумму: тратят ровно столько, насколько выросли доходы.
+        // Без этого услуги с эластичностью 1.3 обгоняли доход, и нужды малых стран сползали.
+        var scale = spentNow > 0 ? spentBefore * income / spentNow : 1;
+        for (var i = 0; i < country.Needs.Length; i++) country.Needs[i].Rate *= scale;
     }
 
     /// <summary>Сколько места на полке под каждый товар: полная загрузка, пока запас не выше нормы.</summary>
@@ -307,6 +340,40 @@ public static class EconomyStep
         }
 
         Companies(world);
+        Close(world.Catalog, world.Regions);
+    }
+
+    /// <summary>Ниже этой загрузки мирный завод понемногу закрывают.</summary>
+    private const double CloseBelow = 0.6;
+
+    /// <summary>Какую долю зданий стопки закрывают за неделю при полном простое.</summary>
+    private const double CloseRate = 0.002;
+
+    /// <summary>Из малой стопки не закрывают: у микрогосударства одно здание — заметная доля всей экономики.</summary>
+    private const int CloseMinCount = 10;
+
+    /// <summary>Долго недогруженные заводы закрываются, и их люди уходят туда, где товара не хватает.</summary>
+    /// <remarks>Без этого фермы с ростом дохода стояли на треть, а руки на услуги не освобождались.
+    /// Военные заводы не трогают: в мирное время им и положено простаивать.</remarks>
+    private static void Close(Catalog catalog, IEnumerable<Region> regions)
+    {
+        foreach (var region in regions)
+        {
+            foreach (var plant in region.Plants)
+            {
+                var building = catalog.Buildings[plant.Building];
+                if (plant.Count < CloseMinCount || building.Sector == "Military" || plant.Load >= CloseBelow) continue;
+
+                plant.Closing += plant.Count * CloseRate * (CloseBelow - plant.Load) / CloseBelow;
+                while (plant.Closing >= 1 && plant.Count >= CloseMinCount)
+                {
+                    plant.Count--;
+                    plant.Closing -= 1;
+                }
+            }
+
+            region.Plants.RemoveAll(p => p.Count <= 0);
+        }
     }
 
     /// <summary>Расходы государства; не хватило — печатают, и это поднимает инфляцию.</summary>
@@ -326,6 +393,14 @@ public static class EconomyStep
         country.Treasury -= spending;
         country.SpentWeek += spending;
         country.PrintedWeek = 0;
+
+        // Советник двигает налог по чуть-чуть: казна меньше двух месяцев трат — выше, больше полугода — ниже.
+        if (country.AutoTax && spending > 0)
+        {
+            var weeks = country.Treasury / spending;
+            if (weeks < 8) country.TaxRate = Math.Min(MaxTax, country.TaxRate + TaxStep);
+            else if (weeks > 26) country.TaxRate = Math.Max(MinTax, country.TaxRate - TaxStep);
+        }
 
         if (country.Treasury < 0)
         {
@@ -361,9 +436,13 @@ public static class EconomyStep
             }
             else
             {
-                var use = country.DailyUse[g];
-                var days = use <= 0 ? FullDays : country.Stock[g] / use;
-                target = 1 + 0.5 * (NormDays - days) / NormDays;
+                // Вывоз тоже расход: иначе у экспортёра цена его товара всегда лежала на полу.
+                var use = country.DailyUse[g] + country.ExportUse[g];
+                var days = use <= 0 ? NormDays : country.Stock[g] / use;
+                // Ниже нормы цена растёт круто, выше — полого: запас между нормой и полкой — обычное дело, а не затоваривание.
+                target = days < NormDays
+                    ? 1 + 0.5 * (NormDays - days) / NormDays
+                    : 1 - 0.4 * (days - NormDays) / (FullDays - NormDays);
             }
 
             target = Math.Clamp(target, PriceFloor, PriceCeiling);

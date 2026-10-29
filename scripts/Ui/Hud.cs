@@ -169,7 +169,7 @@ public partial class Hud : Control
         _countryInfo.Text = ShownCountry is { } country ? CountryText(country) : "";
 
         var key = $"{_session.Selected?.Id}|{_session.Selected?.Controller}|{_session.Selected?.Owner}|{_session.Game.Player}|"
-            + $"{ShownCountry?.System}|{ShownCountry?.AutoBuild}|{world.Wars.Count}";
+            + $"{ShownCountry?.System}|{ShownCountry?.AutoBuild}|{ShownCountry?.AutoTax}|{world.Wars.Count}";
         if (key == _actionsKey) return;
 
         _actionsKey = key;
@@ -247,6 +247,7 @@ public partial class Hud : Control
         text.AppendLine($"ВВП: {Money(c.GdpReal * c.PriceLevel)} в год (в ценах старта {Money(c.GdpReal)})");
         text.AppendLine($"Инфляция: {c.Inflation * 100:F1}% · уровень цен ×{c.PriceLevel:F2}");
         text.AppendLine($"Казна: {Money(c.Treasury)} · налоги {Money(c.TaxesLast)} и расходы {Money(c.SpentLast)} в неделю");
+        text.AppendLine($"Налог: {c.TaxRate * 100:F1}%{(c.AutoTax ? ", подбирает советник" : "")}");
         text.AppendLine($"Нужды людей закрыты на {c.Satisfaction * 100:F0}%");
 
         var enemies = world.Enemies(c.Id).ToList();
@@ -385,10 +386,18 @@ public partial class Hud : Control
         auto.Toggled += on => _session.Act(() => country.AutoBuild = on);
         _countryActions.AddChild(auto);
 
+        var autoTax = new CheckBox { Text = "Налог подбирает советник", ButtonPressed = country.AutoTax };
+        autoTax.Toggled += on => _session.Act(() => country.AutoTax = on);
+        _countryActions.AddChild(autoTax);
+
         var taxRow = new HBoxContainer();
         taxRow.AddChild(new Label { Text = "Налог с добавленной стоимости, %" });
-        var tax = new SpinBox { MinValue = 0, MaxValue = 60, Step = 1, Value = country.TaxRate * 100 };
-        tax.ValueChanged += value => _session.Act(() => country.TaxRate = value / 100);
+        var tax = new SpinBox { MinValue = 0, MaxValue = 60, Step = 1, Value = Math.Round(country.TaxRate * 100) };
+        tax.ValueChanged += value => _session.Act(() =>
+        {
+            country.TaxRate = value / 100;
+            country.AutoTax = false;
+        });
         taxRow.AddChild(tax);
         _countryActions.AddChild(taxRow);
 

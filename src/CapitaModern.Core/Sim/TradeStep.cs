@@ -51,7 +51,9 @@ public static class TradeStep
                 var amount = want * buyShare;
                 foreach (var (seller, offer) in friendly)
                 {
-                    var part = Math.Min(amount * offer / pool, seller.Stock[g]);
+                    // Продавец не отдаёт запас, нужный ему самому: Андорра вывезла всю электронику, и встали её услуги.
+                    var reserve = seller.DailyUse[g] * EconomyStep.NormDays / 2;
+                    var part = Math.Min(amount * offer / pool, Math.Max(0, seller.Stock[g] - reserve));
                     if (part <= 0) continue;
 
                     seller.Stock[g] -= part;

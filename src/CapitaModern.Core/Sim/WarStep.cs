@@ -23,6 +23,10 @@ public static class WarStep
     private const double PeaceWear = 0.10;
     private const double OutOfSupply = 0.02;
 
+    /// <summary>За сколько недель армия добирает недостающую технику.</summary>
+    /// <remarks>Просить всю недостачу каждую неделю нельзя: спрос выходил в сотни раз выше износа.</remarks>
+    private const double RefillWeeks = 8;
+
     public static void Day(GameWorld world, int? player)
     {
         if (world.Day % 3 == 0) Bots(world, player);
@@ -258,7 +262,7 @@ public static class WarStep
         {
             var country = world.Country(division.Country);
             var template = world.Templates[division.Template];
-            var missing = Math.Min(1 - division.Equipment, 0.25);
+            var missing = (1 - division.Equipment) / RefillWeeks;
             var fill = 1.0;
 
             foreach (var (good, amount) in template.Equipment)

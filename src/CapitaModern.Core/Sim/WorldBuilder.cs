@@ -100,8 +100,73 @@ public static class WorldBuilder
         PlaceArmies(world);
         Balance(world);
         foreach (var country in world.Countries) Prepare(world, country);
+        StockForExport(world);
+        WarmUp(world);
 
         return world;
+    }
+
+    /// <summary>Экспортёру — склад и на свой вывоз, а не только на свой расход.</summary>
+    /// <remarks>Иначе у него лежала пара дней вывоза, и цена его же товара внутри страны стояла под потолком.</remarks>
+    private static void StockForExport(GameWorld world)
+    {
+        var catalog = world.Catalog;
+        var countries = world.Countries.ToList();
+        var made = countries.ToDictionary(c => c.Id, _ => new double[catalog.Goods.Count]);
+
+        foreach (var region in world.Regions)
+        {
+            foreach (var plant in region.Plants)
+            {
+                foreach (var (good, amount) in catalog.Buildings[plant.Building].Outputs) made[region.Owner][good] += amount * plant.Count;
+            }
+        }
+
+        foreach (var good in catalog.Goods.Where(g => !g.Perishable))
+        {
+            var g = good.Index;
+            var imports = countries.Sum(c => Math.Max(0, c.DailyUse[g] - made[c.Id][g]));
+            var surplus = countries.Sum(c => Math.Max(0, made[c.Id][g] - c.DailyUse[g]));
+            if (imports <= 0 || surplus <= 0) continue;
+
+            foreach (var country in countries)
+            {
+                var export = Math.Max(0, made[country.Id][g] - country.DailyUse[g]) * Math.Min(1, imports / surplus);
+                country.ExportUse[g] = export;
+                country.Stock[g] += export * EconomyStep.NormDays;
+            }
+        }
+    }
+
+    /// <summary>Сколько недель мир прогоняется до старта партии.</summary>
+    private const int WarmUpWeeks = 52;
+
+    /// <summary>Год экономики вхолостую: склады, загрузка, цены и торговля садятся на свой ход до первого дня партии,
+    /// иначе игрок видел бы, как ВВП экспортёров проседает в первые месяцы.</summary>
+    /// <remarks>Рост и стройка в разминку не идут: население, прогресс и заводы остаются стартовыми.</remarks>
+    private static void WarmUp(GameWorld world)
+    {
+        for (var week = 0; week < WarmUpWeeks; week++)
+        {
+            EconomyStep.Run(world, grow: false);
+            TradeStep.Run(world);
+            WarStep.Reinforce(world);
+            EconomyStep.Close(world);
+        }
+
+        foreach (var country in world.Countries)
+        {
+            country.WorkNeed0 = Math.Max(1, EconomyStep.Jobs(world.Catalog, world.OwnedBy(country.Id).SelectMany(r => r.Plants)));
+            country.PriceLevel = 1.0;
+            country.Inflation = 0.02;
+            country.Treasury = country.GdpReal * 0.05;
+        }
+
+        foreach (var company in world.Companies)
+        {
+            company.Cash = 0;
+            company.WeeksInRed = 0;
+        }
     }
 
     /// <summary>Во сколько раз умножить заводы страны по группам: (услуги, прочие).</summary>
@@ -119,9 +184,10 @@ public static class WorldBuilder
         {
             if (!data.StartIndustry.TryGetValue(region.Id, out var plants)) continue;
 
-            foreach (var (type, count) in plants)
+            foreach (var (type, start) in plants)
             {
                 var building = catalog.Buildings[catalog.BuildingIndex(type)];
+                var count = start * building.Split;
                 var added = count * (Value(catalog, building.Outputs) - Value(catalog, building.Inputs));
                 var output = count * building.Outputs.Where(o => o.Good == services).Sum(o => o.Amount);
 
@@ -222,9 +288,10 @@ public static class WorldBuilder
 
                 var building = catalog.Buildings[catalog.BuildingIndex(type)];
                 var factor = scale.GetValueOrDefault(country.Id, (1, 1));
+                var parts = start * building.Split;
                 var count = building.Sector == "Mining"
-                    ? start
-                    : Math.Max(1, (int)Math.Round(start * (building.Sector == "Services" ? factor.Services : factor.Other)));
+                    ? parts
+                    : Math.Max(1, (int)Math.Round(parts * (building.Sector == "Services" ? factor.Services : factor.Other)));
                 var owner = Company.State;
 
                 if (country.System == EconomicSystem.Market && building.Type != "PublicService")
@@ -291,6 +358,7 @@ public static class WorldBuilder
         {
             var building = catalog.Buildings[plant.Building];
             foreach (var (good, amount) in building.Inputs) country.DailyUse[good] += amount * plant.Count;
+            foreach (var (good, amount) in building.Upkeep) country.DailyUse[good] += amount * plant.Count;
 
             added += plant.Count * (Value(catalog, building.Outputs) - Value(catalog, building.Inputs));
             workers += plant.Count * building.Workers;
@@ -335,25 +403,19 @@ public static class WorldBuilder
             foreach (var (good, amount) in world.Templates[division.Template].Equipment) final[good] += amount * 0.10 / 365;
         }
 
-        // Стройка — тоже потребитель: закладываем рост капитала на несколько процентов в год.
-        foreach (var plant in plants)
-        {
-            foreach (var (good, amount) in catalog.Buildings[plant.Building].BuildCost)
-            {
-                final[good] += plant.Count * amount * BuildStep.GrowthPlan / 365;
-            }
-        }
-
         var size = plants.ToDictionary(p => p, p => (double)p.Count);
         for (var pass = 0; pass < 8; pass++)
         {
             var use = (double[])final.Clone();
             var made = new double[goods];
 
+            // Заводы ниже по цепочке работают не на полную, а на 1/Margin: иначе запас набегал на каждом звене,
+            // и добычи выходило в 1.7 раза больше спроса.
             foreach (var (plant, count) in size)
             {
                 var building = catalog.Buildings[plant.Building];
-                foreach (var (good, amount) in building.Inputs) use[good] += count * amount;
+                foreach (var (good, amount) in building.Inputs) use[good] += count * amount / Margin;
+                foreach (var (good, amount) in building.Upkeep) use[good] += count * amount / Margin;
                 foreach (var (good, amount) in building.Outputs) made[good] += count * amount;
             }
 
