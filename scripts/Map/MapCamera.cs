@@ -27,6 +27,16 @@ public partial class MapCamera : Camera2D
         FitToScreen();
         _targetZoom = _minZoom;
         Zoom = new Vector2(_targetZoom, _targetZoom);
+
+        // Встроенное в редактор окно игры меняет размер без оконного уведомления.
+        GetViewport().SizeChanged += OnResized;
+    }
+
+    private void OnResized()
+    {
+        FitToScreen();
+        _targetZoom = Mathf.Max(_targetZoom, _minZoom);
+        Clamp();
     }
 
     /// <summary>Мгновенно навести камеру на точку карты с заданным приближением.</summary>
@@ -44,6 +54,9 @@ public partial class MapCamera : Camera2D
     private void FitToScreen()
     {
         var screen = GetViewportRect().Size;
+        // В первые кадры встроенное окно бывает нулевым: зум 0 дал бы бесконечные координаты.
+        if (screen.Y <= 0 || _mapSize.Y <= 0) return;
+
         // Ограничивает только высота: по долготе карта замкнута и края у неё нет, а
         // сверху и снизу пустоты быть не должно.
         _minZoom = screen.Y / _mapSize.Y;
@@ -102,6 +115,13 @@ public partial class MapCamera : Camera2D
             Clamp();
         }
 
+        if (!Position.IsFinite() || !float.IsFinite(Zoom.X) || Zoom.X <= 0)
+        {
+            Clamp();
+            Position = _targetPos;
+            Zoom = new Vector2(_targetZoom, _targetZoom);
+        }
+
         var t = 1f - Mathf.Exp(-Smoothing * (float)delta);
         var zoom = Mathf.Lerp(Zoom.X, _targetZoom, t);
 
@@ -111,12 +131,7 @@ public partial class MapCamera : Camera2D
 
     public override void _Notification(int what)
     {
-        if (what == NotificationWMSizeChanged && _mapSize != Vector2.One)
-        {
-            FitToScreen();
-            _targetZoom = Mathf.Max(_targetZoom, _minZoom);
-            Clamp();
-        }
+        if (what == NotificationWMSizeChanged && _mapSize != Vector2.One) OnResized();
     }
 
     /// <summary>Держит камеру в пределах карты по широте и заворачивает по долготе.</summary>
@@ -124,6 +139,9 @@ public partial class MapCamera : Camera2D
     /// потащит камеру через всю карту обратно.</remarks>
     private void Clamp()
     {
+        if (!_targetPos.IsFinite()) _targetPos = _mapSize * 0.5f;
+        if (!float.IsFinite(_targetZoom) || _targetZoom <= 0) _targetZoom = _minZoom;
+
         var half = GetViewportRect().Size * 0.5f / _targetZoom;
         var minY = Mathf.Min(half.Y, _mapSize.Y * 0.5f);
 
