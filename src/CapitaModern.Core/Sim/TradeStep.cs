@@ -3,11 +3,7 @@ using CapitaModern.Core.World;
 namespace CapitaModern.Core.Sim;
 
 /// <summary>Мировой обмен: кто делает больше, чем тратит, отдаёт тем, кто делает меньше.</summary>
-/// <remarks>
-/// Считаются потоки, а не только запасы: страна хочет свой недельный расход сверх своего выпуска
-/// и добор до нормы запаса. Иначе экспортёр не мог вывезти добытое, склад рос, и добыча вставала.
-/// Без курсов и расчётов: товар просто переходит, страны в войне друг с другом не торгуют.
-/// </remarks>
+/// <remarks>Считаются потоки, а не запасы: иначе экспортёр не мог вывезти добытое, и добыча вставала.</remarks>
 public static class TradeStep
 {
     /// <summary>Какую долю разрыва с нормой запаса страна закрывает за неделю.</summary>
@@ -35,9 +31,7 @@ public static class TradeStep
 
                 if (gap > 0) buyers.Add((country, gap));
 
-                // Заказ делится между продавцами по их мощности сверх своего расхода, а не по тому,
-                // что сейчас лежит на складе: иначе при избытке в мире весь вывоз доставался
-                // случайным странам, а у России, способной кормить нефтью полмира, вставала добыча.
+                // Заказ делят по мощности сверх своего расхода, а не по складу: иначе вывоз доставался случайным странам.
                 var spare = (country.CapacityOut[g] - country.DailyUse[g]) * EconomyStep.WeekDays;
                 if (spare > 0 && country.Stock[g] > 0) sellers.Add((country, spare));
             }
@@ -50,7 +44,7 @@ public static class TradeStep
 
             foreach (var (buyer, want) in buyers)
             {
-                var friendly = sellers.Where(s => !world.AtWar(s.Country.Id, buyer.Id)).ToList();
+                var friendly = sellers.Where(s => s.Country != buyer && !world.AtWar(s.Country.Id, buyer.Id)).ToList();
                 var pool = friendly.Sum(s => s.Amount);
                 if (pool <= 0) continue;
 

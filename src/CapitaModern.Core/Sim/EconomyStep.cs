@@ -89,12 +89,16 @@ public static class EconomyStep
         var catalog = world.Catalog;
         var goods = catalog.Goods.Count;
 
-        Array.Clear(country.DemandWeek);
         Array.Clear(country.ProducedWeek);
         Array.Clear(country.ConsumedWeek);
 
         var regions = world.ControlledBy(country.Id).ToList();
-        if (regions.Count == 0) return;
+        if (regions.Count == 0)
+        {
+            country.GdpReal = 0;
+            country.Potential = 0;
+            return;
+        }
 
         var population = regions.Sum(r => (double)r.Population);
         var stacks = regions.Where(r => r.Supplied).SelectMany(r => r.Plants).Where(p => p.Count > 0).ToList();
@@ -243,7 +247,8 @@ public static class EconomyStep
         country.Treasury += tax;
         country.TaxesWeek += tax;
 
-        if (world.CompanyOf(plant.Company) is { } company)
+        // Завод в занятом регионе платит не своей компании, а казне захватчика.
+        if (world.CompanyOf(plant.Company) is { Alive: true } company && company.Country == country.Id)
         {
             company.Cash += owner;
             company.ProfitWeek += owner;
@@ -296,6 +301,9 @@ public static class EconomyStep
                 country.DailyUse[g] = country.DailyUse[g] <= 0 ? today : country.DailyUse[g] + (today - country.DailyUse[g]) / 4;
                 country.ExportUse[g] += (country.ExportedWeek[g] / WeekDays - country.ExportUse[g]) / 4;
             }
+
+            // Спрос копится всю неделю, с боями и стройкой, и обнуляется только здесь.
+            Array.Clear(country.DemandWeek);
         }
 
         Companies(world);
@@ -373,7 +381,7 @@ public static class EconomyStep
 
             // Сверх годовой прибыли касса не копится: излишек уходит владельцам.
             var cap = Math.Max(0, company.ProfitWeek) * 52;
-            if (company.Cash > cap) company.Cash = cap;
+            if (company.ProfitWeek > 0 && company.Cash > cap) company.Cash = cap;
             company.ProfitLast = company.ProfitWeek;
             company.ProfitWeek = 0;
 

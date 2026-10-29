@@ -56,16 +56,42 @@ public sealed class Game
             Transfer(region.Id, region.Controller);
         }
 
+        // Бои с третьими странами идут дальше: останавливаются только дивизии, шедшие на бывшего врага.
         foreach (var division in World.Divisions.Where(d => d.Country == a || d.Country == b))
         {
+            var enemy = division.Country == a ? b : a;
+            var heading = division.Target >= 0 ? division.Target : division.Goal;
+            if (heading >= 0 && World.Region(heading).Controller == enemy)
+            {
+                division.InBattle = false;
+                division.Target = -1;
+                division.Goal = -1;
+                division.Progress = 0;
+            }
+        }
+    }
+
+    /// <summary>Столица, ушедшая к другой стране, переезжает в самый людный свой регион.</summary>
+    private void FixCapital(Country country)
+    {
+        if (World.Region(country.Capital).Owner == country.Id) return;
+
+        var best = World.OwnedBy(country.Id).MaxBy(r => r.Population);
+        if (best is not null) country.Capital = best.Id;
+    }
+
+    /// <summary>Дивизии, оказавшиеся на чужой мирной земле, уходят в свою столицу.</summary>
+    private void SendHome(Region region)
+    {
+        foreach (var division in World.Divisions.Where(d => d.Alive && d.Region == region.Id && d.Country != region.Controller))
+        {
+            if (World.AtWar(division.Country, region.Controller)) continue;
+
+            division.Region = World.Country(division.Country).Capital;
             division.InBattle = false;
             division.Target = -1;
             division.Goal = -1;
-
-            if (World.Region(division.Region).Controller != division.Country)
-            {
-                division.Region = World.Country(division.Country).Capital;
-            }
+            division.Progress = 0;
         }
     }
 
@@ -74,8 +100,14 @@ public sealed class Game
     public void Transfer(int regionId, int country)
     {
         var region = World.Region(regionId);
+        var previous = World.Country(region.Owner);
         region.Owner = country;
         region.Controller = country;
+
+        FixCapital(previous);
+        SendHome(region);
+        EconomyStep.Supply(World, previous);
+        EconomyStep.Supply(World, World.Country(country));
 
         foreach (var plant in region.Plants)
         {

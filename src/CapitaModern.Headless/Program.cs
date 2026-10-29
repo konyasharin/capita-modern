@@ -58,7 +58,7 @@ for (var year = 1; year <= years; year++)
                 .Select(g => $"{world.Catalog.Goods[g].Id} {traced.Fill[g]:F2}");
             var services = world.Catalog.GoodIndex("Services");
             Console.WriteLine($"  неделя {world.Day / 7,3}: ВВП {traced.GdpReal / 1e9,7:F3} нужды {traced.Satisfaction * 100,4:F0}% "
-                + $"услуги {traced.ProducedWeek[services]:F0}/{traced.DemandWeek[services]:F0} хуже всего: {string.Join(", ", worst)}");
+                + $"услуги {traced.ProducedWeek[services]:F0}/{traced.DailyUse[services] * 7:F0} хуже всего: {string.Join(", ", worst)}");
             foreach (var id in new[] { "Oil", "Gas", "Fuel" })
             {
                 var g = world.Catalog.GoodIndex(id);
@@ -115,7 +115,7 @@ foreach (var good in world.Catalog.Goods)
 {
     var g = good.Index;
     var made = world.Countries.Sum(c => c.ProducedWeek[g]);
-    var asked = world.Countries.Sum(c => c.DemandWeek[g]);
+    var asked = world.Countries.Sum(c => c.DailyUse[g] * 7);
     var stock = world.Countries.Sum(c => c.Stock[g]);
     var use = world.Countries.Sum(c => c.DailyUse[g]);
     var mults = world.Countries.Where(c => c.DailyUse[g] > 0).Select(c => c.PriceMult[g]).ToList();

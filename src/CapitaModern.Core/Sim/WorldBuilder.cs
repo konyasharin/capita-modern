@@ -104,13 +104,8 @@ public static class WorldBuilder
         return world;
     }
 
-    /// <summary>Заводы из стартовой раскладки и хозяева к ним: при рынке компании, при плане государство.</summary>
     /// <summary>Во сколько раз умножить заводы страны по группам: (услуги, прочие).</summary>
-    /// <remarks>
-    /// Добыча стоит там, где месторождения, её не трогаем. Услуги не возят через границу, поэтому
-    /// их мощность подгоняется под нужды самой страны. Прочие отрасли — так, чтобы ВВП страны на
-    /// старте был пропорционален настоящему.
-    /// </remarks>
+    /// <remarks>Добыча не трогается, услуги — под нужды страны, прочее — под её настоящий ВВП.</remarks>
     private static Dictionary<int, (double Services, double Other)> Scale(GameWorld world, GameData data)
     {
         var catalog = world.Catalog;
@@ -209,6 +204,7 @@ public static class WorldBuilder
         }
     }
 
+    /// <summary>Заводы из стартовой раскладки и хозяева к ним: при рынке компании, при плане государство.</summary>
     private static void PlacePlants(GameWorld world, GameData data, Dictionary<int, (double Services, double Other)> scale)
     {
         var catalog = world.Catalog;
@@ -319,12 +315,8 @@ public static class WorldBuilder
     private const double Margin = 1.15;
 
     /// <summary>Приводит мировую мощность каждого товара к мировому спросу, сохраняя, где что стоит.</summary>
-    /// <remarks>
-    /// Стартовая раскладка досталась от прежней модели с множителями выпуска, и без них отрасли
-    /// вышли раздутыми вразнобой: нефтедобычи в девять раз больше мирового спроса. Тогда заводы
-    /// стоят на крохах мощности, а кто из стран продаёт, решает случай. Спрос считается сверху
-    /// вниз за несколько проходов: нужды людей и армий, потом заводы, которые их кормят, потом их сырьё.
-    /// </remarks>
+    /// <remarks>Стартовая раскладка раздута вразнобой (нефтедобычи вдевятеро больше спроса);
+    /// спрос считается сверху вниз за несколько проходов: люди и армии, заводы, их сырьё.</remarks>
     private static void Balance(GameWorld world)
     {
         var catalog = world.Catalog;

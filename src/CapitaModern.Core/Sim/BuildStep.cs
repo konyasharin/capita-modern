@@ -84,7 +84,9 @@ public static class BuildStep
             if (project.DaysDone < project.DaysTotal) continue;
 
             world.Projects.Remove(project);
-            Raise(region, project.Building, project.Company);
+            // Компания могла разориться или уйти под план, пока шла стройка: тогда завод государству.
+            var owner = world.CompanyOf(project.Company) is { Alive: true } company ? company.Id : Company.State;
+            Raise(region, project.Building, owner);
         }
     }
 

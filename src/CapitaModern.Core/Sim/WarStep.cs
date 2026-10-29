@@ -135,7 +135,10 @@ public static class WarStep
                 return;
             }
 
+            var before = target.Controller;
             target.Controller = division.Country;
+            EconomyStep.Supply(world, world.Country(before));
+            EconomyStep.Supply(world, world.Country(division.Country));
         }
 
         division.Region = target.Id;
@@ -162,7 +165,10 @@ public static class WarStep
 
         foreach (var front in fronts)
         {
-            var attackers = front.ToList();
+            // Список собран до боёв: часть дивизий успела отступить или погибнуть в другом регионе.
+            var attackers = front.Where(d => d.Alive && d.InBattle && d.Target == front.Key).ToList();
+            if (attackers.Count == 0) continue;
+
             var defenders = Defenders(world, attackers[0].Country, front.Key).ToList();
 
             if (defenders.Count == 0)
@@ -183,13 +189,13 @@ public static class WarStep
 
             foreach (var division in defenders)
             {
-                division.Organization = Math.Max(0, division.Organization - BattleLoss * attack / total * 2);
+                division.Organization = Math.Clamp(division.Organization - BattleLoss * attack / total * 2, 0, 1);
                 division.Equipment = Math.Max(0, division.Equipment - 0.004 * attack / total);
             }
 
             foreach (var division in attackers)
             {
-                division.Organization = Math.Max(0, division.Organization - BattleLoss * defence / total * 2);
+                division.Organization = Math.Clamp(division.Organization - BattleLoss * defence / total * 2, 0, 1);
                 division.Equipment = Math.Max(0, division.Equipment - 0.004 * defence / total);
             }
 
@@ -246,7 +252,7 @@ public static class WarStep
     public static void Reinforce(GameWorld world)
     {
         // Техника изнашивается и в мирное время — оттого оборонные заводы работают и без войны.
-        foreach (var division in world.Divisions.Where(d => d.Alive)) division.Equipment -= PeaceWear * 7 / 365;
+        foreach (var division in world.Divisions.Where(d => d.Alive)) division.Equipment = Math.Max(0, division.Equipment - PeaceWear * 7 / 365);
 
         foreach (var division in world.Divisions.Where(d => d.Alive && d.Equipment < 1))
         {

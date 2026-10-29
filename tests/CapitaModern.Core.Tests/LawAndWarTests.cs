@@ -56,6 +56,40 @@ public class LawAndWarTests
     }
 
     [Fact]
+    public void Giving_Away_The_Capital_Moves_It()
+    {
+        var game = Fixture.NewGame();
+        var world = game.World;
+        var deu = world.Countries.First(c => c.Iso == "DEU");
+        var fra = world.Countries.First(c => c.Iso == "FRA");
+        var capital = deu.Capital;
+
+        game.Transfer(capital, fra.Id);
+
+        Assert.NotEqual(capital, deu.Capital);
+        Assert.Equal(deu.Id, world.Region(deu.Capital).Owner);
+        Assert.DoesNotContain(world.Divisions, d => d.Country == deu.Id && d.Region == capital);
+    }
+
+    [Fact]
+    public void A_Year_Of_War_On_Several_Fronts_Keeps_Divisions_Sane()
+    {
+        var game = Fixture.NewGame();
+        var world = game.World;
+        var rus = world.Countries.First(c => c.Iso == "RUS").Id;
+        foreach (var iso in new[] { "UKR", "KAZ", "GEO", "FIN" }) game.DeclareWar(rus, world.Countries.First(c => c.Iso == iso).Id);
+
+        for (var day = 0; day < 365; day++) game.Tick();
+
+        Assert.All(world.Divisions, d =>
+        {
+            Assert.InRange(d.Organization, 0, 1);
+            Assert.InRange(d.Equipment, 0, 1);
+            Assert.Equal(d.Country, world.Region(d.Region).Controller);
+        });
+    }
+
+    [Fact]
     public void Trade_Stops_Between_Enemies()
     {
         var game = Fixture.NewGame();
