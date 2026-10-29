@@ -46,7 +46,7 @@ public static class EconomyStep
     /// <summary>Какую долю добытого мир за то же время находит заново.</summary>
     private const double Discovery = 0.9;
 
-    /// <summary>Какая доля стартового запаса месторождения выбирается без потерь; дальше рудник сбавляет по остатку.</summary>
+    /// <summary>Рудник работает в полную силу, пока остаток выше этой доли стартового запаса; дальше — по остатку.</summary>
     private const double DepletionTail = 0.25;
 
     /// <summary>Прирост населения в год.</summary>
@@ -94,8 +94,7 @@ public static class EconomyStep
     }
 
     /// <summary>Разведка: мир находит чуть меньше, чем добыл, и по богатству недр, а не там, где копают.</summary>
-    /// <remarks>Без неё запасы у всех кончались разом лет через тридцать, и мир вставал. Так перекопанные регионы
-    /// выдыхаются, а сырьё с годами понемногу дорожает.</remarks>
+    /// <remarks>Без неё запасы у всех кончались разом лет через тридцать, и мир вставал.</remarks>
     private static void Discover(GameWorld world)
     {
         var deposits = world.Regions.Where(r => r.Reserve0.Count > 0).ToList();
@@ -115,7 +114,8 @@ public static class EconomyStep
     /// <summary>Производительность каждой страны: бедная догоняет лидеров, но только пока вкладывается.</summary>
     private static void Advance(GameWorld world)
     {
-        var people = world.Regions.GroupBy(r => r.Owner).ToDictionary(g => g.Key, g => g.Sum(r => (double)r.Population));
+        // ВВП считается по тому, что страна держит, — и население так же: иначе захватчик выглядел богаче.
+        var people = world.Regions.GroupBy(r => r.Controller).ToDictionary(g => g.Key, g => g.Sum(r => (double)r.Population));
         var leaders = world.Countries
             .Where(c => c.GdpReal > 0 && people.GetValueOrDefault(c.Id) > FrontierPopulation)
             .Select(c => c.GdpReal / people[c.Id]).OrderByDescending(x => x).Take(5).ToList();
@@ -138,7 +138,7 @@ public static class EconomyStep
         }
     }
 
-    /// <summary>Какую долю рудник ещё выдаёт: пока выбрано меньше трёх четвертей запаса — всё, дальше по остатку.</summary>
+    /// <summary>Какую долю рудник ещё выдаёт, по остатку месторождения.</summary>
     public static double Richness(Region region, Building building)
     {
         if (building.Deposit < 0 || !region.Reserve0.TryGetValue(building.Deposit, out var start) || start <= 0) return 1;
@@ -431,7 +431,7 @@ public static class EconomyStep
                 country.ExportUse[g] += (country.ExportedWeek[g] / WeekDays - country.ExportUse[g]) / 4;
             }
 
-            // Зарплата растёт за доходом за три года, а падает втрое медленнее: после удара страна долго остаётся дорогой.
+            // Вниз зарплата идёт втрое медленнее: после удара страна долго остаётся дорогой.
             country.Wage += (country.Income - country.Wage) / (country.Income > country.Wage ? 156 : 468);
 
             // Спрос копится всю неделю, с боями и стройкой, и обнуляется только здесь.

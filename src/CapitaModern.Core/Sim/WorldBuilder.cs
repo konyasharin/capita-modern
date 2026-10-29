@@ -184,6 +184,8 @@ public static class WorldBuilder
             // Нужды после разминки и есть стартовые: иначе на первой неделе они сдвигались на 3–6%.
             country.IncomeStart *= country.Income;
             country.Income = 1.0;
+            country.Wage = 1.0;
+            Array.Clear(country.ImportShift);
             country.Needs0 = country.Needs.ToArray();
             country.PriceLevel = 1.0;
             country.Inflation = 0.02;

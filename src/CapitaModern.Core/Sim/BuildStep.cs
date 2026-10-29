@@ -146,14 +146,20 @@ public static class BuildStep
 
     /// <summary>Сколько зданий строить разом: до доли от уже стоящих в стране, сколько позволяют деньги и руки.</summary>
     /// <remarks>По одному зданию в месяц большая страна не могла нарастить добычу, и к 30-му году в мире кончалась нефть.</remarks>
-    private static int Batch(Country country, List<Region> regions, Building building, double money, double cost, double hands)
+    private static int Batch(
+        Country country, List<Region> regions, Building building, double money, double cost, double hands, double[] booked)
     {
         var short_ = building.Outputs.Max(o => country.PriceMult[o.Good]) >= BatchShortage;
         var standing = short_ ? regions.Sum(r => r.Count(building.Index)) : 0;
-        var wanted = Math.Max(1, (int)(standing * BatchShare));
-        var affordable = cost > 0 ? (int)(money / cost) : wanted;
-        var staffed = building.Workers > 0 ? (int)(hands / building.Workers) : wanted;
-        return Math.Min(wanted, Math.Min(affordable, staffed));
+        var count = Math.Max(1, (int)(standing * BatchShare));
+        if (cost > 0) count = Math.Min(count, (int)(money / cost));
+        if (building.Workers > 0) count = Math.Min(count, (int)(hands / building.Workers));
+        foreach (var (good, amount) in building.BuildCost)
+        {
+            if (amount > 0) count = Math.Min(count, (int)((country.Stock[good] - booked[good]) / amount));
+        }
+
+        return Math.Max(1, count);
     }
 
     /// <summary>Сколько рабочих мест ещё можно открыть, чтобы на старых заводах людей не стало меньше, чем на старте.</summary>
@@ -208,7 +214,7 @@ public static class BuildStep
                 break;
             }
 
-            var count = Batch(country, regions, building, company.Cash, cost, hands);
+            var count = Batch(country, regions, building, company.Cash, cost, hands, booked);
             if (!Book(world, country, booked, choice.Building, count))
             {
                 Stall[1]++;
@@ -240,7 +246,7 @@ public static class BuildStep
             var cost = Cost(world.Catalog, country, choice.Value.Building);
             if (building.Workers > hands || cost > spare) return;
 
-            var count = Batch(country, regions, building, spare, cost, hands);
+            var count = Batch(country, regions, building, spare, cost, hands, booked);
             if (!Book(world, country, booked, choice.Value.Building, count)) return;
 
             hands -= building.Workers * count;

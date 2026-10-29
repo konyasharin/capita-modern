@@ -126,7 +126,7 @@ public sealed class Game
         var info = World.Catalog.Buildings[building];
 
         if (owner.Treasury < cost || place.Controller != country) return false;
-        if (info.Deposit >= 0 && !place.Deposits.ContainsKey(info.Deposit)) return false;
+        if (info.Deposit >= 0 && (!place.Deposits.ContainsKey(info.Deposit) || EconomyStep.Richness(place, info) < 1)) return false;
 
         owner.Treasury -= cost;
         BuildStep.Start(World, owner, building, region, Company.State);

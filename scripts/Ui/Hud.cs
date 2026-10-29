@@ -27,6 +27,9 @@ public partial class Hud : Control
     private double _sinceRefresh;
     private string _actionsKey = "";
 
+    /// <summary>Товар в торговой политике: панель пересобирается при смене налога, а выбор должен остаться.</summary>
+    private int _tradeGood;
+
     public void Init(Session session)
     {
         _session = session;
@@ -214,7 +217,7 @@ public partial class Hud : Control
             foreach (var group in projects.GroupBy(p => (p.Building, p.Company)))
             {
                 var owner = world.CompanyOf(group.Key.Company)?.Name ?? "государство";
-                var done = group.Average(p => p.DaysDone / p.DaysTotal);
+                var done = group.Sum(p => p.Count * p.DaysDone / p.DaysTotal) / group.Sum(p => p.Count);
                 text.AppendLine($"• {catalog.Buildings[group.Key.Building].Name} ×{group.Sum(p => p.Count)} — готово {done * 100:F0}%, {owner}");
             }
         }
@@ -407,6 +410,7 @@ public partial class Hud : Control
 
         var good = new OptionButton();
         foreach (var item in world.Catalog.Goods.Where(g => !g.Perishable)) good.AddItem(item.Name, item.Index);
+        if (good.GetItemIndex(_tradeGood) >= 0) good.Select(good.GetItemIndex(_tradeGood));
         _countryActions.AddChild(good);
 
         var subsidy = new SpinBox { MinValue = 0, MaxValue = 50, Step = 1, Prefix = "доплата экспортёрам", Suffix = "%" };
@@ -417,7 +421,11 @@ public partial class Hud : Control
             tariff.SetValueNoSignal(Math.Round(country.Tariff[good.GetSelectedId()] * 100));
         }
 
-        good.ItemSelected += _ => ShowTrade();
+        good.ItemSelected += _ =>
+        {
+            _tradeGood = good.GetSelectedId();
+            ShowTrade();
+        };
         subsidy.ValueChanged += value => _session.Act(() => country.ExportSubsidy[good.GetSelectedId()] = value / 100);
         tariff.ValueChanged += value => _session.Act(() => country.Tariff[good.GetSelectedId()] = value / 100);
         ShowTrade();
