@@ -57,6 +57,9 @@ public sealed class Company
     public double Cash { get; set; }
     public double ProfitWeek { get; set; }
 
+    /// <summary>Прибыль за прошлую неделю — её видит интерфейс, текущая к концу недели обнуляется.</summary>
+    public double ProfitLast { get; set; }
+
     /// <summary>Сколько недель подряд касса в минусе.</summary>
     public int WeeksInRed { get; set; }
 

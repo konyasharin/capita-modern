@@ -8,20 +8,9 @@
 
 - [`00-vision.md`](./docs/00-vision.md) — видение, столпы, чего в игре нет
 - [`01-map.md`](./docs/01-map.md) — **карта и границы, ключевой документ**
-- [`02-war.md`](./docs/02-war.md) — фронт, давление, направления атак
-- [`03-industry.md`](./docs/03-industry.md) — промзоны, предприятия, производительность
-- [`04-fx.md`](./docs/04-fx.md) — события на карте и визуальные эффекты
-- [`05-architecture.md`](./docs/05-architecture.md) — проекты, тик, данные, сейвы
-- [`06-roadmap.md`](./docs/06-roadmap.md) — фазы и нерешённые вопросы
-- [`07-economy.md`](./docs/07-economy.md) — категории товаров, кто строит предприятия
-- [`08-economic-model.md`](./docs/08-economic-model.md) — **полный расчёт экономики: формулы, данные, погрешность**
-- [`09-reality-check.md`](./docs/09-reality-check.md) — все замеры модели против реальных чисел
-- [`10-trade.md`](./docs/10-trade.md) — план торговли: мировой рынок, деньги, порядок работ
-- [`11-money.md`](./docs/11-money.md) — план денег: курс, резервы, долг
-- [`12-labour.md`](./docs/12-labour.md) — эффективность и занятость, сделано
-- [`13-wages.md`](./docs/13-wages.md) — зарплаты, покупки, бюджет
-- [`14-consumption.md`](./docs/14-consumption.md) — потребление по доходу, закон Энгеля
-- [`15-construction.md`](./docs/15-construction.md) — стройка как потребитель: попытка, разбор, план
+- [`02-war.md`](./docs/02-war.md) — дивизии, движение, бой, мир
+- [`03-model.md`](./docs/03-model.md) — **простая модель: регионы, неделя экономики, торговля, кто строит**
+- [`09-reality-check.md`](./docs/09-reality-check.md) — замеры: ровно ли идёт мир
 
 ## Стек
 
@@ -65,7 +54,6 @@ node tools/gen-industry.mjs
 node tools/fetch-icons.mjs
 node tools/check-data.mjs        # ссылки между файлами и наличие иконок
 node tools/check-deposits.mjs    # месторождения на суше и в своей стране
-node tools/check-balance.mjs     # сходятся ли производственные цепочки
 ```
 
 ## Карта
@@ -79,12 +67,18 @@ node tools/gen-world.mjs <путь-к-geojson> --preview preview.png
 
 ## Запуск
 
-Игра — F5 в редакторе Godot (главная сцена `scenes/Main.tscn`).
+Игра — F5 в редакторе Godot (главная сцена `scenes/Main.tscn`). Проект виден в менеджере
+проектов Godot. Нужен .NET 8 SDK в `/usr/local/share/dotnet`.
+
+Управление: ЛКМ — регион, ПКМ — отправить свои дивизии из выбранного региона, колесо —
+масштаб, пробел — пауза, 1–5 — скорость. Страну выбирают во вкладке «Страна» кнопкой «Играть».
+
+Для проверок без мыши: `Godot --path . -- --play RUS --war UKR --speed 5 --tab 1`.
 
 Симуляция без редактора:
 
 ```bash
-dotnet run --project src/CapitaModern.Headless -- 250
+dotnet run --project src/CapitaModern.Headless -c Release -- 40
 ```
 
 Сборка целиком:

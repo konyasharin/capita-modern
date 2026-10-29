@@ -374,6 +374,7 @@ public static class EconomyStep
             // Сверх годовой прибыли касса не копится: излишек уходит владельцам.
             var cap = Math.Max(0, company.ProfitWeek) * 52;
             if (company.Cash > cap) company.Cash = cap;
+            company.ProfitLast = company.ProfitWeek;
             company.ProfitWeek = 0;
 
             if (company.WeeksInRed < 26) continue;

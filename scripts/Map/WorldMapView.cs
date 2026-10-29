@@ -1,85 +1,109 @@
-﻿using Godot;
+using CapitaModern.Core.Map;
+using CapitaModern.Core.World;
+using Godot;
 
 /// <summary>
 /// Рисует поле владения. Вся геометрия границ живёт в шейдере, здесь только
-/// загрузка данных и заливка их в текстуры.
+/// загрузка данных и заливка их в текстуры. Цвет региона — его нынешний держатель.
 /// </summary>
 public partial class WorldMapView : Sprite2D
 {
-    private const string MapPath = "res://data/map/world.bin";
-    private const string RegionsPath = "res://data/map/regions.json";
-    private const string RegionsBinPath = "res://data/map/regions.bin";
-    private const string CountriesPath = "res://data/map/countries.json";
-    private const string PalettePath = "res://data/map/palette.json";
-
     /// <summary>Насколько линия области бледнее границы страны.</summary>
     private const float RegionLineAlpha = 0.70f;
 
-    private ShaderMaterial _material = null!;
+    private Session _session = null!;
     private ImageTexture _ownerTex = null!;
-    private ImageTexture _controlTex = null!;
     private Image _ownerImage = null!;
-    private Image _controlImage = null!;
+    private byte[] _owner = null!;
 
-    public WorldMap Map { get; private set; } = null!;
-    public CountryTable Countries { get; private set; } = null!;
-    public RegionMap Regions { get; private set; } = null!;
-    public MapPalette Palette { get; private set; } = null!;
+    /// <summary>Ячейки каждого региона: при смене держателя перекрашиваются только они.</summary>
+    private int[][] _cells = null!;
+    private int[] _shown = null!;
 
+    public WorldMap Map => _session.World.Map;
     public Vector2 MapSize => new(Map.Width, Map.Height);
 
-    public override void _Ready()
+    public event Action<Region?>? RegionClicked;
+    public event Action<Region?>? RegionOrdered;
+
+    public void Init(Session session)
     {
-        Map = WorldMap.FromBytes(Godot.FileAccess.GetFileAsBytes(MapPath));
-        Countries = CountryTable.FromJson(Godot.FileAccess.GetFileAsString(CountriesPath));
-        Palette = MapPalette.Load(PalettePath);
+        _session = session;
+        var world = session.World;
+        var grid = world.Grid;
+        if (grid.Width != Map.Width || grid.Height != Map.Height)
+        {
+            GD.PushError($"сетка регионов {grid.Width}x{grid.Height} не совпадает с картой {Map.Width}x{Map.Height}");
+        }
 
         Centered = false;
         TextureFilter = TextureFilterEnum.Nearest;
 
-        _ownerImage = Image.CreateFromData(Map.Width, Map.Height, false, Image.Format.R8, Map.Owner);
+        _owner = (byte[])Map.Owner.Clone();
+        _cells = CellsByRegion(grid, world.RegionById.Length);
+        _shown = new int[world.RegionById.Length];
+        foreach (var region in world.Regions) _shown[region.Id] = region.Owner;
+
+        _ownerImage = Image.CreateFromData(Map.Width, Map.Height, false, Image.Format.R8, _owner);
         _ownerTex = ImageTexture.CreateFromImage(_ownerImage);
         Texture = _ownerTex;
 
-        _controlImage = Image.CreateFromData(Map.Width, Map.Height, false, Image.Format.R8, ControlBytes());
-        _controlTex = ImageTexture.CreateFromImage(_controlImage);
+        var control = Image.CreateFromData(Map.Width, Map.Height, false, Image.Format.R8, ControlBytes());
+        var regions = Image.CreateFromData(grid.Width, grid.Height, false, Image.Format.Rg8, grid.ToRg8());
+        var palette = session.Palette;
 
-        var started = Time.GetTicksMsec();
-        Regions = RegionMap.FromData(
-            Map,
-            Godot.FileAccess.GetFileAsString(RegionsPath),
-            Godot.FileAccess.GetFileAsBytes(RegionsBinPath)
-        );
+        var material = new ShaderMaterial { Shader = GD.Load<Shader>("res://scenes/map/world.gdshader") };
+        Material = material;
 
-        var regionImage = Image.CreateFromData(
-            Map.Width, Map.Height, false, Image.Format.Rg8, Regions.ToRg8()
-        );
-
-        _material = new ShaderMaterial { Shader = GD.Load<Shader>("res://scenes/map/world.gdshader") };
-        Material = _material;
-
-        _material.SetShaderParameter("owner_tex", _ownerTex);
-        _material.SetShaderParameter("control_tex", _controlTex);
-        _material.SetShaderParameter("region_tex", ImageTexture.CreateFromImage(regionImage));
-        _material.SetShaderParameter("palette_tex", BuildPaletteTexture());
-        _material.SetShaderParameter("map_size", MapSize);
-        _material.SetShaderParameter("ocean_color", Palette.Ocean);
-        _material.SetShaderParameter("ocean_deep_color", Palette.OceanDeep);
-        _material.SetShaderParameter("ocean_shelf_color", Palette.OceanShelf);
-        _material.SetShaderParameter("coast_color", Palette.Coast);
-        _material.SetShaderParameter("border_color", Palette.Border);
-        _material.SetShaderParameter("region_line_color",
-            new Color(Palette.RegionLine, RegionLineAlpha));
+        material.SetShaderParameter("owner_tex", _ownerTex);
+        material.SetShaderParameter("control_tex", ImageTexture.CreateFromImage(control));
+        material.SetShaderParameter("region_tex", ImageTexture.CreateFromImage(regions));
+        material.SetShaderParameter("palette_tex", BuildPaletteTexture());
+        material.SetShaderParameter("map_size", MapSize);
+        material.SetShaderParameter("ocean_color", palette.Ocean);
+        material.SetShaderParameter("ocean_deep_color", palette.OceanDeep);
+        material.SetShaderParameter("ocean_shelf_color", palette.OceanShelf);
+        material.SetShaderParameter("coast_color", palette.Coast);
+        material.SetShaderParameter("border_color", palette.Border);
+        material.SetShaderParameter("region_line_color", new Color(palette.RegionLine, RegionLineAlpha));
 
         AddWrapCopies();
+        SyncControllers();
+    }
 
-        GD.Print($"map {Map.Width}x{Map.Height}, стран: {Countries.All.Count}, "
-            + $"регионов: {Regions.Regions.Count} за {Time.GetTicksMsec() - started} мс");
+    private static int[][] CellsByRegion(RegionGrid grid, int regions)
+    {
+        var lists = new List<int>[regions];
+        for (var i = 0; i < grid.Cell.Length; i++)
+        {
+            var id = grid.Cell[i];
+            if (id == RegionGrid.None || id >= regions) continue;
+            (lists[id] ??= []).Add(i);
+        }
+
+        return lists.Select(l => l?.ToArray() ?? []).ToArray();
+    }
+
+    /// <summary>Перекрасить регионы, у которых сменился держатель.</summary>
+    public void SyncControllers()
+    {
+        var changed = false;
+        foreach (var region in _session.World.Regions)
+        {
+            if (_shown[region.Id] == region.Controller) continue;
+
+            _shown[region.Id] = region.Controller;
+            foreach (var cell in _cells[region.Id]) _owner[cell] = (byte)region.Controller;
+            changed = true;
+        }
+
+        if (!changed) return;
+        _ownerImage.SetData(Map.Width, Map.Height, false, Image.Format.R8, _owner);
+        _ownerTex.Update(_ownerImage);
     }
 
     /// <summary>Копии карты слева и справа: мир замкнут по долготе, и за краем должна
-    /// быть карта, а не пустота. Материал и текстуры общие, так что стоит это почти
-    /// ничего — рисуется только то, что попало в кадр.</summary>
+    /// быть карта, а не пустота. Материал и текстуры общие, так что стоит это почти ничего.</summary>
     private void AddWrapCopies()
     {
         foreach (var shift in new[] { -Map.Width, Map.Width })
@@ -98,46 +122,22 @@ public partial class WorldMapView : Sprite2D
     /// <summary>Цвет каждой страны по её id: строка 256x1, индекс = id владельца.</summary>
     private ImageTexture BuildPaletteTexture()
     {
+        var palette = _session.Palette;
         var image = Image.CreateEmpty(256, 1, false, Image.Format.Rgba8);
-        image.Fill(Palette.Ocean);
+        image.Fill(palette.Ocean);
 
-        foreach (var country in Countries.All)
-        {
-            var colour = Palette.ByIso.TryGetValue(country.Iso, out var own)
-                ? own
-                : Palette.Countries[country.Color % Palette.Countries.Length];
-
-            image.SetPixel(country.Id, 0, colour);
-        }
+        foreach (var country in _session.Table.All) image.SetPixel(country.Id, 0, palette.Of(country));
 
         return ImageTexture.CreateFromImage(image);
     }
 
-    /// <summary>Прочность владения в байтах: шейдеру нужна текстура, а не float.</summary>
     private byte[] ControlBytes()
     {
         var data = new byte[Map.Control.Length];
-
-        for (var i = 0; i < data.Length; i++)
-        {
-            data[i] = (byte)Mathf.Clamp(Mathf.RoundToInt(Map.Control[i] * 255f), 0, 255);
-        }
+        for (var i = 0; i < data.Length; i++) data[i] = (byte)Mathf.Clamp(Mathf.RoundToInt(Map.Control[i] * 255f), 0, 255);
 
         return data;
     }
-
-    /// <summary>Перезалить поле владения в текстуры после того, как его подвинули.</summary>
-    public void RefreshField()
-    {
-        _ownerImage.SetData(Map.Width, Map.Height, false, Image.Format.R8, Map.Owner);
-        _ownerTex.Update(_ownerImage);
-
-        _controlImage.SetData(Map.Width, Map.Height, false, Image.Format.R8, ControlBytes());
-        _controlTex.Update(_controlImage);
-    }
-
-    /// <summary>Щелчок по карте, в точке экрана. Перетаскивание сюда не попадает.</summary>
-    public Action<Vector2>? Clicked;
 
     /// <summary>Насколько курсор может сдвинуться, чтобы щелчок ещё считался щелчком.</summary>
     private const float Slack = 4f;
@@ -159,25 +159,19 @@ public partial class WorldMapView : Sprite2D
                 _dragging = true;
                 break;
 
-            case InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: false } up when !_dragging:
-                Clicked?.Invoke(up.Position);
+            case InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: false } when !_dragging:
+                RegionClicked?.Invoke(RegionUnderMouse());
+                break;
+
+            case InputEventMouseButton { ButtonIndex: MouseButton.Right, Pressed: true }:
+                RegionOrdered?.Invoke(RegionUnderMouse());
                 break;
         }
     }
 
-    /// <summary>Владелец ячейки под точкой в координатах карты, 0 — океан или мимо.</summary>
-    public int OwnerAt(Vector2 local)
+    private Region? RegionUnderMouse()
     {
-        var x = (int)local.X;
-        var y = (int)local.Y;
-
-        if (x < 0 || y < 0 || x >= Map.Width || y >= Map.Height)
-        {
-            return WorldMap.Ocean;
-        }
-
-        return Map.OwnerAt(x, y);
+        var local = GetLocalMousePosition();
+        return _session.World.RegionAt(Mathf.PosMod((int)Mathf.Floor(local.X), Map.Width), (int)Mathf.Floor(local.Y));
     }
-
-    public MapCountry? CountryAt(Vector2 local) => Countries.ById(OwnerAt(local));
 }

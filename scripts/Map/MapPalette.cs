@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using CapitaModern.Core.Map;
 using Godot;
 
 /// <summary>Цвета карты из data/map/palette.json.</summary>
@@ -19,6 +20,10 @@ public sealed class MapPalette
     /// <summary>Цвет конкретной страны по её коду. Кого здесь нет — тому достаётся
     /// цвет из <see cref="Countries"/> по жадной раскраске.</summary>
     public required Dictionary<string, Color> ByIso { get; init; }
+
+    /// <summary>Цвет страны: свой по коду или из общей раскраски, где соседи разного цвета.</summary>
+    public Color Of(MapCountry country) =>
+        ByIso.TryGetValue(country.Iso, out var own) ? own : Countries[country.Color % Countries.Length];
 
     public static MapPalette Load(string path)
     {

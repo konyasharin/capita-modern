@@ -1,69 +1,33 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=6 format=3]
 
-[ext_resource type="Script" path="res://scripts/Game.cs" id="1_game"]
+[ext_resource type="Script" path="res://scripts/Session.cs" id="1_session"]
 [ext_resource type="Script" path="res://scripts/Map/WorldMapView.cs" id="2_map"]
-[ext_resource type="Script" path="res://scripts/Map/MapCamera.cs" id="3_cam"]
-[ext_resource type="Script" path="res://scripts/Dev/DevScreenshot.cs" id="4_shot"]
-[ext_resource type="Script" path="res://scripts/Dev/FrontDemo.cs" id="5_war"]
-[ext_resource type="Script" path="res://scripts/Sim/GameLoop.cs" id="6_loop"]
-[ext_resource type="Script" path="res://scripts/Ui/TopBar.cs" id="7_bar"]
-[ext_resource type="Script" path="res://scripts/Ui/SideTabs.cs" id="8_tabs"]
-[ext_resource type="Script" path="res://scripts/Ui/SelectionPanel.cs" id="9_pick"]
-[ext_resource type="Script" path="res://scripts/Ui/PopoverStack.cs" id="10_pop"]
-[ext_resource type="Script" path="res://scripts/Audio/Music.cs" id="11_music"]
-[ext_resource type="Script" path="res://scripts/Sim/History.cs" id="12_hist"]
-[ext_resource type="Script" path="res://scripts/Ui/ResourceWindow.cs" id="13_res"]
+[ext_resource type="Script" path="res://scripts/Map/DivisionLayer.cs" id="3_div"]
+[ext_resource type="Script" path="res://scripts/Map/MapCamera.cs" id="4_cam"]
+[ext_resource type="Script" path="res://scripts/Ui/Hud.cs" id="5_hud"]
 
-[node name="Game" type="Node2D"]
-script = ExtResource("1_game")
+[node name="Session" type="Node2D"]
+script = ExtResource("1_session")
 
 [node name="WorldMapView" type="Sprite2D" parent="."]
 texture_filter = 1
 centered = false
 script = ExtResource("2_map")
 
+[node name="Divisions" type="Node2D" parent="."]
+script = ExtResource("3_div")
+
 [node name="MapCamera" type="Camera2D" parent="."]
-script = ExtResource("3_cam")
-
-[node name="GameLoop" type="Node" parent="."]
-script = ExtResource("6_loop")
-
-[node name="History" type="Node" parent="."]
-script = ExtResource("12_hist")
-
-[node name="Music" type="AudioStreamPlayer" parent="."]
-script = ExtResource("11_music")
+script = ExtResource("4_cam")
 
 [node name="Ui" type="CanvasLayer" parent="."]
 
-[node name="SideTabs" type="Control" parent="Ui"]
-anchors_preset = 0
-script = ExtResource("8_tabs")
-
-[node name="TopBar" type="Control" parent="Ui"]
-anchors_preset = 10
+[node name="Hud" type="Control" parent="Ui"]
+layout_mode = 3
+anchors_preset = 15
 anchor_right = 1.0
-offset_bottom = 30.0
+anchor_bottom = 1.0
 grow_horizontal = 2
-script = ExtResource("7_bar")
-
-[node name="SelectionPanel" type="PanelContainer" parent="Ui"]
-anchors_preset = 0
-script = ExtResource("9_pick")
-
-[node name="Overlay" type="CanvasLayer" parent="."]
-layer = 2
-
-[node name="ResourceWindow" type="Control" parent="Overlay"]
-anchors_preset = 0
-script = ExtResource("13_res")
-
-[node name="PopoverStack" type="Control" parent="Overlay"]
-anchors_preset = 0
-script = ExtResource("10_pop")
-
-[node name="DevScreenshot" type="Node" parent="."]
-script = ExtResource("4_shot")
-
-[node name="FrontDemo" type="Node" parent="."]
-script = ExtResource("5_war")
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("5_hud")

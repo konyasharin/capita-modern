@@ -10,3 +10,4 @@ obj/
 .idea/
 .vs/
 *.user
+*.csproj.old
